@@ -19,80 +19,86 @@ const attendanceRoutes = require("./routes/attendanceRoutes");
 const studentRoutes = require("./routes/studentRoutes");
 const examRoutes = require("./routes/examRoutes");
 
-
-// ✅ NEW ROUTE
 const adminProfileRoutes = require("./routes/adminProfileRoutes");
-
 
 const app = express();
 const server = http.createServer(app);
 
 
-// ================= SOCKET =================
+// ================= CORS =================
 
-const io = new Server(server,{
-  cors:{
-    origin:"http://localhost:5173",
-    methods:["GET","POST"]
-  }
-});
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://myschool-admin-panel.vercel.app"
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+  })
+);
 
 
 // ================= MIDDLEWARE =================
 
-app.use(cors());
 app.use(express.json());
 
 
 // ================= DATABASE =================
 
-mongoose.connect(process.env.MONGO_URI)
-.then(()=> console.log("MongoDB Connected"))
-.catch(err=> console.log(err));
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => console.log(err));
 
 
 // ================= ROUTES =================
 
-app.use("/api/auth",authRoutes);
+app.use("/api/auth", authRoutes);
 
-app.use("/api/admin/classes",classRoutes);
-app.use("/api/admin/dashboard",adminDashboardRoutes);
-app.use("/api/admin/users",adminUserRoutes);
-app.use("/api/admin/subjects",subjectRoutes);
-app.use("/api/admin/assign",adminAssignRoutes);
+app.use("/api/admin/classes", classRoutes);
+app.use("/api/admin/dashboard", adminDashboardRoutes);
+app.use("/api/admin/users", adminUserRoutes);
+app.use("/api/admin/subjects", subjectRoutes);
+app.use("/api/admin/assign", adminAssignRoutes);
 
-app.use("/api/teacher",teacherRoutes);
+app.use("/api/teacher", teacherRoutes);
 
 app.use("/api/attendance", attendanceRoutes);
 
 app.use("/api/student", studentRoutes);
 
-app.use("/api/exams",examRoutes);
+app.use("/api/exams", examRoutes);
 
-
-// ✅ ADMIN PROFILE ROUTE
-app.use("/api/admin/profile",adminProfileRoutes);
+app.use("/api/admin/profile", adminProfileRoutes);
 
 
 // ================= SOCKET =================
 
-io.on("connection",(socket)=>{
-
-  console.log("Client connected:",socket.id);
-
-  socket.on("disconnect",()=>{
-    console.log("Client disconnected:",socket.id);
-  });
-
+const io = new Server(server, {
+  cors: {
+    origin: [
+      "http://localhost:5173",
+      "https://myschool-admin-panel.vercel.app"
+    ]
+  }
 });
 
-app.set("io",io);
+io.on("connection", (socket) => {
+  console.log("Client connected:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected:", socket.id);
+  });
+});
+
+app.set("io", io);
 
 
 // ================= SERVER =================
 
 const PORT = process.env.PORT || 5000;
 
-server.listen(PORT,()=>{
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
