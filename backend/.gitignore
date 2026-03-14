@@ -1,0 +1,41 @@
+# dependencies
+node_modules/
+
+# env files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# build
+dist/
+build/
+
+# temp
+tmp/
+temp/
+
+# coverage
+coverage/
+
+# uploads (agar file upload system hai)
+uploads/
+
+# misc
+*.local
