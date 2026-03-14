@@ -4,6 +4,9 @@ import { FaCalendarAlt, FaBook, FaSchool } from "react-icons/fa";
 
 function ExamSchedule(){
 
+const API = import.meta.env.VITE_API_URL;
+const token = localStorage.getItem("token");
+
 const [exams,setExams] = useState([]);
 const [classes,setClasses] = useState([]);
 const [subjects,setSubjects] = useState([]);
@@ -13,8 +16,6 @@ classId:"",
 subjectId:"",
 date:""
 });
-
-const token = localStorage.getItem("token");
 
 useEffect(()=>{
 fetchExams();
@@ -26,7 +27,7 @@ fetchSubjects();
 const fetchExams = async()=>{
 
 const res = await axios.get(
-"http://localhost:5000/api/exams",
+`${API}/api/exams`,
 {
 headers:{ Authorization:`Bearer ${token}` }
 }
@@ -40,7 +41,10 @@ setExams(res.data);
 const fetchClasses = async()=>{
 
 const res = await axios.get(
-"http://localhost:5000/api/admin/classes"
+`${API}/api/admin/classes`,
+{
+headers:{ Authorization:`Bearer ${token}` }
+}
 );
 
 setClasses(res.data);
@@ -51,7 +55,10 @@ setClasses(res.data);
 const fetchSubjects = async()=>{
 
 const res = await axios.get(
-"http://localhost:5000/api/admin/subjects"
+`${API}/api/admin/subjects`,
+{
+headers:{ Authorization:`Bearer ${token}` }
+}
 );
 
 setSubjects(res.data);
@@ -72,7 +79,7 @@ const handleSubmit = async(e)=>{
 e.preventDefault();
 
 await axios.post(
-"http://localhost:5000/api/exams",
+`${API}/api/exams`,
 form,
 {
 headers:{ Authorization:`Bearer ${token}` }
@@ -80,6 +87,12 @@ headers:{ Authorization:`Bearer ${token}` }
 );
 
 alert("Exam created");
+
+setForm({
+classId:"",
+subjectId:"",
+date:""
+});
 
 fetchExams();
 
@@ -89,7 +102,7 @@ fetchExams();
 const deleteExam = async(id)=>{
 
 await axios.delete(
-"http://localhost:5000/api/exams/"+id,
+`${API}/api/exams/${id}`,
 {
 headers:{ Authorization:`Bearer ${token}` }
 }
@@ -100,7 +113,6 @@ setExams(exams.filter(e=>e._id!==id));
 };
 
 
-
 return(
 
 <div className="p-6">
@@ -109,8 +121,6 @@ return(
 Exam Schedule
 </h1>
 
-
-{/* FORM CARD */}
 
 <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border">
 
@@ -124,8 +134,6 @@ className="grid md:grid-cols-3 gap-4"
 >
 
 
-{/* CLASS */}
-
 <div className="flex items-center border rounded-lg px-3">
 
 <FaSchool className="text-gray-400 mr-2"/>
@@ -137,7 +145,7 @@ onChange={handleChange}
 required
 >
 
-<option>Select Class</option>
+<option value="">Select Class</option>
 
 {classes.map((cls)=>(
 <option key={cls._id} value={cls._id}>
@@ -150,9 +158,6 @@ required
 </div>
 
 
-
-{/* SUBJECT */}
-
 <div className="flex items-center border rounded-lg px-3">
 
 <FaBook className="text-gray-400 mr-2"/>
@@ -164,7 +169,7 @@ onChange={handleChange}
 required
 >
 
-<option>Select Subject</option>
+<option value="">Select Subject</option>
 
 {subjects.map((sub)=>(
 <option key={sub._id} value={sub._id}>
@@ -177,9 +182,6 @@ required
 </div>
 
 
-
-{/* DATE */}
-
 <div className="flex items-center border rounded-lg px-3">
 
 <FaCalendarAlt className="text-gray-400 mr-2"/>
@@ -187,6 +189,7 @@ required
 <input
 type="date"
 name="date"
+value={form.date}
 className="w-full p-2 outline-none"
 onChange={handleChange}
 required
@@ -210,8 +213,6 @@ Add Exam
 </div>
 
 
-
-{/* EXAM TABLE */}
 
 <div className="bg-white rounded-xl shadow-lg overflow-hidden border">
 
