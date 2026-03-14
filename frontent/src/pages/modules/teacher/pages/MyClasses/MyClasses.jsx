@@ -3,6 +3,8 @@ import axios from "axios";
 
 function MyClasses(){
 
+const API = import.meta.env.VITE_API_URL;
+
 const [classes,setClasses] = useState([]);
 
 useEffect(()=>{
@@ -14,7 +16,7 @@ try{
 const token = localStorage.getItem("token");
 
 const res = await axios.get(
-"http://localhost:5000/api/teacher/my-classes",
+`${API}/api/teacher/my-classes`,
 {
 headers:{
 Authorization:`Bearer ${token}`
@@ -34,7 +36,6 @@ fetchClasses();
 
 },[]);
 
-
 return(
 
 <div>
@@ -46,10 +47,10 @@ My Classes
 <div className="grid grid-cols-3 gap-4">
 
 {classes.length === 0 ? (
-<p>No classes assigned</p>
-) : (
 
-classes.map((c)=>(
+<p>No classes assigned</p>
+
+):(classes.map((c)=>(
 
 <div
 key={c._id}
@@ -66,9 +67,7 @@ Students : {c.students?.length || 0}
 
 </div>
 
-))
-
-)}
+)))}
 
 </div>
 

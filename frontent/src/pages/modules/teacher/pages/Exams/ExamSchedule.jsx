@@ -1,25 +1,30 @@
-import { useEffect,useState } from "react"
-import axios from "axios"
+import { useEffect,useState } from "react";
+import axios from "axios";
 
 function ExamSchedule(){
 
-const [exams,setExams] = useState([])
+const API = import.meta.env.VITE_API_URL;
 
-const token = localStorage.getItem("token")
+const [exams,setExams] = useState([]);
+
+const token = localStorage.getItem("token");
 
 useEffect(()=>{
 
 axios.get(
-"http://localhost:5000/api/teacher/exams",
+`${API}/api/teacher/exams`,
 {
 headers:{ Authorization:`Bearer ${token}` }
 }
 )
 .then(res=>{
-setExams(res.data)
+setExams(res.data);
 })
+.catch(err=>{
+console.log(err);
+});
 
-},[])
+},[]);
 
 return(
 
@@ -32,7 +37,6 @@ Exam Schedule
 <p className="mb-4">
 Upcoming exams schedule
 </p>
-
 
 <table className="w-full bg-white shadow rounded">
 
@@ -48,7 +52,15 @@ Upcoming exams schedule
 
 <tbody>
 
-{exams.map(e=>(
+{exams.length === 0 ? (
+
+<tr>
+<td colSpan="3" className="p-4 text-center">
+No exams scheduled
+</td>
+</tr>
+
+):(exams.map(e=>(
 
 <tr key={e._id} className="border">
 
@@ -66,7 +78,7 @@ Upcoming exams schedule
 
 </tr>
 
-))}
+)))}
 
 </tbody>
 
@@ -78,4 +90,4 @@ Upcoming exams schedule
 
 }
 
-export default ExamSchedule
+export default ExamSchedule;

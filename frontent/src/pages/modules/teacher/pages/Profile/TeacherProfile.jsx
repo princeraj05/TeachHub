@@ -11,6 +11,8 @@ FaSave
 
 function TeacherProfile(){
 
+const API = import.meta.env.VITE_API_URL;
+
 const teacherId = localStorage.getItem("userId");
 const token = localStorage.getItem("token");
 
@@ -25,7 +27,7 @@ const [editMode,setEditMode] = useState(false);
 useEffect(()=>{
 
 axios.get(
-`http://localhost:5000/api/teacher/profile/${teacherId}`,
+`${API}/api/teacher/profile/${teacherId}`,
 {
 headers:{
 Authorization:`Bearer ${token}`
@@ -55,7 +57,7 @@ setTeacher({
 const handleSave=()=>{
 
 axios.put(
-"http://localhost:5000/api/teacher/profile/update",
+`${API}/api/teacher/profile/update`,
 {
 name:teacher.name,
 email:teacher.email
@@ -81,7 +83,6 @@ console.log(err);
 };
 
 
-
 return(
 
 <div>
@@ -90,11 +91,7 @@ return(
 Teacher Profile
 </h1>
 
-
 <div className="bg-white rounded-xl shadow-lg p-8 max-w-md">
-
-
-{/* Avatar */}
 
 <div className="flex flex-col items-center mb-6">
 
@@ -114,9 +111,6 @@ Teacher Profile
 
 </div>
 
-
-
-{/* Info */}
 
 <div className="space-y-4">
 
@@ -145,7 +139,6 @@ className="border p-2 rounded w-full"
 </div>
 
 
-
 <div className="flex items-center gap-3 text-gray-700">
 
 <FaEnvelope className="text-green-600"/>
@@ -171,7 +164,6 @@ className="border p-2 rounded w-full"
 </div>
 
 
-
 <div className="flex items-center gap-3 text-gray-700">
 
 <FaUserShield className="text-purple-600"/>
@@ -184,9 +176,6 @@ className="border p-2 rounded w-full"
 
 </div>
 
-
-
-{/* Buttons */}
 
 {editMode ? (
 
