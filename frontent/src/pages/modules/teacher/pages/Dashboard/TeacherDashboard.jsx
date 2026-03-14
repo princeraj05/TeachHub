@@ -19,6 +19,9 @@ FaClipboardCheck
 
 function TeacherDashboard() {
 
+const API = import.meta.env.VITE_API_URL;
+const token = localStorage.getItem("token");
+
 const [data, setData] = useState({
 students: 0,
 subjects: 0,
@@ -29,10 +32,8 @@ recentStudents:[]
 
 useEffect(() => {
 
-const token = localStorage.getItem("token");
-
 axios
-.get("http://localhost:5000/api/teacher/dashboard",{
+.get(`${API}/api/teacher/dashboard`,{
 headers:{
 Authorization:`Bearer ${token}`
 }
@@ -67,97 +68,58 @@ return(
 
 <div>
 
-{/* Header */}
-
 <div className="mb-6">
-
 <h1 className="text-3xl font-bold">
 Teacher Dashboard
 </h1>
-
 </div>
-
-
-
-{/* Stats */}
 
 <div className="grid md:grid-cols-4 gap-6 mb-8">
 
-
-<div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow hover:scale-105 transition">
-
+<div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow">
 <div className="flex justify-between items-center">
-
 <div>
 <p>My Students</p>
 <p className="text-3xl font-bold">{data.students}</p>
 </div>
-
 <FaUserGraduate size={30}/>
-
+</div>
 </div>
 
-</div>
-
-
-
-<div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl shadow hover:scale-105 transition">
-
+<div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl shadow">
 <div className="flex justify-between items-center">
-
 <div>
 <p>My Subjects</p>
 <p className="text-3xl font-bold">{data.subjects}</p>
 </div>
-
 <FaBook size={30}/>
-
+</div>
 </div>
 
-</div>
-
-
-
-<div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow hover:scale-105 transition">
-
+<div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow">
 <div className="flex justify-between items-center">
-
 <div>
 <p>My Classes</p>
 <p className="text-3xl font-bold">{data.classes}</p>
 </div>
-
 <FaSchool size={30}/>
-
+</div>
 </div>
 
-</div>
-
-
-
-<div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-xl shadow hover:scale-105 transition">
-
+<div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-xl shadow">
 <div className="flex justify-between items-center">
-
 <div>
 <p>Today's Attendance</p>
 <p className="text-3xl font-bold">{data.attendanceToday}</p>
 </div>
-
 <FaClipboardCheck size={30}/>
-
+</div>
 </div>
 
 </div>
 
-</div>
-
-
-
-{/* Charts */}
 
 <div className="grid md:grid-cols-2 gap-6">
-
 
 <div className="bg-white p-6 rounded-xl shadow">
 
@@ -166,21 +128,15 @@ Teacher Overview
 </h2>
 
 <ResponsiveContainer width="100%" height={300}>
-
 <BarChart data={chartData}>
-
 <XAxis dataKey="name"/>
 <YAxis/>
 <Tooltip/>
-
 <Bar dataKey="value" fill="#6366f1"/>
-
 </BarChart>
-
 </ResponsiveContainer>
 
 </div>
-
 
 
 <div className="bg-white p-6 rounded-xl shadow">
@@ -202,9 +158,6 @@ Quick Info
 
 </div>
 
-
-
-{/* Recent Students */}
 
 <div className="bg-white p-6 rounded-xl shadow mt-8">
 
@@ -237,10 +190,8 @@ No students found
 
 data.recentStudents.map(student=>(
 <tr key={student._id} className="border-t">
-
 <td className="p-3">{student.name}</td>
 <td className="p-3">{student.email}</td>
-
 </tr>
 ))
 
