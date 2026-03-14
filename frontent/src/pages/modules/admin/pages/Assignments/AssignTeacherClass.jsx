@@ -4,6 +4,9 @@ import { FaSchool, FaChalkboardTeacher } from "react-icons/fa";
 
 function AssignTeacherClass(){
 
+const API = import.meta.env.VITE_API_URL;
+const token = localStorage.getItem("token");
+
 const [classes,setClasses] = useState([]);
 const [teachers,setTeachers] = useState([]);
 
@@ -16,12 +19,22 @@ fetchTeachers();
 },[]);
 
 const fetchClasses = async ()=>{
-const res = await axios.get("http://localhost:5000/api/admin/classes");
+const res = await axios.get(
+`${API}/api/admin/classes`,
+{
+headers:{ Authorization:`Bearer ${token}` }
+}
+);
 setClasses(res.data);
 };
 
 const fetchTeachers = async ()=>{
-const res = await axios.get("http://localhost:5000/api/admin/users/teachers");
+const res = await axios.get(
+`${API}/api/admin/users/teachers`,
+{
+headers:{ Authorization:`Bearer ${token}` }
+}
+);
 setTeachers(res.data);
 };
 
@@ -29,8 +42,11 @@ const handleSubmit = async(e)=>{
 e.preventDefault();
 
 await axios.post(
-"http://localhost:5000/api/admin/assign/assign-teacher-class",
-{ classId, teacherId }
+`${API}/api/admin/assign/assign-teacher-class`,
+{ classId, teacherId },
+{
+headers:{ Authorization:`Bearer ${token}` }
+}
 );
 
 alert("Teacher Assigned Successfully");
@@ -38,7 +54,6 @@ alert("Teacher Assigned Successfully");
 };
 
 return(
-
 <div className="p-6">
 
 <div className="bg-white rounded-xl shadow-lg p-6 w-[420px] border">
@@ -50,9 +65,7 @@ Assign Teacher to Class
 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
 <div className="flex items-center border rounded-lg px-3">
-
 <FaSchool className="text-gray-400 mr-2"/>
-
 <select
 className="p-2 w-full outline-none"
 onChange={(e)=>setClassId(e.target.value)}
@@ -64,16 +77,12 @@ onChange={(e)=>setClassId(e.target.value)}
 {cls.name} ({cls.section})
 </option>
 ))}
-
 </select>
-
 </div>
 
 
 <div className="flex items-center border rounded-lg px-3">
-
 <FaChalkboardTeacher className="text-gray-400 mr-2"/>
-
 <select
 className="p-2 w-full outline-none"
 onChange={(e)=>setTeacherId(e.target.value)}
@@ -85,9 +94,7 @@ onChange={(e)=>setTeacherId(e.target.value)}
 {t.name}
 </option>
 ))}
-
 </select>
-
 </div>
 
 <button className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition">
@@ -99,7 +106,6 @@ Assign
 </div>
 
 </div>
-
 )
 
 }

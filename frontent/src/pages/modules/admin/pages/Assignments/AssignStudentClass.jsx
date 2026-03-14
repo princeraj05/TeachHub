@@ -4,6 +4,9 @@ import { FaUserGraduate, FaSchool } from "react-icons/fa";
 
 function AssignStudentClass(){
 
+const API = import.meta.env.VITE_API_URL;
+const token = localStorage.getItem("token");
+
 const [classes,setClasses] = useState([]);
 const [students,setStudents] = useState([]);
 
@@ -16,12 +19,22 @@ fetchStudents();
 },[]);
 
 const fetchClasses = async ()=>{
-const res = await axios.get("http://localhost:5000/api/admin/classes");
+const res = await axios.get(
+`${API}/api/admin/classes`,
+{
+headers:{ Authorization:`Bearer ${token}` }
+}
+);
 setClasses(res.data);
 };
 
 const fetchStudents = async ()=>{
-const res = await axios.get("http://localhost:5000/api/admin/users/students");
+const res = await axios.get(
+`${API}/api/admin/users/students`,
+{
+headers:{ Authorization:`Bearer ${token}` }
+}
+);
 setStudents(res.data);
 };
 
@@ -29,16 +42,17 @@ const handleSubmit = async(e)=>{
 e.preventDefault();
 
 await axios.post(
-"http://localhost:5000/api/admin/assign/assign-student-class",
-{ classId, studentId }
+`${API}/api/admin/assign/assign-student-class`,
+{ classId, studentId },
+{
+headers:{ Authorization:`Bearer ${token}` }
+}
 );
 
 alert("Student Assigned Successfully");
-
 };
 
 return(
-
 <div className="p-6">
 
 <div className="bg-white rounded-xl shadow-lg p-6 w-[420px] border">
@@ -50,9 +64,7 @@ Assign Student to Class
 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
 <div className="flex items-center border rounded-lg px-3">
-
 <FaSchool className="text-gray-400 mr-2"/>
-
 <select
 className="p-2 w-full outline-none"
 onChange={(e)=>setClassId(e.target.value)}
@@ -64,16 +76,12 @@ onChange={(e)=>setClassId(e.target.value)}
 {cls.name} ({cls.section})
 </option>
 ))}
-
 </select>
-
 </div>
 
 
 <div className="flex items-center border rounded-lg px-3">
-
 <FaUserGraduate className="text-gray-400 mr-2"/>
-
 <select
 className="p-2 w-full outline-none"
 onChange={(e)=>setStudentId(e.target.value)}
@@ -85,9 +93,7 @@ onChange={(e)=>setStudentId(e.target.value)}
 {s.name}
 </option>
 ))}
-
 </select>
-
 </div>
 
 <button className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition">
@@ -99,7 +105,6 @@ Assign
 </div>
 
 </div>
-
 )
 
 }

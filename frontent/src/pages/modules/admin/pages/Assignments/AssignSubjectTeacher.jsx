@@ -4,6 +4,9 @@ import { FaBook, FaChalkboardTeacher } from "react-icons/fa";
 
 function AssignSubjectTeacher(){
 
+const API = import.meta.env.VITE_API_URL;
+const token = localStorage.getItem("token");
+
 const [subjects,setSubjects] = useState([]);
 const [teachers,setTeachers] = useState([]);
 
@@ -16,12 +19,22 @@ fetchTeachers();
 },[]);
 
 const fetchSubjects = async ()=>{
-const res = await axios.get("http://localhost:5000/api/admin/subjects");
+const res = await axios.get(
+`${API}/api/admin/subjects`,
+{
+headers:{ Authorization:`Bearer ${token}` }
+}
+);
 setSubjects(res.data);
 };
 
 const fetchTeachers = async ()=>{
-const res = await axios.get("http://localhost:5000/api/admin/users/teachers");
+const res = await axios.get(
+`${API}/api/admin/users/teachers`,
+{
+headers:{ Authorization:`Bearer ${token}` }
+}
+);
 setTeachers(res.data);
 };
 
@@ -29,8 +42,11 @@ const handleSubmit = async(e)=>{
 e.preventDefault();
 
 await axios.post(
-"http://localhost:5000/api/admin/assign/assign-subject-teacher",
-{ subjectId, teacherId }
+`${API}/api/admin/assign/assign-subject-teacher`,
+{ subjectId, teacherId },
+{
+headers:{ Authorization:`Bearer ${token}` }
+}
 );
 
 alert("Subject Assigned Successfully");
@@ -50,9 +66,7 @@ Assign Subject to Teacher
 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
 <div className="flex items-center border rounded-lg px-3">
-
 <FaBook className="text-gray-400 mr-2"/>
-
 <select
 className="p-2 w-full outline-none"
 onChange={(e)=>setSubjectId(e.target.value)}
@@ -64,16 +78,12 @@ onChange={(e)=>setSubjectId(e.target.value)}
 {s.name}
 </option>
 ))}
-
 </select>
-
 </div>
 
 
 <div className="flex items-center border rounded-lg px-3">
-
 <FaChalkboardTeacher className="text-gray-400 mr-2"/>
-
 <select
 className="p-2 w-full outline-none"
 onChange={(e)=>setTeacherId(e.target.value)}
@@ -85,9 +95,7 @@ onChange={(e)=>setTeacherId(e.target.value)}
 {t.name}
 </option>
 ))}
-
 </select>
-
 </div>
 
 <button className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition">
