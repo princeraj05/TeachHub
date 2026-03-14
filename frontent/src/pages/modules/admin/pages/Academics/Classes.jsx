@@ -4,6 +4,9 @@ import { FaSchool, FaLayerGroup } from "react-icons/fa";
 
 function Classes() {
 
+const API = import.meta.env.VITE_API_URL;
+const token = localStorage.getItem("token");
+
 const [classes,setClasses] = useState([]);
 
 const [form,setForm] = useState({
@@ -16,7 +19,12 @@ const fetchClasses = async () => {
 try{
 
 const res = await axios.get(
-"http://localhost:5000/api/admin/classes"
+`${API}/api/admin/classes`,
+{
+headers:{
+Authorization:`Bearer ${token}`
+}
+}
 );
 
 setClasses(res.data);
@@ -53,8 +61,13 @@ return;
 try{
 
 await axios.post(
-"http://localhost:5000/api/admin/classes",
-form
+`${API}/api/admin/classes`,
+form,
+{
+headers:{
+Authorization:`Bearer ${token}`
+}
+}
 );
 
 setForm({
@@ -80,7 +93,12 @@ if(!window.confirm("Delete this class?")) return;
 try{
 
 await axios.delete(
-`http://localhost:5000/api/admin/classes/${id}`
+`${API}/api/admin/classes/${id}`,
+{
+headers:{
+Authorization:`Bearer ${token}`
+}
+}
 );
 
 fetchClasses();
@@ -102,8 +120,6 @@ return(
 Classes
 </h1>
 
-
-{/* FORM CARD */}
 
 <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border">
 
@@ -156,9 +172,6 @@ Add Class
 
 </div>
 
-
-
-{/* CLASS TABLE */}
 
 <div className="bg-white rounded-xl shadow-lg overflow-hidden border">
 

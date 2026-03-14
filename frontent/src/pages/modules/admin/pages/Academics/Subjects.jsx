@@ -4,6 +4,9 @@ import { FaBook, FaSchool } from "react-icons/fa";
 
 function Subjects() {
 
+const API = import.meta.env.VITE_API_URL;
+const token = localStorage.getItem("token");
+
 const [subjects,setSubjects] = useState([]);
 const [classes,setClasses] = useState([]);
 
@@ -16,7 +19,15 @@ classId:""
 // LOAD CLASSES
 const fetchClasses = async ()=>{
 
-const res = await axios.get("http://localhost:5000/api/admin/classes");
+const res = await axios.get(
+`${API}/api/admin/classes`,
+{
+headers:{
+Authorization:`Bearer ${token}`
+}
+}
+);
+
 setClasses(res.data);
 
 };
@@ -25,7 +36,15 @@ setClasses(res.data);
 // LOAD SUBJECTS
 const fetchSubjects = async ()=>{
 
-const res = await axios.get("http://localhost:5000/api/admin/subjects");
+const res = await axios.get(
+`${API}/api/admin/subjects`,
+{
+headers:{
+Authorization:`Bearer ${token}`
+}
+}
+);
+
 setSubjects(res.data);
 
 };
@@ -37,20 +56,23 @@ fetchClasses();
 },[]);
 
 
-// INPUT
 const handleChange=(e)=>{
 setForm({...form,[e.target.name]:e.target.value});
 };
 
 
-// ADD SUBJECT
 const handleSubmit = async(e)=>{
 
 e.preventDefault();
 
 await axios.post(
-"http://localhost:5000/api/admin/subjects",
-form
+`${API}/api/admin/subjects`,
+form,
+{
+headers:{
+Authorization:`Bearer ${token}`
+}
+}
 );
 
 setForm({
@@ -63,11 +85,15 @@ fetchSubjects();
 };
 
 
-// DELETE
 const deleteSubject = async(id)=>{
 
 await axios.delete(
-`http://localhost:5000/api/admin/subjects/${id}`
+`${API}/api/admin/subjects/${id}`,
+{
+headers:{
+Authorization:`Bearer ${token}`
+}
+}
 );
 
 fetchSubjects();
@@ -83,8 +109,6 @@ return(
 Subjects
 </h1>
 
-
-{/* SUBJECT FORM */}
 
 <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border">
 
@@ -147,9 +171,6 @@ Add Subject
 
 </div>
 
-
-
-{/* SUBJECT TABLE */}
 
 <div className="bg-white rounded-xl shadow-lg overflow-hidden border">
 
