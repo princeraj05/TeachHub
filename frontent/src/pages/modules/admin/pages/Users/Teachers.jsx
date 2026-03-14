@@ -3,20 +3,40 @@ import axios from "axios";
 
 function Teachers(){
 
+const API = import.meta.env.VITE_API_URL;
+
 const [teachers,setTeachers] = useState([]);
 
 useEffect(()=>{
 
-axios
-.get("http://localhost:5000/api/admin/users/teachers")
-.then(res=>{
-setTeachers(res.data);
-})
-.catch(err=>{
-console.log(err);
-});
+const fetchTeachers = async()=>{
 
-},[]);
+try{
+
+const token = localStorage.getItem("token");
+
+const res = await axios.get(
+`${API}/api/admin/users/teachers`,
+{
+headers:{
+Authorization:`Bearer ${token}`
+}
+}
+);
+
+setTeachers(res.data);
+
+}catch(err){
+
+console.log(err);
+
+}
+
+};
+
+fetchTeachers();
+
+},[API]);
 
 return(
 
