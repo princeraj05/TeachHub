@@ -43,7 +43,6 @@ fetchStudents();
 },[]);
 
 
-
 const handleChange = (studentId,status)=>{
 
 setAttendance({
@@ -52,7 +51,6 @@ setAttendance({
 });
 
 };
-
 
 
 const handleSubmit = async ()=>{
@@ -92,12 +90,11 @@ console.log(err.response?.data || err.message);
 };
 
 
-
 return(
 
-<div>
+<div className="p-4 md:p-6">
 
-<h1 className="text-2xl font-bold mb-4">
+<h1 className="text-xl md:text-2xl font-bold mb-4">
 Mark Attendance
 </h1>
 
@@ -112,14 +109,16 @@ Mark Attendance
 
 ) : (
 
-<table className="w-full bg-white shadow">
+<div className="overflow-x-auto">
+
+<table className="min-w-full bg-white shadow">
 
 <thead className="bg-gray-200">
 
 <tr>
-<th className="p-2">Student</th>
-<th className="p-2">Present</th>
-<th className="p-2">Absent</th>
+<th className="p-2 text-left">Student</th>
+<th className="p-2 text-center">Present</th>
+<th className="p-2 text-center">Absent</th>
 </tr>
 
 </thead>
@@ -162,12 +161,14 @@ onChange={()=>handleChange(s._id,"Absent")}
 
 </table>
 
+</div>
+
 )}
 
 
 <button
 onClick={handleSubmit}
-className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
+className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
 >
 
 Save Attendance

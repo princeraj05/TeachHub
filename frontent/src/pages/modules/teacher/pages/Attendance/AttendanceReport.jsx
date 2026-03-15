@@ -57,11 +57,11 @@ return "bg-gray-100 text-gray-700";
 
 return(
 
-<div>
+<div className="p-4 md:p-6">
 
-<div className="flex justify-between items-center mb-6">
+<div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2 mb-6">
 
-<h1 className="text-3xl font-bold text-gray-800">
+<h1 className="text-2xl md:text-3xl font-bold text-gray-800">
 Attendance Report
 </h1>
 
@@ -88,7 +88,7 @@ Loading attendance...
 
 <div className="overflow-x-auto">
 
-<table className="w-full text-sm">
+<table className="min-w-full text-sm">
 
 <thead className="bg-gray-100 text-gray-700">
 
