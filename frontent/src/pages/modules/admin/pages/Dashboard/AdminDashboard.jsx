@@ -69,12 +69,12 @@ function AdminDashboard() {
 
   return(
 
-    <div>
+    <div className="w-full">
 
       {/* Header */}
 
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-2xl md:text-3xl font-bold">
           Admin Dashboard
         </h1>
       </div>
@@ -82,7 +82,7 @@ function AdminDashboard() {
 
       {/* Stats */}
 
-      <div className="grid md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
 
 
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow hover:scale-105 transition">
@@ -90,11 +90,11 @@ function AdminDashboard() {
           <div className="flex justify-between items-center">
 
             <div>
-              <p>Total Students</p>
-              <p className="text-3xl font-bold">{data.students}</p>
+              <p className="text-sm md:text-base">Total Students</p>
+              <p className="text-2xl md:text-3xl font-bold">{data.students}</p>
             </div>
 
-            <FaUserGraduate size={30}/>
+            <FaUserGraduate className="text-2xl md:text-3xl"/>
 
           </div>
 
@@ -107,11 +107,11 @@ function AdminDashboard() {
           <div className="flex justify-between items-center">
 
             <div>
-              <p>Total Teachers</p>
-              <p className="text-3xl font-bold">{data.teachers}</p>
+              <p className="text-sm md:text-base">Total Teachers</p>
+              <p className="text-2xl md:text-3xl font-bold">{data.teachers}</p>
             </div>
 
-            <FaChalkboardTeacher size={30}/>
+            <FaChalkboardTeacher className="text-2xl md:text-3xl"/>
 
           </div>
 
@@ -124,11 +124,11 @@ function AdminDashboard() {
           <div className="flex justify-between items-center">
 
             <div>
-              <p>Total Classes</p>
-              <p className="text-3xl font-bold">{data.classes}</p>
+              <p className="text-sm md:text-base">Total Classes</p>
+              <p className="text-2xl md:text-3xl font-bold">{data.classes}</p>
             </div>
 
-            <FaSchool size={30}/>
+            <FaSchool className="text-2xl md:text-3xl"/>
 
           </div>
 
@@ -141,11 +141,11 @@ function AdminDashboard() {
           <div className="flex justify-between items-center">
 
             <div>
-              <p>Total Subjects</p>
-              <p className="text-3xl font-bold">{data.subjects}</p>
+              <p className="text-sm md:text-base">Total Subjects</p>
+              <p className="text-2xl md:text-3xl font-bold">{data.subjects}</p>
             </div>
 
-            <FaBook size={30}/>
+            <FaBook className="text-2xl md:text-3xl"/>
 
           </div>
 
@@ -158,12 +158,12 @@ function AdminDashboard() {
 
       {/* Charts */}
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
 
-        <div className="bg-white p-6 rounded-xl shadow">
+        <div className="bg-white p-4 md:p-6 rounded-xl shadow">
 
-          <h2 className="text-xl font-semibold mb-4">
+          <h2 className="text-lg md:text-xl font-semibold mb-4">
             System Overview
           </h2>
 
@@ -185,13 +185,13 @@ function AdminDashboard() {
 
 
 
-        <div className="bg-white p-6 rounded-xl shadow">
+        <div className="bg-white p-4 md:p-6 rounded-xl shadow">
 
-          <h2 className="text-xl font-semibold mb-4">
+          <h2 className="text-lg md:text-xl font-semibold mb-4">
             System Info
           </h2>
 
-          <ul className="space-y-3 text-gray-600">
+          <ul className="space-y-3 text-gray-600 text-sm md:text-base">
 
             <li>📚 Total Classes : {data.classes}</li>
             <li>👨‍🎓 Students Registered : {data.students}</li>
