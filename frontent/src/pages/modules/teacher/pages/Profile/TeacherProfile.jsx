@@ -72,7 +72,6 @@ Authorization:`Bearer ${token}`
 .then(res=>{
 
 setTeacher(res.data.teacher);
-
 setEditMode(false);
 
 })
@@ -85,23 +84,23 @@ console.log(err);
 
 return(
 
-<div>
+<div className="p-4 md:p-6 flex justify-center">
 
-<h1 className="text-3xl font-bold mb-6 text-gray-800">
+<div className="bg-white rounded-xl shadow-lg p-6 md:p-8 max-w-md w-full">
+
+<h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800 text-center">
 Teacher Profile
 </h1>
 
-<div className="bg-white rounded-xl shadow-lg p-8 max-w-md">
-
 <div className="flex flex-col items-center mb-6">
 
-<div className="w-24 h-24 bg-indigo-600 text-white flex items-center justify-center rounded-full text-3xl font-bold shadow">
+<div className="w-20 md:w-24 h-20 md:h-24 bg-indigo-600 text-white flex items-center justify-center rounded-full text-2xl md:text-3xl font-bold shadow">
 
 {teacher.name ? teacher.name.charAt(0).toUpperCase() : "T"}
 
 </div>
 
-<h2 className="text-xl font-semibold mt-4">
+<h2 className="text-lg md:text-xl font-semibold mt-4">
 {teacher.name}
 </h2>
 
