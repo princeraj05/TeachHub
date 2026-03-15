@@ -41,11 +41,9 @@ useEffect(()=>{
 fetchClasses();
 },[]);
 
-
 const handleChange=(e)=>{
 setForm({...form,[e.target.name]:e.target.value});
 };
-
 
 const handleSubmit = async(e)=>{
 
@@ -85,7 +83,6 @@ console.log(err);
 
 };
 
-
 const deleteClass = async(id)=>{
 
 if(!window.confirm("Delete this class?")) return;
@@ -111,17 +108,15 @@ console.log(err);
 
 };
 
-
 return(
 
-<div className="p-6">
+<div className="p-4 md:p-6">
 
-<h1 className="text-2xl font-bold mb-6 text-gray-800">
+<h1 className="text-xl md:text-2xl font-bold mb-6 text-gray-800">
 Classes
 </h1>
 
-
-<div className="bg-white rounded-xl shadow-lg p-6 mb-8 border">
+<div className="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-8 border">
 
 <h2 className="text-lg font-semibold mb-4 text-gray-700">
 Create Class
@@ -129,10 +124,10 @@ Create Class
 
 <form
 onSubmit={handleSubmit}
-className="flex flex-wrap gap-4"
+className="flex flex-col md:flex-row md:flex-wrap gap-4"
 >
 
-<div className="flex items-center border rounded-lg px-3">
+<div className="flex items-center border rounded-lg px-3 w-full md:w-auto">
 
 <FaSchool className="text-gray-400 mr-2"/>
 
@@ -141,13 +136,12 @@ name="name"
 placeholder="Class Name"
 value={form.name}
 onChange={handleChange}
-className="p-2 outline-none"
+className="p-2 outline-none w-full"
 />
 
 </div>
 
-
-<div className="flex items-center border rounded-lg px-3">
+<div className="flex items-center border rounded-lg px-3 w-full md:w-auto">
 
 <FaLayerGroup className="text-gray-400 mr-2"/>
 
@@ -156,33 +150,32 @@ name="section"
 placeholder="Section"
 value={form.section}
 onChange={handleChange}
-className="p-2 outline-none"
+className="p-2 outline-none w-full"
 />
 
 </div>
 
-
 <button
-className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow transition"
+className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow transition w-full md:w-auto"
+
 >
-Add Class
-</button>
+
+Add Class </button>
 
 </form>
 
 </div>
 
+<div className="bg-white rounded-xl shadow-lg overflow-x-auto border">
 
-<div className="bg-white rounded-xl shadow-lg overflow-hidden border">
-
-<table className="w-full">
+<table className="min-w-full">
 
 <thead className="bg-gray-100 text-gray-700">
 
 <tr>
-<th className="px-6 py-3 text-left">Class</th>
-<th className="px-6 py-3 text-left">Section</th>
-<th className="px-6 py-3 text-left">Action</th>
+<th className="px-4 md:px-6 py-3 text-left">Class</th>
+<th className="px-4 md:px-6 py-3 text-left">Section</th>
+<th className="px-4 md:px-6 py-3 text-left">Action</th>
 </tr>
 
 </thead>
@@ -201,7 +194,6 @@ No classes found
 
 ):(
 
-
 classes.map((c,i)=>(
 
 <tr
@@ -211,7 +203,7 @@ i % 2 === 0 ? "bg-white" : "bg-gray-50"
 }`}
 >
 
-<td className="px-6 py-4">
+<td className="px-4 md:px-6 py-4">
 
 <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
 Class {c.name}
@@ -219,7 +211,7 @@ Class {c.name}
 
 </td>
 
-<td className="px-6 py-4">
+<td className="px-4 md:px-6 py-4">
 
 <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm">
 Section {c.section}
@@ -227,14 +219,15 @@ Section {c.section}
 
 </td>
 
-<td className="px-6 py-4">
+<td className="px-4 md:px-6 py-4">
 
 <button
 onClick={()=>deleteClass(c._id)}
 className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-lg text-sm transition"
+
 >
-Delete
-</button>
+
+Delete </button>
 
 </td>
 
