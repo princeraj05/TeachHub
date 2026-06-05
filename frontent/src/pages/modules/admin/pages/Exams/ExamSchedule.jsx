@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaCalendarAlt, FaBook, FaSchool, FaTrash, FaPlus } from "react-icons/fa";
+import { FaCalendarAlt, FaBook, FaSchool, FaTrash, FaPlus, FaCalendarCheck } from "react-icons/fa";
+
+const SORA = "'Sora', sans-serif";
 
 function ExamSchedule() {
   const API = import.meta.env.VITE_API_URL;
@@ -73,356 +75,271 @@ function ExamSchedule() {
     setExams(exams.filter((e) => e._id !== id));
   };
 
-  // Count exams per subject for the stat pills
   const upcomingCount = exams.filter(
     (e) => new Date(e.date) >= new Date()
   ).length;
 
+  const stats = [
+    {
+      label: "Total Scheduled",
+      value: exams.length,
+      desc: "all exams",
+      grad: "from-indigo-500 to-blue-500",
+      shadow: "shadow-indigo-500/10",
+      text: "text-indigo-600",
+      bg: "bg-indigo-50",
+    },
+    {
+      label: "Upcoming",
+      value: upcomingCount,
+      desc: "scheduled forward",
+      grad: "from-teal-500 to-emerald-500",
+      shadow: "shadow-teal-500/10",
+      text: "text-teal-600",
+      bg: "bg-teal-50",
+    },
+    {
+      label: "Completed",
+      value: exams.length - upcomingCount,
+      desc: "already held",
+      grad: "from-slate-500 to-slate-600",
+      shadow: "shadow-slate-500/10",
+      text: "text-slate-600",
+      bg: "bg-slate-50",
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 sm:p-6 lg:p-8">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap');
-        .exam-wrap { font-family: 'Sora', sans-serif; }
-
-        .glass {
-          background: rgba(255,255,255,0.04);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(255,255,255,0.08);
-        }
-        .dot-pattern {
-          background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
-          background-size: 24px 24px;
-        }
-        .top-bar { background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899); }
-
-        .stat-card {
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08);
-          transition: border-color 0.2s, transform 0.2s;
-        }
-        .stat-card:hover { border-color: rgba(99,102,241,0.35); transform: translateY(-2px); }
-
-        /* Form fields */
-        .field-wrap {
-          background: rgba(255,255,255,0.05);
-          border: 1.5px solid rgba(255,255,255,0.08);
-          border-radius: 14px;
-          transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .field-wrap:focus-within {
-          border-color: rgba(99,102,241,0.6);
-          box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
-        }
-        .field-wrap select,
-        .field-wrap input[type="date"] {
-          background: transparent;
-          color: white;
-          outline: none;
-          width: 100%;
-          padding: 10px 8px;
-          font-family: 'Sora', sans-serif;
-          font-size: 0.875rem;
-        }
-        .field-wrap select option { background: #1e293b; color: white; }
-        .field-wrap input[type="date"]::-webkit-calendar-picker-indicator {
-          filter: invert(0.5);
-          cursor: pointer;
-        }
-        select:invalid, select option[value=""] { color: rgba(255,255,255,0.35); }
-
-        .icon-badge {
-          width: 32px; height: 32px;
-          border-radius: 10px;
-          display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0;
-        }
-
-        /* Submit button */
-        .btn-submit {
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
-          color: white;
-          border: none;
-          border-radius: 14px;
-          font-family: 'Sora', sans-serif;
-          font-weight: 600;
-          font-size: 0.875rem;
-          padding: 11px 28px;
-          cursor: pointer;
-          display: flex; align-items: center; gap: 8px;
-          transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
-          box-shadow: 0 4px 20px rgba(99,102,241,0.4);
-        }
-        .btn-submit:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(99,102,241,0.55); }
-        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        /* Table */
-        .table-row { border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.15s; }
-        .table-row:hover { background: rgba(255,255,255,0.04); }
-
-        .badge-class {
-          background: rgba(99,102,241,0.15);
-          color: #a5b4fc;
-          border: 1px solid rgba(99,102,241,0.3);
-          padding: 3px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 500;
-        }
-        .badge-subject {
-          background: rgba(168,85,247,0.15);
-          color: #d8b4fe;
-          border: 1px solid rgba(168,85,247,0.3);
-          padding: 3px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 500;
-        }
-        .badge-upcoming {
-          background: rgba(16,185,129,0.12);
-          color: #6ee7b7;
-          border: 1px solid rgba(16,185,129,0.25);
-          padding: 2px 8px; border-radius: 999px; font-size: 0.7rem; font-weight: 600;
-        }
-        .badge-past {
-          background: rgba(100,116,139,0.15);
-          color: #94a3b8;
-          border: 1px solid rgba(100,116,139,0.2);
-          padding: 2px 8px; border-radius: 999px; font-size: 0.7rem; font-weight: 600;
-        }
-
-        /* Delete button */
-        .btn-delete {
-          background: rgba(239,68,68,0.1);
-          border: 1px solid rgba(239,68,68,0.25);
-          color: #fca5a5;
-          border-radius: 10px;
-          padding: 5px 14px;
-          font-size: 0.78rem;
-          font-weight: 600;
-          display: flex; align-items: center; gap: 5px;
-          cursor: pointer;
-          transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
-          font-family: 'Sora', sans-serif;
-        }
-        .btn-delete:hover { background: rgba(239,68,68,0.22); border-color: #ef4444; color: white; transform: scale(1.04); }
-
-        ::-webkit-scrollbar { height: 5px; }
-        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
-        ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.4); border-radius: 99px; }
-      `}</style>
-
-      <div className="exam-wrap max-w-6xl mx-auto">
-
-        {/* Section label */}
-        <div className="flex items-center gap-3 mb-2">
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
-          <span className="text-xs font-semibold tracking-widest text-indigo-400 uppercase">
-            Admin Console
-          </span>
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
+    <div style={{ fontFamily: SORA }}>
+      {/* Page Header */}
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-teal-600 mb-1">Academics</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
+            Exam Schedule
+          </h1>
+          <p className="text-xs text-slate-400 font-medium mt-0.5">Manage and organize system wide exam timelines</p>
         </div>
-
-        <h1 className="text-white text-2xl sm:text-3xl font-bold text-center mb-6 tracking-tight">
-          Exam Schedule
-        </h1>
-
-        {/* Stat cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
-          <div className="stat-card rounded-2xl p-4 sm:p-5">
-            <p className="text-xs text-slate-500 uppercase tracking-widest font-medium mb-1">Total Exams</p>
-            <p className="text-2xl sm:text-3xl font-bold text-white">{exams.length}</p>
-            <p className="text-xs text-slate-600 mt-1">all scheduled</p>
-          </div>
-          <div className="stat-card rounded-2xl p-4 sm:p-5">
-            <p className="text-xs text-slate-500 uppercase tracking-widest font-medium mb-1">Upcoming</p>
-            <p className="text-2xl sm:text-3xl font-bold text-emerald-400">{upcomingCount}</p>
-            <p className="text-xs text-slate-600 mt-1">from today</p>
-          </div>
-          <div className="stat-card rounded-2xl p-4 sm:p-5 col-span-2 sm:col-span-1">
-            <p className="text-xs text-slate-500 uppercase tracking-widest font-medium mb-1">Past</p>
-            <p className="text-2xl sm:text-3xl font-bold text-slate-400">{exams.length - upcomingCount}</p>
-            <p className="text-xs text-slate-600 mt-1">already held</p>
-          </div>
+        <div className="flex items-center gap-2.5 bg-slate-100 border border-slate-200/60 rounded-2xl px-4 py-2.5 w-fit text-xs font-bold text-slate-500 select-none shadow-sm">
+          <FaCalendarAlt className="text-slate-400" />
+          Academic Year 2026
         </div>
+      </div>
 
-        {/* Create Exam Card */}
-        <div className="glass rounded-2xl dot-pattern overflow-hidden mb-6">
-          <div className="top-bar h-1 w-full" />
-          <div className="p-5 sm:p-6">
-
-            <div className="flex items-center gap-3 mb-5">
-              <div className="icon-badge bg-indigo-500/20">
-                <FaPlus className="text-indigo-400 text-sm" />
-              </div>
-              <div>
-                <h2 className="text-white font-semibold text-base">Schedule New Exam</h2>
-                <p className="text-slate-500 text-xs mt-0.5">Fill in the details below to add an exam</p>
-              </div>
+      {/* Stats row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+        {stats.map((s, i) => (
+          <div
+            key={i}
+            className="group relative bg-white rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
+          >
+            <div className={`h-1.5 w-full bg-gradient-to-r ${s.grad}`} />
+            <div className="p-5">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{s.label}</span>
+              <p className="text-3xl font-extrabold text-slate-800 tracking-tight my-1">{s.value}</p>
+              <p className="text-xs text-slate-400 font-medium">{s.desc}</p>
             </div>
+          </div>
+        ))}
+      </div>
 
-            <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4">
-
-                {/* Class */}
-                <div className="field-wrap flex items-center px-3">
-                  <div className="icon-badge bg-indigo-500/20 mr-2">
-                    <FaSchool className="text-indigo-400 text-xs" />
-                  </div>
-                  <select name="classId" value={form.classId} onChange={handleChange} required>
-                    <option value="" disabled>Select Class</option>
-                    {classes.map((cls) => (
-                      <option key={cls._id} value={cls._id}>
-                        {cls.name} ({cls.section})
-                      </option>
-                    ))}
-                  </select>
+      {/* Main Content Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        
+        {/* Create Exam Panel (Left 2 cols) */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden sticky top-6">
+            <div className="h-1.5 w-full bg-gradient-to-r from-teal-500 to-indigo-500" />
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 shadow-sm">
+                  <FaPlus className="text-sm" />
                 </div>
-
-                {/* Subject */}
-                <div className="field-wrap flex items-center px-3">
-                  <div className="icon-badge bg-purple-500/20 mr-2">
-                    <FaBook className="text-purple-400 text-xs" />
-                  </div>
-                  <select name="subjectId" value={form.subjectId} onChange={handleChange} required>
-                    <option value="" disabled>Select Subject</option>
-                    {subjects.map((sub) => (
-                      <option key={sub._id} value={sub._id}>
-                        {sub.name}
-                      </option>
-                    ))}
-                  </select>
+                <div>
+                  <h2 className="text-slate-800 font-bold text-base">Schedule New Exam</h2>
+                  <p className="text-slate-400 text-xs mt-0.5">Fill academic details below</p>
                 </div>
-
-                {/* Date */}
-                <div className="field-wrap flex items-center px-3 sm:col-span-2 lg:col-span-1">
-                  <div className="icon-badge bg-pink-500/20 mr-2">
-                    <FaCalendarAlt className="text-pink-400 text-xs" />
-                  </div>
-                  <input
-                    type="date"
-                    name="date"
-                    value={form.date}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
               </div>
 
-              <div className="flex justify-end">
-                <button type="submit" className="btn-submit" disabled={submitting}>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Class select */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Class</label>
+                  <div className="relative">
+                    <FaSchool className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                    <select
+                      name="classId"
+                      value={form.classId}
+                      onChange={handleChange}
+                      required
+                      className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl pl-10 pr-3 py-3 text-xs text-slate-700 font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                    >
+                      <option value="" disabled>Select Class</option>
+                      {classes.map((cls) => (
+                        <option key={cls._id} value={cls._id}>
+                          {cls.name} ({cls.section})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Subject select */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Subject</label>
+                  <div className="relative">
+                    <FaBook className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                    <select
+                      name="subjectId"
+                      value={form.subjectId}
+                      onChange={handleChange}
+                      required
+                      className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl pl-10 pr-3 py-3 text-xs text-slate-700 font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                    >
+                      <option value="" disabled>Select Subject</option>
+                      {subjects.map((sub) => (
+                        <option key={sub._id} value={sub._id}>
+                          {sub.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Date select */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Exam Date</label>
+                  <div className="relative">
+                    <FaCalendarAlt className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                    <input
+                      type="date"
+                      name="date"
+                      value={form.date}
+                      onChange={handleChange}
+                      required
+                      className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl pl-10 pr-3 py-3 text-xs text-slate-700 font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                {/* Submit button */}
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full mt-2 bg-gradient-to-r from-teal-500 to-indigo-600 hover:opacity-90 active:scale-[0.99] text-white py-3 rounded-xl text-xs font-bold shadow-md shadow-teal-500/10 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   {submitting ? (
                     <>
-                      <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                      <span className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
                       Scheduling...
                     </>
                   ) : (
                     <>
-                      <FaPlus className="text-xs" />
+                      <FaPlus className="text-[10px]" />
                       Add Exam
                     </>
                   )}
                 </button>
-              </div>
-            </form>
-
+              </form>
+            </div>
           </div>
         </div>
 
-        {/* Exams Table */}
-        <div className="glass rounded-2xl dot-pattern overflow-hidden">
-          <div className="top-bar h-1 w-full" />
+        {/* Exams Table Panel (Right 3 cols) */}
+        <div className="lg:col-span-3">
+          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col justify-between">
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-bold text-slate-800">All Scheduled Exams</h2>
+                <p className="text-xs text-slate-400 font-medium mt-0.5">
+                  {exams.length} exam{exams.length !== 1 ? "s" : ""} total in history
+                </p>
+              </div>
+              <span className="text-[10px] font-extrabold bg-teal-50 border border-teal-100 text-teal-600 px-3 py-1 rounded-full select-none">
+                Academic Year 2026
+              </span>
+            </div>
 
-          <div className="flex items-center justify-between px-5 sm:px-6 pt-5 pb-4">
-            <div>
-              <h2 className="text-white font-semibold text-base">All Exams</h2>
-              <p className="text-slate-500 text-xs mt-0.5">
-                {exams.length} exam{exams.length !== 1 ? "s" : ""} total
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-3">
+                <div className="w-8 h-8 rounded-full border-2 border-teal-500 border-t-transparent animate-spin" />
+                <p className="text-slate-400 text-xs font-medium">Loading scheduled exams...</p>
+              </div>
+            ) : exams.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-3 text-center px-6">
+                <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200/60 flex items-center justify-center text-slate-400 text-lg shadow-sm">
+                  <FaCalendarCheck />
+                </div>
+                <div>
+                  <p className="text-slate-800 font-bold text-sm">No Exams Scheduled</p>
+                  <p className="text-slate-400 text-xs font-medium mt-0.5">Use the scheduling panel to add new exams.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[500px] text-sm text-left">
+                  <thead>
+                    <tr className="bg-slate-50 text-slate-400 uppercase tracking-widest text-[9px] font-bold border-b border-slate-100">
+                      <th className="px-5 py-4">Class</th>
+                      <th className="px-5 py-4">Subject</th>
+                      <th className="px-5 py-4">Date</th>
+                      <th className="px-5 py-4">Status</th>
+                      <th className="px-5 py-4 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100/60">
+                    {exams.map((e) => {
+                      const isUpcoming = new Date(e.date) >= new Date();
+                      return (
+                        <tr key={e._id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-5 py-4">
+                            <span className="inline-flex items-center bg-indigo-50 text-indigo-700 font-bold text-[10px] px-2.5 py-1 rounded-md border border-indigo-100">
+                              {e.class?.name} {e.class?.section ? `(${e.class.section})` : ""}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className="text-xs font-semibold text-slate-800">{e.subject?.name || "—"}</span>
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className="text-slate-500 text-xs font-medium whitespace-nowrap">
+                              {new Date(e.date).toLocaleDateString("en-IN", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              })}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                              isUpcoming 
+                                ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
+                                : "bg-slate-100 text-slate-400 border-slate-200/60"
+                            }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${isUpcoming ? "bg-emerald-500" : "bg-slate-400"}`} />
+                              {isUpcoming ? "Upcoming" : "Past"}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-center">
+                            <button
+                              onClick={() => deleteExam(e._id)}
+                              className="inline-flex items-center gap-1.5 bg-rose-50 border border-rose-100 hover:bg-rose-100 text-rose-600 font-bold text-[10px] px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <FaTrash className="text-[9px]" />
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <div className="px-6 py-4 border-t border-slate-100 text-center">
+              <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">
+                Upcoming exams remain active · Completed logs are preserved
               </p>
             </div>
-          </div>
-
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-16 gap-3">
-              <div className="w-10 h-10 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
-              <p className="text-slate-500 text-sm">Loading exams...</p>
-            </div>
-          ) : exams.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 gap-2">
-              <div className="w-14 h-14 rounded-full bg-slate-800 flex items-center justify-center text-2xl mb-1">
-                📅
-              </div>
-              <p className="text-slate-400 font-medium">No exams scheduled yet</p>
-              <p className="text-slate-600 text-sm">Use the form above to add one</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[520px]">
-                <thead>
-                  <tr>
-                    {["Class", "Subject", "Date", "Status", "Action"].map((h) => (
-                      <th
-                        key={h}
-                        className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-widest border-b border-white/5"
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {exams.map((e) => {
-                    const isUpcoming = new Date(e.date) >= new Date();
-                    return (
-                      <tr key={e._id} className="table-row">
-
-                        {/* Class */}
-                        <td className="px-4 sm:px-6 py-3.5">
-                          <span className="badge-class">
-                            {e.class?.name} {e.class?.section ? `(${e.class.section})` : ""}
-                          </span>
-                        </td>
-
-                        {/* Subject */}
-                        <td className="px-4 sm:px-6 py-3.5">
-                          <span className="badge-subject">{e.subject?.name || "—"}</span>
-                        </td>
-
-                        {/* Date */}
-                        <td className="px-4 sm:px-6 py-3.5">
-                          <span className="text-slate-300 text-sm whitespace-nowrap">
-                            {new Date(e.date).toLocaleDateString("en-IN", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })}
-                          </span>
-                        </td>
-
-                        {/* Status */}
-                        <td className="px-4 sm:px-6 py-3.5">
-                          <span className={isUpcoming ? "badge-upcoming" : "badge-past"}>
-                            {isUpcoming ? "Upcoming" : "Past"}
-                          </span>
-                        </td>
-
-                        {/* Action */}
-                        <td className="px-4 sm:px-6 py-3.5">
-                          <button
-                            onClick={() => deleteExam(e._id)}
-                            className="btn-delete"
-                          >
-                            <FaTrash className="text-xs" />
-                            Delete
-                          </button>
-                        </td>
-
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          <div className="px-5 sm:px-6 py-4 border-t border-white/5">
-            <p className="text-xs text-slate-600 text-center">
-              Upcoming exams are highlighted · Past exams remain for records
-            </p>
           </div>
         </div>
 

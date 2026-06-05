@@ -7,7 +7,10 @@ import {
   FaEdit,
   FaSave,
   FaTimes,
+  FaUserCog,
 } from "react-icons/fa";
+
+const SORA = "'Sora', sans-serif";
 
 function AdminProfile() {
   const API = import.meta.env.VITE_API_URL;
@@ -58,221 +61,123 @@ function AdminProfile() {
     : "A";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4 sm:p-6">
+    <div style={{ fontFamily: SORA }}>
+      {/* Page Header */}
+      <div className="mb-8">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-teal-600 mb-1">Account</p>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
+          Admin Profile
+        </h1>
+        <p className="text-xs text-slate-400 font-medium mt-0.5">Manage your personal information and preferences</p>
+      </div>
 
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap');
-
-        .profile-card { font-family: 'Sora', sans-serif; }
-
-        .glass {
-          background: rgba(255,255,255,0.04);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(255,255,255,0.08);
-        }
-
-        .avatar-ring {
-          background: conic-gradient(from 0deg, #6366f1, #a855f7, #ec4899, #6366f1);
-          animation: spin 4s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .field-box {
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.08);
-          transition: border-color 0.2s, background 0.2s;
-        }
-        .field-box:hover { border-color: rgba(99,102,241,0.4); }
-
-        .modern-input {
-          background: rgba(255,255,255,0.07);
-          border: 1.5px solid rgba(99,102,241,0.5);
-          color: white;
-          outline: none;
-          transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .modern-input:focus {
-          border-color: #6366f1;
-          box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
-        }
-        .modern-input::placeholder { color: rgba(255,255,255,0.3); }
-
-        .btn-save {
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
-          transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
-          box-shadow: 0 4px 20px rgba(99,102,241,0.35);
-        }
-        .btn-save:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(99,102,241,0.5); }
-        .btn-save:active { transform: translateY(0); }
-
-        .btn-edit {
-          background: transparent;
-          border: 1.5px solid rgba(99,102,241,0.6);
-          color: #a5b4fc;
-          transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
-        }
-        .btn-edit:hover {
-          background: rgba(99,102,241,0.15);
-          border-color: #6366f1;
-          color: white;
-          transform: translateY(-1px);
-        }
-
-        .btn-cancel {
-          background: transparent;
-          border: 1.5px solid rgba(239,68,68,0.4);
-          color: #fca5a5;
-          transition: background 0.2s, border-color 0.2s, color 0.2s;
-        }
-        .btn-cancel:hover {
-          background: rgba(239,68,68,0.1);
-          border-color: #ef4444;
-          color: white;
-        }
-
-        .badge {
-          background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2));
-          border: 1px solid rgba(168,85,247,0.3);
-        }
-
-        .dot-pattern {
-          background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
-          background-size: 24px 24px;
-        }
-      `}</style>
-
-      <div className="profile-card w-full max-w-sm sm:max-w-md">
-
-        {/* Header label */}
-        <div className="flex items-center gap-2 mb-5">
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
-          <span className="text-xs font-semibold tracking-widest text-indigo-400 uppercase">
-            Admin Console
-          </span>
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
-        </div>
-
-        {/* Main card */}
-        <div className="glass rounded-2xl overflow-hidden dot-pattern">
-
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col">
           {/* Top gradient bar */}
-          <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-
+          <div className="h-2 w-full bg-gradient-to-r from-teal-500 via-cyan-500 to-indigo-500" />
+          
           <div className="p-6 sm:p-8">
-
             {/* Avatar section */}
-            <div className="flex flex-col items-center mb-8">
-
-              {/* Spinning ring + avatar */}
+            <div className="flex flex-col items-center mb-8 text-center">
               <div className="relative mb-4">
-                <div className="avatar-ring w-24 h-24 rounded-full flex items-center justify-center">
-                  <div className="w-[88px] h-[88px] rounded-full bg-slate-900 flex items-center justify-center text-2xl font-bold text-white z-10">
+                {/* Clean premium avatar ring */}
+                <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-teal-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-teal-500/10">
+                  <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-2xl font-extrabold text-white">
                     {initials}
                   </div>
                 </div>
-                {/* Online dot */}
-                <span className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-slate-900 shadow-lg" />
+                {/* Active Indicator dot */}
+                <span className="absolute bottom-1.5 right-1.5 w-4.5 h-4.5 bg-emerald-400 rounded-full border-4 border-white shadow-md" />
               </div>
 
-              <h2 className="text-white font-semibold text-lg sm:text-xl tracking-tight">
-                {admin.name || "Admin"}
+              <h2 className="text-slate-800 font-extrabold text-lg sm:text-xl tracking-tight">
+                {admin.name || "Administrator"}
               </h2>
-
-              <span className="badge mt-2 px-3 py-0.5 rounded-full text-xs font-medium text-purple-300 tracking-wide">
-                {admin.role || "Administrator"}
+              <span className="inline-flex items-center gap-1 mt-2 px-3 py-1 bg-teal-50 border border-teal-100 text-teal-700 text-xs font-bold rounded-full uppercase tracking-wider">
+                <FaUserShield className="text-[10px]" />
+                {admin.role || "Admin"}
               </span>
-
             </div>
 
-            {/* Fields */}
-            <div className="space-y-3 mb-6">
-
-              {/* Name */}
-              <div className="field-box rounded-xl px-4 py-3 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center flex-shrink-0">
-                  <FaUserCircle className="text-indigo-400 text-sm" />
+            {/* Profile fields */}
+            <div className="space-y-4 mb-8">
+              {/* Full Name */}
+              <div className="bg-slate-50 border border-slate-200/40 rounded-xl p-4 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 shrink-0">
+                  <FaUserCircle className="text-base" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-slate-500 mb-0.5 font-medium tracking-wide uppercase">
-                    Full Name
-                  </p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Full Name</p>
                   {editMode ? (
                     <input
                       type="text"
                       name="name"
                       value={admin.name}
                       onChange={handleChange}
-                      placeholder="Enter name"
-                      className="modern-input w-full rounded-lg px-3 py-1.5 text-sm"
+                      placeholder="Enter full name"
+                      className="mt-1 w-full bg-white border border-slate-200 focus:border-teal-500 rounded-lg px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:ring-4 focus:ring-teal-500/10 transition-all"
                     />
                   ) : (
-                    <p className="text-white text-sm font-medium truncate">
-                      {admin.name || "—"}
-                    </p>
+                    <p className="text-slate-800 font-bold text-sm truncate mt-0.5">{admin.name || "—"}</p>
                   )}
                 </div>
               </div>
 
-              {/* Email */}
-              <div className="field-box rounded-xl px-4 py-3 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                  <FaEnvelope className="text-emerald-400 text-sm" />
+              {/* Email Address */}
+              <div className="bg-slate-50 border border-slate-200/40 rounded-xl p-4 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-cyan-50 flex items-center justify-center text-cyan-600 shrink-0">
+                  <FaEnvelope className="text-base" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-slate-500 mb-0.5 font-medium tracking-wide uppercase">
-                    Email Address
-                  </p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Email Address</p>
                   {editMode ? (
                     <input
                       type="email"
                       name="email"
                       value={admin.email}
                       onChange={handleChange}
-                      placeholder="Enter email"
-                      className="modern-input w-full rounded-lg px-3 py-1.5 text-sm"
+                      placeholder="Enter email address"
+                      className="mt-1 w-full bg-white border border-slate-200 focus:border-teal-500 rounded-lg px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:ring-4 focus:ring-teal-500/10 transition-all"
                     />
                   ) : (
-                    <p className="text-white text-sm font-medium truncate">
-                      {admin.email || "—"}
-                    </p>
+                    <p className="text-slate-800 font-bold text-sm truncate mt-0.5">{admin.email || "—"}</p>
                   )}
                 </div>
               </div>
 
-              {/* Role (read-only) */}
-              <div className="field-box rounded-xl px-4 py-3 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
-                  <FaUserShield className="text-purple-400 text-sm" />
+              {/* Account Role */}
+              <div className="bg-slate-50 border border-slate-200/40 rounded-xl p-4 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                  <FaUserShield className="text-base" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-slate-500 mb-0.5 font-medium tracking-wide uppercase">
-                    Role
-                  </p>
-                  <p className="text-white text-sm font-medium truncate">
-                    {admin.role || "—"}
-                  </p>
+                <div className="flex-1 min-w-0 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Account Role</p>
+                    <p className="text-slate-800 font-bold text-sm truncate mt-0.5">{admin.role || "—"}</p>
+                  </div>
+                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wide bg-slate-200/50 px-2 py-0.5 rounded border border-slate-200">
+                    read-only
+                  </span>
                 </div>
-                <span className="text-xs text-slate-600 flex-shrink-0 italic">
-                  read‑only
-                </span>
               </div>
-
             </div>
 
-            {/* Action buttons */}
+            {/* Actions */}
             {editMode ? (
-              <div className="flex gap-3">
+              <div className="flex gap-4">
                 <button
                   onClick={handleSave}
-                  className="btn-save flex-1 py-2.5 rounded-xl text-white text-sm font-semibold flex items-center justify-center gap-2"
+                  className="flex-1 bg-gradient-to-r from-teal-500 to-indigo-600 hover:opacity-90 active:scale-[0.99] text-white py-3 rounded-xl text-xs font-bold shadow-md shadow-teal-500/10 flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
                   <FaSave className="text-xs" />
                   Save Changes
                 </button>
                 <button
-                  onClick={() => { setEditMode(false); fetchProfile(); }}
-                  className="btn-cancel px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+                  onClick={() => {
+                    setEditMode(false);
+                    fetchProfile();
+                  }}
+                  className="bg-slate-100 hover:bg-slate-200/80 text-slate-500 px-5 py-3 rounded-xl text-xs font-bold border border-slate-200/60 flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
                   <FaTimes className="text-xs" />
                   Cancel
@@ -281,21 +186,18 @@ function AdminProfile() {
             ) : (
               <button
                 onClick={() => setEditMode(true)}
-                className="btn-edit w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+                className="w-full bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white py-3 rounded-xl text-xs font-bold shadow-md shadow-slate-900/10 flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <FaEdit className="text-xs" />
-                Edit Profile
+                Edit Account Profile
               </button>
             )}
-
           </div>
         </div>
 
-        {/* Footer hint */}
-        <p className="text-center text-xs text-slate-600 mt-4">
-          Changes are saved to your account instantly
+        <p className="text-center text-[10px] text-slate-400 font-semibold uppercase tracking-wide mt-4">
+          All modifications are saved securely to your account profile
         </p>
-
       </div>
     </div>
   );

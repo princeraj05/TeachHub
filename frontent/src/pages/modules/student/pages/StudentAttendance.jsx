@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaCalendarCheck, FaCalendarTimes, FaFilter } from "react-icons/fa";
+import { FaCalendarCheck, FaCalendarTimes, FaFilter, FaCalendarAlt } from "react-icons/fa";
+
+const SORA = "'Sora', sans-serif";
 
 function StudentAttendance() {
   const API = import.meta.env.VITE_API_URL;
@@ -15,52 +17,85 @@ function StudentAttendance() {
       })
       .then((res) => setData(res.data))
       .catch((err) => console.log(err));
-  }, []);
+  }, [API]);
 
   const filtered = filter === "All" ? data : data.filter((a) => a.status === filter);
   const present = data.filter((a) => a.status === "Present").length;
   const absent = data.filter((a) => a.status === "Absent").length;
   const percent = data.length ? Math.round((present / data.length) * 100) : 0;
 
+  const stats = [
+    {
+      label: "Total Sessions",
+      value: data.length,
+      grad: "from-indigo-500 to-blue-500",
+      shadow: "shadow-indigo-500/10",
+      text: "text-indigo-600",
+      bg: "bg-indigo-50",
+    },
+    {
+      label: "Present Classes",
+      value: present,
+      grad: "from-emerald-500 to-teal-500",
+      shadow: "shadow-emerald-500/10",
+      text: "text-emerald-600",
+      bg: "bg-emerald-50",
+    },
+    {
+      label: "Absent Classes",
+      value: absent,
+      grad: "from-rose-500 to-red-500",
+      shadow: "shadow-rose-500/10",
+      text: "text-rose-600",
+      bg: "bg-rose-50",
+    },
+  ];
+
   return (
-    <div style={{ fontFamily: "'Sora', sans-serif" }}>
-      {/* Header */}
-      <div className="mb-7">
-        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight">
-          My Attendance
-        </h1>
-        <p className="text-sm text-slate-400 mt-1">Track your presence across all sessions.</p>
+    <div style={{ fontFamily: SORA }}>
+      {/* Page Header */}
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-teal-600 mb-1">Attendance</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
+            My Attendance Tracker
+          </h1>
+          <p className="text-xs text-slate-400 font-medium mt-0.5">Track and verify your attendance records history</p>
+        </div>
+        <div className="flex items-center gap-2.5 bg-slate-100 border border-slate-200/60 rounded-2xl px-4 py-2.5 w-fit text-xs font-bold text-slate-500 select-none shadow-sm">
+          <FaCalendarAlt className="text-slate-400" />
+          Academic Year 2026
+        </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-7">
-        <div className="bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-2xl p-5 shadow-lg shadow-teal-500/25 relative overflow-hidden">
-          <div className="absolute -top-3 -right-3 w-20 h-20 rounded-full bg-white/10" />
-          <p className="text-xs font-semibold text-white/70 mb-1">Total Classes</p>
-          <p className="text-4xl font-extrabold">{data.length}</p>
-        </div>
-
-        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-2xl p-5 shadow-lg shadow-emerald-500/25 relative overflow-hidden">
-          <div className="absolute -top-3 -right-3 w-20 h-20 rounded-full bg-white/10" />
-          <p className="text-xs font-semibold text-white/70 mb-1">Present</p>
-          <p className="text-4xl font-extrabold">{present}</p>
-        </div>
-
-        <div className="bg-gradient-to-br from-rose-500 to-rose-600 text-white rounded-2xl p-5 shadow-lg shadow-rose-500/25 relative overflow-hidden">
-          <div className="absolute -top-3 -right-3 w-20 h-20 rounded-full bg-white/10" />
-          <p className="text-xs font-semibold text-white/70 mb-1">Absent</p>
-          <p className="text-4xl font-extrabold">{absent}</p>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+        {stats.map((s, i) => (
+          <div
+            key={i}
+            className="group relative bg-white rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
+          >
+            <div className={`h-1.5 w-full bg-gradient-to-r ${s.grad}`} />
+            <div className="p-5">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{s.label}</span>
+              <p className="text-3xl font-extrabold text-slate-800 tracking-tight my-1">{s.value}</p>
+              <div className="flex items-center gap-1.5 mt-2">
+                <span className={`w-1.5 h-1.5 rounded-full ${s.bg.replace("bg-", "bg-").replace("-50", "-500")}`} />
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Live records</span>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Progress bar */}
+      {/* Attendance progress bar card */}
       {data.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6">
-          <div className="flex justify-between text-sm font-semibold text-slate-600 mb-2">
-            <span>Attendance Rate</span>
-            <span className={percent >= 75 ? "text-teal-600" : "text-rose-500"}>{percent}%</span>
+        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6 mb-8">
+          <div className="flex justify-between text-xs font-bold text-slate-500 mb-2">
+            <span>Overall Attendance Rate</span>
+            <span className={`font-bold ${percent >= 75 ? "text-teal-600" : "text-rose-500"}`}>{percent}%</span>
           </div>
-          <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-slate-200/50 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-700 ${
                 percent >= 75
@@ -70,27 +105,31 @@ function StudentAttendance() {
               style={{ width: `${percent}%` }}
             />
           </div>
-          <p className="text-xs text-slate-400 mt-2">
-            {percent >= 75 ? "✅ You meet the 75% attendance requirement." : "⚠️ Below the 75% minimum threshold."}
+          <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-2.5">
+            {percent >= 75 ? "✅ You meet the minimum academic attendance requirements." : "⚠️ Attendance is below the 75% minimum threshold."}
           </p>
         </div>
       )}
 
       {/* Table Card */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col justify-between">
+        
         {/* Table toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 py-4 border-b border-slate-100">
-          <h2 className="text-base font-bold text-slate-800">Attendance Records</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 py-5 border-b border-slate-100">
+          <div>
+            <h2 className="text-base font-bold text-slate-800">Attendance Records Log</h2>
+            <p className="text-xs text-slate-400 font-medium mt-0.5">Showing attendance history logs</p>
+          </div>
           <div className="flex items-center gap-2">
-            <FaFilter className="text-slate-400 text-xs" />
+            <FaFilter className="text-slate-400 text-xs shrink-0 mr-1" />
             {["All", "Present", "Absent"].map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-all ${
+                className={`text-[10px] font-extrabold uppercase tracking-wide px-3.5 py-2 rounded-xl transition-all cursor-pointer border ${
                   filter === f
-                    ? "bg-teal-500 text-white shadow-sm shadow-teal-400/30"
-                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                    ? "bg-slate-900 border-slate-900 text-white shadow-sm"
+                    : "bg-slate-100 hover:bg-slate-200/60 border-slate-200/40 text-slate-500"
                 }`}
               >
                 {f}
@@ -99,28 +138,23 @@ function StudentAttendance() {
           </div>
         </div>
 
+        {/* Table Log */}
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
+          <table className="w-full min-w-[480px] text-sm text-left">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-100">
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-widest">
-                  #
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-widest">
-                  Date
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-widest">
-                  Status
-                </th>
+              <tr className="bg-slate-50 text-slate-400 uppercase tracking-widest text-[9px] font-bold border-b border-slate-100">
+                <th className="px-6 py-4">#</th>
+                <th className="px-6 py-4">Attendance Date</th>
+                <th className="px-6 py-4">Session Status</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100/60">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan="3" className="text-center py-14 text-slate-400">
+                  <td colSpan="3" className="text-center py-16 text-slate-400">
                     <div className="flex flex-col items-center gap-2">
-                      <FaCalendarCheck className="text-3xl text-slate-200" />
-                      <span className="text-sm">No attendance records found</span>
+                      <FaCalendarCheck className="text-2xl text-slate-200" />
+                      <span className="text-xs font-semibold">No attendance logs found</span>
                     </div>
                   </td>
                 </tr>
@@ -128,10 +162,10 @@ function StudentAttendance() {
                 filtered.map((a, i) => (
                   <tr
                     key={i}
-                    className="border-b border-slate-50 hover:bg-teal-50/40 transition-colors"
+                    className="hover:bg-slate-50/50 transition-colors"
                   >
-                    <td className="px-5 py-3.5 text-slate-400 font-medium">{i + 1}</td>
-                    <td className="px-5 py-3.5 text-slate-700 font-medium">
+                    <td className="px-6 py-4 text-slate-400 font-bold text-xs">{i + 1}</td>
+                    <td className="px-6 py-4 text-slate-700 font-bold text-xs">
                       <div className="flex items-center gap-2">
                         <FaCalendarCheck className="text-teal-400 text-xs shrink-0" />
                         {new Date(a.date).toLocaleDateString("en-IN", {
@@ -141,20 +175,25 @@ function StudentAttendance() {
                         })}
                       </div>
                     </td>
-                    <td className="px-5 py-3.5">
+                    <td className="px-6 py-4">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold rounded-full border ${
                           a.status === "Present"
-                            ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
-                            : "bg-rose-50 text-rose-600 border border-rose-100"
+                            ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                            : "bg-rose-50 text-rose-600 border-rose-100"
                         }`}
                       >
                         {a.status === "Present" ? (
-                          <FaCalendarCheck className="text-[10px]" />
+                          <>
+                            <FaCalendarCheck className="text-[9px]" />
+                            Present
+                          </>
                         ) : (
-                          <FaCalendarTimes className="text-[10px]" />
+                          <>
+                            <FaCalendarTimes className="text-[9px]" />
+                            Absent
+                          </>
                         )}
-                        {a.status}
                       </span>
                     </td>
                   </tr>
@@ -163,9 +202,13 @@ function StudentAttendance() {
             </tbody>
           </table>
         </div>
-      </div>
 
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap');`}</style>
+        <div className="px-6 py-4 border-t border-slate-100 text-center">
+          <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">
+            Attendance reports update automatically after each class session
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

@@ -2,214 +2,225 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 import {
-FaUserCircle,
-FaEnvelope,
-FaUserShield,
-FaEdit,
-FaSave
+  FaUserCircle,
+  FaEnvelope,
+  FaUserShield,
+  FaEdit,
+  FaSave,
+  FaTimes,
+  FaCalendarAlt,
 } from "react-icons/fa";
 
-function TeacherProfile(){
-
-const API = import.meta.env.VITE_API_URL;
-
-const teacherId = localStorage.getItem("userId");
-const token = localStorage.getItem("token");
-
-const [teacher,setTeacher] = useState({
-name:"",
-email:"",
-role:""
-});
-
-const [editMode,setEditMode] = useState(false);
-
-useEffect(()=>{
-
-axios.get(
-`${API}/api/teacher/profile/${teacherId}`,
-{
-headers:{
-Authorization:`Bearer ${token}`
-}
-}
-)
-.then(res=>{
-setTeacher(res.data);
-})
-.catch(err=>{
-console.log(err);
-});
-
-},[teacherId,token]);
-
-
-const handleChange=(e)=>{
-
-setTeacher({
-...teacher,
-[e.target.name]:e.target.value
-});
-
-};
-
-
-const handleSave=()=>{
-
-axios.put(
-`${API}/api/teacher/profile/update`,
-{
-name:teacher.name,
-email:teacher.email
-},
-{
-headers:{
-Authorization:`Bearer ${token}`
-}
-}
-)
-
-.then(res=>{
-
-setTeacher(res.data.teacher);
-setEditMode(false);
-
-})
-.catch(err=>{
-console.log(err);
-});
-
-};
-
-
-return(
-
-<div className="p-4 md:p-6 flex justify-center">
-
-<div className="bg-white rounded-xl shadow-lg p-6 md:p-8 max-w-md w-full">
-
-<h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800 text-center">
-Teacher Profile
-</h1>
-
-<div className="flex flex-col items-center mb-6">
-
-<div className="w-20 md:w-24 h-20 md:h-24 bg-indigo-600 text-white flex items-center justify-center rounded-full text-2xl md:text-3xl font-bold shadow">
-
-{teacher.name ? teacher.name.charAt(0).toUpperCase() : "T"}
-
-</div>
-
-<h2 className="text-lg md:text-xl font-semibold mt-4">
-{teacher.name}
-</h2>
-
-<p className="text-gray-500">
-{teacher.role}
-</p>
-
-</div>
-
-
-<div className="space-y-4">
-
-<div className="flex items-center gap-3 text-gray-700">
-
-<FaUserCircle className="text-blue-600"/>
-
-{editMode ? (
-
-<input
-type="text"
-name="name"
-value={teacher.name}
-onChange={handleChange}
-className="border p-2 rounded w-full"
-/>
-
-) : (
-
-<span>
-<strong>Name:</strong> {teacher.name}
-</span>
-
-)}
-
-</div>
-
-
-<div className="flex items-center gap-3 text-gray-700">
-
-<FaEnvelope className="text-green-600"/>
-
-{editMode ? (
-
-<input
-type="email"
-name="email"
-value={teacher.email}
-onChange={handleChange}
-className="border p-2 rounded w-full"
-/>
-
-) : (
-
-<span>
-<strong>Email:</strong> {teacher.email}
-</span>
-
-)}
-
-</div>
-
-
-<div className="flex items-center gap-3 text-gray-700">
-
-<FaUserShield className="text-purple-600"/>
-
-<span>
-<strong>Role:</strong> {teacher.role}
-</span>
-
-</div>
-
-</div>
-
-
-{editMode ? (
-
-<button
-onClick={handleSave}
-className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg flex items-center justify-center gap-2"
->
-
-<FaSave/>
-
-Save Profile
-
-</button>
-
-) : (
-
-<button
-onClick={()=>setEditMode(true)}
-className="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg flex items-center justify-center gap-2"
->
-
-<FaEdit/>
-
-Edit Profile
-
-</button>
-
-)}
-
-</div>
-
-</div>
-
-);
-
+const SORA = "'Sora', sans-serif";
+
+function TeacherProfile() {
+  const API = import.meta.env.VITE_API_URL;
+
+  const teacherId = localStorage.getItem("userId");
+  const token = localStorage.getItem("token");
+
+  const [teacher, setTeacher] = useState({
+    name: "",
+    email: "",
+    role: "",
+  });
+
+  const [editMode, setEditMode] = useState(false);
+
+  useEffect(() => {
+    axios
+      .get(`${API}/api/teacher/profile/${teacherId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((res) => {
+        setTeacher(res.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, [API, teacherId, token]);
+
+  const handleChange = (e) => {
+    setTeacher({
+      ...teacher,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSave = () => {
+    axios
+      .put(
+        `${API}/api/teacher/profile/update`,
+        {
+          name: teacher.name,
+          email: teacher.email,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((res) => {
+        setTeacher(res.data.teacher);
+        setEditMode(false);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  const initials = teacher.name ? teacher.name.charAt(0).toUpperCase() : "T";
+
+  return (
+    <div style={{ fontFamily: SORA }}>
+      {/* Page Header */}
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-teal-600 mb-1">Account</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
+            Teacher Profile
+          </h1>
+          <p className="text-xs text-slate-400 font-medium mt-0.5">Manage your personal credentials and contact info</p>
+        </div>
+        <div className="flex items-center gap-2.5 bg-slate-100 border border-slate-200/60 rounded-2xl px-4 py-2.5 w-fit text-xs font-bold text-slate-500 select-none shadow-sm">
+          <FaCalendarAlt className="text-slate-400" />
+          Academic Year 2026
+        </div>
+      </div>
+
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col">
+          {/* Top gradient stripe */}
+          <div className="h-2 w-full bg-gradient-to-r from-teal-500 via-cyan-500 to-indigo-505" />
+
+          <div className="p-6 sm:p-8">
+            {/* Avatar block */}
+            <div className="flex flex-col items-center mb-8 text-center">
+              <div className="relative mb-4">
+                <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-teal-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-teal-500/10">
+                  <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-2xl font-extrabold text-white">
+                    {initials}
+                  </div>
+                </div>
+                {/* Active Indicator dot */}
+                <span className="absolute bottom-1.5 right-1.5 w-4.5 h-4.5 bg-emerald-400 rounded-full border-4 border-white shadow-md" />
+              </div>
+
+              <h2 className="text-slate-800 font-extrabold text-lg sm:text-xl tracking-tight">
+                {teacher.name || "Teacher"}
+              </h2>
+              <span className="inline-flex items-center gap-1 mt-2 px-3 py-1 bg-teal-50 border border-teal-100 text-teal-700 text-xs font-bold rounded-full uppercase tracking-wider">
+                <FaUserShield className="text-[10px]" />
+                {teacher.role || "Teacher"}
+              </span>
+            </div>
+
+            {/* Profile fields */}
+            <div className="space-y-4 mb-8">
+              {/* Full Name */}
+              <div className="bg-slate-50 border border-slate-200/40 rounded-xl p-4 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 shrink-0">
+                  <FaUserCircle className="text-base" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Full Name</p>
+                  {editMode ? (
+                    <input
+                      type="text"
+                      name="name"
+                      value={teacher.name}
+                      onChange={handleChange}
+                      placeholder="Enter full name"
+                      className="mt-1 w-full bg-white border border-slate-200 focus:border-teal-500 rounded-lg px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:ring-4 focus:ring-teal-500/10 transition-all"
+                    />
+                  ) : (
+                    <p className="text-slate-800 font-bold text-sm truncate mt-0.5">{teacher.name || "—"}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Email Address */}
+              <div className="bg-slate-50 border border-slate-200/40 rounded-xl p-4 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-cyan-50 flex items-center justify-center text-cyan-600 shrink-0">
+                  <FaEnvelope className="text-base" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Email Address</p>
+                  {editMode ? (
+                    <input
+                      type="email"
+                      name="email"
+                      value={teacher.email}
+                      onChange={handleChange}
+                      placeholder="Enter email address"
+                      className="mt-1 w-full bg-white border border-slate-200 focus:border-teal-500 rounded-lg px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:ring-4 focus:ring-teal-500/10 transition-all"
+                    />
+                  ) : (
+                    <p className="text-slate-800 font-bold text-sm truncate mt-0.5">{teacher.email || "—"}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Account Role */}
+              <div className="bg-slate-50 border border-slate-200/40 rounded-xl p-4 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                  <FaUserShield className="text-base" />
+                </div>
+                <div className="flex-1 min-w-0 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Account Role</p>
+                    <p className="text-slate-800 font-bold text-sm truncate mt-0.5">{teacher.role || "—"}</p>
+                  </div>
+                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wide bg-slate-200/50 px-2 py-0.5 rounded border border-slate-200">
+                    read-only
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            {editMode ? (
+              <div className="flex gap-4">
+                <button
+                  onClick={handleSave}
+                  className="flex-1 bg-gradient-to-r from-teal-500 to-indigo-600 hover:opacity-90 active:scale-[0.99] text-white py-3 rounded-xl text-xs font-bold shadow-md shadow-teal-500/10 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                >
+                  <FaSave className="text-xs" />
+                  Save Changes
+                </button>
+                <button
+                  onClick={() => {
+                    setEditMode(false);
+                    // trigger fetch profile by setting it back to original (stored states) or simple reset
+                    setEditMode(false);
+                  }}
+                  className="bg-slate-100 hover:bg-slate-200/80 text-slate-500 px-5 py-3 rounded-xl text-xs font-bold border border-slate-200/60 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <FaTimes className="text-xs" />
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setEditMode(true)}
+                className="w-full bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white py-3 rounded-xl text-xs font-bold shadow-md shadow-slate-900/10 flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <FaEdit className="text-xs" />
+                Edit Account Profile
+              </button>
+            )}
+          </div>
+        </div>
+
+        <p className="text-center text-[10px] text-slate-400 font-semibold uppercase tracking-wide mt-4">
+          All modifications are saved securely to your account profile
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export default TeacherProfile;
