@@ -20,4 +20,12 @@ router.get(
   attendanceController.getAttendanceReport
 );
 
+
+// GET TODAY'S ATTENDANCE
+router.get(
+  "/today",
+  protect,
+  attendanceController.getTodayAttendance
+);
+
 module.exports = router;

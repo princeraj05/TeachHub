@@ -11,35 +11,56 @@ function MarkAttendance() {
   const [attendance, setAttendance] = useState({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [alreadyMarked, setAlreadyMarked] = useState(false);
 
   useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${API}/api/teacher/my-students`, {
+        
+        // Fetch students
+        const studentsRes = await axios.get(`${API}/api/teacher/my-students`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
         const unique = [];
         const seen = new Set();
-        for (const s of res.data) {
+        for (const s of studentsRes.data) {
           if (!seen.has(s._id)) {
             seen.add(s._id);
             unique.push(s);
           }
         }
         setStudents(unique);
+
+        // Fetch today's attendance records
+        const todayRes = await axios.get(`${API}/api/attendance/today`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (todayRes.data && todayRes.data.length > 0) {
+          const initialAttendance = {};
+          todayRes.data.forEach((record) => {
+            initialAttendance[record.student] = record.status;
+          });
+          setAttendance(initialAttendance);
+          setAlreadyMarked(true);
+        }
+
         setLoading(false);
       } catch (err) {
         console.log(err);
         setLoading(false);
       }
     };
-    fetchStudents();
+    fetchData();
   }, [API]);
 
   const handleChange = (studentId, status) => {
+    if (alreadyMarked) return;
     setAttendance({
       ...attendance,
       [studentId]: status,
@@ -67,6 +88,7 @@ function MarkAttendance() {
         );
       }
       alert("Attendance saved successfully");
+      setAlreadyMarked(true);
     } catch (err) {
       console.log(err.response?.data || err.message);
       alert("Error saving attendance");
@@ -155,7 +177,9 @@ function MarkAttendance() {
                       
                       {/* Present Selector Pill */}
                       <td className="px-6 py-4 text-center">
-                        <label className={`inline-flex items-center gap-1.5 cursor-pointer px-4 py-2 rounded-xl text-[10px] font-bold border transition-all ${
+                        <label className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-bold border transition-all ${
+                          alreadyMarked ? "cursor-not-allowed opacity-75" : "cursor-pointer"
+                        } ${
                           attendance[s._id] === "Present"
                             ? "bg-emerald-50 border-emerald-500 text-emerald-600 shadow-sm shadow-emerald-500/10"
                             : "bg-slate-50 hover:bg-slate-100 border-slate-200/60 text-slate-400 hover:text-slate-500"
@@ -165,16 +189,19 @@ function MarkAttendance() {
                             name={s._id}
                             checked={attendance[s._id] === "Present"}
                             onChange={() => handleChange(s._id, "Present")}
+                            disabled={alreadyMarked}
                             className="sr-only"
                           />
                           <FaCheck className="text-[9px]" />
                           Present
                         </label>
                       </td>
-
+                      
                       {/* Absent Selector Pill */}
                       <td className="px-6 py-4 text-center">
-                        <label className={`inline-flex items-center gap-1.5 cursor-pointer px-4 py-2 rounded-xl text-[10px] font-bold border transition-all ${
+                        <label className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-bold border transition-all ${
+                          alreadyMarked ? "cursor-not-allowed opacity-75" : "cursor-pointer"
+                        } ${
                           attendance[s._id] === "Absent"
                             ? "bg-rose-50 border-rose-500 text-rose-600 shadow-sm shadow-rose-500/10"
                             : "bg-slate-50 hover:bg-slate-100 border-slate-200/60 text-slate-400 hover:text-slate-500"
@@ -184,6 +211,7 @@ function MarkAttendance() {
                             name={s._id}
                             checked={attendance[s._id] === "Absent"}
                             onChange={() => handleChange(s._id, "Absent")}
+                            disabled={alreadyMarked}
                             className="sr-only"
                           />
                           <FaTimes className="text-[9px]" />
@@ -199,9 +227,15 @@ function MarkAttendance() {
         )}
 
         <div className="px-6 py-4 border-t border-slate-100 text-center">
-          <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">
-            Ensure all records are correct prior to committing ledger changes
-          </p>
+          {alreadyMarked ? (
+            <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wide">
+              Attendance has been successfully locked for today
+            </p>
+          ) : (
+            <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">
+              Ensure all records are correct prior to committing ledger changes
+            </p>
+          )}
         </div>
       </div>
 
@@ -209,13 +243,18 @@ function MarkAttendance() {
       {students.length > 0 && (
         <button
           onClick={handleSubmit}
-          disabled={submitting}
+          disabled={submitting || alreadyMarked}
           className="bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white px-5 py-3 rounded-xl text-xs font-bold shadow-md shadow-slate-900/10 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting ? (
             <>
               <span className="w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
               Saving...
+            </>
+          ) : alreadyMarked ? (
+            <>
+              <FaCheck className="text-xs" />
+              Attendance Already Submitted Today
             </>
           ) : (
             <>
