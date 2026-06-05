@@ -121,45 +121,38 @@ function TeacherLayout() {
             </span>
           </div>
 
-          {/* Students popover trigger */}
-          <div className="relative">
-            <button
-              onClick={() => togglePopover("students")}
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                activePopover === "students" || isActive("/teacher/my-students")
+          {/* My Students (Direct Link) */}
+          <div className="relative group">
+            <Link
+              to="/teacher/my-students"
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
+                isActive("/teacher/my-students")
                   ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
                   : "text-slate-400 hover:bg-white/5 hover:text-white"
               }`}
             >
               <FaUserGraduate className="text-lg" />
-            </button>
-            {activePopover === "students" && (
-              <div className="absolute left-14 top-0 w-44 bg-[#0F172A]/98 border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn space-y-1">
-                <p className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest px-2 mb-1.5">Students</p>
-                <Link to="/teacher/my-students" className={popoverLinkClass("/teacher/my-students")}>My Students</Link>
-              </div>
-            )}
+            </Link>
+            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
+              My Students
+            </span>
           </div>
 
-          {/* Attendance popover trigger */}
-          <div className="relative">
-            <button
-              onClick={() => togglePopover("attendance")}
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                activePopover === "attendance" || isActive("/teacher/mark-attendance") || isActive("/teacher/attendance-report")
+          {/* Mark Attendance (Direct Link) */}
+          <div className="relative group">
+            <Link
+              to="/teacher/mark-attendance"
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
+                isActive("/teacher/mark-attendance")
                   ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
                   : "text-slate-400 hover:bg-white/5 hover:text-white"
               }`}
             >
               <FaClipboardCheck className="text-lg" />
-            </button>
-            {activePopover === "attendance" && (
-              <div className="absolute left-14 top-0 w-44 bg-[#0F172A]/98 border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn space-y-1">
-                <p className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest px-2 mb-1.5">Attendance</p>
-                <Link to="/teacher/mark-attendance" className={popoverLinkClass("/teacher/mark-attendance")}>Mark Attendance</Link>
-                <Link to="/teacher/attendance-report" className={popoverLinkClass("/teacher/attendance-report")}>Report History</Link>
-              </div>
-            )}
+            </Link>
+            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
+              Mark Attendance
+            </span>
           </div>
 
           {/* My Subjects */}
@@ -301,10 +294,7 @@ function TeacherLayout() {
               {/* Category: Attendance */}
               <div>
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Attendance</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <Link to="/teacher/mark-attendance" className="bg-white/5 border border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-white hover:bg-white/10">Mark Attendance</Link>
-                  <Link to="/teacher/attendance-report" className="bg-white/5 border border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-white hover:bg-white/10">Attendance Report</Link>
-                </div>
+                <Link to="/teacher/mark-attendance" className="bg-white/5 border border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-white hover:bg-white/10">Mark Attendance</Link>
               </div>
 
               {/* Category: Core Links */}

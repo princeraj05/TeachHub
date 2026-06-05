@@ -30,7 +30,7 @@ function TeacherRoutes() {
 
         <Route path="mark-attendance" element={<MarkAttendance />} />
 
-        <Route path="attendance-report" element={<AttendanceReport />} />
+        <Route path="attendance-report" element={<Navigate to="/teacher/mark-attendance" replace />} />
 
         <Route path="my-subjects" element={<MySubjects />} />
 
