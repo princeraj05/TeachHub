@@ -21,7 +21,15 @@ function MarkAttendance() {
             Authorization: `Bearer ${token}`,
           },
         });
-        setStudents(res.data);
+        const unique = [];
+        const seen = new Set();
+        for (const s of res.data) {
+          if (!seen.has(s._id)) {
+            seen.add(s._id);
+            unique.push(s);
+          }
+        }
+        setStudents(unique);
         setLoading(false);
       } catch (err) {
         console.log(err);
