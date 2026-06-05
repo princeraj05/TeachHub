@@ -1,108 +1,29 @@
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
 import {
   FaTachometerAlt,
   FaUsers,
-  FaUserGraduate,
-  FaChalkboardTeacher,
   FaBook,
-  FaClipboardList,
+  FaClipboardCheck,
   FaChartBar,
   FaCalendarAlt,
   FaUserCircle,
-  FaAngleDown,
   FaSignOutAlt,
-  FaBars,
+  FaGraduationCap,
+  FaThLarge,
   FaTimes,
+  FaUserShield,
 } from "react-icons/fa";
 
-const Logo = () => (
-  <div className="flex items-center gap-3 select-none">
-    <div className="w-10 h-10 rounded-xl bg-teal-500 flex items-center justify-center shadow-lg shadow-teal-500/20 flex-shrink-0">
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[#0b132b]">
-        <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
-      </svg>
-    </div>
-    <span
-      className="text-xl font-extrabold tracking-tight text-white"
-      style={{ fontFamily: "'Sora', sans-serif" }}
-    >
-      TeachHub
-    </span>
-  </div>
-);
-
-function NavItem({ to, icon, label, onClick }) {
-  const location = useLocation();
-  const active = location.pathname === to;
-  return (
-    <Link
-      to={to}
-      onClick={onClick}
-      className={`flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
-        active
-          ? "bg-teal-500/10 text-teal-400 border border-teal-500/20 shadow-inner"
-          : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
-      }`}
-    >
-      <span className={`text-base ${active ? "text-teal-400" : "text-slate-400"}`}>{icon}</span>
-      {label}
-    </Link>
-  );
-}
-
-function Dropdown({ icon, label, children, open, onToggle }) {
-  return (
-    <div className="space-y-1">
-      <button
-        onClick={onToggle}
-        className="flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-white/[0.04] hover:text-white transition-all"
-      >
-        <span className="flex items-center gap-3.5">
-          <span className="text-base text-slate-400">{icon}</span>
-          {label}
-        </span>
-        <FaAngleDown
-          className={`transition-transform duration-200 text-xs text-slate-500 ${open ? "rotate-180 text-white" : ""}`}
-        />
-      </button>
-
-      {open && (
-        <div className="mt-1 ml-4 pl-4 border-l border-slate-800 space-y-1 animate-fadeIn">
-          {children}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SubItem({ to, label, onClick }) {
-  const location = useLocation();
-  const active = location.pathname === to;
-  return (
-    <Link
-      to={to}
-      onClick={onClick}
-      className={`block px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-        active
-          ? "text-teal-400 font-semibold bg-teal-500/[0.03]"
-          : "text-slate-500 hover:text-slate-200 hover:bg-white/[0.02]"
-      }`}
-    >
-      {label}
-    </Link>
-  );
-}
+const SORA = "'Sora', sans-serif";
 
 function AdminLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [usersOpen, setUsersOpen] = useState(false);
-  const [academicsOpen, setAcademicsOpen] = useState(false);
-  const [assignOpen, setAssignOpen] = useState(false);
-  const [reportOpen, setReportOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [activePopover, setActivePopover] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   const name = localStorage.getItem("name") || "Admin";
 
@@ -111,185 +32,404 @@ function AdminLayout() {
     navigate("/");
   };
 
-  const closeMenu = () => setMenuOpen(false);
+  // Close menus when route changes
+  useEffect(() => {
+    setActivePopover(null);
+    setMobileMenuOpen(false);
+    setProfileDropdownOpen(false);
+  }, [location.pathname]);
+
+  const togglePopover = (menu) => {
+    if (activePopover === menu) {
+      setActivePopover(null);
+    } else {
+      setActivePopover(menu);
+    }
+  };
+
+  const isActive = (path) => location.pathname === path;
+
+  // SubItem Helper for Popover
+  const popoverLinkClass = (path) =>
+    `block px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+      isActive(path)
+        ? "bg-[#7C3AED]/20 text-[#38BDF8] border border-[#7C3AED]/30"
+        : "text-slate-400 hover:bg-white/5 hover:text-white"
+    }`;
 
   return (
-    <div
-      className="flex min-h-screen bg-slate-50/70 overflow-hidden font-sans"
-    >
-      {/* ── Mobile Overlay ── */}
-      {menuOpen && (
+    <div className="min-h-screen bg-[#F8FAFC] relative overflow-x-hidden" style={{ fontFamily: SORA }}>
+      {/* ── Ambient Background Glow Blobs ── */}
+      <div className="fixed -top-40 -left-40 w-96 h-96 rounded-full bg-[#7C3AED]/10 blur-[120px] pointer-events-none z-0" />
+      <div className="fixed top-1/2 -right-40 w-96 h-96 rounded-full bg-[#312E81]/15 blur-[120px] pointer-events-none z-0" />
+      <div className="fixed -bottom-40 left-1/3 w-96 h-96 rounded-full bg-[#38BDF8]/10 blur-[120px] pointer-events-none z-0" />
+
+      {/* ── Click-outside popover closer ── */}
+      {activePopover && (
         <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden transition-opacity"
-          onClick={closeMenu}
+          className="fixed inset-0 z-30 cursor-default"
+          onClick={() => setActivePopover(null)}
         />
       )}
 
-      {/* ── SIDEBAR ── */}
-      <aside
-        className={`
-          fixed md:static top-0 left-0 h-full w-64 bg-[#0B132B] flex flex-col z-50
-          transform transition-transform duration-300 ease-in-out border-r border-white/5
-          ${menuOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
-        `}
-      >
-        {/* Sidebar Header */}
-        <div className="flex items-center justify-between px-6 py-6 border-b border-white/[0.04]">
-          <Logo />
-          <button
-            className="md:hidden text-slate-400 hover:text-white transition p-1 bg-white/5 rounded-lg"
-            onClick={closeMenu}
-          >
-            <FaTimes />
-          </button>
+      {/* ── DESKTOP: Left Compact Floating Sidebar ── */}
+      <aside className="hidden md:flex fixed left-4 top-4 bottom-4 w-20 bg-[#0F172A]/95 backdrop-blur-md border border-white/10 rounded-3xl shadow-2xl flex-col items-center justify-between py-8 z-40 select-none">
+        
+        {/* Logo Icon */}
+        <div className="relative group">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center shadow-lg shadow-[#7C3AED]/20 transform hover:rotate-6 transition-all duration-300">
+            <FaGraduationCap className="text-xl text-white" />
+          </div>
+          <span className="absolute left-16 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
+            TeachHub
+          </span>
         </div>
 
-        {/* Admin Badge */}
-        <div className="px-6 py-4 border-b border-white/[0.04] bg-white/[0.01]">
-          <div className="flex items-center gap-2">
-            <span className="inline-block text-[10px] font-bold uppercase tracking-widest text-teal-400 bg-teal-500/10 border border-teal-500/20 px-2.5 py-1 rounded-full">
-              System Admin
+        {/* Icons Navigation Group */}
+        <nav className="flex-1 flex flex-col justify-center gap-6">
+          
+          {/* Dashboard */}
+          <div className="relative group">
+            <Link
+              to="/admin/dashboard"
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
+                isActive("/admin/dashboard")
+                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <FaTachometerAlt className="text-lg" />
+            </Link>
+            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
+              Dashboard
             </span>
           </div>
-        </div>
 
-        {/* Navigation links */}
-        <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1.5 custom-scroll">
-          <NavItem
-            to="/admin/dashboard"
-            icon={<FaTachometerAlt />}
-            label="Dashboard"
-            onClick={closeMenu}
-          />
+          {/* Users popover trigger */}
+          <div className="relative">
+            <button
+              onClick={() => togglePopover("users")}
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                activePopover === "users" || isActive("/admin/teachers") || isActive("/admin/students")
+                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <FaUsers className="text-lg" />
+            </button>
+            {activePopover === "users" && (
+              <div className="absolute left-14 top-0 w-44 bg-[#0F172A]/98 border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn space-y-1">
+                <p className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest px-2 mb-1.5">Users Management</p>
+                <Link to="/admin/teachers" className={popoverLinkClass("/admin/teachers")}>Teachers</Link>
+                <Link to="/admin/students" className={popoverLinkClass("/admin/students")}>Students</Link>
+              </div>
+            )}
+          </div>
 
-          <Dropdown
-            icon={<FaUsers />}
-            label="Users"
-            open={usersOpen}
-            onToggle={() => setUsersOpen(!usersOpen)}
-          >
-            <SubItem to="/admin/teachers" label="Teachers" onClick={closeMenu} />
-            <SubItem to="/admin/students" label="Students" onClick={closeMenu} />
-          </Dropdown>
+          {/* Academics popover trigger */}
+          <div className="relative">
+            <button
+              onClick={() => togglePopover("academics")}
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                activePopover === "academics" || isActive("/admin/classes") || isActive("/admin/subjects")
+                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <FaBook className="text-lg" />
+            </button>
+            {activePopover === "academics" && (
+              <div className="absolute left-14 top-0 w-44 bg-[#0F172A]/98 border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn space-y-1">
+                <p className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest px-2 mb-1.5">Academics</p>
+                <Link to="/admin/classes" className={popoverLinkClass("/admin/classes")}>Classes</Link>
+                <Link to="/admin/subjects" className={popoverLinkClass("/admin/subjects")}>Subjects</Link>
+              </div>
+            )}
+          </div>
 
-          <Dropdown
-            icon={<FaBook />}
-            label="Academics"
-            open={academicsOpen}
-            onToggle={() => setAcademicsOpen(!academicsOpen)}
-          >
-            <SubItem to="/admin/classes" label="Classes" onClick={closeMenu} />
-            <SubItem to="/admin/subjects" label="Subjects" onClick={closeMenu} />
-          </Dropdown>
+          {/* Assignments popover trigger */}
+          <div className="relative">
+            <button
+              onClick={() => togglePopover("assignments")}
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                activePopover === "assignments" || isActive("/admin/assign-teacher-class") || isActive("/admin/assign-student-class") || isActive("/admin/assign-subject-teacher")
+                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <FaClipboardCheck className="text-lg" />
+            </button>
+            {activePopover === "assignments" && (
+              <div className="absolute left-14 top-0 w-48 bg-[#0F172A]/98 border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn space-y-1">
+                <p className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest px-2 mb-1.5">Assignments</p>
+                <Link to="/admin/assign-teacher-class" className={popoverLinkClass("/admin/assign-teacher-class")}>Assign Teacher</Link>
+                <Link to="/admin/assign-student-class" className={popoverLinkClass("/admin/assign-student-class")}>Assign Student</Link>
+                <Link to="/admin/assign-subject-teacher" className={popoverLinkClass("/admin/assign-subject-teacher")}>Assign Subject</Link>
+              </div>
+            )}
+          </div>
 
-          <Dropdown
-            icon={<FaClipboardList />}
-            label="Assignments"
-            open={assignOpen}
-            onToggle={() => setAssignOpen(!assignOpen)}
-          >
-            <SubItem to="/admin/assign-teacher-class" label="Assign Teacher" onClick={closeMenu} />
-            <SubItem to="/admin/assign-student-class" label="Assign Student" onClick={closeMenu} />
-            <SubItem to="/admin/assign-subject-teacher" label="Assign Subject" onClick={closeMenu} />
-          </Dropdown>
+          {/* Reports popover trigger */}
+          <div className="relative">
+            <button
+              onClick={() => togglePopover("reports")}
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                activePopover === "reports" || isActive("/admin/attendance-report") || isActive("/admin/exam-results")
+                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <FaChartBar className="text-lg" />
+            </button>
+            {activePopover === "reports" && (
+              <div className="absolute left-14 top-0 w-48 bg-[#0F172A]/98 border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn space-y-1">
+                <p className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest px-2 mb-1.5">Reports</p>
+                <Link to="/admin/attendance-report" className={popoverLinkClass("/admin/attendance-report")}>Attendance Report</Link>
+                <Link to="/admin/exam-results" className={popoverLinkClass("/admin/exam-results")}>Exam Results</Link>
+              </div>
+            )}
+          </div>
 
-          <Dropdown
-            icon={<FaChartBar />}
-            label="Reports"
-            open={reportOpen}
-            onToggle={() => setReportOpen(!reportOpen)}
-          >
-            <SubItem to="/admin/attendance-report" label="Attendance Report" onClick={closeMenu} />
-            <SubItem to="/admin/exam-results" label="Exam Results" onClick={closeMenu} />
-          </Dropdown>
+          {/* Exam Schedule */}
+          <div className="relative group">
+            <Link
+              to="/admin/exam-schedule"
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
+                isActive("/admin/exam-schedule")
+                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <FaCalendarAlt className="text-lg" />
+            </Link>
+            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
+              Exam Schedule
+            </span>
+          </div>
 
-          <NavItem
-            to="/admin/exam-schedule"
-            icon={<FaCalendarAlt />}
-            label="Exam Schedule"
-            onClick={closeMenu}
-          />
+          {/* Profile */}
+          <div className="relative group">
+            <Link
+              to="/admin/profile"
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
+                isActive("/admin/profile")
+                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <FaUserCircle className="text-lg" />
+            </Link>
+            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
+              My Profile
+            </span>
+          </div>
 
-          <NavItem
-            to="/admin/profile"
-            icon={<FaUserCircle />}
-            label="Profile"
-            onClick={closeMenu}
-          />
         </nav>
 
-        {/* Logout section */}
-        <div className="p-4 border-t border-white/[0.04] bg-white/[0.01]">
+        {/* Logout Icon */}
+        <div className="relative group">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-sm font-semibold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all active:scale-[0.98]"
+            className="w-11 h-11 rounded-xl flex items-center justify-center text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all cursor-pointer"
           >
-            <FaSignOutAlt className="text-base" />
-            Logout
+            <FaSignOutAlt className="text-lg" />
           </button>
+          <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
+            Logout
+          </span>
         </div>
+
       </aside>
 
-      {/* ── MAIN CONTENT ── */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* ── MOBILE: Floating Bottom Navigation Bar ── */}
+      <nav className="md:hidden fixed bottom-4 left-4 right-4 h-16 bg-[#0F172A]/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl z-40 flex items-center justify-around px-2">
+        <Link
+          to="/admin/dashboard"
+          className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all ${
+            isActive("/admin/dashboard") ? "text-[#38BDF8]" : "text-slate-400"
+          }`}
+        >
+          <FaTachometerAlt className="text-lg" />
+        </Link>
 
-        {/* ── TOP NAVBAR ── */}
-        <header className="flex items-center justify-between bg-white/80 backdrop-blur-md px-6 py-4 shadow-sm border-b border-slate-100 sticky top-0 z-30">
-          <div className="flex items-center gap-3">
-            {/* Hamburger for mobile */}
-            <button
-              className="md:hidden w-10 h-10 flex items-center justify-center rounded-xl text-slate-600 hover:bg-slate-50 border border-slate-200/60 transition"
-              onClick={() => setMenuOpen(!menuOpen)}
-            >
-              <FaBars className="text-sm" />
-            </button>
+        {/* Hamburger/Menu grid popup */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all cursor-pointer ${
+            mobileMenuOpen ? "text-[#38BDF8]" : "text-slate-400"
+          }`}
+        >
+          <FaThLarge className="text-lg" />
+        </button>
 
-            {/* Mobile Logo Badge */}
-            <div className="md:hidden">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center shadow-md shadow-teal-500/10">
-                  <svg viewBox="0 0 24 24" className="w-5 h-5 fill-[#0b132b]">
-                    <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
-                  </svg>
+        <Link
+          to="/admin/exam-schedule"
+          className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all ${
+            isActive("/admin/exam-schedule") ? "text-[#38BDF8]" : "text-slate-400"
+          }`}
+        >
+          <FaCalendarAlt className="text-lg" />
+        </Link>
+
+        {/* Circular profile avatar */}
+        <Link
+          to="/admin/profile"
+          className="relative w-8 h-8 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white text-xs font-black shadow-md shadow-[#7C3AED]/20 border border-white/20"
+        >
+          {name.charAt(0).toUpperCase()}
+          <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-[#0F172A]" />
+        </Link>
+      </nav>
+
+      {/* ── MOBILE: Bottom Sheet Sliding Modal Menu ── */}
+      {mobileMenuOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden animate-fadeIn"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div className="fixed bottom-24 left-4 right-4 max-h-[75vh] bg-[#0F172A]/98 border border-white/10 rounded-3xl p-6 shadow-2xl z-50 overflow-y-auto animate-slideUp text-slate-300">
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-4 mb-4">
+              <div className="flex items-center gap-2.5">
+                <FaGraduationCap className="text-xl text-[#38BDF8]" />
+                <span className="text-base font-extrabold text-white">TeachHub Workspace</span>
+              </div>
+              <button
+                className="text-slate-400 hover:text-white bg-white/5 p-1.5 rounded-xl transition"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            <div className="space-y-5">
+              {/* Category: Users */}
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Users</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <Link to="/admin/teachers" className="bg-white/5 border border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-white hover:bg-white/10">Teachers</Link>
+                  <Link to="/admin/students" className="bg-white/5 border border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-white hover:bg-white/10">Students</Link>
                 </div>
-                <span className="text-base font-bold text-slate-800 tracking-tight" style={{ fontFamily: "'Sora', sans-serif" }}>
-                  TeachHub
-                </span>
+              </div>
+
+              {/* Category: Academics */}
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Academics</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <Link to="/admin/classes" className="bg-white/5 border border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-white hover:bg-white/10">Classes</Link>
+                  <Link to="/admin/subjects" className="bg-white/5 border border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-white hover:bg-white/10">Subjects</Link>
+                </div>
+              </div>
+
+              {/* Category: Assignments */}
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Assignments</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <Link to="/admin/assign-teacher-class" className="bg-white/5 border border-white/[0.04] p-2.5 rounded-xl text-[10px] font-bold text-center block text-white hover:bg-white/10">Assign Teacher</Link>
+                  <Link to="/admin/assign-student-class" className="bg-white/5 border border-white/[0.04] p-2.5 rounded-xl text-[10px] font-bold text-center block text-white hover:bg-white/10">Assign Student</Link>
+                  <Link to="/admin/assign-subject-teacher" className="bg-white/5 border border-white/[0.04] p-2.5 rounded-xl text-[10px] font-bold text-center block text-white hover:bg-white/10">Assign Subject</Link>
+                </div>
+              </div>
+
+              {/* Category: Reports */}
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Reports</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <Link to="/admin/attendance-report" className="bg-white/5 border border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-white hover:bg-white/10">Attendance Report</Link>
+                  <Link to="/admin/exam-results" className="bg-white/5 border border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-white hover:bg-white/10">Exam Results</Link>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between">
+                <Link to="/admin/profile" className="text-xs font-bold text-[#38BDF8] hover:underline">View Profile</Link>
+                <button
+                  onClick={handleLogout}
+                  className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition"
+                >
+                  <FaSignOutAlt />
+                  Logout
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── CANVAS: Main Layout Container ── */}
+      <div className="flex-1 flex flex-col min-w-0 md:pl-28 pb-24 md:pb-6 relative z-10">
+        
+        {/* Floating Topbar */}
+        <header className="flex items-center justify-between bg-white/60 backdrop-blur-md px-6 py-4 mx-4 md:mx-6 mt-4 border border-slate-200/50 rounded-2xl shadow-sm z-30 select-none">
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-base font-extrabold text-slate-800 tracking-tight" style={{ fontFamily: SORA }}>
+                Admin Workspace
+              </h1>
+              <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest mt-0.5">Control Center</p>
+            </div>
+          </div>
+
+          {/* User profile avatar section */}
+          <div className="relative">
+            <div
+              className="flex items-center gap-3 cursor-pointer group"
+              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+            >
+              <div className="hidden sm:flex flex-col items-end">
+                <p className="text-xs font-bold text-[#0F172A] group-hover:text-[#7C3AED] transition duration-200">
+                  {name}
+                </p>
+                <p className="text-[9px] text-slate-450 font-extrabold uppercase tracking-wider">System Admin</p>
+              </div>
+
+              {/* Circular Avatar */}
+              <div className="relative">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-sm shadow-md shadow-[#7C3AED]/15 group-hover:shadow-[#7C3AED]/25 group-hover:scale-105 transition-all duration-200 border border-white/20">
+                  {name.charAt(0).toUpperCase()}
+                </div>
+                {/* Active Indicator dot */}
+                <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white shadow-sm" />
               </div>
             </div>
 
-            {/* Desktop breadcrumb */}
-            <div className="hidden md:block select-none">
-              <h1
-                className="text-base font-extrabold text-slate-800 tracking-tight"
-                style={{ fontFamily: "'Sora', sans-serif" }}
-              >
-                Admin Workspace
-              </h1>
-              <p className="text-[11px] text-slate-400 font-semibold tracking-wide uppercase mt-0.5">Control Panel</p>
-            </div>
-          </div>
-
-          {/* User profile dropdown/badge */}
-          <div
-            className="flex items-center gap-3 cursor-pointer group"
-            onClick={() => navigate("/admin/profile")}
-          >
-            <div className="hidden sm:flex flex-col items-end">
-              <p className="text-sm font-bold text-slate-700 group-hover:text-teal-600 transition duration-200">
-                {name}
-              </p>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Administrator</p>
-            </div>
-
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-400 flex items-center justify-center text-[#0b132b] font-black text-sm shadow-md shadow-teal-500/10 group-hover:shadow-teal-500/20 group-hover:scale-105 transition-all duration-200">
-              {name.charAt(0).toUpperCase()}
-            </div>
+            {/* Dropdown Menu */}
+            {profileDropdownOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setProfileDropdownOpen(false)} />
+                <div className="absolute right-0 mt-3 w-52 bg-[#0F172A] border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn text-slate-300">
+                  <div className="px-3 py-2 border-b border-white/[0.08] mb-1">
+                    <p className="text-xs font-bold text-white truncate">{name}</p>
+                    <span className="inline-flex items-center gap-1 text-[8px] font-extrabold text-slate-400 uppercase tracking-widest mt-1 bg-white/5 border border-white/[0.06] px-1.5 py-0.5 rounded">
+                      <FaUserShield className="text-[9px] text-[#38BDF8]" />
+                      Administrator
+                    </span>
+                  </div>
+                  <Link
+                    to="/admin/profile"
+                    onClick={() => setProfileDropdownOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition"
+                  >
+                    <FaUserCircle /> My Profile
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setProfileDropdownOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 text-xs font-bold text-rose-450 hover:bg-rose-500/10 hover:text-rose-400 rounded-xl transition"
+                  >
+                    <FaSignOutAlt /> Logout
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </header>
 
-        {/* ── PAGE CONTENT ── */}
-        <main className="flex-1 p-6 overflow-x-auto relative">
+        {/* Page Canvas Contents */}
+        <main className="p-4 md:p-6 flex-1 overflow-x-auto relative">
           <Outlet />
         </main>
       </div>

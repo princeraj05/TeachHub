@@ -27,7 +27,7 @@ const CustomTooltip = ({ active, payload, label }) => {
     return (
       <div className="bg-slate-900/90 backdrop-blur-md text-white text-xs font-bold px-3 py-2 rounded-xl shadow-xl border border-white/10">
         <p className="text-slate-400 mb-0.5 font-medium">{label}</p>
-        <p className="text-teal-400 text-sm font-extrabold">{payload[0].value}</p>
+        <p className="text-[#38BDF8] text-sm font-extrabold">{payload[0].value}</p>
       </div>
     );
   }
@@ -74,23 +74,23 @@ function TeacherDashboard() {
     { name: "Attendance", value: data.attendanceToday },
   ];
 
-  const BAR_COLORS = ["#14B8A6", "#6366F1", "#06B6D4", "#F59E0B"];
+  const BAR_COLORS = ["#7C3AED", "#312E81", "#38BDF8", "#818CF8"];
 
   const stats = [
     {
       label: "My Students",
       value: data.students,
       icon: <FaUserGraduate className="text-base" />,
-      grad: "from-teal-500 to-emerald-500",
-      shadow: "shadow-teal-500/10",
-      text: "text-teal-600",
-      bg: "bg-teal-50",
+      grad: "from-[#7C3AED] to-purple-500",
+      shadow: "shadow-purple-500/10",
+      text: "text-purple-600",
+      bg: "bg-purple-50",
     },
     {
       label: "My Subjects",
       value: data.subjects,
       icon: <FaBook className="text-base" />,
-      grad: "from-indigo-500 to-blue-500",
+      grad: "from-[#312E81] to-indigo-700",
       shadow: "shadow-indigo-500/10",
       text: "text-indigo-600",
       bg: "bg-indigo-50",
@@ -99,7 +99,7 @@ function TeacherDashboard() {
       label: "My Classes",
       value: data.classes,
       icon: <FaSchool className="text-base" />,
-      grad: "from-cyan-500 to-teal-500",
+      grad: "from-[#38BDF8] to-cyan-500",
       shadow: "shadow-cyan-500/10",
       text: "text-cyan-600",
       bg: "bg-cyan-50",
@@ -108,10 +108,10 @@ function TeacherDashboard() {
       label: "Today's Attendance",
       value: data.attendanceToday,
       icon: <FaClipboardCheck className="text-base" />,
-      grad: "from-amber-500 to-orange-500",
-      shadow: "shadow-amber-500/10",
-      text: "text-amber-600",
-      bg: "bg-amber-50",
+      grad: "from-[#7C3AED]/80 to-[#38BDF8]",
+      shadow: "shadow-[#7C3AED]/10",
+      text: "text-purple-700",
+      bg: "bg-purple-50",
     },
   ];
 
@@ -127,7 +127,7 @@ function TeacherDashboard() {
       {/* Page Header */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-teal-600 mb-1">Overview</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED] mb-1">Overview</p>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
             Teacher Dashboard
           </h1>
@@ -159,7 +159,7 @@ function TeacherDashboard() {
                 </span>
               </div>
               <p className="text-3xl font-extrabold text-slate-800 tracking-tight mb-1">{s.value}</p>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">{s.label}</p>
+              <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wide">{s.label}</p>
             </div>
           </div>
         ))}
@@ -174,7 +174,7 @@ function TeacherDashboard() {
               <h2 className="text-base font-bold text-slate-800">Class Metrics Overview</h2>
               <p className="text-xs text-slate-400 font-medium mt-0.5">Distribution counts by academic entities</p>
             </div>
-            <span className="text-[10px] font-extrabold bg-teal-50 border border-teal-100 text-teal-600 px-3 py-1 rounded-full select-none">
+            <span className="text-[10px] font-extrabold bg-purple-50 border border-purple-100 text-[#7C3AED] px-3 py-1 rounded-full select-none">
               Live
             </span>
           </div>
@@ -212,8 +212,8 @@ function TeacherDashboard() {
               <h2 className="text-base font-bold text-slate-800">Quick Metrics</h2>
               <p className="text-xs text-slate-400 font-medium mt-0.5">Summary of academic parameters</p>
             </div>
-            <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center">
-              <FaCalendarAlt className="text-teal-500 text-xs" />
+            <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+              <FaCalendarAlt className="text-[#7C3AED] text-xs" />
             </div>
           </div>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
@@ -226,7 +226,7 @@ function TeacherDashboard() {
                   <span className="text-base bg-white w-8 h-8 rounded-lg shadow-sm border border-slate-200/40 flex items-center justify-center select-none">
                     {row.emoji}
                   </span>
-                  <span className="text-xs font-bold text-slate-600">{row.label}</span>
+                  <span className="text-xs font-bold text-slate-655">{row.label}</span>
                 </div>
                 <span className="text-xs font-extrabold text-slate-800">{row.value}</span>
               </div>

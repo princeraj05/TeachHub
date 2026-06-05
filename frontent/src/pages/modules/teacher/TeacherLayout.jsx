@@ -1,27 +1,29 @@
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
 import {
   FaTachometerAlt,
   FaUserGraduate,
   FaClipboardCheck,
   FaBook,
   FaCalendarAlt,
-  FaAngleDown,
   FaSignOutAlt,
   FaSchool,
-  FaBars,
+  FaGraduationCap,
+  FaThLarge,
   FaTimes,
-  FaGraduationCap
+  FaUserCircle,
+  FaUserShield,
 } from "react-icons/fa";
+
+const SORA = "'Sora', sans-serif";
 
 function TeacherLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [studentsOpen, setStudentsOpen] = useState(false);
-  const [attendanceOpen, setAttendanceOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [activePopover, setActivePopover] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   const name = localStorage.getItem("name") || "Teacher";
 
@@ -31,232 +33,378 @@ function TeacherLayout() {
     navigate("/");
   };
 
-  const closeMenu = () => {
-    setMenuOpen(false);
+  useEffect(() => {
+    setActivePopover(null);
+    setMobileMenuOpen(false);
+    setProfileDropdownOpen(false);
+  }, [location.pathname]);
+
+  const togglePopover = (menu) => {
+    if (activePopover === menu) {
+      setActivePopover(null);
+    } else {
+      setActivePopover(menu);
+    }
   };
 
-  const isLinkActive = (path) => location.pathname === path;
+  const isActive = (path) => location.pathname === path;
+
+  const popoverLinkClass = (path) =>
+    `block px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+      isActive(path)
+        ? "bg-[#7C3AED]/20 text-[#38BDF8] border border-[#7C3AED]/30"
+        : "text-slate-400 hover:bg-white/5 hover:text-white"
+    }`;
 
   return (
-    <div className="flex min-h-screen bg-slate-50/70 overflow-hidden font-sans">
-      {/* MOBILE OVERLAY */}
-      {menuOpen && (
+    <div className="min-h-screen bg-[#F8FAFC] relative overflow-x-hidden" style={{ fontFamily: SORA }}>
+      {/* ── Ambient Background Glow Blobs ── */}
+      <div className="fixed -top-40 -left-40 w-96 h-96 rounded-full bg-[#7C3AED]/10 blur-[120px] pointer-events-none z-0" />
+      <div className="fixed top-1/2 -right-40 w-96 h-96 rounded-full bg-[#312E81]/15 blur-[120px] pointer-events-none z-0" />
+      <div className="fixed -bottom-40 left-1/3 w-96 h-96 rounded-full bg-[#38BDF8]/10 blur-[120px] pointer-events-none z-0" />
+
+      {/* ── Click-outside popover closer ── */}
+      {activePopover && (
         <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden transition-opacity"
-          onClick={() => setMenuOpen(false)}
-        ></div>
+          className="fixed inset-0 z-30 cursor-default"
+          onClick={() => setActivePopover(null)}
+        />
       )}
 
-      {/* SIDEBAR */}
-      <div
-        className={`
-          fixed md:static top-0 left-0 h-full w-64 bg-[#0B132B] text-slate-300 p-4
-          flex flex-col justify-between border-r border-white/5
-          transform ${menuOpen ? "translate-x-0" : "-translate-x-full"}
-          md:translate-x-0
-          transition-transform duration-300
-          z-50
-        `}
-      >
-        <div className="overflow-y-auto custom-scroll flex-1">
-          
-          {/* Sidebar Header */}
-          <div className="flex items-center justify-between px-2 py-4 border-b border-white/[0.04] mb-6">
-            <div className="flex items-center gap-3 select-none">
-              <div className="w-10 h-10 rounded-xl bg-teal-500 flex items-center justify-center shadow-lg shadow-teal-500/20">
-                <FaGraduationCap className="text-xl text-[#0b132b]" />
-              </div>
-              <span className="text-xl font-extrabold tracking-tight text-white" style={{ fontFamily: "'Sora', sans-serif" }}>
-                TeachHub
-              </span>
-            </div>
-            <button
-              className="md:hidden text-slate-400 hover:text-white transition p-1 bg-white/5 rounded-lg"
-              onClick={closeMenu}
-            >
-              <FaTimes />
-            </button>
+      {/* ── DESKTOP: Left Compact Floating Sidebar ── */}
+      <aside className="hidden md:flex fixed left-4 top-4 bottom-4 w-20 bg-[#0F172A]/95 backdrop-blur-md border border-white/10 rounded-3xl shadow-2xl flex-col items-center justify-between py-8 z-40 select-none">
+        
+        {/* Logo Icon */}
+        <div className="relative group">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center shadow-lg shadow-[#7C3AED]/20 transform hover:rotate-6 transition-all duration-300">
+            <FaGraduationCap className="text-xl text-white" />
           </div>
-
-          <nav className="space-y-1.5 px-1">
-            <Link
-              onClick={closeMenu}
-              to="/teacher/dashboard"
-              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                isLinkActive("/teacher/dashboard")
-                  ? "bg-teal-500/10 text-teal-400 border border-teal-500/20 shadow-inner"
-                  : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
-              }`}
-            >
-              <FaTachometerAlt className="text-base" /> Dashboard
-            </Link>
-
-            <Link
-              onClick={closeMenu}
-              to="/teacher/my-classes"
-              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                isLinkActive("/teacher/my-classes")
-                  ? "bg-teal-500/10 text-teal-400 border border-teal-500/20 shadow-inner"
-                  : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
-              }`}
-            >
-              <FaSchool className="text-base" /> My Classes
-            </Link>
-
-            <div className="space-y-1">
-              <button
-                onClick={() => setStudentsOpen(!studentsOpen)}
-                className="flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-white/[0.04] hover:text-white transition-all"
-              >
-                <span className="flex items-center gap-3.5">
-                  <FaUserGraduate className="text-base" /> Students
-                </span>
-                <FaAngleDown className={`transition-transform duration-200 text-xs text-slate-500 ${studentsOpen ? "rotate-180 text-white" : ""}`} />
-              </button>
-
-              {studentsOpen && (
-                <div className="ml-4 pl-4 border-l border-slate-800 space-y-1 animate-fadeIn">
-                  <Link
-                    onClick={closeMenu}
-                    to="/teacher/my-students"
-                    className={`block px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                      isLinkActive("/teacher/my-students")
-                        ? "text-teal-400 font-semibold bg-teal-500/[0.03]"
-                        : "text-slate-500 hover:text-slate-200 hover:bg-white/[0.02]"
-                    }`}
-                  >
-                    My Students
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-1">
-              <button
-                onClick={() => setAttendanceOpen(!attendanceOpen)}
-                className="flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-white/[0.04] hover:text-white transition-all"
-              >
-                <span className="flex items-center gap-3.5">
-                  <FaClipboardCheck className="text-base" /> Attendance
-                </span>
-                <FaAngleDown className={`transition-transform duration-200 text-xs text-slate-500 ${attendanceOpen ? "rotate-180 text-white" : ""}`} />
-              </button>
-
-              {attendanceOpen && (
-                <div className="ml-4 pl-4 border-l border-slate-800 space-y-1 animate-fadeIn">
-                  <Link
-                    onClick={closeMenu}
-                    to="/teacher/mark-attendance"
-                    className={`block px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                      isLinkActive("/teacher/mark-attendance")
-                        ? "text-teal-400 font-semibold bg-teal-500/[0.03]"
-                        : "text-slate-500 hover:text-slate-200 hover:bg-white/[0.02]"
-                    }`}
-                  >
-                    Mark Attendance
-                  </Link>
-
-                  <Link
-                    onClick={closeMenu}
-                    to="/teacher/attendance-report"
-                    className={`block px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                      isLinkActive("/teacher/attendance-report")
-                        ? "text-teal-400 font-semibold bg-teal-500/[0.03]"
-                        : "text-slate-500 hover:text-slate-200 hover:bg-white/[0.02]"
-                    }`}
-                  >
-                    Attendance Report
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            <Link
-              onClick={closeMenu}
-              to="/teacher/my-subjects"
-              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                isLinkActive("/teacher/my-subjects")
-                  ? "bg-teal-500/10 text-teal-400 border border-teal-500/20 shadow-inner"
-                  : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
-              }`}
-            >
-              <FaBook className="text-base" /> My Subjects
-            </Link>
-
-            <Link
-              onClick={closeMenu}
-              to="/teacher/exam-schedule"
-              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                isLinkActive("/teacher/exam-schedule")
-                  ? "bg-teal-500/10 text-teal-400 border border-teal-500/20 shadow-inner"
-                  : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
-              }`}
-            >
-              <FaCalendarAlt className="text-base" /> Exam Schedule
-            </Link>
-          </nav>
+          <span className="absolute left-16 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
+            TeachHub
+          </span>
         </div>
 
-        {/* Logout section */}
-        <div className="p-2 border-t border-white/[0.04] bg-white/[0.01] mt-4">
+        {/* Navigation Group */}
+        <nav className="flex-1 flex flex-col justify-center gap-6">
+          
+          {/* Dashboard */}
+          <div className="relative group">
+            <Link
+              to="/teacher/dashboard"
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
+                isActive("/teacher/dashboard")
+                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <FaTachometerAlt className="text-lg" />
+            </Link>
+            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
+              Dashboard
+            </span>
+          </div>
+
+          {/* My Classes */}
+          <div className="relative group">
+            <Link
+              to="/teacher/my-classes"
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
+                isActive("/teacher/my-classes")
+                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <FaSchool className="text-lg" />
+            </Link>
+            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
+              My Classes
+            </span>
+          </div>
+
+          {/* Students popover trigger */}
+          <div className="relative">
+            <button
+              onClick={() => togglePopover("students")}
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                activePopover === "students" || isActive("/teacher/my-students")
+                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <FaUserGraduate className="text-lg" />
+            </button>
+            {activePopover === "students" && (
+              <div className="absolute left-14 top-0 w-44 bg-[#0F172A]/98 border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn space-y-1">
+                <p className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest px-2 mb-1.5">Students</p>
+                <Link to="/teacher/my-students" className={popoverLinkClass("/teacher/my-students")}>My Students</Link>
+              </div>
+            )}
+          </div>
+
+          {/* Attendance popover trigger */}
+          <div className="relative">
+            <button
+              onClick={() => togglePopover("attendance")}
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                activePopover === "attendance" || isActive("/teacher/mark-attendance") || isActive("/teacher/attendance-report")
+                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <FaClipboardCheck className="text-lg" />
+            </button>
+            {activePopover === "attendance" && (
+              <div className="absolute left-14 top-0 w-44 bg-[#0F172A]/98 border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn space-y-1">
+                <p className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest px-2 mb-1.5">Attendance</p>
+                <Link to="/teacher/mark-attendance" className={popoverLinkClass("/teacher/mark-attendance")}>Mark Attendance</Link>
+                <Link to="/teacher/attendance-report" className={popoverLinkClass("/teacher/attendance-report")}>Report History</Link>
+              </div>
+            )}
+          </div>
+
+          {/* My Subjects */}
+          <div className="relative group">
+            <Link
+              to="/teacher/my-subjects"
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
+                isActive("/teacher/my-subjects")
+                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <FaBook className="text-lg" />
+            </Link>
+            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
+              My Subjects
+            </span>
+          </div>
+
+          {/* Exam Schedule */}
+          <div className="relative group">
+            <Link
+              to="/teacher/exam-schedule"
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
+                isActive("/teacher/exam-schedule")
+                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <FaCalendarAlt className="text-lg" />
+            </Link>
+            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
+              Exam Schedule
+            </span>
+          </div>
+
+          {/* Profile */}
+          <div className="relative group">
+            <Link
+              to="/teacher/profile"
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
+                isActive("/teacher/profile")
+                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <FaUserCircle className="text-lg" />
+            </Link>
+            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
+              My Profile
+            </span>
+          </div>
+
+        </nav>
+
+        {/* Logout */}
+        <div className="relative group">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-sm font-semibold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all active:scale-[0.98]"
+            className="w-11 h-11 rounded-xl flex items-center justify-center text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all cursor-pointer"
           >
-            <FaSignOutAlt className="text-base" /> Logout
+            <FaSignOutAlt className="text-lg" />
           </button>
+          <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
+            Logout
+          </span>
         </div>
-      </div>
 
-      {/* MAIN AREA */}
-      <div className="flex-1 flex flex-col min-w-0">
-        
-        {/* TOPBAR */}
-        <header className="flex justify-between items-center bg-white/80 backdrop-blur-md px-6 py-4 shadow-sm border-b border-slate-100 sticky top-0 z-30">
-          <div className="flex items-center gap-3">
-            <button
-              className="md:hidden w-10 h-10 flex items-center justify-center rounded-xl text-slate-600 hover:bg-slate-50 border border-slate-200/60 transition"
-              onClick={() => setMenuOpen(!menuOpen)}
-            >
-              <FaBars className="text-sm" />
-            </button>
+      </aside>
 
-            {/* Mobile Logo Badge */}
-            <div className="md:hidden">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center shadow-md shadow-teal-500/10">
-                  <FaGraduationCap className="text-white text-base" />
-                </div>
-                <span className="text-base font-bold text-slate-800 tracking-tight" style={{ fontFamily: "'Sora', sans-serif" }}>
-                  TeachHub
-                </span>
+      {/* ── MOBILE: Floating Bottom Navigation Bar ── */}
+      <nav className="md:hidden fixed bottom-4 left-4 right-4 h-16 bg-[#0F172A]/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl z-40 flex items-center justify-around px-2">
+        <Link
+          to="/teacher/dashboard"
+          className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all ${
+            isActive("/teacher/dashboard") ? "text-[#38BDF8]" : "text-slate-400"
+          }`}
+        >
+          <FaTachometerAlt className="text-lg" />
+        </Link>
+
+        {/* Menu Grid Trigger */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all cursor-pointer ${
+            mobileMenuOpen ? "text-[#38BDF8]" : "text-slate-400"
+          }`}
+        >
+          <FaThLarge className="text-lg" />
+        </button>
+
+        <Link
+          to="/teacher/my-classes"
+          className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all ${
+            isActive("/teacher/my-classes") ? "text-[#38BDF8]" : "text-slate-400"
+          }`}
+        >
+          <FaSchool className="text-lg" />
+        </Link>
+
+        {/* Avatar */}
+        <Link
+          to="/teacher/profile"
+          className="relative w-8 h-8 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white text-xs font-black shadow-md shadow-[#7C3AED]/25 border border-white/20"
+        >
+          {name.charAt(0).toUpperCase()}
+          <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-[#0F172A]" />
+        </Link>
+      </nav>
+
+      {/* ── MOBILE: Bottom Sheet Sliding Menu ── */}
+      {mobileMenuOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden animate-fadeIn"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div className="fixed bottom-24 left-4 right-4 max-h-[75vh] bg-[#0F172A]/98 border border-white/10 rounded-3xl p-6 shadow-2xl z-50 overflow-y-auto animate-slideUp text-slate-300">
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-4 mb-4">
+              <div className="flex items-center gap-2.5">
+                <FaGraduationCap className="text-xl text-[#38BDF8]" />
+                <span className="text-base font-extrabold text-white">TeachHub Teacher Panel</span>
               </div>
+              <button
+                className="text-slate-400 hover:text-white bg-white/5 p-1.5 rounded-xl transition"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <FaTimes />
+              </button>
             </div>
 
-            <div className="hidden md:block select-none">
-              <h1 className="text-base font-extrabold text-slate-800 tracking-tight" style={{ fontFamily: "'Sora', sans-serif" }}>
+            <div className="space-y-5">
+              {/* Category: Students */}
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Students</p>
+                <Link to="/teacher/my-students" className="bg-white/5 border border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-white hover:bg-white/10">My Students</Link>
+              </div>
+
+              {/* Category: Attendance */}
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Attendance</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <Link to="/teacher/mark-attendance" className="bg-white/5 border border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-white hover:bg-white/10">Mark Attendance</Link>
+                  <Link to="/teacher/attendance-report" className="bg-white/5 border border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-white hover:bg-white/10">Attendance Report</Link>
+                </div>
+              </div>
+
+              {/* Category: Core Links */}
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Academics</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <Link to="/teacher/my-subjects" className="bg-white/5 border border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-white hover:bg-white/10">My Subjects</Link>
+                  <Link to="/teacher/exam-schedule" className="bg-white/5 border border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-white hover:bg-white/10">Exam Schedule</Link>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between">
+                <Link to="/teacher/profile" className="text-xs font-bold text-[#38BDF8] hover:underline">View Profile</Link>
+                <button
+                  onClick={handleLogout}
+                  className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition"
+                >
+                  <FaSignOutAlt />
+                  Logout
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── CANVAS: Main Container ── */}
+      <div className="flex-1 flex flex-col min-w-0 md:pl-28 pb-24 md:pb-6 relative z-10">
+        
+        {/* Topbar */}
+        <header className="flex items-center justify-between bg-white/60 backdrop-blur-md px-6 py-4 mx-4 md:mx-6 mt-4 border border-slate-200/50 rounded-2xl shadow-sm z-30 select-none">
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-base font-extrabold text-slate-800 tracking-tight" style={{ fontFamily: SORA }}>
                 Teacher Workspace
               </h1>
-              <p className="text-[11px] text-slate-400 font-semibold tracking-wide uppercase mt-0.5">Academic Portal</p>
+              <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest mt-0.5">Instructor Console</p>
             </div>
           </div>
 
-          <div
-            onClick={() => navigate("/teacher/profile")}
-            className="flex items-center gap-3 cursor-pointer group"
-          >
-            <p className="text-sm font-bold text-slate-700 hidden sm:block group-hover:text-teal-600 transition duration-200">
-              Welcome, <span className="font-extrabold">{name}</span>
-            </p>
+          {/* Profile Dropdown */}
+          <div className="relative">
+            <div
+              className="flex items-center gap-3 cursor-pointer group"
+              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+            >
+              <div className="hidden sm:flex flex-col items-end">
+                <p className="text-xs font-bold text-[#0F172A] group-hover:text-[#7C3AED] transition duration-200">
+                  {name}
+                </p>
+                <p className="text-[9px] text-slate-450 font-extrabold uppercase tracking-wider">Course Instructor</p>
+              </div>
 
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-400 flex items-center justify-center text-[#0b132b] font-black text-sm shadow-md shadow-teal-500/10 group-hover:shadow-teal-500/20 group-hover:scale-105 transition-all duration-200">
-              {name.charAt(0).toUpperCase()}
+              {/* Circular Avatar */}
+              <div className="relative">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-sm shadow-md shadow-[#7C3AED]/15 group-hover:shadow-[#7C3AED]/25 group-hover:scale-105 transition-all duration-200 border border-white/20">
+                  {name.charAt(0).toUpperCase()}
+                </div>
+                <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white shadow-sm" />
+              </div>
             </div>
+
+            {/* Dropdown Menu */}
+            {profileDropdownOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setProfileDropdownOpen(false)} />
+                <div className="absolute right-0 mt-3 w-52 bg-[#0F172A] border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn text-slate-300">
+                  <div className="px-3 py-2 border-b border-white/[0.08] mb-1">
+                    <p className="text-xs font-bold text-white truncate">{name}</p>
+                    <span className="inline-flex items-center gap-1 text-[8px] font-extrabold text-[#38BDF8] uppercase tracking-widest mt-1 bg-white/5 border border-white/[0.06] px-1.5 py-0.5 rounded">
+                      <FaUserShield className="text-[9px] text-[#38BDF8]" />
+                      Instructor
+                    </span>
+                  </div>
+                  <Link
+                    to="/teacher/profile"
+                    onClick={() => setProfileDropdownOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition"
+                  >
+                    <FaUserCircle /> My Profile
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setProfileDropdownOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 text-xs font-bold text-rose-450 hover:bg-rose-500/10 hover:text-rose-400 rounded-xl transition"
+                  >
+                    <FaSignOutAlt /> Logout
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </header>
 
-        {/* PAGE CONTENT */}
-        <main className="flex-1 p-6 overflow-x-auto relative">
+        {/* Page Canvas Contents */}
+        <main className="p-4 md:p-6 flex-1 overflow-x-auto relative">
           <Outlet />
         </main>
       </div>
