@@ -26,6 +26,7 @@ const sendOtpEmail = async (email, otp) => {
         user,
         pass,
       },
+      family: 4
     };
 
     if (host && host.includes("gmail.com")) {
