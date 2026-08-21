@@ -51,7 +51,19 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected"))
+  .then(async () => {
+    console.log("MongoDB Connected");
+    try {
+      const User = require("./models/User");
+      const result = await User.updateMany(
+        { name: "Banny Thapar", role: "admin" },
+        { schoolName: "G.D Accedmy" }
+      );
+      console.log("Database Migration: Updated Banny Thapar's school to G.D Accedmy", result);
+    } catch (migrationError) {
+      console.error("Migration Error:", migrationError);
+    }
+  })
   .catch((err) => console.log(err));
 
 

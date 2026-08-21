@@ -31,6 +31,7 @@ function AdminLayout() {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [requestCount, setRequestCount] = useState(0);
+  const [currentSchoolName, setCurrentSchoolName] = useState(localStorage.getItem("schoolName") || "Admin Workspace");
 
   const name = localStorage.getItem("name") || "Admin";
 
@@ -66,6 +67,30 @@ function AdminLayout() {
     } else {
       document.documentElement.classList.remove("dark");
     }
+  }, []);
+
+  useEffect(() => {
+    const API = import.meta.env.VITE_API_URL;
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    axios
+      .get(`${API}/api/auth/profile`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then((res) => {
+        const user = res.data;
+        if (user) {
+          localStorage.setItem("schoolName", user.schoolName || "");
+          setCurrentSchoolName(user.schoolName || "Admin Workspace");
+          localStorage.setItem("name", user.name || "");
+          localStorage.setItem("role", user.role || "");
+          if (user.token) {
+            localStorage.setItem("token", user.token);
+          }
+        }
+      })
+      .catch((err) => console.log("Admin profile sync error:", err));
   }, []);
 
   const toggleTheme = () => {
@@ -472,7 +497,7 @@ function AdminLayout() {
           <div className="flex items-center gap-3">
             <div>
               <h1 className="text-base font-extrabold text-slate-800 dark:text-white tracking-tight" style={{ fontFamily: SORA }}>
-                School: {localStorage.getItem("schoolName") || "Admin Workspace"}
+                School: {currentSchoolName}
               </h1>
               <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest mt-0.5">Control Center</p>
             </div>
