@@ -18,7 +18,7 @@ const sendOtpEmail = async (email, otp) => {
   }
 
   try {
-    const transporter = nodemailer.createTransport({
+    const transporterOptions = {
       host,
       port: parseInt(port),
       secure: parseInt(port) === 465,
@@ -26,7 +26,16 @@ const sendOtpEmail = async (email, otp) => {
         user,
         pass,
       },
-    });
+    };
+
+    if (host && host.includes("gmail.com")) {
+      delete transporterOptions.host;
+      delete transporterOptions.port;
+      delete transporterOptions.secure;
+      transporterOptions.service = "gmail";
+    }
+
+    const transporter = nodemailer.createTransport(transporterOptions);
 
     const mailOptions = {
       from: `"TeachHub Portal" <${user}>`,
