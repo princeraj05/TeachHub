@@ -6,7 +6,8 @@ import {
   FaGraduationCap,
   FaUserShield,
   FaComments,
-  FaUserCircle
+  FaSun,
+  FaMoon
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -16,8 +17,31 @@ function SuperAdminLayout() {
   const location = useLocation();
 
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
 
   const name = localStorage.getItem("name") || "Super Admin";
+
+  useEffect(() => {
+    // Sync theme on load
+    const currentTheme = localStorage.getItem("theme") || "light";
+    setTheme(currentTheme);
+    if (currentTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    localStorage.setItem("theme", nextTheme);
+    if (nextTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
 
   const handleLogout = () => {
     localStorage.clear();
@@ -26,94 +50,104 @@ function SuperAdminLayout() {
 
   const isActive = (path) => location.pathname === path;
 
-  return (
-    <div className="min-h-screen bg-[#F8FAFC] relative overflow-x-hidden" style={{ fontFamily: SORA }}>
-      {/* Ambient background glow */}
-      <div className="fixed -top-40 -left-40 w-96 h-96 rounded-full bg-[#7C3AED]/10 blur-[120px] pointer-events-none z-0" />
-      <div className="fixed top-1/2 -right-40 w-96 h-96 rounded-full bg-[#312E81]/15 blur-[120px] pointer-events-none z-0" />
-      <div className="fixed -bottom-40 left-1/3 w-96 h-96 rounded-full bg-[#38BDF8]/10 blur-[120px] pointer-events-none z-0" />
+  const navLinks = [
+    { to: "/superadmin/dashboard", icon: <FaTachometerAlt className="text-xl" />, label: "User Directory" },
+    { to: "/superadmin/support", icon: <FaComments className="text-xl" />, label: "Support Chat" },
+  ];
 
-      {/* Sidebar */}
-      <aside className="hidden md:flex fixed left-4 top-4 bottom-4 w-20 bg-[#0F172A]/95 backdrop-blur-md border border-white/10 rounded-3xl shadow-2xl flex-col items-center justify-between py-8 z-40 select-none">
-        {/* Logo */}
-        <div className="relative group">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center shadow-lg shadow-[#7C3AED]/20">
-            <FaGraduationCap className="text-xl text-white" />
+  return (
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#090F1C] transition-colors duration-200 relative overflow-x-hidden flex" style={{ fontFamily: SORA }}>
+      {/* Ambient background glow */}
+      <div className="fixed -top-40 -left-40 w-96 h-96 rounded-full bg-[#7C3AED]/10 dark:bg-[#7C3AED]/5 blur-[120px] pointer-events-none z-0" />
+      <div className="fixed top-1/2 -right-40 w-96 h-96 rounded-full bg-[#312E81]/15 dark:bg-[#312E81]/5 blur-[120px] pointer-events-none z-0" />
+      <div className="fixed -bottom-40 left-1/3 w-96 h-96 rounded-full bg-[#38BDF8]/10 dark:bg-[#38BDF8]/5 blur-[120px] pointer-events-none z-0" />
+
+      {/* Sidebar - Instagram Style */}
+      <aside className="fixed left-0 top-0 bottom-0 h-screen w-20 lg:w-64 border-r border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0B132A] flex flex-col justify-between py-8 px-4 z-40 select-none transition-all duration-200">
+        <div className="flex flex-col gap-8">
+          {/* Logo / Branding */}
+          <div className="flex items-center gap-3 px-2.5">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center shadow-lg shadow-[#7C3AED]/20">
+              <FaGraduationCap className="text-xl text-white" />
+            </div>
+            <span className="hidden lg:block text-xl font-black bg-gradient-to-r from-[#7C3AED] to-[#38BDF8] bg-clip-text text-transparent tracking-tight">
+              TeachHub
+            </span>
           </div>
-          <span className="absolute left-16 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
-            TeachHub
-          </span>
+
+          {/* Navigation Links */}
+          <nav className="flex flex-col gap-2">
+            {navLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`flex items-center gap-4 px-3.5 py-3 rounded-xl transition-all duration-200 ${
+                  isActive(link.to)
+                    ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] dark:bg-[#38BDF8]/10 font-bold"
+                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
+                }`}
+              >
+                <div className="flex-shrink-0">{link.icon}</div>
+                <span className="hidden lg:block text-sm font-semibold">{link.label}</span>
+              </Link>
+            ))}
+          </nav>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 flex flex-col justify-center gap-6">
-          {/* Dashboard */}
-          <div className="relative group">
-            <Link
-              to="/superadmin/dashboard"
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
-                isActive("/superadmin/dashboard")
-                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <FaTachometerAlt className="text-lg" />
-            </Link>
-            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
-              User Management
+        {/* Bottom Actions */}
+        <div className="flex flex-col gap-2 border-t border-slate-100 dark:border-white/[0.08] pt-4">
+          {/* Appearance Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-4 px-3.5 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all duration-200 cursor-pointer text-left w-full"
+          >
+            <div className="flex-shrink-0">
+              {theme === "dark" ? <FaSun className="text-xl text-amber-500 animate-pulse" /> : <FaMoon className="text-xl" />}
+            </div>
+            <span className="hidden lg:block text-sm font-semibold">
+              {theme === "dark" ? "Light Mode" : "Dark Mode"}
             </span>
-          </div>
+          </button>
 
-          {/* Support messages */}
-          <div className="relative group">
-            <Link
-              to="/superadmin/support"
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
-                isActive("/superadmin/support")
-                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <FaComments className="text-lg" />
-            </Link>
-            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
-              Support Messages
-            </span>
-          </div>
-        </nav>
-
-        {/* Logout */}
-        <div className="relative group">
+          {/* Logout */}
           <button
             onClick={handleLogout}
-            className="w-11 h-11 rounded-xl flex items-center justify-center text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all cursor-pointer"
+            className="flex items-center gap-4 px-3.5 py-3 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-all duration-200 cursor-pointer text-left w-full"
           >
-            <FaSignOutAlt className="text-lg" />
+            <div className="flex-shrink-0">
+              <FaSignOutAlt className="text-xl" />
+            </div>
+            <span className="hidden lg:block text-sm font-semibold">Logout</span>
           </button>
-          <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
-            Logout
-          </span>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 md:pl-28 pb-24 md:pb-6 relative z-10">
+      <div className="flex-1 flex flex-col min-w-0 pl-20 lg:pl-64 relative z-10">
         {/* Header */}
-        <header className="flex items-center justify-between bg-white/60 backdrop-blur-md px-6 py-4 mx-4 md:mx-6 mt-4 border border-slate-200/50 rounded-2xl shadow-sm z-30 select-none">
+        <header className="flex items-center justify-between bg-white/60 dark:bg-[#0B132A]/60 backdrop-blur-md px-6 py-4 mx-4 md:mx-6 mt-4 border border-slate-200/50 dark:border-white/10 rounded-2xl shadow-sm z-30 select-none">
           <div>
-            <h1 className="text-base font-extrabold text-slate-800 tracking-tight">
+            <h1 className="text-base font-extrabold text-slate-800 dark:text-white tracking-tight">
               Super Admin Workspace
             </h1>
             <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest mt-0.5">Control Center</p>
           </div>
 
-          <div className="relative">
+          <div className="relative flex items-center gap-3">
+            {/* Quick theme switch in header for convenience */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400 cursor-pointer transition"
+            >
+              {theme === "dark" ? <FaSun className="text-amber-500" /> : <FaMoon />}
+            </button>
+
             <div
               className="flex items-center gap-3 cursor-pointer group"
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
             >
               <div className="hidden sm:flex flex-col items-end">
-                <p className="text-xs font-bold text-[#0F172A] group-hover:text-[#7C3AED] transition duration-200">
+                <p className="text-xs font-bold text-[#0F172A] dark:text-slate-200 group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition duration-200">
                   {name}
                 </p>
                 <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider">System Owner</p>
@@ -126,8 +160,8 @@ function SuperAdminLayout() {
 
             {profileDropdownOpen && (
               <>
-                <div className="fixed inset-0 z-40" onClick={() => setProfileDropdownOpen(false)} />
-                <div className="absolute right-0 mt-3 w-52 bg-[#0F172A] border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 text-slate-300">
+                <div className="fixed inset-0 z-45" onClick={() => setProfileDropdownOpen(false)} />
+                <div className="absolute right-0 top-12 w-52 bg-[#0F172A] border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 text-slate-350 animate-fadeIn">
                   <div className="px-3 py-2 border-b border-white/[0.08] mb-1">
                     <p className="text-xs font-bold text-white truncate">{name}</p>
                     <span className="inline-flex items-center gap-1 text-[8px] font-extrabold text-[#38BDF8] uppercase tracking-widest mt-1 bg-white/5 border border-white/[0.06] px-1.5 py-0.5 rounded">

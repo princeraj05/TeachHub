@@ -14,6 +14,8 @@ import {
   FaUserCircle,
   FaUserShield,
   FaComments,
+  FaSun,
+  FaMoon
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -22,231 +24,132 @@ function TeacherLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [activePopover, setActivePopover] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
 
   const name = localStorage.getItem("name") || "Teacher";
+
+  useEffect(() => {
+    // Sync theme on load
+    const currentTheme = localStorage.getItem("theme") || "light";
+    setTheme(currentTheme);
+    if (currentTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    localStorage.setItem("theme", nextTheme);
+    if (nextTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.clear();
     navigate("/");
   };
 
   useEffect(() => {
-    setActivePopover(null);
     setMobileMenuOpen(false);
     setProfileDropdownOpen(false);
   }, [location.pathname]);
 
-  const togglePopover = (menu) => {
-    if (activePopover === menu) {
-      setActivePopover(null);
-    } else {
-      setActivePopover(menu);
-    }
-  };
-
   const isActive = (path) => location.pathname === path;
 
-  const popoverLinkClass = (path) =>
-    `block px-3 py-2 rounded-xl text-xs font-bold transition-all ${
-      isActive(path)
-        ? "bg-[#7C3AED]/20 text-[#38BDF8] border border-[#7C3AED]/30"
-        : "text-slate-400 hover:bg-white/5 hover:text-white"
-    }`;
+  const navLinks = [
+    { to: "/teacher/dashboard", icon: <FaTachometerAlt className="text-xl" />, label: "Dashboard" },
+    { to: "/teacher/my-classes", icon: <FaSchool className="text-xl" />, label: "My Classes" },
+    { to: "/teacher/my-students", icon: <FaUserGraduate className="text-xl" />, label: "My Students" },
+    { to: "/teacher/mark-attendance", icon: <FaClipboardCheck className="text-xl" />, label: "Mark Attendance" },
+    { to: "/teacher/my-subjects", icon: <FaBook className="text-xl" />, label: "My Subjects" },
+    { to: "/teacher/exam-schedule", icon: <FaCalendarAlt className="text-xl" />, label: "Exams" },
+    { to: "/teacher/support", icon: <FaComments className="text-xl" />, label: "Support" },
+    { to: "/teacher/profile", icon: <FaUserCircle className="text-xl" />, label: "Profile" }
+  ];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] relative overflow-x-hidden" style={{ fontFamily: SORA }}>
-      {/* ── Ambient Background Glow Blobs ── */}
-      <div className="fixed -top-40 -left-40 w-96 h-96 rounded-full bg-[#7C3AED]/10 blur-[120px] pointer-events-none z-0" />
-      <div className="fixed top-1/2 -right-40 w-96 h-96 rounded-full bg-[#312E81]/15 blur-[120px] pointer-events-none z-0" />
-      <div className="fixed -bottom-40 left-1/3 w-96 h-96 rounded-full bg-[#38BDF8]/10 blur-[120px] pointer-events-none z-0" />
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#090F1C] transition-colors duration-200 relative overflow-x-hidden flex" style={{ fontFamily: SORA }}>
+      {/* Ambient Background Glow Blobs */}
+      <div className="fixed -top-40 -left-40 w-96 h-96 rounded-full bg-[#7C3AED]/10 dark:bg-[#7C3AED]/5 blur-[120px] pointer-events-none z-0" />
+      <div className="fixed top-1/2 -right-40 w-96 h-96 rounded-full bg-[#312E81]/15 dark:bg-[#312E81]/5 blur-[120px] pointer-events-none z-0" />
+      <div className="fixed -bottom-40 left-1/3 w-96 h-96 rounded-full bg-[#38BDF8]/10 dark:bg-[#38BDF8]/5 blur-[120px] pointer-events-none z-0" />
 
-      {/* ── Click-outside popover closer ── */}
-      {activePopover && (
-        <div
-          className="fixed inset-0 z-30 cursor-default"
-          onClick={() => setActivePopover(null)}
-        />
-      )}
-
-      {/* ── DESKTOP: Left Compact Floating Sidebar ── */}
-      <aside className="hidden md:flex fixed left-4 top-4 bottom-4 w-20 bg-[#0F172A]/95 backdrop-blur-md border border-white/10 rounded-3xl shadow-2xl flex-col items-center justify-between py-8 z-40 select-none">
-        
-        {/* Logo Icon */}
-        <div className="relative group">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center shadow-lg shadow-[#7C3AED]/20 transform hover:rotate-6 transition-all duration-300">
-            <FaGraduationCap className="text-xl text-white" />
+      {/* DESKTOP: Left Compact/Instagram Sidebar */}
+      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 h-screen w-20 lg:w-64 border-r border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0B132A] flex flex-col justify-between py-8 px-4 z-40 select-none transition-all duration-200">
+        <div className="flex flex-col gap-8">
+          {/* Logo / Branding */}
+          <div className="flex items-center gap-3 px-2.5">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center shadow-lg shadow-[#7C3AED]/20 transform hover:rotate-6 transition-all duration-300">
+              <FaGraduationCap className="text-xl text-white" />
+            </div>
+            <span className="hidden lg:block text-xl font-black bg-gradient-to-r from-[#7C3AED] to-[#38BDF8] bg-clip-text text-transparent tracking-tight">
+              TeachHub
+            </span>
           </div>
-          <span className="absolute left-16 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
-            TeachHub
-          </span>
+
+          {/* Navigation Links */}
+          <nav className="flex flex-col gap-2">
+            {navLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`flex items-center gap-4 px-3.5 py-3 rounded-xl transition-all duration-200 ${
+                  isActive(link.to)
+                    ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] dark:bg-[#38BDF8]/10 font-bold"
+                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
+                }`}
+              >
+                <div className="flex-shrink-0">{link.icon}</div>
+                <span className="hidden lg:block text-sm font-semibold">{link.label}</span>
+              </Link>
+            ))}
+          </nav>
         </div>
 
-        {/* Navigation Group */}
-        <nav className="flex-1 flex flex-col justify-center gap-6">
-          
-          {/* Dashboard */}
-          <div className="relative group">
-            <Link
-              to="/teacher/dashboard"
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
-                isActive("/teacher/dashboard")
-                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <FaTachometerAlt className="text-lg" />
-            </Link>
-            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
-              Dashboard
+        {/* Bottom Actions */}
+        <div className="flex flex-col gap-2 border-t border-slate-100 dark:border-white/[0.08] pt-4">
+          {/* Appearance Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-4 px-3.5 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all duration-200 cursor-pointer text-left w-full"
+          >
+            <div className="flex-shrink-0">
+              {theme === "dark" ? <FaSun className="text-xl text-amber-500 animate-pulse" /> : <FaMoon className="text-xl" />}
+            </div>
+            <span className="hidden lg:block text-sm font-semibold">
+              {theme === "dark" ? "Light Mode" : "Dark Mode"}
             </span>
-          </div>
+          </button>
 
-          {/* My Classes */}
-          <div className="relative group">
-            <Link
-              to="/teacher/my-classes"
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
-                isActive("/teacher/my-classes")
-                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <FaSchool className="text-lg" />
-            </Link>
-            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
-              My Classes
-            </span>
-          </div>
-
-          {/* My Students (Direct Link) */}
-          <div className="relative group">
-            <Link
-              to="/teacher/my-students"
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
-                isActive("/teacher/my-students")
-                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <FaUserGraduate className="text-lg" />
-            </Link>
-            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
-              My Students
-            </span>
-          </div>
-
-          {/* Mark Attendance (Direct Link) */}
-          <div className="relative group">
-            <Link
-              to="/teacher/mark-attendance"
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
-                isActive("/teacher/mark-attendance")
-                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <FaClipboardCheck className="text-lg" />
-            </Link>
-            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
-              Mark Attendance
-            </span>
-          </div>
-
-          {/* My Subjects */}
-          <div className="relative group">
-            <Link
-              to="/teacher/my-subjects"
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
-                isActive("/teacher/my-subjects")
-                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <FaBook className="text-lg" />
-            </Link>
-            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
-              My Subjects
-            </span>
-          </div>
-
-          {/* Exam Schedule */}
-          <div className="relative group">
-            <Link
-              to="/teacher/exam-schedule"
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
-                isActive("/teacher/exam-schedule")
-                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <FaCalendarAlt className="text-lg" />
-            </Link>
-            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
-              Exam Schedule
-            </span>
-          </div>
-
-          {/* Support */}
-          <div className="relative group">
-            <Link
-              to="/teacher/support"
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
-                isActive("/teacher/support")
-                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <FaComments className="text-lg" />
-            </Link>
-            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
-              Support Messages
-            </span>
-          </div>
-
-          {/* Profile */}
-          <div className="relative group">
-            <Link
-              to="/teacher/profile"
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
-                isActive("/teacher/profile")
-                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <FaUserCircle className="text-lg" />
-            </Link>
-            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
-              My Profile
-            </span>
-          </div>
-
-        </nav>
-
-        {/* Logout */}
-        <div className="relative group">
+          {/* Logout */}
           <button
             onClick={handleLogout}
-            className="w-11 h-11 rounded-xl flex items-center justify-center text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all cursor-pointer"
+            className="flex items-center gap-4 px-3.5 py-3 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-all duration-200 cursor-pointer text-left w-full"
           >
-            <FaSignOutAlt className="text-lg" />
+            <div className="flex-shrink-0">
+              <FaSignOutAlt className="text-xl" />
+            </div>
+            <span className="hidden lg:block text-sm font-semibold">Logout</span>
           </button>
-          <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
-            Logout
-          </span>
         </div>
-
       </aside>
 
-      {/* ── MOBILE: Floating Bottom Navigation Bar ── */}
-      <nav className="md:hidden fixed bottom-4 left-4 right-4 h-16 bg-[#0F172A]/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl z-40 flex items-center justify-around px-2">
+      {/* MOBILE: Floating Bottom Navigation Bar */}
+      <nav className="md:hidden fixed bottom-4 left-4 right-4 h-16 bg-white/95 dark:bg-[#0B132A]/95 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl z-45 flex items-center justify-around px-2 transition-all duration-200">
         <Link
           to="/teacher/dashboard"
           className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all ${
-            isActive("/teacher/dashboard") ? "text-[#38BDF8]" : "text-slate-400"
+            isActive("/teacher/dashboard") ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400"
           }`}
         >
           <FaTachometerAlt className="text-lg" />
@@ -256,7 +159,7 @@ function TeacherLayout() {
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all cursor-pointer ${
-            mobileMenuOpen ? "text-[#38BDF8]" : "text-slate-400"
+            mobileMenuOpen ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400"
           }`}
         >
           <FaThLarge className="text-lg" />
@@ -265,37 +168,45 @@ function TeacherLayout() {
         <Link
           to="/teacher/my-classes"
           className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all ${
-            isActive("/teacher/my-classes") ? "text-[#38BDF8]" : "text-slate-400"
+            isActive("/teacher/my-classes") ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400"
           }`}
         >
           <FaSchool className="text-lg" />
         </Link>
 
+        {/* Theme button for mobile */}
+        <button
+          onClick={toggleTheme}
+          className="flex flex-col items-center justify-center w-12 h-12 text-slate-400 transition-all cursor-pointer"
+        >
+          {theme === "dark" ? <FaSun className="text-lg text-amber-500" /> : <FaMoon className="text-lg" />}
+        </button>
+
         {/* Avatar */}
         <Link
           to="/teacher/profile"
-          className="relative w-8 h-8 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white text-xs font-black shadow-md shadow-[#7C3AED]/25 border border-white/20"
+          className="relative w-8 h-8 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white text-xs font-black shadow-md border border-white/20"
         >
           {name.charAt(0).toUpperCase()}
-          <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-[#0F172A]" />
+          <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-450 rounded-full border-2 border-white dark:border-[#0B132A]" />
         </Link>
       </nav>
 
-      {/* ── MOBILE: Bottom Sheet Sliding Menu ── */}
+      {/* MOBILE: Bottom Sheet Sliding Menu */}
       {mobileMenuOpen && (
         <>
           <div
             className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden animate-fadeIn"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="fixed bottom-24 left-4 right-4 max-h-[75vh] bg-[#0F172A]/98 border border-white/10 rounded-3xl p-6 shadow-2xl z-50 overflow-y-auto animate-slideUp text-slate-300">
-            <div className="flex items-center justify-between border-b border-white/[0.08] pb-4 mb-4">
+          <div className="fixed bottom-24 left-4 right-4 max-h-[75vh] bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-2xl z-50 overflow-y-auto animate-slideUp text-slate-700 dark:text-slate-300">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/[0.08] pb-4 mb-4">
               <div className="flex items-center gap-2.5">
-                <FaGraduationCap className="text-xl text-[#38BDF8]" />
-                <span className="text-base font-extrabold text-white">TeachHub Teacher Panel</span>
+                <FaGraduationCap className="text-xl text-[#7C3AED] dark:text-[#38BDF8]" />
+                <span className="text-base font-extrabold text-slate-800 dark:text-white">TeachHub Teacher Panel</span>
               </div>
               <button
-                className="text-slate-400 hover:text-white bg-white/5 p-1.5 rounded-xl transition"
+                className="text-slate-400 hover:text-slate-650 dark:hover:text-white bg-slate-100 dark:bg-white/5 p-1.5 rounded-xl transition"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <FaTimes />
@@ -306,30 +217,30 @@ function TeacherLayout() {
               {/* Category: Students */}
               <div>
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Students</p>
-                <Link to="/teacher/my-students" className="bg-white/5 border border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-white hover:bg-white/10">My Students</Link>
+                <Link to="/teacher/my-students" className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">My Students</Link>
               </div>
 
               {/* Category: Attendance */}
               <div>
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Attendance</p>
-                <Link to="/teacher/mark-attendance" className="bg-white/5 border border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-white hover:bg-white/10">Mark Attendance</Link>
+                <Link to="/teacher/mark-attendance" className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Mark Attendance</Link>
               </div>
 
               {/* Category: Core Links */}
               <div>
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Academics</p>
                 <div className="grid grid-cols-2 gap-2">
-                  <Link to="/teacher/my-subjects" className="bg-white/5 border border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-white hover:bg-white/10">My Subjects</Link>
-                  <Link to="/teacher/exam-schedule" className="bg-white/5 border border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-white hover:bg-white/10">Exam Schedule</Link>
+                  <Link to="/teacher/my-subjects" className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">My Subjects</Link>
+                  <Link to="/teacher/exam-schedule" className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Exam Schedule</Link>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between">
-                <Link to="/teacher/profile" className="text-xs font-bold text-[#38BDF8] hover:underline">View Profile</Link>
+              <div className="pt-4 border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-between">
+                <Link to="/teacher/profile" className="text-xs font-bold text-[#7C3AED] dark:text-[#38BDF8] hover:underline">View Profile</Link>
                 <button
                   onClick={handleLogout}
-                  className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition"
+                  className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-550 dark:text-rose-400 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition"
                 >
                   <FaSignOutAlt />
                   Logout
@@ -341,14 +252,14 @@ function TeacherLayout() {
         </>
       )}
 
-      {/* ── CANVAS: Main Container ── */}
-      <div className="flex-1 flex flex-col min-w-0 md:pl-28 pb-24 md:pb-6 relative z-10">
+      {/* CANVAS: Main Container */}
+      <div className="flex-1 flex flex-col min-w-0 pl-0 md:pl-20 lg:pl-64 pb-24 md:pb-6 relative z-10">
         
         {/* Topbar */}
-        <header className="flex items-center justify-between bg-white/60 backdrop-blur-md px-6 py-4 mx-4 md:mx-6 mt-4 border border-slate-200/50 rounded-2xl shadow-sm z-30 select-none">
+        <header className="flex items-center justify-between bg-white/60 dark:bg-[#0B132A]/60 backdrop-blur-md px-6 py-4 mx-4 md:mx-6 mt-4 border border-slate-200/50 dark:border-white/10 rounded-2xl shadow-sm z-30 select-none">
           <div className="flex items-center gap-3">
             <div>
-              <h1 className="text-base font-extrabold text-slate-800 tracking-tight" style={{ fontFamily: SORA }}>
+              <h1 className="text-base font-extrabold text-slate-800 dark:text-white tracking-tight" style={{ fontFamily: SORA }}>
                 Teacher Workspace
               </h1>
               <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest mt-0.5">Instructor Console</p>
@@ -356,13 +267,21 @@ function TeacherLayout() {
           </div>
 
           {/* Profile Dropdown */}
-          <div className="relative">
+          <div className="relative flex items-center gap-3">
+            {/* Quick theme switch in header */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400 cursor-pointer transition"
+            >
+              {theme === "dark" ? <FaSun className="text-amber-500" /> : <FaMoon />}
+            </button>
+
             <div
               className="flex items-center gap-3 cursor-pointer group"
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
             >
               <div className="hidden sm:flex flex-col items-end">
-                <p className="text-xs font-bold text-[#0F172A] group-hover:text-[#7C3AED] transition duration-200">
+                <p className="text-xs font-bold text-[#0F172A] dark:text-slate-250 group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition duration-200">
                   {name}
                 </p>
                 <p className="text-[9px] text-slate-450 font-extrabold uppercase tracking-wider">Course Instructor</p>
@@ -370,18 +289,18 @@ function TeacherLayout() {
 
               {/* Circular Avatar */}
               <div className="relative">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-sm shadow-md shadow-[#7C3AED]/15 group-hover:shadow-[#7C3AED]/25 group-hover:scale-105 transition-all duration-200 border border-white/20">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-sm shadow-md border border-white/20">
                   {name.charAt(0).toUpperCase()}
                 </div>
-                <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white shadow-sm" />
+                <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-450 rounded-full border-2 border-white dark:border-[#0B132A] shadow-sm" />
               </div>
             </div>
 
             {/* Dropdown Menu */}
             {profileDropdownOpen && (
               <>
-                <div className="fixed inset-0 z-40" onClick={() => setProfileDropdownOpen(false)} />
-                <div className="absolute right-0 mt-3 w-52 bg-[#0F172A] border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn text-slate-300">
+                <div className="fixed inset-0 z-45" onClick={() => setProfileDropdownOpen(false)} />
+                <div className="absolute right-0 top-12 w-52 bg-[#0F172A] border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn text-slate-300">
                   <div className="px-3 py-2 border-b border-white/[0.08] mb-1">
                     <p className="text-xs font-bold text-white truncate">{name}</p>
                     <span className="inline-flex items-center gap-1 text-[8px] font-extrabold text-[#38BDF8] uppercase tracking-widest mt-1 bg-white/5 border border-white/[0.06] px-1.5 py-0.5 rounded">
@@ -401,7 +320,7 @@ function TeacherLayout() {
                       setProfileDropdownOpen(false);
                       handleLogout();
                     }}
-                    className="flex items-center gap-2 w-full text-left px-3 py-2 text-xs font-bold text-rose-450 hover:bg-rose-500/10 hover:text-rose-400 rounded-xl transition"
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 text-xs font-bold text-rose-450 hover:bg-rose-500/10 hover:text-rose-400 rounded-xl transition cursor-pointer"
                   >
                     <FaSignOutAlt /> Logout
                   </button>
