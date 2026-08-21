@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { FaEnvelope, FaLock, FaGraduationCap, FaCheckCircle } from "react-icons/fa";
+import { FaEnvelope, FaLock, FaGraduationCap, FaCheckCircle, FaSun, FaMoon } from "react-icons/fa";
 import { auth, googleProvider } from "../../config/firebase";
 import { signInWithPopup } from "firebase/auth";
 
@@ -16,6 +16,18 @@ function Login() {
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [devOtpMessage, setDevOtpMessage] = useState("");
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    localStorage.setItem("theme", nextTheme);
+    if (nextTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
 
   const saveAuthAndNavigate = (data) => {
     localStorage.setItem("token", data.token);
@@ -90,6 +102,15 @@ function Login() {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row font-sans bg-[#F8FAFC] dark:bg-[#090F1C] transition-colors duration-200" style={{ fontFamily: SORA }}>
+      {/* Theme Toggle Button */}
+      <button
+        onClick={toggleTheme}
+        className="fixed top-6 right-6 p-3 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0F172A] text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 shadow-md z-50 transition duration-200 cursor-pointer"
+        aria-label="Toggle Theme"
+      >
+        {theme === "dark" ? <FaSun className="text-amber-500 text-lg animate-pulse" /> : <FaMoon className="text-lg" />}
+      </button>
+
       {/* ── Left Panel (Branding) ── */}
       <div className="hidden lg:flex lg:w-1/2 xl:w-7/12 relative bg-[#0F172A] items-center justify-center overflow-hidden">
         {/* Ambient Gradient Glow Blobs */}

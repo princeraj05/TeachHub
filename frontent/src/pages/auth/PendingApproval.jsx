@@ -1,10 +1,33 @@
 import { useNavigate } from "react-router-dom";
-import { FaGraduationCap, FaClock, FaSignOutAlt } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { FaGraduationCap, FaClock, FaSignOutAlt, FaSun, FaMoon } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
 
 function PendingApproval() {
   const navigate = useNavigate();
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+
+  useEffect(() => {
+    const currentTheme = localStorage.getItem("theme") || "light";
+    setTheme(currentTheme);
+    if (currentTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    localStorage.setItem("theme", nextTheme);
+    if (nextTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
 
   const handleLogout = () => {
     localStorage.clear();
@@ -13,6 +36,15 @@ function PendingApproval() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] dark:bg-[#090F1C] p-6 font-sans" style={{ fontFamily: SORA }}>
+      {/* Theme Toggle Button */}
+      <button
+        onClick={toggleTheme}
+        className="fixed top-6 right-6 p-3 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0F172A] text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 shadow-md z-50 transition duration-200 cursor-pointer"
+        aria-label="Toggle Theme"
+      >
+        {theme === "dark" ? <FaSun className="text-amber-500 text-lg animate-pulse" /> : <FaMoon className="text-lg" />}
+      </button>
+
       <div className="max-w-md w-full bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl p-8 text-center relative overflow-hidden">
         {/* Ambient glow */}
         <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-[#7C3AED]/10 blur-[50px] pointer-events-none" />
