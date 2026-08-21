@@ -92,11 +92,18 @@ function AdminRequests() {
     }
   };
 
+  const toLocalDateTimeString = (dateObjOrStr) => {
+    if (!dateObjOrStr) return "";
+    const date = new Date(dateObjOrStr);
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
+  };
+
   const openApprovalFlow = (user) => {
     if (user.requestedRole === "student") {
       setSelectedUser(user);
       if (user.admissionExamDate) {
-        setExamDate(new Date(user.admissionExamDate).toISOString().slice(0, 16));
+        setExamDate(toLocalDateTimeString(user.admissionExamDate));
       } else {
         setExamDate("");
       }
@@ -115,7 +122,8 @@ function AdminRequests() {
       alert("Please select an exam date");
       return;
     }
-    handleAction(selectedUser._id, "approved", { examDate, examMode });
+    const utcDate = new Date(examDate).toISOString();
+    handleAction(selectedUser._id, "approved", { examDate: utcDate, examMode });
   };
 
   const handleAssignClassSubmit = (e) => {
