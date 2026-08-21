@@ -7,6 +7,7 @@ const SORA = "'Sora', sans-serif";
 function StudentExams() {
   const API = import.meta.env.VITE_API_URL;
   const [exams, setExams] = useState([]);
+  const [profile, setProfile] = useState(null);
   const [search, setSearch] = useState("");
 
   const token = localStorage.getItem("token");
@@ -16,11 +17,28 @@ function StudentExams() {
       .get(`${API}/api/student/exams`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((res) => setExams(res.data))
+      .then((res) => setExams(res.data || []))
+      .catch((err) => console.log(err));
+
+    axios
+      .get(`${API}/api/auth/profile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setProfile(res.data))
       .catch((err) => console.log(err));
   }, [API, token]);
 
-  const filtered = exams.filter((e) =>
+  const allExams = [...exams];
+  if (profile && profile.admissionExamDate) {
+    allExams.push({
+      _id: "admission-exam-test",
+      subject: `Admission Entrance Test (${profile.admissionExamMode})`,
+      date: profile.admissionExamDate,
+      isAdmission: true
+    });
+  }
+
+  const filtered = allExams.filter((e) =>
     e.subject?.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -31,14 +49,14 @@ function StudentExams() {
 
   const getBadge = (days) => {
     if (days < 0) return { label: "Passed", cls: "bg-slate-100 text-slate-400 border-slate-200/60" };
-    if (days === 0) return { label: "Today!", cls: "bg-rose-50 text-rose-600 border-rose-200" };
-    if (days <= 3) return { label: `${days}d left`, cls: "bg-rose-50 text-rose-600 border-rose-100" };
+    if (days === 0) return { label: "Today!", cls: "bg-rose-550 text-rose-600 border-rose-200" };
+    if (days <= 3) return { label: `${days}d left`, cls: "bg-rose-50 text-rose-600 border-rose-100 animate-pulse" };
     if (days <= 7) return { label: `${days}d left`, cls: "bg-amber-50 text-amber-600 border-amber-100" };
     return { label: `${days}d left`, cls: "bg-teal-50 text-teal-600 border-teal-100" };
   };
 
-  const nextExam = exams.filter((e) => getDaysLeft(e.date) >= 0).sort((a, b) => new Date(a.date) - new Date(b.date))[0]?.subject || "—";
-  const thisWeekCount = exams.filter((e) => { const d = getDaysLeft(e.date); return d >= 0 && d <= 7; }).length;
+  const nextExam = allExams.filter((e) => getDaysLeft(e.date) >= 0).sort((a, b) => new Date(a.date) - new Date(b.date))[0]?.subject || "—";
+  const thisWeekCount = allExams.filter((e) => { const d = getDaysLeft(e.date); return d >= 0 && d <= 7; }).length;
 
   const stats = [
     {
@@ -137,14 +155,25 @@ function StudentExams() {
                   const days = getDaysLeft(e.date);
                   const badge = getBadge(days);
                   return (
-                    <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                    <tr key={i} className={`transition-colors ${e.isAdmission ? "bg-teal-50/30 hover:bg-teal-50/50 dark:bg-teal-500/5 dark:hover:bg-teal-500/10" : "hover:bg-slate-50/50"}`}>
                       <td className="px-6 py-4 text-slate-400 font-bold text-xs">{i + 1}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0">
-                            <FaBookOpen className="text-teal-500 text-xs" />
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${
+                            e.isAdmission 
+                              ? "bg-teal-500 border-teal-600 text-white shadow-sm shadow-teal-500/20" 
+                              : "bg-teal-50 border border-teal-100 text-teal-500"
+                          }`}>
+                            <FaBookOpen className="text-xs" />
                           </div>
-                          <span className="font-bold text-slate-850 text-xs">{e.subject}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-slate-850 text-xs">{e.subject}</span>
+                            {e.isAdmission && (
+                              <span className="text-[8px] font-black uppercase bg-teal-500/10 text-teal-600 dark:text-teal-400 px-1.5 py-0.5 rounded tracking-wider">
+                                Admission Exam
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -183,13 +212,26 @@ function StudentExams() {
               const days = getDaysLeft(e.date);
               const badge = getBadge(days);
               return (
-                <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-slate-50/50 transition-colors">
+                <div key={i} className={`flex items-center justify-between px-6 py-4 transition-colors ${
+                  e.isAdmission ? "bg-teal-50/30 dark:bg-teal-500/5 hover:bg-teal-50/50 dark:hover:bg-teal-500/10" : "hover:bg-slate-50/50"
+                }`}>
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0">
-                      <FaBookOpen className="text-teal-500 text-sm" />
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
+                      e.isAdmission
+                        ? "bg-teal-500 border-teal-600 text-white shadow-sm shadow-teal-500/20"
+                        : "bg-teal-50 border border-teal-100 text-teal-500"
+                    }`}>
+                      <FaBookOpen className="text-sm" />
                     </div>
                     <div>
-                      <p className="font-bold text-slate-800 text-xs">{e.subject}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="font-bold text-slate-800 text-xs">{e.subject}</p>
+                        {e.isAdmission && (
+                          <span className="text-[7px] font-black uppercase bg-teal-500/10 text-teal-600 dark:text-teal-400 px-1 py-0.5 rounded tracking-wider">
+                            Admission
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5 font-medium">
                         <FaCalendarAlt className="text-[9px]" />
                         {new Date(e.date).toLocaleDateString("en-IN", {
