@@ -74,6 +74,11 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  admissionExamProctor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null
+  },
   classId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Class",

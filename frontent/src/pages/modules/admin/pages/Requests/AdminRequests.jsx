@@ -30,6 +30,8 @@ function AdminRequests() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [examDate, setExamDate] = useState("");
   const [examMode, setExamMode] = useState("Online");
+  const [proctorId, setProctorId] = useState("");
+  const [teachers, setTeachers] = useState([]);
 
   // Class Assignment Modal State
   const [classes, setClasses] = useState([]);
@@ -39,7 +41,19 @@ function AdminRequests() {
   useEffect(() => {
     fetchRequests();
     fetchClasses();
+    fetchTeachers();
   }, []);
+
+  const fetchTeachers = () => {
+    if (token) {
+      axios
+        .get(`${API}/api/admin/users/teachers`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then((res) => setTeachers(res.data))
+        .catch((err) => console.error("Error fetching teachers", err));
+    }
+  };
 
   const fetchRequests = () => {
     setLoading(true);
@@ -108,6 +122,7 @@ function AdminRequests() {
         setExamDate("");
       }
       setExamMode(user.admissionExamMode || "Online");
+      setProctorId(user.admissionExamProctor?._id || user.admissionExamProctor || "");
       setShowScheduleModal(true);
     } else {
       if (window.confirm(`Are you sure you want to approve ${user.name} as a Teacher?`)) {
@@ -129,7 +144,7 @@ function AdminRequests() {
     const localDate = new Date(year, month - 1, day, hour, minute);
     const utcDate = localDate.toISOString();
 
-    handleAction(selectedUser._id, "approved", { examDate: utcDate, examMode });
+    handleAction(selectedUser._id, "approved", { examDate: utcDate, examMode, proctorId });
   };
 
   const handleAssignClassSubmit = (e) => {
@@ -346,6 +361,12 @@ function AdminRequests() {
                           Mode: <strong className="font-extrabold text-slate-750 dark:text-white">{req.admissionExamMode}</strong>
                           <span className="mx-2">•</span>
                           Schedule: <strong className="font-extrabold text-slate-750 dark:text-white">{new Date(req.admissionExamDate).toLocaleString("en-US", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true })}</strong>
+                          {req.admissionExamMode === "Online" && (
+                            <>
+                              <span className="mx-2">•</span>
+                              Proctor: <strong className="font-extrabold text-slate-750 dark:text-white">{req.admissionExamProctor?.name || "Myself (Admin)"}</strong>
+                            </>
+                          )}
                         </p>
                         {hasTakenTest && (
                           <div className="inline-flex items-center gap-3 bg-slate-50 dark:bg-white/5 border border-slate-200/40 dark:border-white/5 px-3 py-1.5 rounded-xl mt-1 text-[10px] font-bold text-slate-550 dark:text-slate-400 shadow-sm">
@@ -460,6 +481,27 @@ function AdminRequests() {
                   <option value="Offline">Offline</option>
                 </select>
               </div>
+
+              {/* Proctor Selection */}
+              {examMode === "Online" && (
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
+                    Assigned Proctor (Invigilator)
+                  </label>
+                  <select
+                    value={proctorId}
+                    onChange={(e) => setProctorId(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED] cursor-pointer"
+                  >
+                    <option value="">Myself (Admin)</option>
+                    {teachers.map((t) => (
+                      <option key={t._id} value={t._id}>
+                        {t.name} (Teacher)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {/* Actions */}
               <div className="flex gap-3 pt-4">

@@ -111,6 +111,7 @@ exports.getStudentProfile = async (req,res)=>{
 
     const student = await require("../models/User")
     .findById(studentId)
+    .populate("admissionExamProctor", "name email role")
     .select("-password");
 
     if(!student){

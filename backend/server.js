@@ -124,6 +124,23 @@ io.on("connection", (socket) => {
     socket.join(socket.user.id);
   }
 
+  // WebRTC Signaling Router for Live proctoring
+  socket.on("proctor-signal", ({ targetId, signal }) => {
+    io.to(targetId).emit("proctor-signal", { senderId: socket.user.id, signal });
+  });
+
+  // Session notifications to alert proctors/teachers instantly
+  socket.on("test-session-start", ({ proctorId }) => {
+    io.to(proctorId).emit("student-test-started", { 
+      studentId: socket.user.id, 
+      studentName: socket.user.name || "Student" 
+    });
+  });
+
+  socket.on("test-session-stop", ({ proctorId }) => {
+    io.to(proctorId).emit("student-test-stopped", { studentId: socket.user.id });
+  });
+
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
   });

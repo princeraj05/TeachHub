@@ -125,7 +125,9 @@ exports.getJoinRequests = async (req, res) => {
     const requests = await User.find({
       requestedSchool: school,
       requestStatus: { $in: ["pending", "scheduled", "exam_completed"] }
-    }).select("-password");
+    })
+    .populate("admissionExamProctor", "name email role")
+    .select("-password");
 
     res.json(requests);
   } catch (error) {
@@ -136,7 +138,7 @@ exports.getJoinRequests = async (req, res) => {
 // ================= PROCESS JOIN REQUEST =================
 exports.processJoinRequest = async (req, res) => {
   try {
-    const { userId, action, examDate, examMode } = req.body;
+    const { userId, action, examDate, examMode, proctorId } = req.body;
 
     if (!req.user || !req.user.schoolName) {
       return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
@@ -164,6 +166,7 @@ exports.processJoinRequest = async (req, res) => {
         candidate.requestStatus = "scheduled";
         candidate.admissionExamDate = new Date(examDate);
         candidate.admissionExamMode = examMode;
+        candidate.admissionExamProctor = proctorId || req.user.id;
       } else {
         candidate.role = candidate.requestedRole;
         candidate.schoolName = candidate.requestedSchool;

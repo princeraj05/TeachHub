@@ -8,7 +8,9 @@ getMyStudents,
 getMySubjects,
 getTeacherProfile,
 getTeacherExams,
-updateTeacherProfile
+  updateTeacherProfile,
+  getTeacherExams,
+  getProctorSessions
 } = require("../controllers/teacherController");
 
 const { protect } = require("../middleware/authMiddleware");
@@ -26,5 +28,7 @@ router.get("/profile/:id", protect, getTeacherProfile);
 router.put("/profile/update", protect, updateTeacherProfile);
 
 router.get("/exams", protect, getTeacherExams);
+
+router.get("/proctor-sessions", protect, getProctorSessions);
 
 module.exports = router;

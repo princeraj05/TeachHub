@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { io } from "socket.io-client";
 import {
   FaGraduationCap,
   FaClock,
@@ -93,8 +94,132 @@ const VideoPreview = ({ stream }) => {
   );
 };
 
+const questionTranslations = {
+  "What is the result of 150 + 270?": {
+    q: "150 + 270 का परिणाम क्या है?",
+    opts: ["320", "420", "520", "380"]
+  },
+  "Solve: 500 - 185": {
+    q: "हल करें: 500 - 185",
+    opts: ["315", "325", "295", "415"]
+  },
+  "What is 12 multiplied by 8?": {
+    q: "12 को 8 से गुणा करने पर क्या प्राप्त होता है?",
+    opts: ["86", "96", "106", "76"]
+  },
+  "Divide: 144 / 12": {
+    q: "भाग दें: 144 / 12",
+    opts: ["10", "11", "12", "14"]
+  },
+  "Identify the increasing order (ascending order) of numbers: 45, 12, 89, 34": {
+    q: "संख्याओं का बढ़ता क्रम (आरोही क्रम) पहचानें: 45, 12, 89, 34",
+    opts: ["12 < 34 < 45 < 89", "89 < 45 < 34 < 12", "12 < 45 < 34 < 89", "34 < 12 < 45 < 89"]
+  },
+  "Identify the decreasing order (descending order) of numbers: 100, 250, 50, 150": {
+    q: "संख्याओं का घटता क्रम (अवरोही क्रम) पहचानें: 100, 250, 50, 150",
+    opts: ["50 > 100 > 150 > 250", "250 > 150 > 100 > 50", "250 > 100 > 150 > 50", "150 > 250 > 100 > 50"]
+  },
+  "If a pen costs ₹15, what is the cost of 6 pens?": {
+    q: "यदि एक पेन की कीमत ₹15 है, तो 6 पेनों की कीमत क्या होगी?",
+    opts: ["₹75", "₹80", "₹90", "₹100"]
+  },
+  "What is the next number in the pattern: 2, 4, 8, 16, _?": {
+    q: "पैटर्न में अगली संख्या क्या है: 2, 4, 8, 16, _?",
+    opts: ["20", "24", "32", "30"]
+  },
+  "Add: 12.5 + 7.25": {
+    q: "जोड़ें: 12.5 + 7.25",
+    opts: ["19.75", "19.50", "20.25", "19.25"]
+  },
+  "What is the perimeter of a square with side length 5 cm?": {
+    q: "5 सेमी भुजा वाले वर्ग का परिमाप क्या है?",
+    opts: ["15 सेमी", "20 सेमी", "25 सेमी", "10 सेमी"]
+  },
+  "Lion (शेर) kis tarah ka janvar hai?": {
+    q: "शेर किस तरह का जानवर है?",
+    opts: ["शाकाहारी (Herbivore)", "मांसाहारी (Carnivore)", "सर्वाहारी (Omnivore)", "अपघटक (Decomposer)"]
+  },
+  "Insan (Human) kis category me aata hai?": {
+    q: "इंसान किस श्रेणी में आता है?",
+    opts: ["शाकाहारी (Herbivore)", "मांसाहारी (Carnivore)", "सर्वाहारी (Omnivore)", "इनमें से कोई नहीं"]
+  },
+  "Cow (गाय) kis tarah ka janvar hai?": {
+    q: "गाय किस तरह का जानवर है?",
+    opts: ["शाकाहारी (Herbivore)", "मांसाहारी (Carnivore)", "सर्वाहारी (Omnivore)", "परजीवी (Parasite)"]
+  },
+  "Plants apna khana banane ke liye kaun si gas absorb karte hain?": {
+    q: "पौधे अपना भोजन बनाने के लिए कौन सी गैस ग्रहण करते हैं?",
+    opts: ["ऑक्सीजन", "कार्बन डाइऑक्साइड", "नाइट्रोजन", "हाइड्रोजन"]
+  },
+  "Human body me kitni bones (हड्डियां) hoti hain?": {
+    q: "मानव शरीर में कितनी हड्डियाँ होती हैं?",
+    opts: ["206", "306", "106", "250"]
+  },
+  "Hamare Solar System ka sabse bada planet kaun sa hai?": {
+    q: "हमारे सौरमंडल का सबसे बड़ा ग्रह कौन सा है?",
+    opts: ["पृथ्वी (Earth)", "मंगल (Mars)", "बृहस्पति (Jupiter)", "शनि (Saturn)"]
+  },
+  "Pani (Water) ka chemical formula kya hai?": {
+    q: "पानी का रासायनिक सूत्र क्या है?",
+    opts: ["CO2", "H2O", "O2", "NaCl"]
+  },
+  "Hamare Earth par primary source of energy kya hai?": {
+    q: "हमारी पृथ्वी पर ऊर्जा का प्राथमिक स्रोत क्या है?",
+    opts: ["चन्द्रमा (Moon)", "सूर्य (Sun)", "कोयला (Coal)", "हवा (Wind)"]
+  },
+  "Kaun sa organ hamari body me blood pump karta hai?": {
+    q: "कौन सा अंग हमारे शरीर में रक्त पंप करता है?",
+    opts: ["फेफड़े (Lungs)", "मस्तिष्क (Brain)", "हृदय (Heart)", "गुर्दा (Kidney)"]
+  },
+  "Plants ka green color kis pigment ki wajah se hota hai?": {
+    q: "पौधों का हरा रंग किस वर्णक के कारण होता है?",
+    opts: ["क्लोरोफिल (Chlorophyll)", "हीमोग्लोबिन", "मेलेनिन", "कैरोटीन"]
+  },
+  "Bihar ki rajdhani kya hai?": {
+    q: "बिहार की राजधानी क्या है?",
+    opts: ["पटना (Patna)", "गया", "मुजफ्फरपुर", "दरभंगा"]
+  },
+  "India ki rajdhani (Capital) kya hai?": {
+    q: "भारत की राजधानी क्या है?",
+    opts: ["मुंबई", "नई दिल्ली", "कोलकाता", "चेन्नई"]
+  },
+  "India kab aazad (Independent) hua tha?": {
+    q: "भारत कब आज़ाद हुआ था?",
+    opts: ["15 अगस्त 1947", "26 जनवरी 1950", "15 अगस्त 1950", "2 अक्टूबर 1947"]
+  },
+  "Republic Day (गणतंत्र दिवस) kab manaya jata hai?": {
+    q: "गणतंत्र दिवस कब मनाया जाता है?",
+    opts: ["15 अगस्त", "26 जनवरी", "2 अक्टूबर", "14 नवंबर"]
+  },
+  "Taj Mahal kis shahar me sthit hai?": {
+    q: "ताजमहल किस शहर में स्थित है?",
+    opts: ["दिल्ली", "आगरा", "जयपुर", "लखनऊ"]
+  },
+  "India ke first Prime Minister kaun the?": {
+    q: "भारत के पहले प्रधानमंत्री कौन थे?",
+    opts: ["महात्मा गांधी", "जवाहरलाल नेहरू", "डॉ. राजेंद्र प्रसाद", "सुभाष चंद्र बोस"]
+  },
+  "India ka national bird (राष्ट्रीय पक्षी) kaun sa hai?": {
+    q: "भारत का राष्ट्रीय पक्षी कौन सा है?",
+    opts: ["मोर (Peacock)", "तोता", "कौआ", "कबूतर"]
+  },
+  "Red Fort (लाल किला) kisne banwaya tha?": {
+    q: "लाल किला किसने बनवाया था?",
+    opts: ["अकबर", "शाहजहाँ", "बाबर", "हुमायूँ"]
+  },
+  "Kaun se leader ko 'Bapu' ke naam se jana jata hai?": {
+    q: "किस नेता को 'बापू' के नाम से जाना जाता है?",
+    opts: ["जवाहरलाल नेहरू", "महात्मा गांधी", "Bhagat Singh", "Sardar Patel"]
+  },
+  "National Anthem 'Jana Gana Mana' kisne likha tha?": {
+    q: "राष्ट्रगान 'जन गण मन' किसने लिखा था?",
+    opts: ["Rabindranath Tagore", "Bankim Chandra Chatterjee", "Mahatma Gandhi", "Sarojini Naidu"]
+  }
+};
+
 function PendingApproval() {
   const navigate = useNavigate();
+  const [examLanguage, setExamLanguage] = useState("EN"); // "EN" or "HI"
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [activeTab, setActiveTab] = useState("status");
   const [schools, setSchools] = useState([]);
@@ -123,6 +248,90 @@ function PendingApproval() {
   const [loadingTest, setLoadingTest] = useState(false);
   const [submittingTest, setSubmittingTest] = useState(false);
   const [testResult, setTestResult] = useState(null);
+
+  const socketRef = useRef(null);
+
+  useEffect(() => {
+    if (testStep === "taking" && user.admissionExamProctor) {
+      const token = localStorage.getItem("token");
+      const API = import.meta.env.VITE_API_URL;
+      socketRef.current = io(API, {
+        auth: { token }
+      });
+
+      const proctorId = user.admissionExamProctor._id || user.admissionExamProctor;
+      socketRef.current.emit("test-session-start", { proctorId });
+
+      return () => {
+        if (socketRef.current) {
+          socketRef.current.emit("test-session-stop", { proctorId });
+          socketRef.current.disconnect();
+        }
+      };
+    }
+  }, [testStep, user.admissionExamProctor]);
+
+  useEffect(() => {
+    let camInterval;
+    let screenInterval;
+
+    if (testStep === "taking" && socketRef.current && user.admissionExamProctor) {
+      const proctorId = user.admissionExamProctor._id || user.admissionExamProctor;
+
+      const camVideo = document.createElement("video");
+      const screenVideo = document.createElement("video");
+
+      if (cameraStream) {
+        camVideo.srcObject = cameraStream;
+        camVideo.autoplay = true;
+        camVideo.muted = true;
+        camVideo.play().catch(e => console.log(e));
+      }
+
+      if (screenStream) {
+        screenVideo.srcObject = screenStream;
+        screenVideo.autoplay = true;
+        screenVideo.muted = true;
+        screenVideo.play().catch(e => console.log(e));
+      }
+
+      const camCanvas = document.createElement("canvas");
+      const screenCanvas = document.createElement("canvas");
+
+      camInterval = setInterval(() => {
+        if (cameraActive && cameraStream && camVideo.readyState === 4) {
+          camCanvas.width = 160;
+          camCanvas.height = 120;
+          const ctx = camCanvas.getContext("2d");
+          ctx.drawImage(camVideo, 0, 0, camCanvas.width, camCanvas.height);
+          const data = camCanvas.toDataURL("image/jpeg", 0.5);
+          socketRef.current.emit("proctor-signal", {
+            targetId: proctorId,
+            signal: { type: "camera-frame", frame: data }
+          });
+        }
+      }, 2000);
+
+      screenInterval = setInterval(() => {
+        if (screenActive && screenStream && screenVideo.readyState === 4) {
+          screenCanvas.width = 320;
+          screenCanvas.height = 240;
+          const ctx = screenCanvas.getContext("2d");
+          ctx.drawImage(screenVideo, 0, 0, screenCanvas.width, screenCanvas.height);
+          const data = screenCanvas.toDataURL("image/jpeg", 0.5);
+          socketRef.current.emit("proctor-signal", {
+            targetId: proctorId,
+            signal: { type: "screen-frame", frame: data }
+          });
+        }
+      }, 2000);
+    }
+
+    return () => {
+      clearInterval(camInterval);
+      clearInterval(screenInterval);
+    };
+  }, [testStep, cameraStream, screenStream, cameraActive, screenActive, user.admissionExamProctor]);
 
   // Proctoring setup media activations
   const activateCamera = async () => {

@@ -14,6 +14,7 @@ import ExamSchedule from "./pages/Exams/ExamSchedule";
 import TeacherProfile from "./pages/Profile/TeacherProfile";
 import MyClasses from "./pages/MyClasses/MyClasses";
 import TeacherSupport from "./pages/TeacherSupport";
+import LiveProctoring from "./pages/LiveProctoring/LiveProctoring";
 
 function TeacherRoutes() {
 
@@ -36,6 +37,8 @@ function TeacherRoutes() {
         <Route path="my-subjects" element={<MySubjects />} />
 
         <Route path="exam-schedule" element={<ExamSchedule />} />
+
+        <Route path="proctoring" element={<LiveProctoring />} />
 
         <Route path="profile" element={<TeacherProfile />} />
         <Route path="my-classes" element={<MyClasses/>}/>

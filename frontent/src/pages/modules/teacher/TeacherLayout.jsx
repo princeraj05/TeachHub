@@ -15,7 +15,8 @@ import {
   FaUserShield,
   FaComments,
   FaSun,
-  FaMoon
+  FaMoon,
+  FaTv
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -73,6 +74,7 @@ function TeacherLayout() {
     { to: "/teacher/mark-attendance", icon: <FaClipboardCheck className="text-xl" />, label: "Mark Attendance" },
     { to: "/teacher/my-subjects", icon: <FaBook className="text-xl" />, label: "My Subjects" },
     { to: "/teacher/exam-schedule", icon: <FaCalendarAlt className="text-xl" />, label: "Exams" },
+    { to: "/teacher/proctoring", icon: <FaTv className="text-xl" />, label: "Conduct Exam" },
     { to: "/teacher/support", icon: <FaComments className="text-xl" />, label: "Support" },
     { to: "/teacher/profile", icon: <FaUserCircle className="text-xl" />, label: "Profile" }
   ];
@@ -217,7 +219,10 @@ function TeacherLayout() {
               {/* Category: Students */}
               <div>
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Students</p>
-                <Link to="/teacher/my-students" className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">My Students</Link>
+                <div className="grid grid-cols-2 gap-2">
+                  <Link to="/teacher/my-students" className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">My Students</Link>
+                  <Link to="/teacher/proctoring" className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Conduct Exam</Link>
+                </div>
               </div>
 
               {/* Category: Attendance */}

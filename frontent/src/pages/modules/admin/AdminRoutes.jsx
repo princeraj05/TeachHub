@@ -23,6 +23,7 @@ import ExamSchedule from "./pages/Exams/ExamSchedule";
 import AdminProfile from "./pages/Profile/AdminProfile";
 import AdminSupport from "./pages/AdminSupport";
 import AdminRequests from "./pages/Requests/AdminRequests";
+import LiveProctoring from "../teacher/pages/LiveProctoring/LiveProctoring";
 
 
 function AdminRoutes() {
@@ -43,6 +44,9 @@ function AdminRoutes() {
 
         {/* Requests */}
         <Route path="requests" element={<AdminRequests />} />
+        
+        {/* Proctoring */}
+        <Route path="proctoring" element={<LiveProctoring />} />
 
         {/* Academics */}
         <Route path="classes" element={<Classes />} />

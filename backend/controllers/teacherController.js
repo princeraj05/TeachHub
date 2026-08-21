@@ -253,3 +253,32 @@ error:err.message
 }
 
 };
+
+// ================= GET PROCTOR SESSIONS =================
+exports.getProctorSessions = async (req, res) => {
+  try {
+    const User = require("../models/User");
+    const school = req.user.schoolName;
+    if (!school) {
+      return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+    }
+
+    let query = {
+      requestedSchool: school,
+      requestStatus: "scheduled"
+    };
+
+    // If it's a teacher, filter by assigned proctor
+    if (req.user.role === "teacher") {
+      query.admissionExamProctor = req.user.id;
+    }
+
+    const sessions = await User.find(query)
+      .populate("admissionExamProctor", "name email role")
+      .select("-password");
+
+    res.json(sessions);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
