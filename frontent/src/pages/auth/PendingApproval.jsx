@@ -12,8 +12,8 @@ function PendingApproval() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] p-6 font-sans" style={{ fontFamily: SORA }}>
-      <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200/60 shadow-xl p-8 text-center relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] dark:bg-[#090F1C] p-6 font-sans" style={{ fontFamily: SORA }}>
+      <div className="max-w-md w-full bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl p-8 text-center relative overflow-hidden">
         {/* Ambient glow */}
         <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-[#7C3AED]/10 blur-[50px] pointer-events-none" />
         

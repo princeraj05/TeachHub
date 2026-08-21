@@ -83,7 +83,7 @@
 }
 
 /* ── Global Dark Theme overrides for TeachHub ── */
-.dark .bg-white {
+.dark .bg-white:not(.lg\:bg-transparent):not(.dark\:lg\:bg-transparent) {
   background-color: #0F172A !important;
 }
 

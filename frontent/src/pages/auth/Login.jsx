@@ -89,7 +89,7 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row font-sans bg-[#F8FAFC]" style={{ fontFamily: SORA }}>
+    <div className="min-h-screen flex flex-col lg:flex-row font-sans bg-[#F8FAFC] dark:bg-[#090F1C] transition-colors duration-200" style={{ fontFamily: SORA }}>
       {/* ── Left Panel (Branding) ── */}
       <div className="hidden lg:flex lg:w-1/2 xl:w-7/12 relative bg-[#0F172A] items-center justify-center overflow-hidden">
         {/* Ambient Gradient Glow Blobs */}
@@ -163,7 +163,7 @@ function Login() {
           </span>
         </div>
 
-        <div className="w-full max-w-[420px] bg-white lg:bg-transparent p-8 sm:p-10 lg:p-0 rounded-3xl border border-slate-200/60 lg:border-none shadow-xl shadow-slate-100/40 lg:shadow-none">
+        <div className="w-full max-w-[420px] bg-white dark:bg-[#0F172A] lg:bg-transparent dark:lg:bg-transparent p-8 sm:p-10 lg:p-0 rounded-3xl border border-slate-200/60 dark:border-white/10 lg:border-none shadow-xl shadow-slate-100/40 lg:shadow-none">
           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
             Welcome back
           </h2>
