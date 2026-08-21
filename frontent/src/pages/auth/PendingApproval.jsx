@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { FaGraduationCap, FaClock, FaSignOutAlt, FaSun, FaMoon } from "react-icons/fa";
+import UserProfile from "../../components/UserProfile";
 
 const SORA = "'Sora', sans-serif";
 
@@ -35,7 +36,7 @@ function PendingApproval() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] dark:bg-[#090F1C] p-6 font-sans" style={{ fontFamily: SORA }}>
+    <div className="min-h-screen flex flex-col xl:flex-row items-center justify-center bg-[#F8FAFC] dark:bg-[#090F1C] p-6 gap-8 font-sans transition-colors duration-200" style={{ fontFamily: SORA }}>
       {/* Theme Toggle Button */}
       <button
         onClick={toggleTheme}
@@ -45,16 +46,17 @@ function PendingApproval() {
         {theme === "dark" ? <FaSun className="text-amber-500 text-lg animate-pulse" /> : <FaMoon className="text-lg" />}
       </button>
 
-      <div className="max-w-md w-full bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl p-8 text-center relative overflow-hidden">
+      {/* Pending status card */}
+      <div className="max-w-md w-full bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl p-8 text-center relative overflow-hidden shrink-0 transition-all duration-200">
         {/* Ambient glow */}
         <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-[#7C3AED]/10 blur-[50px] pointer-events-none" />
         
         {/* Logo */}
-        <div className="inline-flex items-center gap-2.5 mb-8 bg-slate-100 border border-slate-200/50 px-4 py-2 rounded-xl shadow-sm">
+        <div className="inline-flex items-center gap-2.5 mb-8 bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 px-4 py-2 rounded-xl shadow-sm">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center shadow-md">
             <FaGraduationCap className="text-white text-base" />
           </div>
-          <span className="text-base font-black text-slate-800 tracking-tight">
+          <span className="text-base font-black text-slate-800 dark:text-white tracking-tight">
             TeachHub
           </span>
         </div>
@@ -63,11 +65,11 @@ function PendingApproval() {
           <FaClock className="text-3xl animate-pulse" />
         </div>
 
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-3">
+        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-3">
           Wait Kro, School Assign Ho Raha Hai
         </h2>
         
-        <p className="text-slate-500 text-sm leading-relaxed mb-8">
+        <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-8">
           Your login was successful! Please wait until the Super Admin assigns your school and system role. You will be able to access your dashboard as soon as the assignment is completed.
         </p>
 
@@ -78,6 +80,11 @@ function PendingApproval() {
           <FaSignOutAlt className="text-sm" />
           Logout from Account
         </button>
+      </div>
+
+      {/* Embedded Personal Profile Setup */}
+      <div className="w-full max-w-xl">
+        <UserProfile />
       </div>
     </div>
   );
