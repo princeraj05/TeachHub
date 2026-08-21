@@ -42,7 +42,7 @@ const userSchema = new mongoose.Schema({
   },
   requestStatus: {
     type: String,
-    enum: ["pending", "approved", "rejected", ""],
+    enum: ["pending", "scheduled", "exam_completed", "approved", "rejected", ""],
     default: ""
   },
   admissionExamDate: {

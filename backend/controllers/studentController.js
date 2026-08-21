@@ -244,6 +244,7 @@ exports.submitStudentAdmissionExam = async (req, res) => {
     student.admissionExamTotal = exam.questions.length;
     student.admissionExamCorrect = correctCount;
     student.admissionExamWrong = wrongCount;
+    student.requestStatus = "exam_completed";
 
     await student.save();
 

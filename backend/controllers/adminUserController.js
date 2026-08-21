@@ -76,7 +76,7 @@ exports.getJoinRequests = async (req, res) => {
 
     const requests = await User.find({
       requestedSchool: req.user.schoolName,
-      requestStatus: "pending"
+      requestStatus: { $in: ["pending", "scheduled", "exam_completed"] }
     }).select("-password");
 
     res.json(requests);
@@ -108,16 +108,18 @@ exports.processJoinRequest = async (req, res) => {
     }
 
     if (action === "approved") {
-      candidate.role = candidate.requestedRole;
-      candidate.schoolName = candidate.requestedSchool;
-      candidate.requestStatus = "approved";
-
-      if (candidate.role === "student") {
+      if (candidate.requestedRole === "student") {
         if (!examDate || !examMode) {
-          return res.status(400).json({ message: "Exam date and mode are required for student approval" });
+          return res.status(400).json({ message: "Exam date and mode are required for student scheduling" });
         }
+        candidate.schoolName = candidate.requestedSchool;
+        candidate.requestStatus = "scheduled";
         candidate.admissionExamDate = new Date(examDate);
         candidate.admissionExamMode = examMode;
+      } else {
+        candidate.role = candidate.requestedRole;
+        candidate.schoolName = candidate.requestedSchool;
+        candidate.requestStatus = "approved";
       }
     } else {
       candidate.requestStatus = "rejected";
@@ -133,12 +135,13 @@ exports.processJoinRequest = async (req, res) => {
     await candidate.save();
 
     res.json({
-      message: `Join request ${action} successfully`,
+      message: `Join request processed successfully`,
       user: {
         _id: candidate._id,
         name: candidate.name,
         role: candidate.role,
         schoolName: candidate.schoolName,
+        requestStatus: candidate.requestStatus,
         admissionExamDate: candidate.admissionExamDate,
         admissionExamMode: candidate.admissionExamMode
       }
@@ -194,6 +197,60 @@ exports.saveAdmissionExam = async (req, res) => {
     }
     await exam.save();
     res.json({ message: "Admission exam saved successfully", exam });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ================= ASSIGN CLASS AND SECTION =================
+exports.assignClass = async (req, res) => {
+  try {
+    const { userId, classId } = req.body;
+
+    if (!req.user || !req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+    }
+
+    if (!userId || !classId) {
+      return res.status(400).json({ message: "userId and classId are required" });
+    }
+
+    const student = await User.findById(userId);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    if (student.schoolName !== req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: Student belongs to another school" });
+    }
+
+    const targetClass = await Class.findById(classId);
+    if (!targetClass) {
+      return res.status(404).json({ message: "Class not found" });
+    }
+
+    // Add to class students list if not already present
+    if (!targetClass.students.includes(student._id)) {
+      targetClass.students.push(student._id);
+      await targetClass.save();
+    }
+
+    student.role = "student";
+    student.requestStatus = "approved";
+    student.classId = targetClass._id;
+
+    await student.save();
+
+    res.json({
+      message: "Student assigned to class successfully",
+      student: {
+        _id: student._id,
+        name: student.name,
+        role: student.role,
+        requestStatus: student.requestStatus,
+        classId: student.classId
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
