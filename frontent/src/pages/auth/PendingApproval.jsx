@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import axios from "axios";
 import { FaGraduationCap, FaClock, FaSignOutAlt, FaSun, FaMoon } from "react-icons/fa";
 import UserProfile from "../../components/UserProfile";
 
@@ -18,6 +19,44 @@ function PendingApproval() {
       document.documentElement.classList.remove("dark");
     }
   }, []);
+
+  useEffect(() => {
+    const API = import.meta.env.VITE_API_URL;
+    const token = localStorage.getItem("token");
+
+    const checkRoleStatus = () => {
+      axios
+        .get(`${API}/api/auth/profile`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then((res) => {
+          if (res.data && res.data.role && res.data.role !== "unassigned") {
+            // Update token and role in localStorage
+            localStorage.setItem("token", res.data.token);
+            localStorage.setItem("role", res.data.role);
+            localStorage.setItem("name", res.data.name);
+
+            // Redirect automatically without requiring reload/logout
+            if (res.data.role === "superadmin") {
+              navigate("/superadmin/dashboard");
+            } else if (res.data.role === "admin") {
+              navigate("/admin/dashboard");
+            } else if (res.data.role === "teacher") {
+              navigate("/teacher/dashboard");
+            } else if (res.data.role === "student") {
+              navigate("/student/dashboard");
+            }
+          }
+        })
+        .catch((err) => {
+          console.error("Polling profile status error:", err);
+        });
+    };
+
+    // Poll every 3 seconds
+    const interval = setInterval(checkRoleStatus, 3000);
+    return () => clearInterval(interval);
+  }, [navigate]);
 
   const toggleTheme = () => {
     const nextTheme = theme === "dark" ? "light" : "dark";

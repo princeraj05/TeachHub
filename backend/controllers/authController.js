@@ -306,7 +306,18 @@ exports.getProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    res.json(user);
+    
+    // Generate a fresh token with current role
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "30d" }
+    );
+
+    const userObj = user.toObject();
+    userObj.token = token;
+
+    res.json(userObj);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
