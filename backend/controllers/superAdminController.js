@@ -84,3 +84,35 @@ exports.getSchools = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// DELETE /api/superadmin/users/:id
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const Class = require("../models/Class");
+    const Subject = require("../models/Subject");
+    const Attendance = require("../models/Attendance");
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.role === "superadmin") {
+      return res.status(400).json({ message: "Cannot delete a Super Admin" });
+    }
+
+    const userId = user._id;
+
+    // Clean up references
+    await Class.updateMany({ students: userId }, { $pull: { students: userId } });
+    await Class.updateMany({ teacher: userId }, { $unset: { teacher: "" } });
+    await Subject.updateMany({ teacher: userId }, { $unset: { teacher: "" } });
+    await Attendance.deleteMany({ student: userId });
+    await User.findByIdAndDelete(userId);
+
+    res.json({ message: "User and all associated records deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

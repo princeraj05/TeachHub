@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaChalkboardTeacher, FaEnvelope, FaSearch, FaUsers, FaSchool, FaBook } from "react-icons/fa";
+import { FaChalkboardTeacher, FaEnvelope, FaSearch, FaUsers, FaSchool, FaBook, FaTrash } from "react-icons/fa";
 
 function Teachers() {
   const API = import.meta.env.VITE_API_URL;
@@ -89,6 +89,23 @@ function Teachers() {
       t.email?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleDeleteTeacher = (id, name) => {
+    if (window.confirm(`Are you sure you want to permanently delete teacher ${name}? This will remove all their records from the database.`)) {
+      const token = localStorage.getItem("token");
+      axios
+        .delete(`${API}/api/admin/users/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then(() => {
+          alert(`${name} has been successfully deleted.`);
+          setTeachers(prev => prev.filter(t => t._id !== id));
+        })
+        .catch((err) => {
+          alert(err.response?.data?.message || "Failed to delete teacher");
+        });
+    }
+  };
+
   const avatarColors = [
     "from-teal-500 to-emerald-500",
     "from-emerald-500 to-green-500",
@@ -151,6 +168,13 @@ function Teachers() {
               <span className="flex-shrink-0 inline-flex items-center gap-1 bg-teal-50 border border-teal-100 text-teal-700 text-[10px] font-bold px-2.5 py-1 rounded-full">
                 Teacher
               </span>
+              <button
+                onClick={() => handleDeleteTeacher(t._id, t.name)}
+                className="absolute top-3 right-3 text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 p-1.5 rounded-lg transition shrink-0 cursor-pointer"
+                title="Delete Teacher"
+              >
+                <FaTrash className="text-xs" />
+              </button>
             </div>
           ))
         )}
@@ -176,12 +200,13 @@ function Teachers() {
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Assign Class</th>
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Assign Subject</th>
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider w-36">System Role</th>
+                <th className="px-6 py-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider w-28">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100/80">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="py-20 text-center">
+                  <td colSpan="7" className="py-20 text-center">
                     <FaChalkboardTeacher className="text-slate-200 text-5xl mx-auto mb-4" />
                     <p className="text-slate-500 text-sm font-bold">No teachers found</p>
                     <p className="text-slate-400 text-xs mt-1">Try searching for a different user.</p>
@@ -243,6 +268,15 @@ function Teachers() {
                         <FaChalkboardTeacher className="text-xs" />
                         Teacher
                       </span>
+                    </td>
+                    <td className="px-6 py-4.5 text-center">
+                      <button
+                        onClick={() => handleDeleteTeacher(t._id, t.name)}
+                        className="bg-rose-50 hover:bg-rose-600 hover:text-white p-2 rounded-xl text-rose-600 transition duration-150 inline-flex items-center justify-center cursor-pointer"
+                        title="Delete Teacher"
+                      >
+                        <FaTrash className="text-xs" />
+                      </button>
                     </td>
                   </tr>
                 ))

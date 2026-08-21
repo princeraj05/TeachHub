@@ -9,6 +9,7 @@ import {
   FaHourglassHalf,
   FaSearch,
   FaEdit,
+  FaTrash,
   FaCheckCircle,
   FaTimes
 } from "react-icons/fa";
@@ -57,6 +58,22 @@ function SuperAdminDashboard() {
       setSchools(res.data);
     } catch (err) {
       console.error("Error fetching schools:", err);
+    }
+  };
+
+  const handleDeleteUser = (id, name) => {
+    if (window.confirm(`Are you sure you want to permanently delete ${name}? This will remove all their records from the database.`)) {
+      axios
+        .delete(`${API}/api/superadmin/users/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then(() => {
+          alert(`${name} has been successfully deleted.`);
+          fetchUsers();
+        })
+        .catch((err) => {
+          alert(err.response?.data?.message || "Failed to delete user");
+        });
     }
   };
 
@@ -237,12 +254,22 @@ function SuperAdminDashboard() {
                         {u.role === "superadmin" ? (
                           <span className="text-xs text-slate-400 font-medium italic">ReadOnly</span>
                         ) : (
-                          <button
-                            onClick={() => handleOpenAssignModal(u)}
-                            className="bg-slate-100 hover:bg-[#7C3AED] hover:text-white p-2 rounded-xl text-slate-500 transition duration-150 inline-flex items-center justify-center cursor-pointer"
-                          >
-                            <FaEdit className="text-xs" />
-                          </button>
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleOpenAssignModal(u)}
+                              className="bg-slate-100 hover:bg-[#7C3AED] hover:text-white p-2 rounded-xl text-slate-500 transition duration-150 inline-flex items-center justify-center cursor-pointer"
+                              title="Edit User"
+                            >
+                              <FaEdit className="text-xs" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(u._id, u.name)}
+                              className="bg-rose-50 hover:bg-rose-600 hover:text-white p-2 rounded-xl text-rose-600 transition duration-150 inline-flex items-center justify-center cursor-pointer"
+                              title="Delete User"
+                            >
+                              <FaTrash className="text-xs" />
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>

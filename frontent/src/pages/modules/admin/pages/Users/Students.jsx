@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "axios";
-import { FaUserGraduate, FaEnvelope, FaSearch, FaUsers } from "react-icons/fa";
+import { FaUserGraduate, FaEnvelope, FaSearch, FaUsers, FaTrash } from "react-icons/fa";
 
 function Students() {
   const API = import.meta.env.VITE_API_URL;
@@ -64,6 +64,23 @@ function Students() {
       s.email?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleDeleteStudent = (id, name) => {
+    if (window.confirm(`Are you sure you want to permanently delete student ${name}? This will remove all their records from the database.`)) {
+      const token = localStorage.getItem("token");
+      axiosInstance
+        .delete(`${API}/api/admin/users/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then(() => {
+          alert(`${name} has been successfully deleted.`);
+          setStudents(prev => prev.filter(s => s._id !== id));
+        })
+        .catch((err) => {
+          alert(err.response?.data?.message || "Failed to delete student");
+        });
+    }
+  };
+
   const avatarColors = [
     "from-cyan-500 to-teal-500",
     "from-teal-500 to-emerald-500",
@@ -126,6 +143,13 @@ function Students() {
               <span className="flex-shrink-0 inline-flex items-center gap-1 bg-teal-50 border border-teal-100 text-teal-700 text-[10px] font-bold px-2.5 py-1 rounded-full">
                 Student
               </span>
+              <button
+                onClick={() => handleDeleteStudent(s._id, s.name)}
+                className="absolute top-3 right-3 text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 p-1.5 rounded-lg transition shrink-0 cursor-pointer"
+                title="Delete Student"
+              >
+                <FaTrash className="text-xs" />
+              </button>
             </div>
           ))
         )}
@@ -150,12 +174,13 @@ function Students() {
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Email Address</th>
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Class & Section</th>
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider w-36">System Role</th>
+                <th className="px-6 py-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider w-28">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100/80">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="py-20 text-center">
+                  <td colSpan="6" className="py-20 text-center">
                     <FaUserGraduate className="text-slate-200 text-5xl mx-auto mb-4" />
                     <p className="text-slate-500 text-sm font-bold">No students found</p>
                     <p className="text-slate-400 text-xs mt-1">Try searching for a different user.</p>
@@ -198,6 +223,15 @@ function Students() {
                         <FaUserGraduate className="text-xs" />
                         Student
                       </span>
+                    </td>
+                    <td className="px-6 py-4.5 text-center">
+                      <button
+                        onClick={() => handleDeleteStudent(s._id, s.name)}
+                        className="bg-rose-50 hover:bg-rose-600 hover:text-white p-2 rounded-xl text-rose-600 transition duration-150 inline-flex items-center justify-center cursor-pointer"
+                        title="Delete Student"
+                      >
+                        <FaTrash className="text-xs" />
+                      </button>
                     </td>
                   </tr>
                 ))

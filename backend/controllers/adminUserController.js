@@ -306,3 +306,40 @@ exports.assignClass = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// DELETE /api/admin/users/:id
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const Class = require("../models/Class");
+    const Subject = require("../models/Subject");
+    const Attendance = require("../models/Attendance");
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Verify user belongs to the admin's school
+    if (user.schoolName !== req.user.schoolName && user.requestedSchool !== req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: You can only delete users from your own school" });
+    }
+
+    if (user.role === "superadmin" || user.role === "admin") {
+      return res.status(400).json({ message: "Cannot delete administrators via this endpoint" });
+    }
+
+    const userId = user._id;
+
+    // Clean up references
+    await Class.updateMany({ students: userId }, { $pull: { students: userId } });
+    await Class.updateMany({ teacher: userId }, { $unset: { teacher: "" } });
+    await Subject.updateMany({ teacher: userId }, { $unset: { teacher: "" } });
+    await Attendance.deleteMany({ student: userId });
+    await User.findByIdAndDelete(userId);
+
+    res.json({ message: "User and all associated records deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

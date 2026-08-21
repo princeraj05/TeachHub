@@ -9,7 +9,8 @@ getJoinRequests,
 processJoinRequest,
 getAdmissionExam,
 saveAdmissionExam,
-assignClass
+assignClass,
+deleteUser
 } = require("../controllers/adminUserController");
 
 router.use(protect);
@@ -22,5 +23,6 @@ router.post("/process-request", processJoinRequest);
 router.get("/admission-exam", getAdmissionExam);
 router.post("/admission-exam", saveAdmissionExam);
 router.post("/assign-class", assignClass);
+router.delete("/:id", deleteUser);
 
 module.exports = router;
