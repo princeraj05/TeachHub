@@ -23,6 +23,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ""
   },
+  phoneNumber: {
+    type: String,
+    default: ""
+  },
+  avatar: {
+    type: String,
+    default: ""
+  },
   classId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Class",

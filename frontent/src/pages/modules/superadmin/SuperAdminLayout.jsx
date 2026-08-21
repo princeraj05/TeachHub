@@ -7,7 +7,8 @@ import {
   FaUserShield,
   FaComments,
   FaSun,
-  FaMoon
+  FaMoon,
+  FaUserCircle
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -53,6 +54,7 @@ function SuperAdminLayout() {
   const navLinks = [
     { to: "/superadmin/dashboard", icon: <FaTachometerAlt className="text-xl" />, label: "User Directory" },
     { to: "/superadmin/support", icon: <FaComments className="text-xl" />, label: "Support Chat" },
+    { to: "/superadmin/profile", icon: <FaUserCircle className="text-xl" />, label: "Profile" },
   ];
 
   return (
@@ -168,6 +170,13 @@ function SuperAdminLayout() {
                       <FaUserShield /> Super Admin
                     </span>
                   </div>
+                  <Link
+                    to="/superadmin/profile"
+                    onClick={() => setProfileDropdownOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition"
+                  >
+                    <FaUserCircle /> My Profile
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 text-xs font-bold text-rose-400 hover:bg-rose-500/10 hover:text-rose-350 rounded-xl transition cursor-pointer"
