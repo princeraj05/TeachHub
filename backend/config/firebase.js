@@ -1,22 +1,28 @@
-const admin = require("firebase-admin");
+const { initializeApp, getApps, cert } = require("firebase-admin/app");
+const { getAuth } = require("firebase-admin/auth");
+const path = require("path");
 
-if (admin.apps.length === 0) {
+let app;
+
+if (getApps().length === 0) {
   let credential;
 
   if (process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
     try {
-      const serviceAccount = require(process.env.FIREBASE_SERVICE_ACCOUNT_PATH);
-      credential = admin.credential.cert(serviceAccount);
+      const resolvedPath = path.resolve(process.env.FIREBASE_SERVICE_ACCOUNT_PATH);
+      const serviceAccount = require(resolvedPath);
+      credential = cert(serviceAccount);
       console.log("Firebase Admin initialized via service account file");
     } catch (err) {
       console.error("Error loading Firebase service account JSON:", err.message);
     }
   }
 
+
   if (!credential && process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
     try {
       const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n");
-      credential = admin.credential.cert({
+      credential = cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
         privateKey: privateKey,
@@ -30,10 +36,22 @@ if (admin.apps.length === 0) {
   if (!credential) {
     console.warn("⚠️ Firebase Admin credentials not configured. Auth sync will fail.");
   } else {
-    admin.initializeApp({
+    app = initializeApp({
       credential,
     });
   }
+} else {
+  app = getApps()[0];
 }
 
-module.exports = admin;
+const firebaseAdmin = {
+  auth: () => {
+    if (!getApps().length) {
+      throw new Error("Firebase Admin SDK is not initialized. Please configure credentials.");
+    }
+    return getAuth();
+  }
+};
+
+module.exports = firebaseAdmin;
+
