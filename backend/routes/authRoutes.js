@@ -1,5 +1,5 @@
 const express = require("express");
-const { login, firebaseSync, sendOTP, verifyOTP, getProfile, updateProfile, getSchools } = require("../controllers/authController");
+const { login, firebaseSync, sendOTP, verifyOTP, getProfile, updateProfile, getSchools, submitJoinRequest } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -12,5 +12,6 @@ router.post("/verify-otp", verifyOTP);
 router.get("/profile", protect, getProfile);
 router.put("/profile", protect, updateProfile);
 router.get("/schools", protect, getSchools);
+router.put("/join-request", protect, submitJoinRequest);
 
 module.exports = router;

@@ -20,6 +20,39 @@ function PendingApproval() {
   const [activeTab, setActiveTab] = useState("status");
   const [schools, setSchools] = useState([]);
   const [user, setUser] = useState({ name: "Loading...", email: "", role: "", avatar: "" });
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [selectedSchool, setSelectedSchool] = useState("");
+  const [requestedRole, setRequestedRole] = useState("student");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleJoinSubmit = (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    const API = import.meta.env.VITE_API_URL;
+    const token = localStorage.getItem("token");
+
+    axios
+      .put(
+        `${API}/api/auth/join-request`,
+        { schoolName: selectedSchool, role: requestedRole },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      .then((res) => {
+        setUser((prev) => ({
+          ...prev,
+          requestedSchool: selectedSchool,
+          requestedRole: requestedRole,
+          requestStatus: "pending"
+        }));
+        setShowJoinModal(false);
+      })
+      .catch((err) => {
+        alert(err.response?.data?.message || "Failed to submit request");
+      })
+      .finally(() => {
+        setSubmitting(false);
+      });
+  };
 
   useEffect(() => {
     const currentTheme = localStorage.getItem("theme") || "light";
@@ -230,6 +263,19 @@ function PendingApproval() {
               <FaClock className="text-3xl animate-pulse" />
             </div>
 
+            {/* Pending joining request alert banner */}
+            {user.requestStatus === "pending" && (
+              <div className="mb-6 px-4 py-3 bg-amber-500/15 border border-amber-500/20 rounded-2xl text-left flex items-start gap-3">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping mt-1 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs font-black text-amber-500">Pending School Approval</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed">
+                    Requested to join <strong className="font-bold text-slate-700 dark:text-white">{user.requestedSchool}</strong> as a <strong className="font-bold text-slate-700 dark:text-white capitalize">{user.requestedRole}</strong>. Please wait for school admin approval.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-3">
               Wait Kro, School Assign Ho Raha Hai
             </h2>
@@ -262,15 +308,43 @@ function PendingApproval() {
             </div>
 
             {schools.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-1">
+              <div className="grid grid-cols-1 gap-4 max-h-[60vh] overflow-y-auto pr-1">
                 {schools.map((school, idx) => (
-                  <div key={idx} className="flex items-center gap-3.5 p-4 bg-slate-50 dark:bg-white/5 border border-slate-200/40 dark:border-white/[0.04] rounded-2xl hover:bg-slate-100/50 dark:hover:bg-white/10 transition duration-150 shadow-sm">
-                    <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400 shrink-0 border border-teal-200/40">
-                      <FaSchool className="text-lg" />
+                  <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 border border-slate-200/40 dark:border-white/[0.04] rounded-2xl hover:bg-slate-100/50 dark:hover:bg-white/10 transition duration-150 shadow-sm gap-3">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400 shrink-0 border border-teal-200/40">
+                        <FaSchool className="text-lg" />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-black text-slate-800 dark:text-white truncate">{school}</h4>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold uppercase mt-0.5">Active Center</p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <h4 className="text-xs font-black text-slate-800 dark:text-white truncate">{school}</h4>
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold uppercase mt-0.5">Active Center</p>
+
+                    {/* Join School Action Button */}
+                    <div>
+                      {user.requestStatus === "pending" && user.requestedSchool === school ? (
+                        <span className="text-[9px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2.5 py-1.5 rounded-xl">
+                          Pending Approval
+                        </span>
+                      ) : user.requestStatus === "pending" ? (
+                        <button
+                          disabled
+                          className="opacity-40 text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-400 px-3.5 py-2 rounded-xl cursor-not-allowed"
+                        >
+                          Join
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setSelectedSchool(school);
+                            setShowJoinModal(true);
+                          }}
+                          className="text-[10px] font-black uppercase tracking-wider bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-[#38BDF8] dark:hover:bg-[#0EA5E9] text-white dark:text-[#090F1C] px-4 py-2 rounded-xl shadow-sm transition duration-150 cursor-pointer"
+                        >
+                          Join School
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -285,6 +359,86 @@ function PendingApproval() {
         )}
 
       </main>
+
+      {/* Join Request Modal */}
+      {showJoinModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm"
+            onClick={() => setShowJoinModal(false)}
+          />
+
+          {/* Modal content */}
+          <div className="bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/60 dark:border-white/10 w-full max-w-md p-6 relative z-10 shadow-2xl transition-all duration-200">
+            <div className="mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-[#7C3AED]/10 dark:bg-[#38BDF8]/10 flex items-center justify-center text-[#7C3AED] dark:text-[#38BDF8] mb-4">
+                <FaSchool className="text-2xl" />
+              </div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                Request to Join School
+              </h3>
+              <p className="text-xs text-slate-550 dark:text-slate-400 font-medium mt-0.5">
+                You are applying to join <strong className="text-slate-800 dark:text-slate-200 font-bold">{selectedSchool}</strong>
+              </p>
+            </div>
+
+            <form onSubmit={handleJoinSubmit} className="space-y-5">
+              {/* Role Selection */}
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
+                  Select Requested Role
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setRequestedRole("student")}
+                    className={`p-4 rounded-2xl border text-center flex flex-col items-center gap-2 transition cursor-pointer ${
+                      requestedRole === "student"
+                        ? "border-[#7C3AED] bg-[#7C3AED]/5 text-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8]/5 dark:text-[#38BDF8] font-bold"
+                        : "border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] text-slate-500 dark:text-slate-400"
+                    }`}
+                  >
+                    <span className="text-lg">🎓</span>
+                    <span className="text-xs font-black">Student</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setRequestedRole("teacher")}
+                    className={`p-4 rounded-2xl border text-center flex flex-col items-center gap-2 transition cursor-pointer ${
+                      requestedRole === "teacher"
+                        ? "border-[#7C3AED] bg-[#7C3AED]/5 text-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8]/5 dark:text-[#38BDF8] font-bold"
+                        : "border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] text-slate-500 dark:text-slate-400"
+                    }`}
+                  >
+                    <span className="text-lg">💼</span>
+                    <span className="text-xs font-black">Teacher</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 bg-gradient-to-r from-[#7C3AED] to-[#312E81] hover:opacity-90 active:scale-[0.99] text-white py-3 rounded-2xl text-xs font-bold shadow-md shadow-[#7C3AED]/10 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {submitting ? "Sending..." : "Submit Request"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowJoinModal(false)}
+                  className="bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 px-5 py-3 rounded-2xl text-xs font-bold border border-slate-200/60 dark:border-white/10 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

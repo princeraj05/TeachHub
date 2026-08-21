@@ -29,6 +29,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 function StudentDashboard() {
   const API = import.meta.env.VITE_API_URL;
   const [data, setData] = useState({ subjects: 0, attendance: 0, exams: 0 });
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -38,6 +39,13 @@ function StudentDashboard() {
       })
       .then((res) => setData(res.data))
       .catch((err) => console.log("Student Dashboard Error:", err));
+
+    axiosInstance
+      .get(`${API}/api/auth/profile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setProfile(res.data))
+      .catch((err) => console.log("Student Profile Error:", err));
   }, [API]);
 
   const chartData = [
@@ -100,6 +108,34 @@ function StudentDashboard() {
           Academic Year 2026
         </div>
       </div>
+
+      {/* Admission Exam Scheduling Alert */}
+      {profile && profile.admissionExamDate && (
+        <div className="mb-8 p-5 bg-gradient-to-r from-teal-500/10 to-emerald-500/10 dark:from-teal-500/15 dark:to-emerald-500/15 border border-teal-200/50 dark:border-teal-500/20 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden transition-all duration-200">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/5 rounded-full blur-xl pointer-events-none" />
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-teal-500 text-white flex items-center justify-center shadow-lg shrink-0 text-xl font-bold">
+              📝
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest mb-0.5">Admissions Update</p>
+              <h3 className="text-sm font-black text-slate-800 dark:text-white tracking-tight">
+                Your School Admission Test has been Scheduled!
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 leading-relaxed max-w-xl">
+                Congratulations on being accepted to <strong className="font-bold text-slate-850 dark:text-white">{profile.schoolName}</strong>! Your admission test will take place on:
+                <br />
+                <span className="inline-flex items-center gap-1.5 font-bold text-[#7C3AED] dark:text-[#38BDF8] mt-1 bg-[#7C3AED]/10 dark:bg-[#38BDF8]/10 px-2 py-0.5 rounded text-[11px]">
+                  <FaCalendarAlt /> {new Date(profile.admissionExamDate).toLocaleDateString("en-US", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                </span>
+                <span className="inline-flex items-center gap-1.5 font-bold text-teal-600 dark:text-teal-400 ml-2 mt-1 bg-teal-500/10 px-2 py-0.5 rounded text-[11px]">
+                  Mode: {profile.admissionExamMode}
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">

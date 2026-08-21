@@ -31,6 +31,29 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ""
   },
+  requestedSchool: {
+    type: String,
+    default: ""
+  },
+  requestedRole: {
+    type: String,
+    enum: ["student", "teacher", "admin", "superadmin", "unassigned", ""],
+    default: ""
+  },
+  requestStatus: {
+    type: String,
+    enum: ["pending", "approved", "rejected", ""],
+    default: ""
+  },
+  admissionExamDate: {
+    type: Date,
+    default: null
+  },
+  admissionExamMode: {
+    type: String,
+    enum: ["Online", "Offline", ""],
+    default: ""
+  },
   classId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Class",

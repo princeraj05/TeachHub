@@ -1,5 +1,6 @@
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import axios from "axios";
 import {
   FaTachometerAlt,
   FaUsers,
@@ -15,7 +16,8 @@ import {
   FaUserShield,
   FaComments,
   FaSun,
-  FaMoon
+  FaMoon,
+  FaUserPlus
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -28,8 +30,32 @@ function AdminLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+  const [requestCount, setRequestCount] = useState(0);
 
   const name = localStorage.getItem("name") || "Admin";
+
+  const fetchRequestCount = () => {
+    const API = import.meta.env.VITE_API_URL;
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    axios
+      .get(`${API}/api/admin/users/join-requests`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then((res) => {
+        if (Array.isArray(res.data)) {
+          setRequestCount(res.data.length);
+        }
+      })
+      .catch((err) => console.log("Error loading request count:", err));
+  };
+
+  useEffect(() => {
+    fetchRequestCount();
+    // Poll requests count every 10 seconds for real-time notifications
+    const interval = setInterval(fetchRequestCount, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     // Sync theme on load
@@ -125,6 +151,26 @@ function AdminLayout() {
             >
               <div className="flex-shrink-0"><FaTachometerAlt className="text-xl" /></div>
               <span className="hidden lg:block text-sm font-semibold">Dashboard</span>
+            </Link>
+
+            {/* Join Requests */}
+            <Link
+              to="/admin/requests"
+              className={`flex items-center justify-between px-3.5 py-3 rounded-xl transition-all duration-200 ${
+                isActive("/admin/requests")
+                  ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] dark:bg-[#38BDF8]/10 font-bold"
+                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="flex-shrink-0"><FaUserPlus className="text-xl" /></div>
+                <span className="hidden lg:block text-sm font-semibold truncate">Join Requests</span>
+              </div>
+              {requestCount > 0 && (
+                <span className="bg-rose-500 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full animate-bounce shrink-0">
+                  {requestCount}
+                </span>
+              )}
             </Link>
 
             {/* Users */}
@@ -359,9 +405,17 @@ function AdminLayout() {
               {/* Category: Users */}
               <div>
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Users</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <Link to="/admin/teachers" className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Teachers</Link>
-                  <Link to="/admin/students" className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Students</Link>
+                <div className="grid grid-cols-3 gap-2">
+                  <Link to="/admin/teachers" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Teachers</Link>
+                  <Link to="/admin/students" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Students</Link>
+                  <Link to="/admin/requests" onClick={() => setMobileMenuOpen(false)} className="relative bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">
+                    Requests
+                    {requestCount > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[8px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center animate-pulse">
+                        {requestCount}
+                      </span>
+                    )}
+                  </Link>
                 </div>
               </div>
 

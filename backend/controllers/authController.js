@@ -307,9 +307,13 @@ exports.getProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
     
-    // Generate a fresh token with current role
+    // Generate a fresh token with current role and schoolName
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      {
+        id: user._id,
+        role: user.role,
+        schoolName: user.schoolName
+      },
       process.env.JWT_SECRET,
       { expiresIn: "30d" }
     );
@@ -361,6 +365,47 @@ exports.getSchools = async (req, res) => {
   try {
     const schools = await User.distinct("schoolName", { schoolName: { $ne: "" } });
     res.json(schools);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ================= SUBMIT JOIN REQUEST =================
+exports.submitJoinRequest = async (req, res) => {
+  try {
+    const { schoolName, role } = req.body;
+
+    if (!schoolName || !role) {
+      return res.status(400).json({ message: "School name and role are required" });
+    }
+
+    if (!["student", "teacher"].includes(role)) {
+      return res.status(400).json({ message: "Invalid role requested. Must be student or teacher." });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.requestedSchool = schoolName;
+    user.requestedRole = role;
+    user.requestStatus = "pending";
+
+    await user.save();
+
+    res.json({
+      message: "Join request submitted successfully",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        requestedSchool: user.requestedSchool,
+        requestedRole: user.requestedRole,
+        requestStatus: user.requestStatus
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
