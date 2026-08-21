@@ -21,7 +21,19 @@ if (getApps().length === 0) {
 
   if (!credential && process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
     try {
-      const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n");
+      let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+      
+      // Clean up surrounding quotes if pasted from JSON file with quotes
+      if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+        privateKey = privateKey.slice(1, -1);
+      }
+      // Clean up single quotes if pasted with single quotes
+      if (privateKey.startsWith("'") && privateKey.endsWith("'")) {
+        privateKey = privateKey.slice(1, -1);
+      }
+      
+      privateKey = privateKey.replace(/\\n/g, "\n");
+      
       credential = cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
@@ -32,6 +44,7 @@ if (getApps().length === 0) {
       console.error("Error initializing Firebase cert from env variables:", err.message);
     }
   }
+
 
   if (!credential) {
     console.warn("⚠️ Firebase Admin credentials not configured. Auth sync will fail.");
