@@ -422,6 +422,11 @@ function PendingApproval() {
 
   const handleJoinSubmit = (e) => {
     e.preventDefault();
+    const hasActiveRequest = ["pending", "scheduled", "exam_completed"].includes(user.requestStatus) || user.requestedSchool;
+    if (hasActiveRequest) {
+      alert("You already have an active or pending join request.");
+      return;
+    }
     setSubmitting(true);
     const API = import.meta.env.VITE_API_URL;
     const token = localStorage.getItem("token");
@@ -1198,28 +1203,49 @@ function PendingApproval() {
 
                     {/* Join School Action Button */}
                     <div>
-                      {user.requestStatus === "pending" && user.requestedSchool === school ? (
-                        <span className="text-[9px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2.5 py-1.5 rounded-xl">
-                          Pending Approval
-                        </span>
-                      ) : user.requestStatus === "pending" ? (
-                        <button
-                          disabled
-                          className="opacity-40 text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-400 px-3.5 py-2 rounded-xl cursor-not-allowed"
-                        >
-                          Join
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setSelectedSchool(school);
-                            setShowJoinModal(true);
-                          }}
-                          className="text-[10px] font-black uppercase tracking-wider bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-[#38BDF8] dark:hover:bg-[#0EA5E9] text-white dark:text-[#090F1C] px-4 py-2 rounded-xl shadow-sm transition duration-150 cursor-pointer"
-                        >
-                          Join School
-                        </button>
-                      )}
+                      {(() => {
+                        const hasActiveRequest = ["pending", "scheduled", "exam_completed"].includes(user.requestStatus) || user.requestedSchool;
+                        if (hasActiveRequest) {
+                          if (user.requestedSchool === school) {
+                            return (
+                              <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1.5 rounded-xl border ${
+                                user.requestStatus === "scheduled"
+                                  ? "bg-teal-500/15 text-teal-600 border-teal-500/20 dark:bg-teal-500/10 dark:text-teal-400"
+                                  : user.requestStatus === "exam_completed"
+                                    ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400"
+                                    : "bg-amber-500/15 text-amber-500 border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-500"
+                              }`}>
+                                {user.requestStatus === "scheduled" 
+                                  ? "Exam Scheduled" 
+                                  : user.requestStatus === "exam_completed" 
+                                    ? "Exam Completed" 
+                                    : "Pending Approval"}
+                              </span>
+                            );
+                          } else {
+                            return (
+                              <button
+                                disabled
+                                className="opacity-40 text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-400 px-3.5 py-2 rounded-xl cursor-not-allowed"
+                              >
+                                Join
+                              </button>
+                            );
+                          }
+                        } else {
+                          return (
+                            <button
+                              onClick={() => {
+                                setSelectedSchool(school);
+                                setShowJoinModal(true);
+                              }}
+                              className="text-[10px] font-black uppercase tracking-wider bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-[#38BDF8] dark:hover:bg-[#0EA5E9] text-white dark:text-[#090F1C] px-4 py-2 rounded-xl shadow-sm transition duration-150 cursor-pointer"
+                            >
+                              Join School
+                            </button>
+                          );
+                        }
+                      })()}
                     </div>
                   </div>
                 ))}
