@@ -647,8 +647,93 @@ function PendingApproval() {
 
       {/* Main Content Area */}
       <main className="pl-20 lg:pl-64 min-h-screen flex items-center justify-center p-6 sm:p-12 transition-all duration-200">
-        
-        {activeTab === "status" && (
+                {activeTab === "status" && (
+          <div className="w-full flex items-center justify-center">
+            <div className="max-w-md w-full bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl p-8 text-center relative overflow-hidden transition-all duration-200">
+              {/* Ambient glow */}
+              <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-[#7C3AED]/10 blur-[50px] pointer-events-none" />
+              
+              {/* Icon container */}
+              <div className="w-16 h-16 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 flex items-center justify-center text-amber-500 mx-auto mb-6 shadow-sm">
+                <FaClock className="text-3xl animate-pulse" />
+              </div>
+
+              {/* Status: Scheduled */}
+              {user.requestStatus === "scheduled" && (
+                <div className="space-y-6">
+                  <div className="px-4 py-3 bg-teal-500/15 border border-teal-500/20 rounded-2xl text-left flex items-start gap-3">
+                    <span className="w-2.5 h-2.5 rounded-full bg-teal-500 animate-ping mt-1 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-black text-teal-600 dark:text-teal-400">Admission Exam Scheduled</p>
+                      <p className="text-[10px] text-slate-550 dark:text-slate-455 font-semibold mt-1">
+                        Please go to the <strong>Admission Exam</strong> tab in the sidebar to view details and start your test.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("exam")}
+                    className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-[#38BDF8] dark:hover:bg-[#0EA5E9] text-white dark:text-[#090F1C] py-3.5 rounded-2xl text-xs font-bold transition cursor-pointer"
+                  >
+                    Go to Admission Exam
+                  </button>
+                </div>
+              )}
+
+              {/* Status: Exam Completed */}
+              {user.requestStatus === "exam_completed" && (
+                <div className="space-y-6">
+                  <div className="px-4 py-3 bg-emerald-500/15 border border-emerald-500/20 rounded-2xl text-left flex items-start gap-3">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping mt-1 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-black text-emerald-600 dark:text-emerald-400">Entrance Exam Completed</p>
+                      <p className="text-[10px] text-slate-550 dark:text-slate-450 font-semibold mt-1">
+                        Score Achieved: <strong className="text-slate-800 dark:text-white font-bold">{user.admissionExamScore} / {user.admissionExamTotal}</strong>
+                      </p>
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-black text-slate-850 dark:text-white">Wait kro aapko kon sa class milta h</h3>
+                  <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                    Your examination response has been automatically graded. Please wait until the school administrator registers your class and section.
+                  </p>
+                </div>
+              )}
+
+              {/* Status: Standard Pending */}
+              {(user.requestStatus === "pending" || !user.requestStatus) && (
+                <div className="space-y-4">
+                  {user.requestedSchool && (
+                    <div className="mb-6 px-4 py-3 bg-amber-500/15 border border-amber-500/20 rounded-2xl text-left flex items-start gap-3">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping mt-1 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-black text-amber-500">Pending School Approval</p>
+                        <p className="text-[10px] text-slate-555 dark:text-slate-400 font-medium mt-0.5 leading-relaxed">
+                          Requested to join <strong className="font-bold text-slate-700 dark:text-white">{user.requestedSchool}</strong> as a <strong className="font-bold text-slate-700 dark:text-white capitalize">{user.requestedRole}</strong>.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-3">
+                    Wait Kro, School Assign Ho Raha Hai
+                  </h2>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-8">
+                    Your login was successful! Please wait until the Super Admin assigns your school and system role. You will be able to access your dashboard as soon as the assignment is completed.
+                  </p>
+                </div>
+              )}
+
+              {user.requestStatus !== "scheduled" && user.requestStatus !== "exam_completed" && (
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 text-xs font-bold rounded-2xl border border-teal-100/50 dark:border-teal-400/10 shadow-sm">
+                  <span className="w-2.5 h-2.5 rounded-full bg-teal-500 animate-ping mr-1" />
+                  Checking status in real-time
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "exam" && (
           <div className="w-full flex items-center justify-center">
             {/* Proctoring Test setup Canvas */}
             {activeTest === "admission" && testStep === "setup" && (
@@ -666,9 +751,9 @@ function PendingApproval() {
                   </div>
 
                   {/* Instruction cards */}
-                  <div className="space-y-4 bg-slate-50 dark:bg-white/5 border border-slate-200/45 dark:border-white/10 p-5 rounded-2xl mb-6">
+                  <div className="space-y-4 bg-slate-50 dark:bg-white/5 border border-slate-200/40 dark:border-white/10 p-5 rounded-2xl mb-6">
                     <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider">Exam System Instructions</h3>
-                    <ul className="text-xs text-slate-500 dark:text-slate-450 leading-relaxed list-disc pl-4 space-y-2 font-medium">
+                    <ul className="text-xs text-slate-555 dark:text-slate-455 leading-relaxed list-disc pl-4 space-y-2 font-medium">
                       <li>This exam is fully monitored. Your <strong>Webcam video feed</strong> will stay floating in the corner.</li>
                       <li>You must share your <strong>Entire Screen</strong>. Window-only sharing is strictly flagged.</li>
                       <li>Closing screen sharing or disabling the webcam will result in immediate disqualification.</li>
@@ -702,7 +787,7 @@ function PendingApproval() {
                       )}
                     </div>
 
-                    {/* Screen share */}
+                    {/* Screen Share */}
                     <div className="bg-white dark:bg-[#1E293B] border border-slate-200/60 dark:border-white/10 p-5 rounded-2xl flex flex-col items-center justify-center text-center">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 text-lg ${
                         screenActive ? "bg-emerald-500/10 text-emerald-500" : "bg-slate-100 text-slate-400 animate-pulse"
@@ -710,7 +795,7 @@ function PendingApproval() {
                         <FaDesktop />
                       </div>
                       <h4 className="text-xs font-black text-slate-800 dark:text-white mb-1">Screen Share Verification</h4>
-                      <p className="text-[10px] text-slate-400 font-medium mb-3">Checks entire screen sharing stream</p>
+                      <p className="text-[10px] text-slate-400 font-medium mb-3">Verifies entire desktop view</p>
                       {screenActive ? (
                         <span className="text-[10px] font-black uppercase tracking-wider text-emerald-500 bg-emerald-50 dark:bg-emerald-500/5 px-3 py-1.5 rounded-xl border border-emerald-100/50 flex items-center gap-1">
                           <FaCheckCircle className="text-xs" /> Screen Sharing
@@ -752,7 +837,7 @@ function PendingApproval() {
                         setCameraActive(false);
                         setScreenActive(false);
                       }}
-                      className="bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 px-6 py-3.5 rounded-2xl text-xs font-bold transition cursor-pointer border border-slate-200/60 dark:border-white/10"
+                      className="bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-550 dark:text-slate-400 px-6 py-3.5 rounded-2xl text-xs font-bold transition cursor-pointer border border-slate-200/60 dark:border-white/10"
                     >
                       Cancel
                     </button>
@@ -784,10 +869,10 @@ function PendingApproval() {
                               setActiveSection(sec);
                             }
                           }}
-                          className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+                          className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition whitespace-nowrap cursor-pointer flex items-center gap-2 keys ${
                             isSecActive
                               ? "bg-[#7C3AED] text-white dark:bg-[#38BDF8] dark:text-[#090F1C] shadow-sm"
-                              : "text-slate-550 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5"
+                              : "text-slate-550 dark:text-slate-450 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5"
                           }`}
                         >
                           {sec}
@@ -811,10 +896,28 @@ function PendingApproval() {
                       {/* Question Header & Grid navigation */}
                       <div className="border-b border-slate-100 dark:border-white/5 pb-4 mb-6 space-y-4">
                         <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-[10px] font-extrabold uppercase bg-teal-50 border border-teal-100 text-teal-600 px-3 py-1 rounded-full animate-pulse">
+                          <div className="flex items-center gap-3">
+                            <span className="text-[10px] font-extrabold uppercase bg-teal-550 border border-teal-100 text-teal-600 px-3 py-1 rounded-full animate-pulse">
                               {activeSection} · Question {testPaper.questions.map((q, idx) => ({ ...q, globalIdx: idx })).filter(q => (q.section || "Mathematics") === activeSection).findIndex(q => q.globalIdx === currentQIndex) + 1} of {testPaper.questions.filter(q => (q.section || "Mathematics") === activeSection).length}
                             </span>
+
+                            {/* Language Switcher */}
+                            <div className="inline-flex bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-0.5 rounded-lg text-[9px] font-bold">
+                              <button
+                                type="button"
+                                onClick={() => setExamLanguage("EN")}
+                                className={`px-2 py-1 rounded-md transition ${examLanguage === "EN" ? "bg-white dark:bg-[#1E293B] text-slate-800 dark:text-white shadow-sm font-extrabold" : "text-slate-450 dark:text-slate-555"}`}
+                              >
+                                English
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setExamLanguage("HI")}
+                                className={`px-2 py-1 rounded-md transition ${examLanguage === "HI" ? "bg-white dark:bg-[#1E293B] text-slate-800 dark:text-white shadow-sm font-extrabold" : "text-slate-455 dark:text-slate-555"}`}
+                              >
+                                हिंदी
+                              </button>
+                            </div>
                           </div>
                           {testPaper.negativeMarking && (
                             <span className="text-[9px] font-black uppercase text-rose-500 bg-rose-50 dark:bg-rose-500/5 dark:text-rose-400 border border-rose-100 dark:border-rose-500/20 px-2.5 py-1 rounded-md">
@@ -851,39 +954,52 @@ function PendingApproval() {
                         </div>
                       </div>
 
-                      {/* Question Text */}
-                      <div className="mb-8">
-                        <h2 className="text-sm font-extrabold text-slate-800 dark:text-white leading-relaxed">
-                          {testPaper.questions[currentQIndex]?.questionText}
-                        </h2>
-                      </div>
+                      {/* Question Content Block */}
+                      {(() => {
+                        const currentQ = testPaper.questions[currentQIndex];
+                        const isHi = examLanguage === "HI";
+                        const trans = isHi && currentQ ? questionTranslations[currentQ.questionText] : null;
+                        const qText = trans?.q || currentQ?.questionText;
+                        const qOpts = trans?.opts || currentQ?.options || [];
 
-                      {/* 4 options select */}
-                      <div className="space-y-3 mb-8">
-                        {testPaper.questions[currentQIndex]?.options.map((opt, optIdx) => {
-                          const isSelected = selectedAnswers[currentQIndex] === optIdx;
-                          return (
-                            <button
-                              key={optIdx}
-                              onClick={() => selectOption(optIdx)}
-                              className={`w-full text-left p-4 rounded-2xl border transition flex items-center gap-3 cursor-pointer ${
-                                isSelected
-                                  ? "border-[#7C3AED] bg-[#7C3AED]/5 text-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8]/5 dark:text-[#38BDF8] font-bold"
-                                  : "border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.01] hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400"
-                              }`}
-                            >
-                              <span className={`w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-black ${
-                                isSelected
-                                  ? "border-[#7C3AED] bg-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8] text-white dark:text-[#090F1C]"
-                                  : "border-slate-300 dark:border-white/10 bg-white dark:bg-[#1E293B] text-slate-400"
-                              }`}>
-                                {String.fromCharCode(65 + optIdx)}
-                              </span>
-                              <span className="text-xs font-semibold">{opt}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
+                        return (
+                          <>
+                            {/* Question Text */}
+                            <div className="mb-8">
+                              <h2 className="text-sm font-extrabold text-slate-800 dark:text-white leading-relaxed">
+                                {qText}
+                              </h2>
+                            </div>
+
+                            {/* 4 options select */}
+                            <div className="space-y-3 mb-8">
+                              {qOpts.map((opt, optIdx) => {
+                                const isSelected = selectedAnswers[currentQIndex] === optIdx;
+                                return (
+                                  <button
+                                    key={optIdx}
+                                    onClick={() => selectOption(optIdx)}
+                                    className={`w-full text-left p-4 rounded-2xl border transition flex items-center gap-3 cursor-pointer ${
+                                      isSelected
+                                        ? "border-[#7C3AED] bg-[#7C3AED]/5 text-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8]/5 dark:text-[#38BDF8] font-bold"
+                                        : "border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.01] hover:bg-slate-50 dark:hover:bg-white/5 text-[#475569] dark:text-slate-400"
+                                    }`}
+                                  >
+                                    <span className={`w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-black ${
+                                      isSelected
+                                        ? "border-[#7C3AED] bg-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8] text-white dark:text-[#090F1C]"
+                                        : "border-slate-300 dark:border-white/10 bg-white dark:bg-[#1E293B] text-slate-450"
+                                    }`}>
+                                      {String.fromCharCode(65 + optIdx)}
+                                    </span>
+                                    <span className="text-xs font-bold">{opt}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </>
+                        );
+                      })()}
 
                       {/* Question Navigation */}
                       <div className="flex items-center justify-between border-t border-slate-100 dark:border-white/5 pt-6">
@@ -896,7 +1012,7 @@ function PendingApproval() {
                               setActiveSection(prevQ.section || "Mathematics");
                             }
                           }}
-                          className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-350 transition disabled:opacity-30 cursor-pointer"
+                          className="flex items-center gap-1.5 text-xs font-bold text-slate-550 hover:text-slate-700 dark:hover:text-slate-350 transition disabled:opacity-30 cursor-pointer"
                         >
                           <FaChevronLeft className="text-[10px]" /> Back
                         </button>
@@ -931,12 +1047,12 @@ function PendingApproval() {
 
                 {/* Proctoring camera preview side panel (Right 1 col) */}
                 <div className="lg:col-span-1 flex flex-col items-center gap-4 bg-slate-50 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 p-4 rounded-3xl">
-                  <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-450 dark:text-slate-400 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                  <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-455 dark:text-slate-400 flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
                     Live Monitoring
                   </p>
                   <VideoPreview stream={cameraStream} />
-                  <div className="text-[9px] text-slate-400 font-bold text-center leading-relaxed">
+                  <div className="text-[9px] text-[#475569] dark:text-slate-400 font-bold text-center leading-relaxed">
                     Feed is synced with proctoring engine. Avoid shifting screens or looking away.
                   </div>
                 </div>
@@ -944,10 +1060,10 @@ function PendingApproval() {
               </div>
             )}
 
-            {/* Graded test score card */}
-            {activeTest === "admission" && testStep === "graded" && testResult && (
+            {/* Proctoring Test Graded Canvas */}
+            {testStep === "graded" && testResult && (
               <div className="max-w-md w-full bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl overflow-hidden relative text-center">
-                <div className="h-1.5 bg-gradient-to-r from-teal-500 to-emerald-500 w-full" />
+                <div className="h-1.5 bg-gradient-to-r from-[#7C3AED] to-[#38BDF8] w-full" />
                 <div className="p-8">
                   <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-2xl mx-auto mb-4">
                     <FaCheckCircle />
@@ -960,17 +1076,12 @@ function PendingApproval() {
                   <div className="my-6 p-6 bg-slate-50 dark:bg-white/5 border border-slate-200/40 dark:border-white/10 rounded-2xl">
                     <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Score Achieved</span>
                     <p className="text-4xl font-black text-slate-800 dark:text-white tracking-tight my-1">
-                      {testResult.score} <span className="text-lg font-bold text-slate-400">/ {testResult.total}</span>
+                      {testResult.score} <span className="text-lg font-bold text-[#94A3B8]">/ {testResult.total}</span>
                     </p>
                     <div className="flex items-center justify-center gap-4 mt-3 text-[10px] font-bold text-slate-455">
                       <span className="text-emerald-600 bg-emerald-50 dark:bg-emerald-500/5 px-2 py-0.5 rounded border border-emerald-100 dark:border-emerald-500/20">{testResult.correct} Correct</span>
                       <span className="text-rose-600 bg-rose-50 dark:bg-rose-500/5 px-2 py-0.5 rounded border border-rose-100 dark:border-rose-500/20">{testResult.wrong} Incorrect</span>
                     </div>
-                  </div>
-
-                  {/* Final wait message */}
-                  <div className="p-4 bg-teal-500/10 border border-teal-500/20 text-teal-750 dark:text-teal-400 rounded-2xl text-xs font-black leading-relaxed mb-6 font-extrabold">
-                    Wait kro aapko kon sa class milta h
                   </div>
 
                   <button
@@ -979,37 +1090,37 @@ function PendingApproval() {
                       setActiveTest(null);
                       setTestStep("setup");
                       setTestResult(null);
+                      setActiveTab("status");
                     }}
                     className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-[#38BDF8] dark:hover:bg-[#0EA5E9] text-white dark:text-[#090F1C] py-3.5 rounded-2xl text-xs font-bold transition cursor-pointer"
                   >
-                    Return to Status
+                    Return to Dashboard
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Standard status card */}
-            {activeTest === null && (
+            {/* Standard Exam schedule view */}
+            {activeTest === null && testStep !== "graded" && (
               <div className="max-w-md w-full bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl p-8 text-center relative overflow-hidden transition-all duration-200">
                 {/* Ambient glow */}
                 <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-[#7C3AED]/10 blur-[50px] pointer-events-none" />
                 
                 {/* Icon container */}
-                <div className="w-16 h-16 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 flex items-center justify-center text-amber-500 mx-auto mb-6 shadow-sm">
-                  <FaClock className="text-3xl animate-pulse" />
+                <div className="w-16 h-16 rounded-2xl bg-teal-50 dark:bg-teal-500/10 border border-teal-100 dark:border-teal-500/20 flex items-center justify-center text-teal-650 dark:text-teal-450 mx-auto mb-6 shadow-sm">
+                  <FaDesktop className="text-3xl" />
                 </div>
 
-                {/* Status: Scheduled */}
-                {user.requestStatus === "scheduled" && (
+                {user.requestStatus === "scheduled" ? (
                   <div className="space-y-6">
                     <div className="mb-6 px-4 py-3.5 bg-teal-500/15 border border-teal-500/20 rounded-2xl text-left flex items-start gap-3">
                       <span className="w-2.5 h-2.5 rounded-full bg-teal-500 animate-ping mt-1 shrink-0" />
                       <div className="min-w-0">
                         <p className="text-xs font-black text-teal-600 dark:text-teal-400">Admission Exam Scheduled</p>
-                        <p className="text-[10px] text-slate-550 dark:text-slate-450 font-medium mt-1">
+                        <p className="text-[10px] text-slate-550 dark:text-slate-455 font-medium mt-1">
                           Mode: <strong>{user.admissionExamMode}</strong>
                         </p>
-                        <p className="text-[10px] text-slate-550 dark:text-slate-450 font-medium">
+                        <p className="text-[10px] text-slate-550 dark:text-slate-455 font-medium">
                           Date: <strong>{new Date(user.admissionExamDate).toLocaleString("en-US", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true })}</strong>
                         </p>
                       </div>
@@ -1027,55 +1138,27 @@ function PendingApproval() {
                       />
                     </div>
                   </div>
-                )}
-
-                {/* Status: Exam Completed */}
-                {user.requestStatus === "exam_completed" && (
-                  <div className="space-y-6">
-                    <div className="px-4 py-3 bg-emerald-500/15 border border-emerald-500/20 rounded-2xl text-left flex items-start gap-3">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping mt-1 shrink-0" />
+                ) : user.requestStatus === "exam_completed" ? (
+                  <div className="space-y-4">
+                    <div className="px-4 py-3 bg-[#10B981]/15 border border-[#10B981]/20 rounded-2xl text-left flex items-start gap-3">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-ping mt-1 shrink-0" />
                       <div className="min-w-0">
-                        <p className="text-xs font-black text-emerald-600 dark:text-emerald-400">Entrance Exam Completed</p>
-                        <p className="text-[10px] text-slate-550 dark:text-slate-450 font-semibold mt-1">
+                        <p className="text-xs font-black text-emerald-600 dark:text-[#10B981]">Exam Already Completed</p>
+                        <p className="text-[10px] text-slate-550 dark:text-slate-450 font-medium mt-1">
                           Score Achieved: <strong className="text-slate-800 dark:text-white font-bold">{user.admissionExamScore} / {user.admissionExamTotal}</strong>
                         </p>
                       </div>
                     </div>
-
-                    <h3 className="text-xl font-black text-slate-850 dark:text-white">Wait kro aapko kon sa class milta h</h3>
-                    <p className="text-xs text-slate-400 font-medium leading-relaxed">
-                      Your examination response has been automatically graded. Please wait until the school administrator registers your class and section.
+                    <p className="text-xs text-[#475569] dark:text-slate-400 font-medium mt-2 leading-relaxed">
+                      You have already submitted this exam. Your scorecard is locked and under evaluation.
                     </p>
                   </div>
-                )}
-
-                {/* Status: Standard Pending */}
-                {(user.requestStatus === "pending" || !user.requestStatus) && (
+                ) : (
                   <div className="space-y-4">
-                    {user.requestedSchool && (
-                      <div className="mb-6 px-4 py-3 bg-amber-500/15 border border-amber-500/20 rounded-2xl text-left flex items-start gap-3">
-                        <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping mt-1 shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-xs font-black text-amber-500">Pending School Approval</p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed">
-                            Requested to join <strong className="font-bold text-slate-700 dark:text-white">{user.requestedSchool}</strong> as a <strong className="font-bold text-slate-700 dark:text-white capitalize">{user.requestedRole}</strong>.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                    <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-3">
-                      Wait Kro, School Assign Ho Raha Hai
-                    </h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-8">
-                      Your login was successful! Please wait until the Super Admin assigns your school and system role. You will be able to access your dashboard as soon as the assignment is completed.
+                    <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">No Admission Exam Scheduled</h3>
+                    <p className="text-xs text-[#475569] dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
+                      There is no admission test scheduled for your account at this time. Once Banny Thapar (Admin) schedules your test, you will see a countdown timer here to start the exam.
                     </p>
-                  </div>
-                )}
-
-                {user.requestStatus !== "scheduled" && user.requestStatus !== "exam_completed" && (
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 text-xs font-bold rounded-2xl border border-teal-100/50 dark:border-teal-400/10 shadow-sm">
-                    <span className="w-2.5 h-2.5 rounded-full bg-teal-500 animate-ping mr-1" />
-                    Checking status in real-time
                   </div>
                 )}
               </div>
