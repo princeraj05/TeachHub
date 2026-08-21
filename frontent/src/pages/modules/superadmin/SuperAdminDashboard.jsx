@@ -93,14 +93,15 @@ function SuperAdminDashboard() {
   };
 
   // Stats calculation
-  const totalUsers = users.length;
-  const pendingCount = users.filter((u) => u.role === "unassigned").length;
-  const adminCount = users.filter((u) => u.role === "admin").length;
-  const teacherCount = users.filter((u) => u.role === "teacher").length;
-  const studentCount = users.filter((u) => u.role === "student").length;
+  const nonSuperAdminUsers = users.filter((u) => u.role !== "superadmin");
+  const totalUsers = nonSuperAdminUsers.length;
+  const pendingCount = nonSuperAdminUsers.filter((u) => u.role === "unassigned").length;
+  const adminCount = nonSuperAdminUsers.filter((u) => u.role === "admin").length;
+  const teacherCount = nonSuperAdminUsers.filter((u) => u.role === "teacher").length;
+  const studentCount = nonSuperAdminUsers.filter((u) => u.role === "student").length;
   const uniqueSchoolsCount = schools.length;
 
-  const filteredUsers = users.filter((u) => {
+  const filteredUsers = nonSuperAdminUsers.filter((u) => {
     const matchesSearch =
       u.name?.toLowerCase().includes(search.toLowerCase()) ||
       u.email?.toLowerCase().includes(search.toLowerCase());
@@ -175,7 +176,7 @@ function SuperAdminDashboard() {
         <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">User Directory</h2>
           <span className="text-xs font-bold bg-[#7C3AED]/10 text-[#7C3AED] px-3 py-1.5 rounded-full">
-            Showing {filteredUsers.length} of {users.length} users
+            Showing {filteredUsers.length} of {totalUsers} users
           </span>
         </div>
 
