@@ -9,7 +9,6 @@ getMySubjects,
 getTeacherProfile,
 getTeacherExams,
   updateTeacherProfile,
-  getTeacherExams,
   getProctorSessions
 } = require("../controllers/teacherController");
 
