@@ -50,7 +50,7 @@ function Login() {
       const res = await axios.post(`${API}/api/auth/send-otp`, { email });
       setOtpSent(true);
       if (res.data.development) {
-        setDevOtpMessage("Development Mode: OTP printed to server console!");
+        setDevOtpMessage(`OTP: ${res.data.otp} (Testing Mode - SMTP ports blocked on Render)`);
       } else {
         setDevOtpMessage("OTP sent to your email address!");
       }
