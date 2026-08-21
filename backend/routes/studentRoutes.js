@@ -53,14 +53,14 @@ studentController.getStudentExams
 router.get(
 "/admission-exam",
 protect,
-authorize("student"),
+authorize("student", "unassigned"),
 studentController.getStudentAdmissionExam
 );
 
 router.post(
 "/admission-exam/submit",
 protect,
-authorize("student"),
+authorize("student", "unassigned"),
 studentController.submitStudentAdmissionExam
 );
 
