@@ -7,6 +7,7 @@ import StudentSubjects from "./pages/StudentSubjects";
 import StudentAttendance from "./pages/StudentAttendance";
 import StudentExams from "./pages/StudentExams";
 import StudentProfile from "./pages/StudentProfile";
+import StudentSupport from "./pages/StudentSupport";
 
 function StudentRoutes() {
 
@@ -23,6 +24,7 @@ function StudentRoutes() {
         <Route path="attendance" element={<StudentAttendance />} />
         <Route path="exams" element={<StudentExams />} />
         <Route path="profile" element={<StudentProfile />} />
+        <Route path="support" element={<StudentSupport />} />
 
       </Route>
 

@@ -29,6 +29,12 @@ const attendanceSchema = new mongoose.Schema({
   date: {
     type: Date,
     default: Date.now
+  },
+
+  schoolName: {
+    type: String,
+    default: "",
+    index: true
   }
 
 }, { timestamps: true });

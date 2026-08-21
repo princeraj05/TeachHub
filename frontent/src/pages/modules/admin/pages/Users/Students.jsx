@@ -5,6 +5,7 @@ import { FaUserGraduate, FaEnvelope, FaSearch, FaUsers } from "react-icons/fa";
 function Students() {
   const API = import.meta.env.VITE_API_URL;
   const [students, setStudents] = useState([]);
+  const [classes, setClasses] = useState([]);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
@@ -19,8 +20,43 @@ function Students() {
         console.log(err);
       }
     };
+
+    const fetchClasses = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axiosInstance.get(`${API}/api/admin/classes`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setClasses(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
     fetchStudents();
+    fetchClasses();
   }, [API]);
+
+  const handleAssignClass = async (studentId, classId) => {
+    if (!classId) return; // Keep option to reset class if needed, or handle empty string
+    try {
+      const token = localStorage.getItem("token");
+      await axiosInstance.post(
+        `${API}/api/admin/assign/assign-student-class`,
+        { studentId, classId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Refresh students
+      const res = await axiosInstance.get(`${API}/api/admin/users/students`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setStudents(res.data);
+      alert("Class assigned successfully!");
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to assign class");
+    }
+  };
 
   const filtered = students.filter(
     (s) =>
@@ -112,13 +148,14 @@ function Students() {
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider w-14">#</th>
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Student Name</th>
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Email Address</th>
+                <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Class & Section</th>
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider w-36">System Role</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100/80">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="py-20 text-center">
+                  <td colSpan="5" className="py-20 text-center">
                     <FaUserGraduate className="text-slate-200 text-5xl mx-auto mb-4" />
                     <p className="text-slate-500 text-sm font-bold">No students found</p>
                     <p className="text-slate-400 text-xs mt-1">Try searching for a different user.</p>
@@ -141,6 +178,20 @@ function Students() {
                         <FaEnvelope className="text-slate-400 text-xs flex-shrink-0" />
                         <span className="text-sm">{s.email}</span>
                       </div>
+                    </td>
+                    <td className="px-6 py-4.5">
+                      <select
+                        value={s.classId?._id || ""}
+                        onChange={(e) => handleAssignClass(s._id, e.target.value)}
+                        className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 cursor-pointer transition-all duration-150"
+                      >
+                        <option value="">Select Class & Section</option>
+                        {classes.map((cls) => (
+                          <option key={cls._id} value={cls._id}>
+                            Class {cls.name} — Section {cls.section}
+                          </option>
+                        ))}
+                      </select>
                     </td>
                     <td className="px-6 py-4.5">
                       <span className="inline-flex items-center gap-1.5 bg-teal-50 text-teal-700 text-xs font-bold px-3 py-1.5 rounded-full border border-teal-100">

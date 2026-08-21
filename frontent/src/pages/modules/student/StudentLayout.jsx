@@ -10,6 +10,7 @@ import {
   FaGraduationCap,
   FaUserCircle,
   FaCalendarAlt,
+  FaComments,
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -37,6 +38,7 @@ function StudentLayout() {
     { to: "/student/subjects", icon: <FaBook className="text-lg" />, label: "My Subjects" },
     { to: "/student/attendance", icon: <FaClipboardCheck className="text-lg" />, label: "My Attendance" },
     { to: "/student/exams", icon: <FaFileAlt className="text-lg" />, label: "My Exams" },
+    { to: "/student/support", icon: <FaComments className="text-lg" />, label: "Support Chat" },
     { to: "/student/profile", icon: <FaUser className="text-lg" />, label: "Profile" },
   ];
 

@@ -12,6 +12,12 @@ type:String,
 required:true
 },
 
+schoolName: {
+type: String,
+required: true,
+index: true
+},
+
 teacher:{
 type:mongoose.Schema.Types.ObjectId,
 ref:"User"

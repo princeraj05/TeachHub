@@ -20,6 +20,8 @@ const studentRoutes = require("./routes/studentRoutes");
 const examRoutes = require("./routes/examRoutes");
 
 const adminProfileRoutes = require("./routes/adminProfileRoutes");
+const superAdminRoutes = require("./routes/superAdminRoutes");
+const supportRoutes = require("./routes/supportRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -71,6 +73,8 @@ app.use("/api/student", studentRoutes);
 app.use("/api/exams", examRoutes);
 
 app.use("/api/admin/profile", adminProfileRoutes);
+app.use("/api/superadmin", superAdminRoutes);
+app.use("/api/support", supportRoutes);
 
 
 // ================= SOCKET =================
@@ -84,8 +88,28 @@ const io = new Server(server, {
   }
 });
 
+const jwt = require("jsonwebtoken");
+
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (!token) {
+    return next(new Error("Authentication error: No token provided"));
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.user = decoded;
+    next();
+  } catch (err) {
+    return next(new Error("Authentication error: Invalid token"));
+  }
+});
+
 io.on("connection", (socket) => {
-  console.log("Client connected:", socket.id);
+  console.log("Client connected:", socket.id, "User:", socket.user?.id);
+
+  if (socket.user?.id) {
+    socket.join(socket.user.id);
+  }
 
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);

@@ -17,6 +17,12 @@ required:true
 date:{
 type:Date,
 required:true
+},
+
+schoolName: {
+type: String,
+default: "",
+index: true
 }
 
 },{timestamps:true});

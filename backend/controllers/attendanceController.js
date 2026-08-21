@@ -12,19 +12,24 @@ exports.markAttendance = async (req, res) => {
     const { student, status } = req.body;
 
     const teacherId = req.user.id;
+    
+    if (!req.user || !req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+    }
 
     // check student exists
-    const studentData = await User.findById(student);
+    const studentData = await User.findOne({ _id: student, schoolName: req.user.schoolName });
 
     if (!studentData) {
       return res.status(404).json({
-        message: "Student not found"
+        message: "Student not found in your school"
       });
     }
 
     // find class from Class collection
     const classData = await Class.findOne({
-      students: student
+      students: student,
+      schoolName: req.user.schoolName
     });
 
     if (!classData) {
@@ -42,7 +47,8 @@ exports.markAttendance = async (req, res) => {
     // check existing attendance
     const existing = await Attendance.findOne({
       student,
-      date: { $gte: today }
+      date: { $gte: today },
+      schoolName: req.user.schoolName
     });
 
     if (existing) {
@@ -56,7 +62,8 @@ exports.markAttendance = async (req, res) => {
       student,
       class: classId,
       teacher: teacherId,
-      status
+      status,
+      schoolName: req.user.schoolName
 
     });
 
@@ -84,7 +91,11 @@ exports.getAttendanceReport = async (req, res) => {
 
   try {
 
-    const data = await Attendance.find()
+    if (!req.user || !req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+    }
+
+    const data = await Attendance.find({ schoolName: req.user.schoolName })
 
       .populate("student","name email")
       .populate("class","name section")
@@ -112,6 +123,10 @@ exports.getTodayAttendance = async (req, res) => {
 
   try {
 
+    if (!req.user || !req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+    }
+
     const today = new Date();
     today.setHours(0,0,0,0);
 
@@ -119,7 +134,8 @@ exports.getTodayAttendance = async (req, res) => {
 
     const records = await Attendance.find({
       teacher: teacherId,
-      date: { $gte: today }
+      date: { $gte: today },
+      schoolName: req.user.schoolName
     });
 
     res.json(records);

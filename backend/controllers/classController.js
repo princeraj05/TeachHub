@@ -8,10 +8,15 @@ exports.addClass = async (req, res) => {
   try {
 
     const { name, section } = req.body;
+    
+    if (!req.user || !req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+    }
 
     const newClass = await Class.create({
       name,
-      section
+      section,
+      schoolName: req.user.schoolName
     });
 
     res.json({
@@ -36,7 +41,11 @@ exports.getClasses = async (req, res) => {
 
   try {
 
-    const classes = await Class.find();
+    if (!req.user || !req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+    }
+
+    const classes = await Class.find({ schoolName: req.user.schoolName });
 
     res.json(classes);
 
@@ -56,6 +65,16 @@ exports.getClasses = async (req, res) => {
 exports.deleteClass = async (req, res) => {
 
   try {
+
+    if (!req.user || !req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+    }
+
+    // Verify ownership before deleting
+    const cls = await Class.findOne({ _id: req.params.id, schoolName: req.user.schoolName });
+    if (!cls) {
+      return res.status(403).json({ message: "Access Denied: Class does not belong to your school" });
+    }
 
     await Class.findByIdAndDelete(req.params.id);
 

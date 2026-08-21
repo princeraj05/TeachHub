@@ -1,26 +1,87 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaChalkboardTeacher, FaEnvelope, FaSearch, FaUsers } from "react-icons/fa";
+import { FaChalkboardTeacher, FaEnvelope, FaSearch, FaUsers, FaSchool, FaBook } from "react-icons/fa";
 
 function Teachers() {
   const API = import.meta.env.VITE_API_URL;
   const [teachers, setTeachers] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const fetchTeachers = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get(`${API}/api/admin/users/teachers`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setTeachers(res.data);
-      } catch (err) {
-        console.log(err);
-      }
-    };
     fetchTeachers();
-  }, [API]);
+    fetchClasses();
+    fetchSubjects();
+  }, []);
+
+  const fetchTeachers = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${API}/api/admin/users/teachers`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTeachers(res.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const fetchClasses = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${API}/api/admin/classes`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setClasses(res.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const fetchSubjects = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${API}/api/admin/subjects`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSubjects(res.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleAssignClass = async (teacherId, classId) => {
+    if (!classId) return;
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${API}/api/admin/assign/assign-teacher-class`,
+        { teacherId, classId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchTeachers();
+      alert("Teacher assigned to class successfully!");
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to assign class");
+    }
+  };
+
+  const handleAssignSubject = async (teacherId, subjectId) => {
+    if (!subjectId) return;
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${API}/api/admin/assign/assign-subject-teacher`,
+        { teacherId, subjectId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchTeachers();
+      alert("Subject assigned to teacher successfully!");
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to assign subject");
+    }
+  };
 
   const filtered = teachers.filter(
     (t) =>
@@ -112,13 +173,15 @@ function Teachers() {
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider w-14">#</th>
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Teacher Name</th>
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Email Address</th>
+                <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Assign Class</th>
+                <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Assign Subject</th>
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider w-36">System Role</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100/80">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="py-20 text-center">
+                  <td colSpan="6" className="py-20 text-center">
                     <FaChalkboardTeacher className="text-slate-200 text-5xl mx-auto mb-4" />
                     <p className="text-slate-500 text-sm font-bold">No teachers found</p>
                     <p className="text-slate-400 text-xs mt-1">Try searching for a different user.</p>
@@ -133,7 +196,12 @@ function Teachers() {
                         <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${avatarColors[i % avatarColors.length]} flex items-center justify-center text-[#0b132b] font-black text-sm shadow-md group-hover:scale-105 transition-all duration-200 flex-shrink-0`}>
                           {t.name.charAt(0).toUpperCase()}
                         </div>
-                        <span className="text-sm font-bold text-slate-700 group-hover:text-teal-600 transition-colors duration-150">{t.name}</span>
+                        <div>
+                          <span className="text-sm font-bold text-slate-700 group-hover:text-teal-600 transition-colors duration-150 block">{t.name}</span>
+                          <span className="text-[10px] text-slate-400 font-medium block mt-0.5">
+                            {t.classes && t.classes.length > 0 ? `Classes: ${t.classes.map(c => `${c.name}-${c.section}`).join(', ')}` : 'No Class Assigned'}
+                          </span>
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4.5">
@@ -141,6 +209,34 @@ function Teachers() {
                         <FaEnvelope className="text-slate-400 text-xs flex-shrink-0" />
                         <span className="text-sm">{t.email}</span>
                       </div>
+                    </td>
+                    <td className="px-6 py-4.5">
+                      <select
+                        value={t.classes?.[0]?._id || ""}
+                        onChange={(e) => handleAssignClass(t._id, e.target.value)}
+                        className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 cursor-pointer transition-all duration-150"
+                      >
+                        <option value="">Select Class & Section</option>
+                        {classes.map((cls) => (
+                          <option key={cls._id} value={cls._id}>
+                            Class {cls.name} — Section {cls.section}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-6 py-4.5">
+                      <select
+                        value={t.subjects?.[0]?._id || ""}
+                        onChange={(e) => handleAssignSubject(t._id, e.target.value)}
+                        className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 cursor-pointer transition-all duration-150"
+                      >
+                        <option value="">Select Subject</option>
+                        {subjects.map((sub) => (
+                          <option key={sub._id} value={sub._id}>
+                            {sub.name} {sub.class ? `(Class ${sub.class.name}-${sub.class.section})` : ''}
+                          </option>
+                        ))}
+                      </select>
                     </td>
                     <td className="px-6 py-4.5">
                       <span className="inline-flex items-center gap-1.5 bg-teal-50 text-teal-700 text-xs font-bold px-3 py-1.5 rounded-full border border-teal-100">

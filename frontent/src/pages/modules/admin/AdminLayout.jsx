@@ -13,6 +13,7 @@ import {
   FaThLarge,
   FaTimes,
   FaUserShield,
+  FaComments,
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -207,6 +208,23 @@ function AdminLayout() {
             </span>
           </div>
 
+          {/* Support */}
+          <div className="relative group">
+            <Link
+              to="/admin/support"
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
+                isActive("/admin/support")
+                  ? "bg-gradient-to-tr from-[#7C3AED]/20 to-[#38BDF8]/20 text-[#38BDF8] border border-[#7C3AED]/30 shadow-inner"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <FaComments className="text-lg" />
+            </Link>
+            <span className="absolute left-14 top-3 bg-[#0F172A] border border-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl pointer-events-none z-50">
+              Support Messages
+            </span>
+          </div>
+
           {/* Profile */}
           <div className="relative group">
             <Link
@@ -365,7 +383,7 @@ function AdminLayout() {
           <div className="flex items-center gap-3">
             <div>
               <h1 className="text-base font-extrabold text-slate-800 tracking-tight" style={{ fontFamily: SORA }}>
-                Admin Workspace
+                School: {localStorage.getItem("schoolName") || "Admin Workspace"}
               </h1>
               <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest mt-0.5">Control Center</p>
             </div>

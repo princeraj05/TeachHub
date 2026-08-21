@@ -21,6 +21,7 @@ import ExamResults from "./pages/Reports/ExamResults";
 import ExamSchedule from "./pages/Exams/ExamSchedule";
 
 import AdminProfile from "./pages/Profile/AdminProfile";
+import AdminSupport from "./pages/AdminSupport";
 
 
 function AdminRoutes() {
@@ -58,6 +59,9 @@ function AdminRoutes() {
 
         {/* Profile */}
         <Route path="profile" element={<AdminProfile />} />
+
+        {/* Support */}
+        <Route path="support" element={<AdminSupport />} />
 
       </Route>
 

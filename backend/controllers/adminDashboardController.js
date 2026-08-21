@@ -6,16 +6,22 @@ exports.getAdminDashboard = async (req, res) => {
 
   try {
 
-    const students = await User.countDocuments({ role: "student" });
+    if (!req.user || !req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+    }
 
-    const teachers = await User.countDocuments({ role: "teacher" });
+    const schoolName = req.user.schoolName;
 
-    const classes = await Class.countDocuments();
+    const students = await User.countDocuments({ role: "student", schoolName });
 
-    const subjects = await Subject.countDocuments();
+    const teachers = await User.countDocuments({ role: "teacher", schoolName });
+
+    const classes = await Class.countDocuments({ schoolName });
+
+    const subjects = await Subject.countDocuments({ schoolName });
 
     const recentStudents = await User
-      .find({ role: "student" })
+      .find({ role: "student", schoolName })
       .select("name email")
       .sort({ createdAt: -1 })
       .limit(5);

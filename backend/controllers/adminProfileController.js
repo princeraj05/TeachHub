@@ -1,15 +1,17 @@
 const User = require("../models/User");
 
 
-// ================= GET ADMIN PROFILE =================
-
 const getAdminProfile = async (req, res) => {
 
   try {
 
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
     const admin = await User
-      .findOne({ role: "admin" })
-      .select("name email role");
+      .findById(req.user.id)
+      .select("name email role schoolName");
 
     if (!admin) {
 
@@ -46,6 +48,10 @@ const updateAdminProfile = async (req, res) => {
 
     const { name, email } = req.body;
 
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
     if (!name || !email) {
 
       return res.status(400).json({
@@ -55,9 +61,9 @@ const updateAdminProfile = async (req, res) => {
 
     }
 
-    const admin = await User.findOneAndUpdate(
+    const admin = await User.findByIdAndUpdate(
 
-      { role: "admin" },
+      req.user.id,
 
       { name, email },
 
@@ -66,7 +72,7 @@ const updateAdminProfile = async (req, res) => {
         runValidators: true
       }
 
-    ).select("name email role");
+    ).select("name email role schoolName");
 
 
     if (!admin) {

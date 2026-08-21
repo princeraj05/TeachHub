@@ -12,12 +12,21 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true
+    required: false
   },
   role: {
     type: String,
-    enum: ["student", "teacher", "admin"],
-    default: "student"
+    enum: ["student", "teacher", "admin", "superadmin", "unassigned"],
+    default: "unassigned"
+  },
+  schoolName: {
+    type: String,
+    default: ""
+  },
+  classId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Class",
+    default: null
   }
 }, { timestamps: true });
 

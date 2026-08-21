@@ -2,6 +2,8 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { FaUser, FaEnvelope, FaLock, FaChalkboardTeacher, FaUserGraduate, FaGraduationCap } from "react-icons/fa";
+import { auth } from "../../config/firebase";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 
 const SORA = "'Sora', sans-serif";
 
@@ -25,11 +27,22 @@ function Register() {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post(`${API}/api/auth/register`, form);
+      // 1. Create Firebase auth user
+      const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
+      
+      // 2. Set profile displayName
+      if (userCredential.user) {
+        await updateProfile(userCredential.user, { displayName: form.name });
+      }
+
+      // 3. Get ID token and sync with backend
+      const idToken = await userCredential.user.getIdToken();
+      const res = await axios.post(`${API}/api/auth/firebase-sync`, { idToken });
+
       alert("Registered Successfully");
       navigate("/");
     } catch (error) {
-      alert(error.response?.data?.message || "Registration Failed");
+      alert(error.message || "Registration Failed");
     } finally {
       setLoading(false);
     }

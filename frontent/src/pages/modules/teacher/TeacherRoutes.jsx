@@ -13,6 +13,7 @@ import ExamSchedule from "./pages/Exams/ExamSchedule";
 
 import TeacherProfile from "./pages/Profile/TeacherProfile";
 import MyClasses from "./pages/MyClasses/MyClasses";
+import TeacherSupport from "./pages/TeacherSupport";
 
 function TeacherRoutes() {
 
@@ -38,6 +39,7 @@ function TeacherRoutes() {
 
         <Route path="profile" element={<TeacherProfile />} />
         <Route path="my-classes" element={<MyClasses/>}/>
+        <Route path="support" element={<TeacherSupport />} />
 
       </Route>
 

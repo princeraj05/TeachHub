@@ -9,10 +9,15 @@ try{
 
 const { classId, subjectId, date } = req.body;
 
+if (!req.user || !req.user.schoolName) {
+  return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+}
+
 const exam = new Exam({
 class:classId,
 subject:subjectId,
-date
+date,
+schoolName: req.user.schoolName
 });
 
 await exam.save();
@@ -40,7 +45,11 @@ exports.getAllExams = async (req,res)=>{
 
 try{
 
-const exams = await Exam.find()
+if (!req.user || !req.user.schoolName) {
+  return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+}
+
+const exams = await Exam.find({ schoolName: req.user.schoolName })
 .populate("class","name section")
 .populate("subject","name")
 .sort({date:1});
@@ -63,7 +72,17 @@ message:err.message
 
 exports.deleteExam = async (req,res)=>{
 
-try{
+try {
+
+if (!req.user || !req.user.schoolName) {
+  return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+}
+
+// Verify ownership before deleting
+const exam = await Exam.findOne({ _id: req.params.id, schoolName: req.user.schoolName });
+if (!exam) {
+  return res.status(403).json({ message: "Access Denied: Exam does not belong to your school" });
+}
 
 await Exam.findByIdAndDelete(req.params.id);
 
