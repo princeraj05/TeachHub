@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const Class = require("../models/Class");
 const Subject = require("../models/Subject");
+const AdmissionExam = require("../models/AdmissionExam");
 
 
 // ================= GET TEACHERS =================
@@ -142,6 +143,55 @@ exports.processJoinRequest = async (req, res) => {
         admissionExamMode: candidate.admissionExamMode
       }
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ================= GET ADMISSION EXAM =================
+exports.getAdmissionExam = async (req, res) => {
+  try {
+    if (!req.user || !req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+    }
+    let exam = await AdmissionExam.findOne({ schoolName: req.user.schoolName });
+    if (!exam) {
+      return res.json({
+        schoolName: req.user.schoolName,
+        negativeMarking: false,
+        negativeMarkValue: 0.25,
+        questions: []
+      });
+    }
+    res.json(exam);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ================= SAVE ADMISSION EXAM =================
+exports.saveAdmissionExam = async (req, res) => {
+  try {
+    const { negativeMarking, negativeMarkValue, questions } = req.body;
+    if (!req.user || !req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+    }
+    
+    let exam = await AdmissionExam.findOne({ schoolName: req.user.schoolName });
+    if (!exam) {
+      exam = new AdmissionExam({
+        schoolName: req.user.schoolName,
+        negativeMarking: !!negativeMarking,
+        negativeMarkValue: negativeMarkValue || 0.25,
+        questions: questions || []
+      });
+    } else {
+      exam.negativeMarking = !!negativeMarking;
+      exam.negativeMarkValue = negativeMarkValue || 0.25;
+      exam.questions = questions || [];
+    }
+    await exam.save();
+    res.json({ message: "Admission exam saved successfully", exam });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

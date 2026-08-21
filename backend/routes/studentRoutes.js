@@ -49,5 +49,20 @@ authorize("student"),
 studentController.getStudentExams
 );
 
+// ================= ADMISSION EXAMS =================
+router.get(
+"/admission-exam",
+protect,
+authorize("student"),
+studentController.getStudentAdmissionExam
+);
+
+router.post(
+"/admission-exam/submit",
+protect,
+authorize("student"),
+studentController.submitStudentAdmissionExam
+);
+
 
 module.exports = router;

@@ -214,16 +214,16 @@ function AdminRequests() {
             </div>
 
             <form onSubmit={handleScheduleSubmit} className="space-y-4">
-              {/* Exam Date */}
+              {/* Exam Date & Time */}
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
-                  Exam Date
+                  Exam Date & Start Time
                 </label>
                 <div className="relative">
                   <input
-                    type="date"
+                    type="datetime-local"
                     required
-                    min={new Date().toISOString().split("T")[0]}
+                    min={new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
                     value={examDate}
                     onChange={(e) => setExamDate(e.target.value)}
                     className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED]"

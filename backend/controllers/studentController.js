@@ -2,6 +2,8 @@ const Class = require("../models/Class");
 const Subject = require("../models/Subject");
 const Attendance = require("../models/Attendance");
 const Exam = require("../models/Exam");
+const User = require("../models/User");
+const AdmissionExam = require("../models/AdmissionExam");
 
 
 // ================= STUDENT DASHBOARD =================
@@ -154,6 +156,101 @@ exports.getStudentAttendance = async (req,res)=>{
 
   }
 
+};
+
+// ================= GET ADMISSION EXAM =================
+exports.getStudentAdmissionExam = async (req, res) => {
+  try {
+    const student = await User.findById(req.user.id);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    const school = student.schoolName || student.requestedSchool;
+    if (!school) {
+      return res.status(400).json({ message: "No school associated with student" });
+    }
+
+    const exam = await AdmissionExam.findOne({ schoolName: school });
+    if (!exam) {
+      return res.status(404).json({ message: "No admission exam created for this school" });
+    }
+
+    // Security check: strip correctOptionIndex
+    const secureQuestions = exam.questions.map(q => ({
+      _id: q._id,
+      questionText: q.questionText,
+      options: q.options
+    }));
+
+    res.json({
+      _id: exam._id,
+      schoolName: exam.schoolName,
+      negativeMarking: exam.negativeMarking,
+      negativeMarkValue: exam.negativeMarkValue,
+      questions: secureQuestions
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ================= SUBMIT ADMISSION EXAM =================
+exports.submitStudentAdmissionExam = async (req, res) => {
+  try {
+    const { answers } = req.body;
+    const student = await User.findById(req.user.id);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    if (student.admissionExamTaken) {
+      return res.status(400).json({ message: "You have already completed this admission exam" });
+    }
+
+    const school = student.schoolName || student.requestedSchool;
+    const exam = await AdmissionExam.findOne({ schoolName: school });
+    if (!exam) {
+      return res.status(404).json({ message: "Admission exam not found for this school" });
+    }
+
+    let correctCount = 0;
+    let wrongCount = 0;
+    let score = 0;
+
+    exam.questions.forEach((q, idx) => {
+      const studentAns = answers && answers[idx] !== undefined ? answers[idx] : -1;
+      if (studentAns === q.correctOptionIndex) {
+        correctCount += 1;
+        score += 1;
+      } else if (studentAns !== -1 && studentAns !== null) {
+        wrongCount += 1;
+        if (exam.negativeMarking) {
+          score -= exam.negativeMarkValue;
+        }
+      }
+    });
+
+    student.admissionExamTaken = true;
+    student.admissionExamScore = Number(score.toFixed(2));
+    student.admissionExamTotal = exam.questions.length;
+    student.admissionExamCorrect = correctCount;
+    student.admissionExamWrong = wrongCount;
+
+    await student.save();
+
+    res.json({
+      message: "Admission exam graded successfully",
+      result: {
+        score: student.admissionExamScore,
+        total: student.admissionExamTotal,
+        correct: student.admissionExamCorrect,
+        wrong: student.admissionExamWrong
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 

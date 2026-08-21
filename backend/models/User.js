@@ -54,6 +54,26 @@ const userSchema = new mongoose.Schema({
     enum: ["Online", "Offline", ""],
     default: ""
   },
+  admissionExamTaken: {
+    type: Boolean,
+    default: false
+  },
+  admissionExamScore: {
+    type: Number,
+    default: 0
+  },
+  admissionExamTotal: {
+    type: Number,
+    default: 0
+  },
+  admissionExamCorrect: {
+    type: Number,
+    default: 0
+  },
+  admissionExamWrong: {
+    type: Number,
+    default: 0
+  },
   classId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Class",
