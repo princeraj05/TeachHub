@@ -19,12 +19,42 @@ type:Date,
 required:true
 },
 
-schoolName: {
-type: String,
-default: "",
-index: true
-}
-
-},{timestamps:true});
+  schoolName: {
+    type: String,
+    default: "",
+    index: true
+  },
+  mode: {
+    type: String,
+    enum: ["online", "offline"],
+    default: "offline"
+  },
+  negativeMarking: {
+    type: Boolean,
+    default: false
+  },
+  negativeMarkValue: {
+    type: Number,
+    default: 0.25
+  },
+  questions: [{
+    questionText: {
+      type: String,
+      required: true
+    },
+    options: {
+      type: [String],
+      required: true
+    },
+    correctOptionIndex: {
+      type: Number,
+      required: true
+    },
+    section: {
+      type: String,
+      default: ""
+    }
+  }]
+}, { timestamps: true });
 
 module.exports = mongoose.model("Exam",examSchema);

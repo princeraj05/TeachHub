@@ -7,17 +7,21 @@ exports.createExam = async (req,res)=>{
 
 try{
 
-const { classId, subjectId, date } = req.body;
+const { classId, subjectId, date, mode, negativeMarking, negativeMarkValue, questions } = req.body;
 
 if (!req.user || !req.user.schoolName) {
   return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
 }
 
 const exam = new Exam({
-class:classId,
-subject:subjectId,
-date,
-schoolName: req.user.schoolName
+  class: classId,
+  subject: subjectId,
+  date,
+  schoolName: req.user.schoolName,
+  mode: mode || "offline",
+  negativeMarking: !!negativeMarking,
+  negativeMarkValue: negativeMarkValue !== undefined ? negativeMarkValue : 0.25,
+  questions: questions || []
 });
 
 await exam.save();

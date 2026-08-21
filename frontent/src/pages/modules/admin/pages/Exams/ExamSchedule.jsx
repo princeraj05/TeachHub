@@ -14,7 +14,45 @@ function ExamSchedule() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  const [form, setForm] = useState({ classId: "", subjectId: "", date: "" });
+  const [form, setForm] = useState({
+    classId: "",
+    subjectId: "",
+    date: "",
+    mode: "offline",
+    negativeMarking: false,
+    negativeMarkValue: 0.25,
+    questions: []
+  });
+
+  const handleClassExamQuestionChange = (qIdx, field, val) => {
+    const updatedQs = [...form.questions];
+    updatedQs[qIdx] = { ...updatedQs[qIdx], [field]: val };
+    setForm({ ...form, questions: updatedQs });
+  };
+
+  const handleClassExamOptionChange = (qIdx, optIdx, val) => {
+    const updatedQs = [...form.questions];
+    const opts = [...updatedQs[qIdx].options];
+    opts[optIdx] = val;
+    updatedQs[qIdx] = { ...updatedQs[qIdx], options: opts };
+    setForm({ ...form, questions: updatedQs });
+  };
+
+  const addClassExamQuestion = () => {
+    const selectedSubName = subjects.find(s => s._id === form.subjectId)?.name || "General";
+    setForm({
+      ...form,
+      questions: [
+        ...form.questions,
+        { questionText: "", options: ["", "", "", ""], correctOptionIndex: 0, section: selectedSubName }
+      ]
+    });
+  };
+
+  const removeClassExamQuestion = (qIdx) => {
+    const updatedQs = form.questions.filter((_, idx) => idx !== qIdx);
+    setForm({ ...form, questions: updatedQs });
+  };
 
   const [activeTab, setActiveTab] = useState("class");
   const [admissionExam, setAdmissionExam] = useState({
@@ -126,12 +164,24 @@ function ExamSchedule() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (form.mode === "online" && form.questions.length === 0) {
+      alert("Please add at least one question for the online exam.");
+      return;
+    }
     setSubmitting(true);
     try {
       await axios.post(`${API}/api/exams`, form, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setForm({ classId: "", subjectId: "", date: "" });
+      setForm({
+        classId: "",
+        subjectId: "",
+        date: "",
+        mode: "offline",
+        negativeMarking: false,
+        negativeMarkValue: 0.25,
+        questions: []
+      });
       fetchExams();
     } catch (err) {
       console.log(err);
@@ -320,6 +370,139 @@ function ExamSchedule() {
                       </div>
                     </div>
 
+                    {/* Exam Mode select */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Exam Mode</label>
+                      <select
+                        name="mode"
+                        value={form.mode}
+                        onChange={handleChange}
+                        required
+                        className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                      >
+                        <option value="offline">Offline</option>
+                        <option value="online">Online (Proctored)</option>
+                      </select>
+                    </div>
+
+                    {form.mode === "online" && (
+                      <div className="space-y-4 pt-2 border-t border-slate-100 dark:border-white/5">
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={form.negativeMarking}
+                            onChange={(e) => setForm({ ...form, negativeMarking: e.target.checked })}
+                            className="w-4 h-4 rounded border-slate-300 text-[#7C3AED] focus:ring-[#7C3AED] cursor-pointer"
+                          />
+                          <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                            Enable Negative Marking
+                          </span>
+                        </label>
+
+                        {form.negativeMarking && (
+                          <div className="flex items-center gap-2">
+                            <label className="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">
+                              Deduction:
+                            </label>
+                            <input
+                              type="number"
+                              step="0.05"
+                              min="0"
+                              max="5"
+                              required
+                              value={form.negativeMarkValue}
+                              onChange={(e) => setForm({ ...form, negativeMarkValue: parseFloat(e.target.value) })}
+                              className="w-20 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25"
+                            />
+                          </div>
+                        )}
+
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-[10px] font-black uppercase text-slate-450 tracking-wider">
+                              Questions ({form.questions.length})
+                            </h4>
+                            <button
+                              type="button"
+                              onClick={addClassExamQuestion}
+                              disabled={!form.subjectId}
+                              className="text-[9px] font-black uppercase tracking-wider bg-teal-50 hover:bg-teal-100 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 px-3 py-1.5 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-extrabold"
+                            >
+                              + Add Question
+                            </button>
+                          </div>
+                          {!form.subjectId && (
+                            <p className="text-[9px] text-amber-500 font-bold">Please select a subject first to unlock adding questions.</p>
+                          )}
+
+                          <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-1">
+                            {form.questions.map((q, qIdx) => (
+                              <div key={qIdx} className="bg-slate-50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/5 p-3.5 rounded-xl space-y-3 relative">
+                                <div className="flex items-center justify-between border-b border-slate-200/40 dark:border-white/5 pb-2">
+                                  <span className="text-[9px] font-extrabold text-teal-600 dark:text-[#38BDF8]">Q#{qIdx + 1} ({subjects.find(s => s._id === form.subjectId)?.name || "General"})</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeClassExamQuestion(qIdx)}
+                                    className="text-[9px] font-extrabold text-rose-500 hover:text-rose-600"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+
+                                <div className="flex flex-col gap-1">
+                                  <label className="text-[8px] font-extrabold uppercase text-slate-400">Question Text</label>
+                                  <input
+                                    type="text"
+                                    required
+                                    value={q.questionText}
+                                    onChange={(e) => handleClassExamQuestionChange(qIdx, "questionText", e.target.value)}
+                                    placeholder="Enter question"
+                                    className="w-full bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25"
+                                  />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2">
+                                  {q.options.map((opt, optIdx) => (
+                                    <div key={optIdx} className="flex flex-col gap-1">
+                                      <label className="text-[8px] font-extrabold uppercase text-slate-400">Opt {String.fromCharCode(65 + optIdx)}</label>
+                                      <input
+                                        type="text"
+                                        required
+                                        value={opt}
+                                        onChange={(e) => handleClassExamOptionChange(qIdx, optIdx, e.target.value)}
+                                        placeholder={`Option ${String.fromCharCode(65 + optIdx)}`}
+                                        className="w-full bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 text-xs font-medium text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25"
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+
+                                <div className="pt-2 border-t border-slate-200/40 dark:border-white/5">
+                                  <label className="block text-[8px] font-extrabold uppercase text-slate-400 mb-1">Correct Option</label>
+                                  <div className="flex gap-3">
+                                    {[0, 1, 2, 3].map((optVal) => (
+                                      <label key={optVal} className="flex items-center gap-1 cursor-pointer select-none">
+                                        <input
+                                          type="radio"
+                                          name={`class-correct-ans-${qIdx}`}
+                                          checked={q.correctOptionIndex === optVal}
+                                          onChange={() => handleClassExamQuestionChange(qIdx, "correctOptionIndex", optVal)}
+                                          className="w-3.5 h-3.5 text-teal-600 focus:ring-teal-500 cursor-pointer"
+                                        />
+                                        <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">
+                                          {String.fromCharCode(65 + optVal)}
+                                        </span>
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Submit button */}
                     <button
                       type="submit"
@@ -380,6 +563,7 @@ function ExamSchedule() {
                         <tr className="bg-slate-50 text-slate-400 uppercase tracking-widest text-[9px] font-bold border-b border-slate-100">
                           <th className="px-5 py-4">Class</th>
                           <th className="px-5 py-4">Subject</th>
+                          <th className="px-5 py-4">Mode</th>
                           <th className="px-5 py-4">Date</th>
                           <th className="px-5 py-4">Status</th>
                           <th className="px-5 py-4 text-center">Action</th>
@@ -397,6 +581,15 @@ function ExamSchedule() {
                               </td>
                               <td className="px-5 py-4">
                                 <span className="text-xs font-semibold text-slate-800 dark:text-slate-250">{e.subject?.name || "—"}</span>
+                              </td>
+                              <td className="px-5 py-4">
+                                <span className={`inline-flex items-center text-[10px] font-bold px-2.5 py-0.5 rounded-full border uppercase tracking-wider ${
+                                  e.mode === "online" 
+                                    ? "bg-purple-50 text-purple-600 border-purple-100 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20" 
+                                    : "bg-orange-50 text-orange-600 border-orange-100 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/20"
+                                }`}>
+                                  {e.mode || "offline"}
+                                </span>
                               </td>
                               <td className="px-5 py-4">
                                 <span className="text-slate-550 text-xs font-medium whitespace-nowrap">

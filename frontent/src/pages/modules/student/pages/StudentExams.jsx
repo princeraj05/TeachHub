@@ -96,7 +96,8 @@ function StudentExams() {
   const [search, setSearch] = useState("");
 
   // Exam Proctoring states
-  const [activeTest, setActiveTest] = useState(null); // null or "admission"
+  const [activeTest, setActiveTest] = useState(null); // null or "admission" or "class-online"
+  const [selectedClassExam, setSelectedClassExam] = useState(null);
   const [testStep, setTestStep] = useState("setup"); // "setup" | "taking" | "graded"
   
   // Media streams
@@ -208,24 +209,39 @@ function StudentExams() {
 
   // Launch test taking
   const launchTestFlow = () => {
-    setLoadingTest(true);
-    axios
-      .get(`${API}/api/student/admission-exam`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      .then((res) => {
-        setTestPaper(res.data);
-        setSelectedAnswers(new Array(res.data.questions?.length || 0).fill(-1));
-        setCurrentQIndex(0);
-        setActiveSection("Mathematics");
-        setTestStep("taking");
-      })
-      .catch((err) => {
-        alert(err.response?.data?.message || "Failed to load test layout");
-      })
-      .finally(() => {
-        setLoadingTest(false);
+    if (activeTest === "admission") {
+      setLoadingTest(true);
+      axios
+        .get(`${API}/api/student/admission-exam`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then((res) => {
+          setTestPaper(res.data);
+          setSelectedAnswers(new Array(res.data.questions?.length || 0).fill(-1));
+          setCurrentQIndex(0);
+          setActiveSection("Mathematics");
+          setTestStep("taking");
+        })
+        .catch((err) => {
+          alert(err.response?.data?.message || "Failed to load test layout");
+        })
+        .finally(() => {
+          setLoadingTest(false);
+        });
+    } else if (activeTest === "class-online" && selectedClassExam) {
+      const preparedQuestions = (selectedClassExam.questions || []).map(q => ({
+        ...q,
+        section: selectedClassExam.subject || "General"
+      }));
+      setTestPaper({
+        ...selectedClassExam,
+        questions: preparedQuestions
       });
+      setSelectedAnswers(new Array(preparedQuestions.length).fill(-1));
+      setCurrentQIndex(0);
+      setActiveSection(selectedClassExam.subject || "General");
+      setTestStep("taking");
+    }
   };
 
   // Option selection
@@ -238,9 +254,13 @@ function StudentExams() {
   // Submit test
   const submitExamPaper = () => {
     setSubmittingTest(true);
+    const url = activeTest === "admission" 
+      ? `${API}/api/student/admission-exam/submit` 
+      : `${API}/api/student/exams/${selectedClassExam._id}/submit`;
+
     axios
       .post(
-        `${API}/api/student/admission-exam/submit`,
+        url,
         { answers: selectedAnswers },
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -250,13 +270,11 @@ function StudentExams() {
         // Stop media streams
         if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
         if (screenStream) screenStream.getTracks().forEach(t => t.stop());
-        // Reload user profile in sidebar immediately!
+        
+        // Refetch exams
         axios
-          .get(`${API}/api/auth/profile`, { headers: { Authorization: `Bearer ${token}` } })
-          .then((pRes) => {
-            setProfile(pRes.data);
-            if (pRes.data.token) localStorage.setItem("token", pRes.data.token);
-          });
+          .get(`${API}/api/student/exams`, { headers: { Authorization: `Bearer ${token}` } })
+          .then((res) => setExams(res.data || []));
       })
       .catch((err) => {
         alert(err.response?.data?.message || "Failed to submit test");
@@ -387,11 +405,31 @@ function StudentExams() {
                                   setTestStep("setup");
                                 }}
                               />
-                            ) : (
-                              <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold rounded-full border ${badge.cls}`}>
-                                <FaClock className="text-[9px]" />
-                                {badge.label}
+                            ) : e.mode === "offline" ? (
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold rounded-full border bg-slate-100 text-slate-500 border-slate-200/60 dark:bg-white/5 dark:text-slate-400 dark:border-white/10">
+                                Offline Exam
                               </span>
+                            ) : e.taken ? (
+                              <div className="flex flex-col items-center gap-1">
+                                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1.5 rounded-xl border border-emerald-100/50">
+                                  Completed
+                                </span>
+                                {e.submission && (
+                                  <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold">
+                                    Score: {e.submission.score} / {e.submission.total}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <AdmissionCountdown
+                                dateStr={e.date}
+                                examTaken={e.taken}
+                                onLaunchTest={() => {
+                                  setSelectedClassExam(e);
+                                  setActiveTest("class-online");
+                                  setTestStep("setup");
+                                }}
+                              />
                             )}
                           </td>
                         </tr>
@@ -452,11 +490,31 @@ function StudentExams() {
                               setTestStep("setup");
                             }}
                           />
-                        ) : (
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold rounded-full border ${badge.cls}`}>
-                            <FaClock className="text-[9px]" />
-                            {badge.label}
+                        ) : e.mode === "offline" ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold rounded-full border bg-slate-100 text-slate-500 border-slate-200/60 dark:bg-white/5 dark:text-slate-400 dark:border-white/10">
+                            Offline Exam
                           </span>
+                        ) : e.taken ? (
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1.5 rounded-xl border border-emerald-100/50">
+                              Completed
+                            </span>
+                            {e.submission && (
+                              <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold">
+                                Score: {e.submission.score} / {e.submission.total}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <AdmissionCountdown
+                            dateStr={e.date}
+                            examTaken={e.taken}
+                            onLaunchTest={() => {
+                              setSelectedClassExam(e);
+                              setActiveTest("class-online");
+                              setTestStep("setup");
+                            }}
+                          />
                         )}
                       </div>
                     </div>
@@ -475,7 +533,7 @@ function StudentExams() {
       )}
 
       {/* Proctoring Test setup Canvas */}
-      {activeTest === "admission" && testStep === "setup" && (
+      {(activeTest === "admission" || activeTest === "class-online") && testStep === "setup" && (
         <div className="max-w-2xl mx-auto bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl overflow-hidden relative">
           <div className="h-1.5 bg-gradient-to-r from-teal-500 to-[#7C3AED] w-full" />
           <div className="p-8">
@@ -484,7 +542,9 @@ function StudentExams() {
                 <FaLock />
               </div>
               <div>
-                <h2 className="text-slate-800 dark:text-white font-black text-lg tracking-tight">Entrance Examination Proctoring Setup</h2>
+                <h2 className="text-slate-800 dark:text-white font-black text-lg tracking-tight">
+                  {activeTest === "admission" ? "Entrance Examination Proctoring Setup" : `${testPaper?.subject || "Class"} Exam Proctoring Setup`}
+                </h2>
                 <p className="text-xs text-slate-400 mt-0.5">Initialize proctoring streams to unlock test taking</p>
               </div>
             </div>
@@ -583,7 +643,7 @@ function StudentExams() {
       )}
 
       {/* Proctoring Test Taking Canvas */}
-      {activeTest === "admission" && testStep === "taking" && testPaper && (
+      {(activeTest === "admission" || activeTest === "class-online") && testStep === "taking" && testPaper && (
         <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6 items-start relative">
           
           {/* Main Question view (Left 3 cols) */}
@@ -591,7 +651,7 @@ function StudentExams() {
             
             {/* Section switcher tabs */}
             <div className="bg-white dark:bg-[#0B132A] rounded-2xl border border-slate-200/60 dark:border-white/10 p-2 shadow-sm flex gap-2 overflow-x-auto">
-              {["Mathematics", "Science", "Social Science"].map((sec) => {
+              {(activeTest === "admission" ? ["Mathematics", "Science", "Social Science"] : [testPaper.subject || "General"]).map((sec) => {
                 const isSecActive = activeSection === sec;
                 const secQs = testPaper.questions.map((q, idx) => ({ ...q, globalIdx: idx })).filter(q => (q.section || "Mathematics") === sec);
                 const answeredCount = secQs.filter(q => selectedAnswers[q.globalIdx] !== -1).length;
@@ -767,7 +827,7 @@ function StudentExams() {
       )}
 
       {/* Graded test score card */}
-      {activeTest === "admission" && testStep === "graded" && testResult && (
+      {(activeTest === "admission" || activeTest === "class-online") && testStep === "graded" && testResult && (
         <div className="max-w-md mx-auto bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl overflow-hidden relative text-center">
           <div className="h-1.5 bg-gradient-to-r from-teal-500 to-emerald-500 w-full" />
           <div className="p-8">
@@ -776,7 +836,7 @@ function StudentExams() {
             </div>
 
             <h2 className="text-lg font-black text-slate-800 dark:text-white tracking-tight">Test Evaluated Successfully!</h2>
-            <p className="text-xs text-slate-455 mt-0.5">Your entrance exam response has been graded</p>
+            <p className="text-xs text-slate-455 mt-0.5">Your examination response has been graded</p>
 
             {/* Score box */}
             <div className="my-6 p-6 bg-slate-50 dark:bg-white/5 border border-slate-200/40 dark:border-white/10 rounded-2xl">

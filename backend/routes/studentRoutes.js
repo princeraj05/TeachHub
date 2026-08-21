@@ -49,6 +49,13 @@ authorize("student"),
 studentController.getStudentExams
 );
 
+router.post(
+  "/exams/:id/submit",
+  protect,
+  authorize("student"),
+  studentController.submitStudentExam
+);
+
 // ================= ADMISSION EXAMS =================
 router.get(
 "/admission-exam",

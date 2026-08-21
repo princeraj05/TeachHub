@@ -4,6 +4,7 @@ const Attendance = require("../models/Attendance");
 const Exam = require("../models/Exam");
 const User = require("../models/User");
 const AdmissionExam = require("../models/AdmissionExam");
+const ExamSubmission = require("../models/ExamSubmission");
 
 
 // ================= STUDENT DASHBOARD =================
@@ -286,9 +287,29 @@ exports.getStudentExams = async (req,res)=>{
     .populate("subject","name")
     .sort({ date:1 });
 
-    const formatted = exams.map(e=>({
-      subject:e.subject?.name,
-      date:e.date
+    const formatted = await Promise.all(exams.map(async (e) => {
+      const submission = await ExamSubmission.findOne({ student: studentId, exam: e._id });
+      return {
+        _id: e._id,
+        subject: e.subject?.name || "—",
+        date: e.date,
+        mode: e.mode || "offline",
+        negativeMarking: e.negativeMarking || false,
+        negativeMarkValue: e.negativeMarkValue || 0.25,
+        questions: e.questions ? e.questions.map(q => ({
+          _id: q._id,
+          questionText: q.questionText,
+          options: q.options,
+          section: q.section
+        })) : [],
+        taken: !!submission,
+        submission: submission ? {
+          score: submission.score,
+          total: submission.total,
+          correct: submission.correct,
+          wrong: submission.wrong
+        } : null
+      };
     }));
 
     res.json(formatted);
@@ -301,4 +322,64 @@ exports.getStudentExams = async (req,res)=>{
 
   }
 
+};
+
+// ================= SUBMIT STUDENT EXAM =================
+exports.submitStudentExam = async (req, res) => {
+  try {
+    const { answers } = req.body;
+    const examId = req.params.id;
+    const studentId = req.user.id;
+
+    const exam = await Exam.findById(examId).populate("subject", "name");
+    if (!exam) {
+      return res.status(404).json({ message: "Exam not found" });
+    }
+
+    // Verify student hasn't already submitted
+    const existingSubmission = await ExamSubmission.findOne({ student: studentId, exam: examId });
+    if (existingSubmission) {
+      return res.status(400).json({ message: "You have already submitted this exam" });
+    }
+
+    let correctCount = 0;
+    let wrongCount = 0;
+    let score = 0;
+
+    (exam.questions || []).forEach((q, idx) => {
+      const studentAns = answers && answers[idx] !== undefined ? answers[idx] : -1;
+      if (studentAns === q.correctOptionIndex) {
+        correctCount += 1;
+        score += 1;
+      } else if (studentAns !== -1 && studentAns !== null) {
+        wrongCount += 1;
+        if (exam.negativeMarking) {
+          score -= exam.negativeMarkValue;
+        }
+      }
+    });
+
+    const submission = await ExamSubmission.create({
+      student: studentId,
+      exam: examId,
+      score: Number(score.toFixed(2)),
+      total: (exam.questions || []).length,
+      correct: correctCount,
+      wrong: wrongCount,
+      answers
+    });
+
+    res.json({
+      message: "Exam submitted and graded successfully",
+      result: {
+        score: submission.score,
+        total: submission.total,
+        correct: submission.correct,
+        wrong: submission.wrong
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
