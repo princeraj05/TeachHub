@@ -122,7 +122,13 @@ function AdminRequests() {
       alert("Please select an exam date");
       return;
     }
-    const utcDate = new Date(examDate).toISOString();
+    // Parse "YYYY-MM-DDTHH:mm" manually to guarantee local timezone parsing
+    const [datePart, timePart] = examDate.split("T");
+    const [year, month, day] = datePart.split("-").map(Number);
+    const [hour, minute] = timePart.split(":").map(Number);
+    const localDate = new Date(year, month - 1, day, hour, minute);
+    const utcDate = localDate.toISOString();
+
     handleAction(selectedUser._id, "approved", { examDate: utcDate, examMode });
   };
 
@@ -339,7 +345,7 @@ function AdminRequests() {
                         <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">
                           Mode: <strong className="font-extrabold text-slate-750 dark:text-white">{req.admissionExamMode}</strong>
                           <span className="mx-2">•</span>
-                          Schedule: <strong className="font-extrabold text-slate-750 dark:text-white">{new Date(req.admissionExamDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</strong>
+                          Schedule: <strong className="font-extrabold text-slate-750 dark:text-white">{new Date(req.admissionExamDate).toLocaleString("en-US", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true })}</strong>
                         </p>
                         {hasTakenTest && (
                           <div className="inline-flex items-center gap-3 bg-slate-50 dark:bg-white/5 border border-slate-200/40 dark:border-white/5 px-3 py-1.5 rounded-xl mt-1 text-[10px] font-bold text-slate-550 dark:text-slate-400 shadow-sm">

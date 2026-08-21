@@ -367,12 +367,13 @@ function StudentExams() {
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 font-medium text-xs">
                               <FaCalendarAlt className="text-teal-400 text-xs shrink-0" />
-                              {new Date(e.date).toLocaleDateString("en-IN", {
+                              {new Date(e.date).toLocaleString("en-US", {
                                 day: "numeric",
                                 month: "short",
                                 year: "numeric",
                                 hour: "2-digit",
-                                minute: "2-digit"
+                                minute: "2-digit",
+                                hour12: true
                               })}
                             </div>
                           </td>
@@ -435,8 +436,8 @@ function StudentExams() {
                           </div>
                           <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5 font-medium">
                             <FaCalendarAlt className="text-[9px]" />
-                            {new Date(e.date).toLocaleDateString("en-IN", {
-                              day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
+                            {new Date(e.date).toLocaleString("en-US", {
+                              day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true
                             })}
                           </p>
                         </div>

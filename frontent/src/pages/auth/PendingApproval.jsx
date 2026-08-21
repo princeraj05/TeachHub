@@ -801,7 +801,7 @@ function PendingApproval() {
                           Mode: <strong>{user.admissionExamMode}</strong>
                         </p>
                         <p className="text-[10px] text-slate-550 dark:text-slate-450 font-medium">
-                          Date: <strong>{new Date(user.admissionExamDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</strong>
+                          Date: <strong>{new Date(user.admissionExamDate).toLocaleString("en-US", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true })}</strong>
                         </p>
                       </div>
                     </div>
