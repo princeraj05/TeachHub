@@ -156,12 +156,14 @@ exports.getAdmissionExam = async (req, res) => {
     }
     let exam = await AdmissionExam.findOne({ schoolName: req.user.schoolName });
     if (!exam) {
-      return res.json({
+      const defaultQuestions = require("../utils/defaultQuestions");
+      exam = new AdmissionExam({
         schoolName: req.user.schoolName,
         negativeMarking: false,
         negativeMarkValue: 0.25,
-        questions: []
+        questions: defaultQuestions
       });
+      await exam.save();
     }
     res.json(exam);
   } catch (error) {

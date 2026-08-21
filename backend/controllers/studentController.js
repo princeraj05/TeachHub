@@ -171,15 +171,23 @@ exports.getStudentAdmissionExam = async (req, res) => {
       return res.status(400).json({ message: "No school associated with student" });
     }
 
-    const exam = await AdmissionExam.findOne({ schoolName: school });
+    let exam = await AdmissionExam.findOne({ schoolName: school });
     if (!exam) {
-      return res.status(404).json({ message: "No admission exam created for this school" });
+      const defaultQuestions = require("../utils/defaultQuestions");
+      exam = new AdmissionExam({
+        schoolName: school,
+        negativeMarking: false,
+        negativeMarkValue: 0.25,
+        questions: defaultQuestions
+      });
+      await exam.save();
     }
 
     // Security check: strip correctOptionIndex
     const secureQuestions = exam.questions.map(q => ({
       _id: q._id,
       questionText: q.questionText,
+      section: q.section,
       options: q.options
     }));
 

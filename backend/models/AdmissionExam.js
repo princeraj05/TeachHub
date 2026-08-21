@@ -20,6 +20,12 @@ const admissionExamSchema = new mongoose.Schema({
         type: String,
         required: true
       },
+      section: {
+        type: String,
+        required: true,
+        enum: ["Mathematics", "Science", "Social Science"],
+        default: "Mathematics"
+      },
       options: {
         type: [String],
         required: true,

@@ -109,6 +109,7 @@ function StudentExams() {
   // Test content
   const [testPaper, setTestPaper] = useState(null);
   const [currentQIndex, setCurrentQIndex] = useState(0);
+  const [activeSection, setActiveSection] = useState("Mathematics");
   const [selectedAnswers, setSelectedAnswers] = useState([]);
   const [loadingTest, setLoadingTest] = useState(false);
   const [submittingTest, setSubmittingTest] = useState(false);
@@ -215,6 +216,8 @@ function StudentExams() {
       .then((res) => {
         setTestPaper(res.data);
         setSelectedAnswers(new Array(res.data.questions?.length || 0).fill(-1));
+        setCurrentQIndex(0);
+        setActiveSection("Mathematics");
         setTestStep("taking");
       })
       .catch((err) => {
@@ -580,89 +583,170 @@ function StudentExams() {
 
       {/* Proctoring Test Taking Canvas */}
       {activeTest === "admission" && testStep === "taking" && testPaper && (
-        <div className="max-w-3xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6 items-start relative">
+        <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6 items-start relative">
           
           {/* Main Question view (Left 3 cols) */}
-          <div className="lg:col-span-3 bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl overflow-hidden relative">
-            <div className="h-1.5 bg-gradient-to-r from-teal-500 to-[#7C3AED] w-full" />
-            <div className="p-6">
-              
-              {/* Question Header */}
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-4 mb-6">
-                <div>
-                  <span className="text-[10px] font-extrabold uppercase bg-teal-50 border border-teal-100 text-teal-600 px-3 py-1 rounded-full">
-                    Question {currentQIndex + 1} of {testPaper.questions.length}
-                  </span>
-                </div>
-                {testPaper.negativeMarking && (
-                  <span className="text-[9px] font-black uppercase text-rose-500 bg-rose-50 dark:bg-rose-500/5 dark:text-rose-400 border border-rose-100 dark:border-rose-500/20 px-2.5 py-1 rounded-md">
-                    Negative: -{testPaper.negativeMarkValue}
-                  </span>
-                )}
-              </div>
+          <div className="lg:col-span-3 space-y-6">
+            
+            {/* Section switcher tabs */}
+            <div className="bg-white dark:bg-[#0B132A] rounded-2xl border border-slate-200/60 dark:border-white/10 p-2 shadow-sm flex gap-2 overflow-x-auto">
+              {["Mathematics", "Science", "Social Science"].map((sec) => {
+                const isSecActive = activeSection === sec;
+                const secQs = testPaper.questions.map((q, idx) => ({ ...q, globalIdx: idx })).filter(q => (q.section || "Mathematics") === sec);
+                const answeredCount = secQs.filter(q => selectedAnswers[q.globalIdx] !== -1).length;
 
-              {/* Question Text */}
-              <div className="mb-8">
-                <h2 className="text-sm font-extrabold text-slate-800 dark:text-white leading-relaxed">
-                  {testPaper.questions[currentQIndex]?.questionText}
-                </h2>
-              </div>
+                return (
+                  <button
+                    key={sec}
+                    type="button"
+                    onClick={() => {
+                      if (secQs.length > 0) {
+                        setCurrentQIndex(secQs[0].globalIdx);
+                        setActiveSection(sec);
+                      }
+                    }}
+                    className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+                      isSecActive
+                        ? "bg-[#7C3AED] text-white dark:bg-[#38BDF8] dark:text-[#090F1C] shadow-sm"
+                        : "text-slate-550 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5"
+                    }`}
+                  >
+                    {sec}
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${
+                      isSecActive 
+                        ? "bg-white/20 text-white dark:bg-[#090F1C]/25 dark:text-[#090F1C]" 
+                        : "bg-slate-100 dark:bg-white/10 text-slate-500"
+                    }`}>
+                      {answeredCount}/{secQs.length}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
 
-              {/* 4 options select */}
-              <div className="space-y-3 mb-8">
-                {testPaper.questions[currentQIndex]?.options.map((opt, optIdx) => {
-                  const isSelected = selectedAnswers[currentQIndex] === optIdx;
-                  return (
-                    <button
-                      key={optIdx}
-                      onClick={() => selectOption(optIdx)}
-                      className={`w-full text-left p-4 rounded-2xl border transition flex items-center gap-3 cursor-pointer ${
-                        isSelected
-                          ? "border-[#7C3AED] bg-[#7C3AED]/5 text-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8]/5 dark:text-[#38BDF8] font-bold"
-                          : "border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.01] hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400"
-                      }`}
-                    >
-                      <span className={`w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-black ${
-                        isSelected
-                          ? "border-[#7C3AED] bg-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8] text-white dark:text-[#090F1C]"
-                          : "border-slate-300 dark:border-white/10 bg-white dark:bg-[#1E293B] text-slate-400"
-                      }`}>
-                        {String.fromCharCode(65 + optIdx)}
+            {/* Question Card */}
+            <div className="bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl overflow-hidden relative">
+              <div className="h-1.5 bg-gradient-to-r from-teal-500 to-[#7C3AED] w-full" />
+              <div className="p-6">
+                
+                {/* Question Header & Grid navigation */}
+                <div className="border-b border-slate-100 dark:border-white/5 pb-4 mb-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-extrabold uppercase bg-teal-550 border border-teal-100 text-teal-600 px-3 py-1 rounded-full">
+                        {activeSection} · Question {testPaper.questions.map((q, idx) => ({ ...q, globalIdx: idx })).filter(q => (q.section || "Mathematics") === activeSection).findIndex(q => q.globalIdx === currentQIndex) + 1} of {testPaper.questions.filter(q => (q.section || "Mathematics") === activeSection).length}
                       </span>
-                      <span className="text-xs font-semibold">{opt}</span>
+                    </div>
+                    {testPaper.negativeMarking && (
+                      <span className="text-[9px] font-black uppercase text-rose-500 bg-rose-50 dark:bg-rose-500/5 dark:text-rose-400 border border-rose-100 dark:border-rose-500/20 px-2.5 py-1 rounded-md">
+                        Negative: -{testPaper.negativeMarkValue}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Circle navigation grid for active section questions */}
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {testPaper.questions
+                      .map((q, idx) => ({ ...q, globalIdx: idx }))
+                      .filter(q => (q.section || "Mathematics") === activeSection)
+                      .map((q, localIdx) => {
+                        const isQActive = currentQIndex === q.globalIdx;
+                        const isAnswered = selectedAnswers[q.globalIdx] !== -1;
+                        return (
+                          <button
+                            key={q.globalIdx}
+                            type="button"
+                            onClick={() => setCurrentQIndex(q.globalIdx)}
+                            className={`w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center transition cursor-pointer border ${
+                              isQActive
+                                ? "bg-teal-555 border-teal-600 text-white shadow-md shadow-teal-555/20"
+                                : isAnswered
+                                  ? "bg-indigo-50 border-indigo-200 text-[#7C3AED] dark:bg-[#7C3AED]/10 dark:border-[#7C3AED]/20 dark:text-[#38BDF8]"
+                                  : "bg-slate-50 border-slate-200 text-slate-400 dark:bg-[#1E293B] dark:border-white/5"
+                            }`}
+                          >
+                            {localIdx + 1}
+                          </button>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                {/* Question Text */}
+                <div className="mb-8">
+                  <h2 className="text-sm font-extrabold text-slate-800 dark:text-white leading-relaxed">
+                    {testPaper.questions[currentQIndex]?.questionText}
+                  </h2>
+                </div>
+
+                {/* 4 options select */}
+                <div className="space-y-3 mb-8">
+                  {testPaper.questions[currentQIndex]?.options.map((opt, optIdx) => {
+                    const isSelected = selectedAnswers[currentQIndex] === optIdx;
+                    return (
+                      <button
+                        key={optIdx}
+                        onClick={() => selectOption(optIdx)}
+                        className={`w-full text-left p-4 rounded-2xl border transition flex items-center gap-3 cursor-pointer ${
+                          isSelected
+                            ? "border-[#7C3AED] bg-[#7C3AED]/5 text-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8]/5 dark:text-[#38BDF8] font-bold"
+                            : "border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.01] hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400"
+                        }`}
+                      >
+                        <span className={`w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-black ${
+                          isSelected
+                            ? "border-[#7C3AED] bg-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8] text-white dark:text-[#090F1C]"
+                            : "border-slate-300 dark:border-white/10 bg-white dark:bg-[#1E293B] text-slate-400"
+                        }`}>
+                          {String.fromCharCode(65 + optIdx)}
+                        </span>
+                        <span className="text-xs font-semibold">{opt}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Question Navigation */}
+                <div className="flex items-center justify-between border-t border-slate-100 dark:border-white/5 pt-6">
+                  <button
+                    disabled={currentQIndex === 0}
+                    onClick={() => {
+                      const prevQ = testPaper.questions[currentQIndex - 1];
+                      if (prevQ) {
+                        setCurrentQIndex(currentQIndex - 1);
+                        setActiveSection(prevQ.section || "Mathematics");
+                      }
+                    }}
+                    className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-350 transition disabled:opacity-30 cursor-pointer"
+                  >
+                    <FaChevronLeft className="text-[10px]" /> Back
+                  </button>
+
+                  {currentQIndex === testPaper.questions.length - 1 ? (
+                    <button
+                      disabled={submittingTest}
+                      onClick={submitExamPaper}
+                      className="bg-gradient-to-r from-teal-500 to-[#312E81] hover:opacity-90 text-white font-bold text-xs px-6 py-3 rounded-2xl shadow-md cursor-pointer transition flex items-center gap-1.5"
+                    >
+                      {submittingTest ? "Submitting..." : "Submit Test"}
                     </button>
-                  );
-                })}
+                  ) : (
+                    <button
+                      onClick={() => {
+                        const nextQ = testPaper.questions[currentQIndex + 1];
+                        if (nextQ) {
+                          setCurrentQIndex(currentQIndex + 1);
+                          setActiveSection(nextQ.section || "Mathematics");
+                        }
+                      }}
+                      className="flex items-center gap-1.5 text-xs font-bold text-[#7C3AED] dark:text-[#38BDF8] hover:text-[#5B21B6] dark:hover:text-[#0EA5E9] transition cursor-pointer"
+                    >
+                      Next <FaChevronRight className="text-[10px]" />
+                    </button>
+                  )}
+                </div>
+
               </div>
-
-              {/* Question Navigation */}
-              <div className="flex items-center justify-between border-t border-slate-100 dark:border-white/5 pt-6">
-                <button
-                  disabled={currentQIndex === 0}
-                  onClick={() => setCurrentQIndex(prev => prev - 1)}
-                  className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-350 transition disabled:opacity-30 cursor-pointer"
-                >
-                  <FaChevronLeft className="text-[10px]" /> Back
-                </button>
-
-                {currentQIndex === testPaper.questions.length - 1 ? (
-                  <button
-                    disabled={submittingTest}
-                    onClick={submitExamPaper}
-                    className="bg-gradient-to-r from-teal-500 to-[#312E81] hover:opacity-90 text-white font-bold text-xs px-6 py-3 rounded-2xl shadow-md cursor-pointer transition flex items-center gap-1.5"
-                  >
-                    {submittingTest ? "Submitting..." : "Submit Test"}
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setCurrentQIndex(prev => prev + 1)}
-                    className="flex items-center gap-1.5 text-xs font-bold text-[#7C3AED] dark:text-[#38BDF8] hover:text-[#5B21B6] dark:hover:text-[#0EA5E9] transition cursor-pointer"
-                  >
-                    Next <FaChevronRight className="text-[10px]" />
-                  </button>
-                )}
-              </div>
-
             </div>
           </div>
 

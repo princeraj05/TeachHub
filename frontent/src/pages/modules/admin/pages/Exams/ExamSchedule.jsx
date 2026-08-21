@@ -534,19 +534,35 @@ function ExamSchedule() {
                       </button>
                     </div>
 
-                    {/* Question Text */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[9px] font-extrabold uppercase tracking-wider text-slate-450 dark:text-slate-500">
-                        Question Text
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={q.questionText}
-                        onChange={(e) => handleQuestionChange(qIdx, "questionText", e.target.value)}
-                        placeholder="Enter the question (e.g. What is the value of 5 x 6?)"
-                        className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25"
-                      />
+                    {/* Question Text & Section Select */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="md:col-span-2 flex flex-col gap-1.5">
+                        <label className="text-[9px] font-extrabold uppercase tracking-wider text-slate-450 dark:text-slate-500">
+                          Question Text
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={q.questionText}
+                          onChange={(e) => handleQuestionChange(qIdx, "questionText", e.target.value)}
+                          placeholder="Enter the question (e.g. What is the value of 5 x 6?)"
+                          className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] font-extrabold uppercase tracking-wider text-slate-455 dark:text-slate-500">
+                          Question Section
+                        </label>
+                        <select
+                          value={q.section || "Mathematics"}
+                          onChange={(e) => handleQuestionChange(qIdx, "section", e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25 cursor-pointer"
+                        >
+                          <option value="Mathematics">Mathematics</option>
+                          <option value="Science">Science</option>
+                          <option value="Social Science">Social Science</option>
+                        </select>
+                      </div>
                     </div>
 
                     {/* 4 Choices */}
