@@ -11,6 +11,7 @@ function ExamSchedule() {
   const [exams, setExams] = useState([]);
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
+  const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -21,7 +22,8 @@ function ExamSchedule() {
     mode: "offline",
     negativeMarking: false,
     negativeMarkValue: 0.25,
-    questions: []
+    questions: [],
+    proctorId: ""
   });
 
   const handleClassExamQuestionChange = (qIdx, field, val) => {
@@ -68,7 +70,19 @@ function ExamSchedule() {
     fetchClasses();
     fetchSubjects();
     fetchAdmissionExam();
+    fetchTeachers();
   }, []);
+
+  const fetchTeachers = async () => {
+    try {
+      const res = await axios.get(`${API}/api/admin/users/teachers`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setTeachers(res.data || []);
+    } catch (err) {
+      console.log("Error loading teachers:", err);
+    }
+  };
 
   const fetchAdmissionExam = async () => {
     setLoadingAdmission(true);
@@ -180,7 +194,8 @@ function ExamSchedule() {
         mode: "offline",
         negativeMarking: false,
         negativeMarkValue: 0.25,
-        questions: []
+        questions: [],
+        proctorId: ""
       });
       fetchExams();
     } catch (err) {
@@ -385,6 +400,27 @@ function ExamSchedule() {
                       </select>
                     </div>
 
+                    {/* Conducting Teacher (Proctor) select for Online */}
+                    {form.mode === "online" && (
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Conducting Teacher (Proctor)</label>
+                        <select
+                          name="proctorId"
+                          value={form.proctorId}
+                          onChange={handleChange}
+                          required
+                          className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                        >
+                          <option value="">Select Conducting Teacher</option>
+                          {teachers.map((t) => (
+                            <option key={t._id} value={t._id}>
+                              {t.name} ({t.email})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
                     {form.mode === "online" && (
                       <div className="space-y-4 pt-2 border-t border-slate-100 dark:border-white/5">
                         <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -564,6 +600,7 @@ function ExamSchedule() {
                           <th className="px-5 py-4">Class</th>
                           <th className="px-5 py-4">Subject</th>
                           <th className="px-5 py-4">Mode</th>
+                          <th className="px-5 py-4">Proctor</th>
                           <th className="px-5 py-4">Date</th>
                           <th className="px-5 py-4">Status</th>
                           <th className="px-5 py-4 text-center">Action</th>
@@ -592,7 +629,10 @@ function ExamSchedule() {
                                 </span>
                               </td>
                               <td className="px-5 py-4">
-                                <span className="text-slate-550 text-xs font-medium whitespace-nowrap">
+                                <span className="text-xs font-semibold text-slate-800 dark:text-slate-250">{e.proctor?.name || "—"}</span>
+                              </td>
+                              <td className="px-5 py-4">
+                                <span className="text-slate-555 text-xs font-medium whitespace-nowrap">
                                   {new Date(e.date).toLocaleDateString("en-IN", {
                                     day: "2-digit",
                                     month: "short",

@@ -54,7 +54,12 @@ required:true
       type: String,
       default: ""
     }
-  }]
+  }],
+  proctor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model("Exam",examSchema);

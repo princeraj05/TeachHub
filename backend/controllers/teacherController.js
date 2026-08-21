@@ -258,6 +258,8 @@ error:err.message
 exports.getProctorSessions = async (req, res) => {
   try {
     const User = require("../models/User");
+    const Exam = require("../models/Exam");
+    const ExamSubmission = require("../models/ExamSubmission");
     const school = req.user.schoolName;
     if (!school) {
       return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
@@ -273,11 +275,60 @@ exports.getProctorSessions = async (req, res) => {
       query.admissionExamProctor = req.user.id;
     }
 
-    const sessions = await User.find(query)
+    const admissionSessions = await User.find(query)
       .populate("admissionExamProctor", "name email role")
-      .select("-password");
+      .select("-password")
+      .lean();
 
-    res.json(sessions);
+    // Fetch class exam sessions
+    let examQuery = { schoolName: school, mode: "online" };
+    if (req.user.role === "teacher") {
+      examQuery.proctor = req.user.id;
+    }
+
+    const classExams = await Exam.find(examQuery)
+      .populate("class", "name section")
+      .populate("subject", "name")
+      .lean();
+
+    const classIds = classExams.map(ce => ce.class._id);
+    const students = await User.find({ classId: { $in: classIds }, role: "student" })
+      .select("-password")
+      .lean();
+
+    const classSessions = [];
+    for (let student of students) {
+      const studentExams = classExams.filter(ce => ce.class._id.toString() === student.classId.toString());
+      for (let ce of studentExams) {
+        // Check if student already finished this exam
+        const submission = await ExamSubmission.findOne({ student: student._id, exam: ce._id });
+        if (!submission) {
+          classSessions.push({
+            _id: student._id,
+            name: student.name,
+            email: student.email,
+            date: ce.date,
+            isClassExam: true,
+            examId: ce._id,
+            examName: ce.subject?.name || "General",
+            class: `${ce.class?.name || "Class"} (${ce.class?.section || "A"})`
+          });
+        }
+      }
+    }
+
+    const allSessions = [
+      ...admissionSessions.map(s => ({
+        _id: s._id,
+        name: s.name,
+        email: s.email,
+        date: s.admissionExamDate,
+        isAdmission: true
+      })),
+      ...classSessions
+    ];
+
+    res.json(allSessions);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

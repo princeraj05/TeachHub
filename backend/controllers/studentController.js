@@ -285,6 +285,7 @@ exports.getStudentExams = async (req,res)=>{
       class: classData._id
     })
     .populate("subject","name")
+    .populate("proctor", "name email role")
     .sort({ date:1 });
 
     const formatted = await Promise.all(exams.map(async (e) => {
@@ -302,6 +303,7 @@ exports.getStudentExams = async (req,res)=>{
           options: q.options,
           section: q.section
         })) : [],
+        proctor: e.proctor,
         taken: !!submission,
         submission: submission ? {
           score: submission.score,

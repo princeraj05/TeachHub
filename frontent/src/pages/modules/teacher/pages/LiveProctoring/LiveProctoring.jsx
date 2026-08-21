@@ -104,10 +104,10 @@ function LiveProctoring() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">
-            Entrance Exam live Proctoring
+            Live Exam Proctoring
           </h2>
           <p className="text-xs text-slate-450 dark:text-slate-400 mt-1 font-medium">
-            Monitor and supervise student candidates taking their admission entrance tests.
+            Monitor and supervise students taking their exams in real time.
           </p>
         </div>
         <button
@@ -154,8 +154,17 @@ function LiveProctoring() {
                         {initials}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold truncate">{s.name}</p>
-                        <p className="text-[10px] text-slate-400 truncate mt-0.5">{s.email}</p>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="text-xs font-bold truncate">{s.name}</p>
+                          <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded tracking-wider ${
+                            s.isClassExam
+                              ? "bg-purple-500/10 text-purple-600 dark:text-purple-400"
+                              : "bg-teal-500/10 text-teal-650 dark:text-teal-400"
+                          }`}>
+                            {s.isClassExam ? "Class Exam" : "Admission"}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 truncate mt-0.5">{s.isClassExam ? `${s.examName} · ${s.class}` : s.email}</p>
                       </div>
                     </button>
                   );
@@ -181,7 +190,12 @@ function LiveProctoring() {
                     </h3>
                     <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1.5 mt-0.5">
                       <FaCalendarAlt /> 
-                      {selectedStudent.admissionExamDate ? new Date(selectedStudent.admissionExamDate).toLocaleString("en-US", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: true }) : "N/A"}
+                      {selectedStudent.isClassExam 
+                        ? `Class Exam: ${selectedStudent.examName} (${selectedStudent.class}) · ` 
+                        : "Admission Exam · "}
+                      {selectedStudent.date || selectedStudent.admissionExamDate 
+                        ? new Date(selectedStudent.date || selectedStudent.admissionExamDate).toLocaleString("en-US", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: true }) 
+                        : "N/A"}
                     </p>
                   </div>
                 </div>

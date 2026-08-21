@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
+import { io } from "socket.io-client";
 import {
   FaBookOpen,
   FaCalendarAlt,
@@ -99,6 +100,101 @@ function StudentExams() {
   const [activeTest, setActiveTest] = useState(null); // null or "admission" or "class-online"
   const [selectedClassExam, setSelectedClassExam] = useState(null);
   const [testStep, setTestStep] = useState("setup"); // "setup" | "taking" | "graded"
+
+  const socketRef = useRef(null);
+
+  useEffect(() => {
+    if (testStep === "taking") {
+      const proctorVal = activeTest === "admission"
+        ? (profile?.admissionExamProctor)
+        : (selectedClassExam?.proctor);
+
+      const proctorId = proctorVal?._id || proctorVal;
+
+      if (proctorId) {
+        const token = localStorage.getItem("token");
+        const API = import.meta.env.VITE_API_URL;
+        socketRef.current = io(API, {
+          auth: { token }
+        });
+
+        socketRef.current.emit("test-session-start", { proctorId });
+
+        return () => {
+          if (socketRef.current) {
+            socketRef.current.emit("test-session-stop", { proctorId });
+            socketRef.current.disconnect();
+          }
+        };
+      }
+    }
+  }, [testStep, activeTest, profile, selectedClassExam]);
+
+  useEffect(() => {
+    let camInterval;
+    let screenInterval;
+
+    const proctorVal = activeTest === "admission"
+      ? (profile?.admissionExamProctor)
+      : (selectedClassExam?.proctor);
+
+    const proctorId = proctorVal?._id || proctorVal;
+
+    if (testStep === "taking" && socketRef.current && proctorId) {
+      const camVideo = document.createElement("video");
+      const screenVideo = document.createElement("video");
+
+      if (cameraStream) {
+        camVideo.srcObject = cameraStream;
+        camVideo.autoplay = true;
+        camVideo.muted = true;
+        camVideo.play().catch(e => console.log(e));
+      }
+
+      if (screenStream) {
+        screenVideo.srcObject = screenStream;
+        screenVideo.autoplay = true;
+        screenVideo.muted = true;
+        screenVideo.play().catch(e => console.log(e));
+      }
+
+      const camCanvas = document.createElement("canvas");
+      const screenCanvas = document.createElement("canvas");
+
+      camInterval = setInterval(() => {
+        if (cameraActive && cameraStream && camVideo.readyState === 4) {
+          camCanvas.width = 160;
+          camCanvas.height = 120;
+          const ctx = camCanvas.getContext("2d");
+          ctx.drawImage(camVideo, 0, 0, camCanvas.width, camCanvas.height);
+          const data = camCanvas.toDataURL("image/jpeg", 0.5);
+          socketRef.current.emit("proctor-signal", {
+            targetId: proctorId,
+            signal: { type: "camera-frame", frame: data }
+          });
+        }
+      }, 2000);
+
+      screenInterval = setInterval(() => {
+        if (screenActive && screenStream && screenVideo.readyState === 4) {
+          screenCanvas.width = 320;
+          screenCanvas.height = 240;
+          const ctx = screenCanvas.getContext("2d");
+          ctx.drawImage(screenVideo, 0, 0, screenCanvas.width, screenCanvas.height);
+          const data = screenCanvas.toDataURL("image/jpeg", 0.5);
+          socketRef.current.emit("proctor-signal", {
+            targetId: proctorId,
+            signal: { type: "screen-frame", frame: data }
+          });
+        }
+      }, 2000);
+    }
+
+    return () => {
+      clearInterval(camInterval);
+      clearInterval(screenInterval);
+    };
+  }, [testStep, cameraStream, screenStream, cameraActive, screenActive, activeTest, profile, selectedClassExam]);
   
   // Media streams
   const [cameraStream, setCameraStream] = useState(null);
