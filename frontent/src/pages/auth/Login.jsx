@@ -1,9 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaGraduationCap } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { FaEnvelope, FaLock, FaGraduationCap, FaCheckCircle } from "react-icons/fa";
 import { auth, googleProvider } from "../../config/firebase";
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { signInWithPopup } from "firebase/auth";
 
 const SORA = "'Sora', sans-serif";
 
@@ -11,43 +11,65 @@ function Login() {
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
 
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [devOtpMessage, setDevOtpMessage] = useState("");
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const saveAuthAndNavigate = (data) => {
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("userId", data.user._id);
+    localStorage.setItem("role", data.user.role);
+    localStorage.setItem("schoolName", data.user.schoolName || "");
+    localStorage.setItem("name", data.user.name);
+
+    const role = data.user.role;
+    if (role === "superadmin") navigate("/superadmin/dashboard");
+    else if (role === "admin") navigate("/admin/dashboard");
+    else if (role === "teacher") navigate("/teacher/dashboard");
+    else if (role === "student") navigate("/student/dashboard");
+    else navigate("/pending");
   };
 
   const syncWithBackend = async (idToken) => {
     try {
       const res = await axios.post(`${API}/api/auth/firebase-sync`, { idToken });
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userId", res.data.user._id);
-      localStorage.setItem("role", res.data.user.role);
-      localStorage.setItem("schoolName", res.data.user.schoolName || "");
-      localStorage.setItem("name", res.data.user.name);
-
-      const role = res.data.user.role;
-      if (role === "superadmin") navigate("/superadmin/dashboard");
-      else if (role === "admin") navigate("/admin/dashboard");
-      else if (role === "teacher") navigate("/teacher/dashboard");
-      else if (role === "student") navigate("/student/dashboard");
-      else navigate("/pending");
+      saveAuthAndNavigate(res.data);
     } catch (error) {
       alert(error.response?.data?.message || "Sync Failed");
     }
   };
 
-  const handleLogin = async (e) => {
+  const handleSendOtp = async (e) => {
+    if (e) e.preventDefault();
+    if (!email) return;
+    setLoading(true);
+    setDevOtpMessage("");
+    try {
+      const res = await axios.post(`${API}/api/auth/send-otp`, { email });
+      setOtpSent(true);
+      if (res.data.development) {
+        setDevOtpMessage("Development Mode: OTP printed to server console!");
+      } else {
+        setDevOtpMessage("OTP sent to your email address!");
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to send OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
     e.preventDefault();
+    if (!email || !otp) return;
     setLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
-      const idToken = await userCredential.user.getIdToken();
-      await syncWithBackend(idToken);
+      const res = await axios.post(`${API}/api/auth/verify-otp`, { email, otp });
+      saveAuthAndNavigate(res.data);
     } catch (error) {
-      alert(error.message || "Login Failed");
+      alert(error.response?.data?.message || "Invalid or expired OTP");
     } finally {
       setLoading(false);
     }
@@ -146,92 +168,150 @@ function Login() {
             Welcome back
           </h2>
           <p className="text-slate-500 text-xs mb-8 font-medium">
-            Enter your credentials to access your dashboard
+            {otpSent ? "Enter the OTP sent to your email to verify" : "Enter your email address to log in"}
           </p>
 
-          <form onSubmit={handleLogin} className="space-y-6">
-            {/* Email */}
-            <div>
-              <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">
-                Email Address
-              </label>
-              <div className="relative">
-                <FaEnvelope className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 text-sm" />
-                <input
-                  name="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  onChange={handleChange}
-                  required
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200/80 rounded-xl text-slate-800 placeholder-slate-405 text-xs font-semibold focus:outline-none focus:ring-4 focus:ring-[#7C3AED]/10 focus:border-[#7C3AED] focus:bg-white transition-all shadow-inner"
-                />
-              </div>
+          {devOtpMessage && (
+            <div className="mb-6 p-4 rounded-xl bg-purple-50 border border-purple-100 text-purple-800 text-xs font-semibold flex items-center gap-2.5 animate-fadeIn">
+              <FaCheckCircle className="text-purple-500 text-sm flex-shrink-0" />
+              <span>{devOtpMessage}</span>
             </div>
+          )}
 
-            {/* Password */}
-            <div>
-              <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">
-                Password
-              </label>
-              <div className="relative">
-                <FaLock className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 text-sm" />
-                <input
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  onChange={handleChange}
-                  required
-                  className="w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200/80 rounded-xl text-slate-800 placeholder-slate-405 text-xs font-semibold focus:outline-none focus:ring-4 focus:ring-[#7C3AED]/10 focus:border-[#7C3AED] focus:bg-white transition-all shadow-inner"
-                />
+          {!otpSent ? (
+            <form onSubmit={handleSendOtp} className="space-y-6">
+              {/* Email */}
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <FaEnvelope className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 text-sm" />
+                  <input
+                    name="email"
+                    type="email"
+                    placeholder="name@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200/80 rounded-xl text-slate-800 placeholder-slate-405 text-xs font-semibold focus:outline-none focus:ring-4 focus:ring-[#7C3AED]/10 focus:border-[#7C3AED] focus:bg-white transition-all shadow-inner"
+                  />
+                </div>
+              </div>
+
+              {/* Send OTP Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#312E81] hover:opacity-90 active:scale-[0.98] text-white font-bold text-xs tracking-wider transition-all shadow-md shadow-[#7C3AED]/15 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2 flex items-center justify-center"
+              >
+                {loading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  "Send OTP"
+                )}
+              </button>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-200"></div>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-[#F8FAFC] lg:bg-white px-2 text-slate-400 font-bold text-[10px] tracking-widest">Or login with</span>
+                </div>
+              </div>
+
+              {/* Google Sign-In Button */}
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                className="w-full py-3 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-[0.98] text-slate-700 font-bold text-xs tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                Continue with Google
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyOtp} className="space-y-6">
+              {/* Email (readonly) */}
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <FaEnvelope className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-350 text-sm" />
+                  <input
+                    type="email"
+                    value={email}
+                    disabled
+                    className="w-full pl-11 pr-4 py-3 bg-slate-100 border border-slate-200/80 rounded-xl text-slate-500 text-xs font-semibold cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
+              {/* OTP */}
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">
+                  One-Time Password (OTP)
+                </label>
+                <div className="relative">
+                  <FaLock className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 text-sm" />
+                  <input
+                    name="otp"
+                    type="text"
+                    maxLength="6"
+                    placeholder="Enter 6-digit OTP"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                    required
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200/80 rounded-xl text-slate-800 placeholder-slate-405 text-xs font-semibold focus:outline-none focus:ring-4 focus:ring-[#7C3AED]/10 focus:border-[#7C3AED] focus:bg-white transition-all shadow-inner tracking-[0.2em]"
+                  />
+                </div>
+              </div>
+
+              {/* Verify Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#312E81] hover:opacity-90 active:scale-[0.98] text-white font-bold text-xs tracking-wider transition-all shadow-md shadow-[#7C3AED]/15 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2 flex items-center justify-center"
+              >
+                {loading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  "Verify & Sign In"
+                )}
+              </button>
+
+              {/* Back / Resend */}
+              <div className="flex justify-between items-center text-xs mt-4">
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute top-1/2 -translate-y-1/2 right-4 text-slate-400 hover:text-[#7C3AED] transition-colors p-1 cursor-pointer"
+                  onClick={() => {
+                    setOtpSent(false);
+                    setOtp("");
+                    setDevOtpMessage("");
+                  }}
+                  className="text-slate-500 hover:text-[#7C3AED] font-bold transition-colors cursor-pointer"
                 >
-                  {showPassword ? <FaEyeSlash className="text-sm" /> : <FaEye className="text-sm" />}
+                  Change Email
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSendOtp}
+                  disabled={loading}
+                  className="text-[#7C3AED] hover:text-[#6D28D9] font-extrabold transition-colors cursor-pointer"
+                >
+                  Resend OTP
                 </button>
               </div>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#312E81] hover:opacity-90 active:scale-[0.98] text-white font-bold text-xs tracking-wider transition-all shadow-md shadow-[#7C3AED]/15 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2 flex items-center justify-center"
-            >
-              {loading ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                "Sign In"
-              )}
-            </button>
-
-            {/* Google Sign-In Button */}
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              disabled={loading}
-              className="w-full py-3 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-[0.98] text-slate-700 font-bold text-xs tracking-wider transition-all mt-3 flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z" />
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-              </svg>
-              Continue with Google
-            </button>
-          </form>
-
-          <p className="text-center text-xs text-slate-500 mt-8 font-semibold uppercase tracking-wide">
-            Don't have an account yet?{" "}
-            <Link
-              to="/register"
-              className="text-[#7C3AED] font-extrabold hover:text-[#6D28D9] transition-colors hover:underline"
-            >
-              Register here
-            </Link>
-          </p>
+            </form>
+          )}
         </div>
       </div>
     </div>

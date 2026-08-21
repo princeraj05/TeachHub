@@ -32,11 +32,11 @@ function PendingApproval() {
         </div>
 
         <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-3">
-          Account Pending Approval
+          Wait Kro, School Assign Ho Raha Hai
         </h2>
         
         <p className="text-slate-500 text-sm leading-relaxed mb-8">
-          Your account has been created successfully. It is currently waiting for approval by the Super Admin. Once your role and school are assigned, you will be able to access the school portal.
+          Your login was successful! Please wait until the Super Admin assigns your school and system role. You will be able to access your dashboard as soon as the assignment is completed.
         </p>
 
         <button
