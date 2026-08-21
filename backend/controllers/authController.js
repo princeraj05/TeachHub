@@ -355,3 +355,13 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// ================= GET SCHOOLS =================
+exports.getSchools = async (req, res) => {
+  try {
+    const schools = await User.distinct("schoolName", { schoolName: { $ne: "" } });
+    res.json(schools);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

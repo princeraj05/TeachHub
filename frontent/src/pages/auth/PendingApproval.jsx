@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { FaGraduationCap, FaClock, FaSignOutAlt, FaSun, FaMoon } from "react-icons/fa";
+import { FaGraduationCap, FaClock, FaSignOutAlt, FaSun, FaMoon, FaSchool } from "react-icons/fa";
 import UserProfile from "../../components/UserProfile";
 
 const SORA = "'Sora', sans-serif";
@@ -57,6 +57,23 @@ function PendingApproval() {
     const interval = setInterval(checkRoleStatus, 3000);
     return () => clearInterval(interval);
   }, [navigate]);
+
+  const [schools, setSchools] = useState([]);
+
+  useEffect(() => {
+    const API = import.meta.env.VITE_API_URL;
+    const token = localStorage.getItem("token");
+    axios
+      .get(`${API}/api/auth/schools`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then((res) => {
+        setSchools(res.data || []);
+      })
+      .catch((err) => {
+        console.error("Error fetching schools:", err);
+      });
+  }, []);
 
   const toggleTheme = () => {
     const nextTheme = theme === "dark" ? "light" : "dark";
@@ -119,6 +136,25 @@ function PendingApproval() {
           <FaSignOutAlt className="text-sm" />
           Logout from Account
         </button>
+
+        {/* Available Schools Directory */}
+        <div className="mt-8 border-t border-slate-100 dark:border-white/10 pt-6 text-left">
+          <h3 className="text-[10px] font-bold text-slate-400 dark:text-slate-505 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+            <FaSchool className="text-slate-400 text-xs" /> Available Schools
+          </h3>
+          {schools.length > 0 ? (
+            <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
+              {schools.map((school, idx) => (
+                <div key={idx} className="flex items-center gap-2.5 px-3 py-2 bg-slate-50 dark:bg-white/5 border border-slate-200/40 dark:border-white/[0.04] rounded-xl hover:bg-slate-100/50 dark:hover:bg-white/10 transition duration-150">
+                  <FaSchool className="text-teal-600 dark:text-teal-400 text-xs" />
+                  <span className="text-[11px] font-bold text-slate-700 dark:text-slate-350">{school}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold italic text-center py-2">No schools registered yet.</p>
+          )}
+        </div>
       </div>
 
       {/* Embedded Personal Profile Setup */}
