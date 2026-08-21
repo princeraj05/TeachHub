@@ -50,8 +50,32 @@ if (!req.user || !req.user.schoolName) {
   return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
 }
 
+const school = req.user.schoolName;
+
+// Auto-heal/migrate student candidates whose exam has not happened or who aren't fully approved:
+const candidatesToHeal = await User.find({
+  $or: [
+    { schoolName: school },
+    { requestedSchool: school }
+  ],
+  $or: [
+    { role: "student" },
+    { requestedRole: "student" }
+  ],
+  classId: { $exists: false },
+  requestStatus: { $ne: "approved" }
+});
+
+for (let c of candidatesToHeal) {
+  c.role = "unassigned";
+  c.requestedRole = "student";
+  c.requestedSchool = school;
+  c.requestStatus = c.admissionExamDate ? "scheduled" : "pending";
+  await c.save();
+}
+
 const students = await User
-.find({ role:"student", schoolName: req.user.schoolName })
+.find({ role:"student", schoolName: school, requestStatus: "approved" })
 .populate("classId", "name section")
 .select("-password");
 
@@ -74,8 +98,32 @@ exports.getJoinRequests = async (req, res) => {
       return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
     }
 
+    const school = req.user.schoolName;
+
+    // Run the auto-heal/migrate here too to keep both endpoints in sync
+    const candidatesToHeal = await User.find({
+      $or: [
+        { schoolName: school },
+        { requestedSchool: school }
+      ],
+      $or: [
+        { role: "student" },
+        { requestedRole: "student" }
+      ],
+      classId: { $exists: false },
+      requestStatus: { $ne: "approved" }
+    });
+
+    for (let c of candidatesToHeal) {
+      c.role = "unassigned";
+      c.requestedRole = "student";
+      c.requestedSchool = school;
+      c.requestStatus = c.admissionExamDate ? "scheduled" : "pending";
+      await c.save();
+    }
+
     const requests = await User.find({
-      requestedSchool: req.user.schoolName,
+      requestedSchool: school,
       requestStatus: { $in: ["pending", "scheduled", "exam_completed"] }
     }).select("-password");
 
