@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TeachHub</string>
+    <string name="title_activity_main">TeachHub</string>
+    <string name="package_name">com.princeraj05.teachhub</string>
+    <string name="custom_url_scheme">com.princeraj05.teachhub</string>
+</resources>
