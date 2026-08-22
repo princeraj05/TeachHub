@@ -610,10 +610,9 @@ function AdminEvents() {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">Completed Subtitle</label>
+                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">Completed Subtitle (Optional)</label>
                   <input
                     type="text"
-                    required
                     placeholder="e.g. Republic Day Celebration 2027"
                     value={subtitle}
                     onChange={(e) => setSubtitle(e.target.value)}
@@ -622,10 +621,9 @@ function AdminEvents() {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">Detailed Report / Event Description</label>
+                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">Detailed Report / Event Description (Optional)</label>
                   <textarea
                     rows={5}
-                    required
                     placeholder="Describe how the event went down, performances, chief guests, attendee sizes..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}

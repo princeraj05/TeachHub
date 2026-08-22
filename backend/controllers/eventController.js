@@ -103,7 +103,13 @@ exports.getUpcomingEvents = async (req, res) => {
       return res.status(401).json({ message: "User profile not found" });
     }
 
-    let query = { status: "upcoming" };
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let query = { 
+      status: "upcoming",
+      eventDate: { $gte: today }
+    };
     const { schoolName } = req.query;
     if (authUser.role === "superadmin" || schoolName) {
       if (schoolName && schoolName !== "all") query.schoolName = schoolName;
@@ -127,7 +133,15 @@ exports.getCompletedEvents = async (req, res) => {
       return res.status(401).json({ message: "User not found" });
     }
 
-    let query = { status: "completed" };
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let query = {
+      $or: [
+        { status: "completed" },
+        { eventDate: { $lt: today } }
+      ]
+    };
     const { schoolName } = req.query;
     if (authUser.role === "superadmin" || req.query.global === "true" || schoolName) {
       if (schoolName && schoolName !== "all") query.schoolName = schoolName;
