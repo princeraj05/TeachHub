@@ -34,12 +34,9 @@ const server = http.createServer(app);
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost",
-      "capacitor://localhost",
-      "https://myschool-admin-panel.vercel.app"
-    ],
+    origin: (origin, callback) => {
+      callback(null, true);
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
   })
