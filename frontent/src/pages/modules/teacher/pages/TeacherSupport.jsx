@@ -19,6 +19,11 @@ function TeacherSupport() {
   const [sending, setSending] = useState(false);
 
   const messagesEndRef = useRef(null);
+  const activeContactRef = useRef(activeContact);
+
+  useEffect(() => {
+    activeContactRef.current = activeContact;
+  }, [activeContact]);
 
   useEffect(() => {
     fetchContacts();
@@ -26,12 +31,13 @@ function TeacherSupport() {
     socket.connect();
 
     socket.on("support:new-message", (msg) => {
+      const currentActive = activeContactRef.current;
       // If personal message in active conversation
       if (
         msg.type === "personal" &&
-        activeContact &&
-        ((msg.sender._id === currentUserId && msg.receiver._id === activeContact._id) ||
-          (msg.sender._id === activeContact._id && msg.receiver._id === currentUserId))
+        currentActive &&
+        ((msg.sender._id === currentUserId && msg.receiver._id === currentActive._id) ||
+          (msg.sender._id === currentActive._id && msg.receiver._id === currentUserId))
       ) {
         setMessages((prev) => [...prev, msg]);
       }
@@ -45,7 +51,7 @@ function TeacherSupport() {
     return () => {
       socket.off("support:new-message");
     };
-  }, [activeContact]);
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
