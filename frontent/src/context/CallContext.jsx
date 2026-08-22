@@ -32,6 +32,33 @@ export const CallProvider = ({ children }) => {
   const soundIntervalRef = useRef(null);
   const timerRef = useRef(null);
 
+  // Refs for tracking dynamic calling state inside socket listeners to prevent socket reconnects
+  const callStateRef = useRef(callState);
+  const callPartnerRef = useRef(callPartner);
+  const callTypeRef = useRef(callType);
+  const currentCallIdRef = useRef(currentCallId);
+  const callDurationRef = useRef(callDuration);
+
+  useEffect(() => {
+    callStateRef.current = callState;
+  }, [callState]);
+
+  useEffect(() => {
+    callPartnerRef.current = callPartner;
+  }, [callPartner]);
+
+  useEffect(() => {
+    callTypeRef.current = callType;
+  }, [callType]);
+
+  useEffect(() => {
+    currentCallIdRef.current = currentCallId;
+  }, [currentCallId]);
+
+  useEffect(() => {
+    callDurationRef.current = callDuration;
+  }, [callDuration]);
+
   const ICE_SERVERS = {
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
@@ -123,7 +150,7 @@ export const CallProvider = ({ children }) => {
     // Call signaling listeners
     socket.on("call:incoming", ({ callId, callerId, callerName, callerAvatar, type }) => {
       // If we are already in a call, notify caller we are busy
-      if (callState !== "idle") {
+      if (callStateRef.current !== "idle") {
         socket.emit("call:busy", { callId });
         return;
       }
@@ -218,7 +245,7 @@ export const CallProvider = ({ children }) => {
       socket.off("call:ice-candidate");
       socket.disconnect();
     };
-  }, [token, callState]);
+  }, [token]);
 
   // Clean up streams & peer connection
   const cleanupMedia = () => {
@@ -248,7 +275,7 @@ export const CallProvider = ({ children }) => {
       // 1. Get media stream
       const constraints = {
         audio: true,
-        video: callType === "video"
+        video: callTypeRef.current === "video"
       };
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -273,9 +300,9 @@ export const CallProvider = ({ children }) => {
 
       // Handle candidate collection
       pc.onicecandidate = (event) => {
-        if (event.candidate && callPartner) {
+        if (event.candidate && callPartnerRef.current) {
           socket.emit("call:ice-candidate", {
-            receiverId: callPartner._id,
+            receiverId: callPartnerRef.current._id,
             candidate: event.candidate
           });
         }
@@ -286,19 +313,23 @@ export const CallProvider = ({ children }) => {
         // Create WebRTC Offer
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
-        socket.emit("call:offer", {
-          receiverId: callPartner._id,
-          offer
-        });
+        if (callPartnerRef.current) {
+          socket.emit("call:offer", {
+            receiverId: callPartnerRef.current._id,
+            offer
+          });
+        }
       } else {
         // Handle incoming WebRTC Offer
         await pc.setRemoteDescription(new RTCSessionDescription(remoteOffer));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        socket.emit("call:answer", {
-          receiverId: callPartner._id,
-          answer
-        });
+        if (callPartnerRef.current) {
+          socket.emit("call:answer", {
+            receiverId: callPartnerRef.current._id,
+            answer
+          });
+        }
       }
     } catch (e) {
       console.error("WebRTC Setup failed:", e);
@@ -347,8 +378,8 @@ export const CallProvider = ({ children }) => {
     cleanupMedia();
     setCallState("idle");
 
-    if (currentCallId) {
-      socket.emit("call:reject", { callId: currentCallId });
+    if (currentCallIdRef.current) {
+      socket.emit("call:reject", { callId: currentCallIdRef.current });
     }
     setCurrentCallId(null);
     setCallPartner(null);
@@ -360,8 +391,8 @@ export const CallProvider = ({ children }) => {
     cleanupMedia();
     setCallState("idle");
 
-    if (currentCallId) {
-      socket.emit("call:cancel", { callId: currentCallId });
+    if (currentCallIdRef.current) {
+      socket.emit("call:cancel", { callId: currentCallIdRef.current });
     }
     setCurrentCallId(null);
     setCallPartner(null);
@@ -370,7 +401,7 @@ export const CallProvider = ({ children }) => {
 
   const endCall = () => {
     stopSoundEffect();
-    socket.emit("call:end", { callId: currentCallId, duration: callDuration });
+    socket.emit("call:end", { callId: currentCallIdRef.current, duration: callDurationRef.current });
     cleanupMedia();
     setCallState("idle");
     setCurrentCallId(null);

@@ -416,6 +416,14 @@ exports.getCallHistory = async (req, res) => {
     const filteredCalls = calls.filter(c => {
       if (req.user.role === "superadmin") return true;
       
+      // If the querying user was a direct participant, they are fully authorized to view this log
+      if (
+        (c.caller && c.caller._id.toString() === currentUserId) ||
+        (c.receiver && c.receiver._id.toString() === currentUserId)
+      ) {
+        return true;
+      }
+      
       let recordSchool = c.schoolName || "";
       if (!recordSchool) {
         const callerSchool = c.caller?.schoolName || "";
