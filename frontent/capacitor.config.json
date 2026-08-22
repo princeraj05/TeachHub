@@ -1,5 +1,12 @@
 {
-  "appId": "com.princeraj05.teachhub",
-  "appName": "TeachHub",
-  "webDir": "dist"
+  "appId": "com.yourschool.app",
+  "appName": "Your School",
+  "webDir": "dist",
+  "plugins": {
+    "GoogleAuth": {
+      "scopes": ["profile", "email"],
+      "clientId": "50641468952-mhouc9io3shkvc2df0dr15lt4ndc77ml.apps.googleusercontent.com",
+      "forceCodeForRefreshToken": true
+    }
+  }
 }

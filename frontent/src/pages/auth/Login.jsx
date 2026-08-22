@@ -3,7 +3,9 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaEnvelope, FaLock, FaGraduationCap, FaCheckCircle, FaSun, FaMoon } from "react-icons/fa";
 import { auth, googleProvider } from "../../config/firebase";
-import { signInWithPopup } from "firebase/auth";
+import { signInWithPopup, signInWithCredential, GoogleAuthProvider } from "firebase/auth";
+import { Capacitor } from "@capacitor/core";
+import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 
 const SORA = "'Sora', sans-serif";
 
@@ -90,8 +92,17 @@ function Login() {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      const userCredential = await signInWithPopup(auth, googleProvider);
-      const idToken = await userCredential.user.getIdToken();
+      let idToken;
+      if (Capacitor.isNativePlatform()) {
+        const user = await GoogleAuth.signIn();
+        idToken = user.authentication.idToken;
+        // Sign in to Firebase Auth locally
+        const credential = GoogleAuthProvider.credential(idToken);
+        await signInWithCredential(auth, credential);
+      } else {
+        const userCredential = await signInWithPopup(auth, googleProvider);
+        idToken = await userCredential.user.getIdToken();
+      }
       await syncWithBackend(idToken);
     } catch (error) {
       alert(error.message || "Google Sign-In Failed");

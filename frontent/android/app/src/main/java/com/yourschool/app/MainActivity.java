@@ -1,4 +1,4 @@
-package com.princeraj05.teachhub;
+package com.yourschool.app;
 
 import com.getcapacitor.BridgeActivity;
 
