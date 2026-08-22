@@ -291,7 +291,7 @@ function PendingApproval() {
   };
 
   return (
-    <div style={{ fontFamily: SORA }} className="min-h-screen bg-[#F8FAFC] dark:bg-[#090F1C] text-slate-800 dark:text-white transition-colors duration-200">
+    <div style={{ fontFamily: SORA }} className="h-screen overflow-hidden flex flex-col bg-[#F8FAFC] dark:bg-[#090F1C] text-slate-800 dark:text-white transition-colors duration-200">
       
       {/* Sidebar Navigation */}
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 h-screen w-20 lg:w-64 bg-white dark:bg-[#0B132A] border-r border-slate-200/60 dark:border-white/10 flex flex-col justify-between py-6 px-3 z-40 transition-all duration-200">
@@ -547,7 +547,7 @@ function PendingApproval() {
       )}
 
       {/* Main Content Area */}
-      <main className="pl-0 md:pl-20 lg:pl-64 pb-20 md:pb-0 min-h-screen flex items-center justify-center p-6 sm:p-12 transition-all duration-200 select-none">
+      <main className="flex-1 h-screen overflow-y-auto pl-0 md:pl-20 lg:pl-64 pb-20 md:pb-6 flex items-center justify-center p-6 sm:p-12 transition-all duration-200 select-none">
         {renderTabContent()}
       </main>
     </div>
