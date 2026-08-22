@@ -202,27 +202,42 @@ exports.sendOTP = async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
     }
 
+    // Cooldown check: prevent requesting more than once every 60 seconds
+    const existingOtp = await Otp.findOne({ email });
+    if (existingOtp) {
+      const timeElapsed = Date.now() - new Date(existingOtp.createdAt).getTime();
+      const cooldown = 60 * 1000; // 60 seconds cooldown
+      if (timeElapsed < cooldown) {
+        const secondsLeft = Math.ceil((cooldown - timeElapsed) / 1000);
+        return res.status(429).json({ message: `Please wait ${secondsLeft} seconds before requesting a new OTP.` });
+      }
+    }
+
     // Generate 6 digit numeric OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+    // Hash the OTP before saving to database
+    const hashedOtp = await bcrypt.hash(otp, 10);
 
     // Remove any previous OTPs for this email
     await Otp.deleteMany({ email });
 
     // Save new OTP
-    await Otp.create({ email, otp, expiresAt });
+    await Otp.create({ email, otp: hashedOtp, expiresAt });
 
     // Send email
     const emailResult = await sendOtpEmail(email, otp);
+    if (!emailResult.success) {
+      return res.status(500).json({ message: "Failed to send verification email. Please check your credentials or try again later." });
+    }
 
     res.status(200).json({
-      message: "OTP sent successfully",
-      development: emailResult.development,
-      otp: emailResult.development ? otp : undefined
+      message: "OTP sent successfully"
     });
 
   } catch (error) {
-    console.error("Error in sendOTP:", error);
+    console.error("Error in sendOTP:", error.message);
     res.status(500).json({ message: error.message });
   }
 };
@@ -235,8 +250,8 @@ exports.verifyOTP = async (req, res) => {
       return res.status(400).json({ message: "Email and OTP are required" });
     }
 
-    // Verify OTP
-    const otpRecord = await Otp.findOne({ email, otp });
+    // Find OTP record
+    const otpRecord = await Otp.findOne({ email });
     if (!otpRecord) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
@@ -245,6 +260,18 @@ exports.verifyOTP = async (req, res) => {
     if (otpRecord.expiresAt < new Date()) {
       await Otp.deleteOne({ _id: otpRecord._id });
       return res.status(400).json({ message: "OTP has expired" });
+    }
+
+    // Verify hashed OTP
+    const isMatch = await bcrypt.compare(otp, otpRecord.otp);
+    if (!isMatch) {
+      otpRecord.attempts += 1;
+      if (otpRecord.attempts >= 5) {
+        await Otp.deleteOne({ _id: otpRecord._id });
+        return res.status(400).json({ message: "Too many invalid verification attempts. Please request a new code." });
+      }
+      await otpRecord.save();
+      return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
     // Delete OTP so it cannot be reused

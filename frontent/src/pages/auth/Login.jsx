@@ -19,6 +19,15 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [devOtpMessage, setDevOtpMessage] = useState("");
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    let timer;
+    if (cooldown > 0) {
+      timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [cooldown]);
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -64,16 +73,14 @@ function Login() {
   const handleSendOtp = async (e) => {
     if (e) e.preventDefault();
     if (!email) return;
+    if (cooldown > 0) return;
     setLoading(true);
     setDevOtpMessage("");
     try {
-      const res = await axios.post(`${API}/api/auth/send-otp`, { email });
+      await axios.post(`${API}/api/auth/send-otp`, { email });
       setOtpSent(true);
-      if (res.data.development) {
-        setDevOtpMessage(`OTP: ${res.data.otp} (Testing Mode - SMTP ports blocked on Render)`);
-      } else {
-        setDevOtpMessage("OTP sent to your email address!");
-      }
+      setDevOtpMessage("Verification code sent to your email address!");
+      setCooldown(60);
     } catch (error) {
       alert(error.response?.data?.message || "Failed to send OTP");
     } finally {
@@ -344,10 +351,14 @@ function Login() {
                 <button
                   type="button"
                   onClick={handleSendOtp}
-                  disabled={loading}
-                  className="text-[#7C3AED] hover:text-[#6D28D9] font-extrabold transition-colors cursor-pointer"
+                  disabled={loading || cooldown > 0}
+                  className={`font-extrabold transition-colors cursor-pointer ${
+                    cooldown > 0
+                      ? "text-slate-400 cursor-not-allowed opacity-60"
+                      : "text-[#7C3AED] hover:text-[#6D28D9]"
+                  }`}
                 >
-                  Resend OTP
+                  {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend OTP"}
                 </button>
               </div>
             </form>
