@@ -1,6 +1,8 @@
 const Message = require("../models/Message");
 const User = require("../models/User");
 const Call = require("../models/Call");
+const cloudinary = require("../config/cloudinary");
+const fs = require("fs");
 
 // Check if sender is authorized to message receiver (Strict School Isolation)
 const validateCommunicationRights = async (senderId, senderRole, senderSchool, receiverId) => {
@@ -267,11 +269,34 @@ exports.handleUpload = async (req, res) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    // Formulate a safe static URL
-    const fileUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+    // Determine Cloudinary resource type
+    let resourceType = "auto";
+    if (req.file.mimetype.startsWith("image/")) {
+      resourceType = "image";
+    } else if (req.file.mimetype.startsWith("video/")) {
+      resourceType = "video";
+    } else if (req.file.mimetype.startsWith("audio/")) {
+      resourceType = "video"; // Cloudinary treats audio as video
+    } else {
+      resourceType = "raw"; // PDFs, docs, zips, etc.
+    }
+
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "teachhub/support",
+      resource_type: resourceType
+    });
+
+    // Delete local temporary file
+    try {
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+    } catch (err) {
+      console.error("Local file delete error:", err);
+    }
 
     res.json({
-      url: fileUrl,
+      url: result.secure_url,
       filename: req.file.originalname,
       mimeType: req.file.mimetype,
       size: req.file.size,

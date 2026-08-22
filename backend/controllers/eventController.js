@@ -2,6 +2,7 @@ const Event = require("../models/Event");
 const User = require("../models/User");
 const fs = require("fs");
 const path = require("path");
+const cloudinary = require("../config/cloudinary");
 
 // Helper to get user's authoritative school name
 const getAuthoritativeSchool = async (userId) => {
@@ -250,12 +251,27 @@ exports.uploadPhotos = async (req, res) => {
       return res.status(400).json({ message: "No files uploaded" });
     }
 
-    const newPhotos = req.files.map(file => ({
-      url: `/uploads/${file.filename}`,
-      filename: file.filename,
-      mimeType: file.mimetype,
-      size: file.size
-    }));
+    const newPhotos = [];
+    for (const file of req.files) {
+      const result = await cloudinary.uploader.upload(file.path, {
+        folder: "teachhub/events/photos",
+        resource_type: "image"
+      });
+      newPhotos.push({
+        url: result.secure_url,
+        filename: result.public_id,
+        mimeType: file.mimetype,
+        size: file.size
+      });
+      // Delete temporary local file
+      try {
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+        }
+      } catch (err) {
+        console.error("Local file delete error:", err);
+      }
+    }
 
     event.photos.push(...newPhotos);
     await event.save();
@@ -287,12 +303,27 @@ exports.uploadVideos = async (req, res) => {
       return res.status(400).json({ message: "No files uploaded" });
     }
 
-    const newVideos = req.files.map(file => ({
-      url: `/uploads/${file.filename}`,
-      filename: file.filename,
-      mimeType: file.mimetype,
-      size: file.size
-    }));
+    const newVideos = [];
+    for (const file of req.files) {
+      const result = await cloudinary.uploader.upload(file.path, {
+        folder: "teachhub/events/videos",
+        resource_type: "video"
+      });
+      newVideos.push({
+        url: result.secure_url,
+        filename: result.public_id,
+        mimeType: file.mimetype,
+        size: file.size
+      });
+      // Delete temporary local file
+      try {
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+        }
+      } catch (err) {
+        console.error("Local file delete error:", err);
+      }
+    }
 
     event.videos.push(...newVideos);
     await event.save();
@@ -326,8 +357,12 @@ exports.deletePhoto = async (req, res) => {
       return res.status(404).json({ message: "Photo not found in event gallery" });
     }
 
-    // Delete the file physically
-    deletePhysicalFile(photo.filename);
+    // Delete the file from Cloudinary (photo.filename contains public_id)
+    try {
+      await cloudinary.uploader.destroy(photo.filename);
+    } catch (err) {
+      console.error("Failed to delete photo from Cloudinary:", err);
+    }
 
     // Remove reference from array
     event.photos.pull(photoId);
@@ -362,8 +397,12 @@ exports.deleteVideo = async (req, res) => {
       return res.status(404).json({ message: "Video not found in event gallery" });
     }
 
-    // Delete the file physically
-    deletePhysicalFile(video.filename);
+    // Delete the file from Cloudinary (video.filename contains public_id, and resource_type is video)
+    try {
+      await cloudinary.uploader.destroy(video.filename, { resource_type: "video" });
+    } catch (err) {
+      console.error("Failed to delete video from Cloudinary:", err);
+    }
 
     // Remove reference from array
     event.videos.pull(videoId);
@@ -392,18 +431,26 @@ exports.deleteEvent = async (req, res) => {
       return res.status(403).json({ message: "Cross-school modification unauthorized" });
     }
 
-    // 1. Delete all photo files
+    // 1. Delete all photo files from Cloudinary
     if (event.photos && event.photos.length > 0) {
-      event.photos.forEach(photo => {
-        deletePhysicalFile(photo.filename);
-      });
+      for (const photo of event.photos) {
+        try {
+          await cloudinary.uploader.destroy(photo.filename);
+        } catch (err) {
+          console.error("Failed to delete photo from Cloudinary:", err);
+        }
+      }
     }
 
-    // 2. Delete all video files
+    // 2. Delete all video files from Cloudinary
     if (event.videos && event.videos.length > 0) {
-      event.videos.forEach(video => {
-        deletePhysicalFile(video.filename);
-      });
+      for (const video of event.videos) {
+        try {
+          await cloudinary.uploader.destroy(video.filename, { resource_type: "video" });
+        } catch (err) {
+          console.error("Failed to delete video from Cloudinary:", err);
+        }
+      }
     }
 
     // 3. Remove Document from DB
