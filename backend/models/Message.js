@@ -33,8 +33,39 @@ const messageSchema = new mongoose.Schema(
 
     content: {
       type: String,
-      required: true,
-      trim: true
+      trim: true,
+      default: ""
+    },
+
+    status: {
+      type: String,
+      enum: ["sent", "delivered", "read"],
+      default: "sent"
+    },
+
+    attachments: [{
+      url: { type: String, required: true },
+      filename: { type: String, required: true },
+      mimeType: { type: String, required: true },
+      size: { type: Number, required: true },
+      thumbnailUrl: { type: String }
+    }],
+
+    replyTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Message",
+      default: null
+    },
+
+    reactions: [{
+      user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+      emoji: { type: String, required: true }
+    }],
+
+    clientMessageId: {
+      type: String,
+      unique: true,
+      sparse: true
     }
   },
   {

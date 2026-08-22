@@ -89,6 +89,14 @@ app.use("/api/admin/profile", adminProfileRoutes);
 app.use("/api/superadmin", superAdminRoutes);
 app.use("/api/support", supportRoutes);
 
+const path = require("path");
+const fs = require("fs");
+const uploadDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+app.use("/uploads", express.static(uploadDir));
+
 
 // ================= SOCKET =================
 
@@ -117,32 +125,313 @@ io.use((socket, next) => {
   }
 });
 
-io.on("connection", (socket) => {
-  console.log("Client connected:", socket.id, "User:", socket.user?.id);
+const User = require("./models/User");
+const Message = require("./models/Message");
+const Call = require("./models/Call");
 
-  if (socket.user?.id) {
-    socket.join(socket.user.id);
+const activeSockets = new Map(); // userId -> Set<socket.id>
+
+// Helper to validate school isolation for sockets
+const canCommunicate = async (sender, receiverId) => {
+  if (sender.role === "superadmin") return true;
+
+  const receiver = await User.findById(receiverId);
+  if (!receiver) return false;
+
+  // Super Admin <-> Admin
+  if (receiver.role === "superadmin" && sender.role === "admin") return true;
+
+  // Admin <-> Teacher/Student of same school
+  if (sender.role === "admin" && (receiver.role === "teacher" || receiver.role === "student") && sender.schoolName === receiver.schoolName) return true;
+  if ((sender.role === "teacher" || sender.role === "student") && receiver.role === "admin" && sender.schoolName === receiver.schoolName) return true;
+
+  // Teacher <-> Student of same school
+  if (sender.role === "teacher" && receiver.role === "student" && sender.schoolName === receiver.schoolName) return true;
+  if (sender.role === "student" && receiver.role === "teacher" && sender.schoolName === receiver.schoolName) return true;
+
+  return false;
+};
+
+// Send socket event to all active sockets of a specific user
+const emitToUser = (userId, eventName, data) => {
+  const socketIds = activeSockets.get(userId.toString());
+  if (socketIds) {
+    for (const socketId of socketIds) {
+      io.to(socketId).emit(eventName, data);
+    }
+  }
+};
+
+io.on("connection", (socket) => {
+  const userId = socket.user?.id;
+  if (!userId) {
+    return socket.disconnect();
   }
 
-  // WebRTC Signaling Router for Live proctoring
-  socket.on("proctor-signal", ({ targetId, signal }) => {
-    io.to(targetId).emit("proctor-signal", { senderId: socket.user.id, signal });
+  console.log("Client connected:", socket.id, "User:", userId);
+
+  // Initialize Set for this user if not present
+  if (!activeSockets.has(userId)) {
+    activeSockets.set(userId, new Set());
+  }
+  activeSockets.get(userId).add(socket.id);
+  socket.join(userId);
+
+  // Mark user online & trigger delivery ticks
+  const handleUserOnline = async () => {
+    try {
+      const user = await User.findById(userId);
+      if (user) {
+        user.isOnline = true;
+        await user.save();
+
+        // Broadcast presence update to everyone (clients will filter based on role/school permissions)
+        io.emit("user:status-change", {
+          userId,
+          isOnline: true,
+          lastSeen: null
+        });
+      }
+
+      // Sync offline messages: mark any personal messages to this user as "delivered"
+      const undeliveredMessages = await Message.find({
+        receiver: userId,
+        status: "sent",
+        type: "personal"
+      });
+
+      if (undeliveredMessages.length > 0) {
+        await Message.updateMany(
+          { receiver: userId, status: "sent", type: "personal" },
+          { $set: { status: "delivered" } }
+        );
+
+        // Notify senders about delivery status update
+        undeliveredMessages.forEach((msg) => {
+          emitToUser(msg.sender.toString(), "message:status-update", {
+            messageId: msg._id,
+            status: "delivered",
+            receiverId: userId
+          });
+        });
+      }
+    } catch (err) {
+      console.error("Error setting user online:", err);
+    }
+  };
+  handleUserOnline();
+
+  // Typing state forwards
+  socket.on("typing:start", async ({ receiverId }) => {
+    if (await canCommunicate(socket.user, receiverId)) {
+      emitToUser(receiverId, "typing:start", { senderId: userId });
+    }
   });
 
-  // Session notifications to alert proctors/teachers instantly
+  socket.on("typing:stop", async ({ receiverId }) => {
+    if (await canCommunicate(socket.user, receiverId)) {
+      emitToUser(receiverId, "typing:stop", { senderId: userId });
+    }
+  });
+
+  // Read ticks: Recipient sends read signal
+  socket.on("message:read", async ({ senderId }) => {
+    try {
+      // Current user is receiver reading sender's messages
+      if (await canCommunicate(socket.user, senderId)) {
+        await Message.updateMany(
+          { sender: senderId, receiver: userId, status: { $ne: "read" }, type: "personal" },
+          { $set: { status: "read" } }
+        );
+
+        // Emit read receipt back to the sender
+        emitToUser(senderId, "message:read-receipt", {
+          senderId: userId, // current user who read the message
+          receiverId: senderId // the sender who receives green ticks
+        });
+      }
+    } catch (err) {
+      console.error("Error updating read ticks:", err);
+    }
+  });
+
+  // WebRTC Audio/Video Calling Router with verification
+  socket.on("call:initiate", async ({ receiverId, type }) => {
+    try {
+      if (await canCommunicate(socket.user, receiverId)) {
+        // Create Call record
+        const call = await Call.create({
+          caller: userId,
+          receiver: receiverId,
+          type,
+          status: "missed",
+          schoolName: socket.user.schoolName || ""
+        });
+
+        socket.currentCallId = call._id;
+
+        emitToUser(receiverId, "call:incoming", {
+          callId: call._id,
+          callerId: userId,
+          callerName: socket.user.name || "School Member",
+          callerAvatar: socket.user.avatar || "",
+          type
+        });
+      } else {
+        socket.emit("call:error", { message: "Calling unauthorized user" });
+      }
+    } catch (err) {
+      console.error("Error initiating call:", err);
+    }
+  });
+
+  socket.on("call:accept", async ({ callId }) => {
+    try {
+      const call = await Call.findById(callId);
+      if (call) {
+        call.status = "completed";
+        call.startedAt = new Date();
+        await call.save();
+
+        emitToUser(call.caller.toString(), "call:accepted", { callId });
+      }
+    } catch (err) {
+      console.error("Error accepting call:", err);
+    }
+  });
+
+  socket.on("call:reject", async ({ callId }) => {
+    try {
+      const call = await Call.findById(callId);
+      if (call) {
+        call.status = "rejected";
+        await call.save();
+
+        emitToUser(call.caller.toString(), "call:rejected", { callId });
+      }
+    } catch (err) {
+      console.error("Error rejecting call:", err);
+    }
+  });
+
+  socket.on("call:busy", async ({ callId }) => {
+    try {
+      const call = await Call.findById(callId);
+      if (call) {
+        call.status = "busy";
+        await call.save();
+
+        emitToUser(call.caller.toString(), "call:busy", { callId });
+      }
+    } catch (err) {
+      console.error("Error setting call busy:", err);
+    }
+  });
+
+  socket.on("call:timeout", async ({ callId }) => {
+    try {
+      const call = await Call.findById(callId);
+      if (call) {
+        call.status = "timeout";
+        await call.save();
+
+        emitToUser(call.receiver.toString(), "call:cancelled", { callId });
+      }
+    } catch (err) {
+      console.error("Error timeout call:", err);
+    }
+  });
+
+  socket.on("call:offer", async ({ receiverId, offer }) => {
+    if (await canCommunicate(socket.user, receiverId)) {
+      emitToUser(receiverId, "call:offer", { senderId: userId, offer });
+    }
+  });
+
+  socket.on("call:answer", async ({ receiverId, answer }) => {
+    if (await canCommunicate(socket.user, receiverId)) {
+      emitToUser(receiverId, "call:answer", { senderId: userId, answer });
+    }
+  });
+
+  socket.on("call:ice-candidate", async ({ receiverId, candidate }) => {
+    if (await canCommunicate(socket.user, receiverId)) {
+      emitToUser(receiverId, "call:ice-candidate", { senderId: userId, candidate });
+    }
+  });
+
+  socket.on("call:end", async ({ callId, duration }) => {
+    try {
+      const call = await Call.findById(callId);
+      if (call) {
+        call.endedAt = new Date();
+        if (duration) {
+          call.duration = duration;
+        } else if (call.startedAt) {
+          call.duration = Math.round((call.endedAt - call.startedAt) / 1000);
+        }
+        await call.save();
+
+        const targetId = call.caller.toString() === userId ? call.receiver.toString() : call.caller.toString();
+        emitToUser(targetId, "call:ended", { callId });
+      }
+    } catch (err) {
+      console.error("Error ending call:", err);
+    }
+  });
+
+  // WebRTC Signaling Router for Live proctoring (preserve existing)
+  socket.on("proctor-signal", ({ targetId, signal }) => {
+    io.to(targetId).emit("proctor-signal", { senderId: userId, signal });
+  });
+
+  // Session notifications to alert proctors/teachers instantly (preserve existing)
   socket.on("test-session-start", ({ proctorId }) => {
     io.to(proctorId).emit("student-test-started", { 
-      studentId: socket.user.id, 
-      studentName: socket.user.name || "Student" 
+      studentId: userId, 
+      studentName: socket.user?.name || "Student" 
     });
   });
 
   socket.on("test-session-stop", ({ proctorId }) => {
-    io.to(proctorId).emit("student-test-stopped", { studentId: socket.user.id });
+    io.to(proctorId).emit("student-test-stopped", { studentId: userId });
   });
 
+  // Disconnect handler with multi-tab support & grace period
   socket.on("disconnect", () => {
-    console.log("Client disconnected:", socket.id);
+    console.log("Client disconnected:", socket.id, "User:", userId);
+
+    const userSockets = activeSockets.get(userId);
+    if (userSockets) {
+      userSockets.delete(socket.id);
+      if (userSockets.size === 0) {
+        activeSockets.delete(userId);
+
+        // Disconnect grace period (5 seconds) to avoid flicker on page refreshes
+        setTimeout(async () => {
+          const currentSockets = activeSockets.get(userId);
+          if (!currentSockets || currentSockets.size === 0) {
+            try {
+              const user = await User.findById(userId);
+              if (user) {
+                user.isOnline = false;
+                user.lastSeen = new Date();
+                await user.save();
+
+                // Broadcast presence update
+                io.emit("user:status-change", {
+                  userId,
+                  isOnline: false,
+                  lastSeen: user.lastSeen
+                });
+              }
+            } catch (err) {
+              console.error("Error setting user offline:", err);
+            }
+          }
+        }, 5000);
+      }
+    }
   });
 });
 
