@@ -8,6 +8,11 @@ function StudentEvents() {
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const token = localStorage.getItem("token");
 
+  const getMediaUrl = (url) => {
+    if (!url) return "";
+    return url.startsWith("http") ? url : `${API}${url}`;
+  };
+
   const [activeTab, setActiveTab] = useState("upcoming"); // upcoming, completed
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -99,7 +104,7 @@ function StudentEvents() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
           {events.map((ev) => {
             const hasCover = ev.photos && ev.photos.length > 0;
-            const coverUrl = hasCover ? `${API}${ev.photos[0].url}` : null;
+            const coverUrl = hasCover ? getMediaUrl(ev.photos[0].url) : null;
 
             return (
               <div 
@@ -190,10 +195,10 @@ function StudentEvents() {
                     {selectedEvent.photos.map((photo) => (
                       <div 
                         key={photo._id} 
-                        onClick={() => window.open(`${API}${photo.url}`, "_blank")}
+                        onClick={() => window.open(getMediaUrl(photo.url), "_blank")}
                         className="relative aspect-video rounded-xl overflow-hidden cursor-zoom-in bg-slate-900 border border-slate-200/50 dark:border-white/10 group"
                       >
-                        <img src={`${API}${photo.url}`} alt={photo.filename} className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" />
+                        <img src={getMediaUrl(photo.url)} alt={photo.filename} className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold transition">
                           View Fullscreen
                         </div>
@@ -212,7 +217,7 @@ function StudentEvents() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {selectedEvent.videos.map((video) => (
                       <div key={video._id} className="relative rounded-2xl overflow-hidden bg-black border border-slate-200/50 dark:border-white/10">
-                        <video src={`${API}${video.url}`} controls className="w-full aspect-video object-cover" />
+                        <video src={getMediaUrl(video.url)} controls className="w-full aspect-video object-cover" />
                         <div className="p-3 bg-slate-50 dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/5 text-[9px] font-bold text-slate-450 truncate">
                           {video.filename}
                         </div>

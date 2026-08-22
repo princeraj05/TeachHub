@@ -11,6 +11,11 @@ function AdminEvents() {
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const token = localStorage.getItem("token");
 
+  const getMediaUrl = (url) => {
+    if (!url) return "";
+    return url.startsWith("http") ? url : `${API}${url}`;
+  };
+
   const [activeTab, setActiveTab] = useState("upcoming"); // upcoming, completed
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -315,7 +320,7 @@ function AdminEvents() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map((ev) => {
             const hasCover = ev.photos && ev.photos.length > 0;
-            const coverUrl = hasCover ? `${API}${ev.photos[0].url}` : null;
+            const coverUrl = hasCover ? getMediaUrl(ev.photos[0].url) : null;
 
             return (
               <div 
@@ -735,7 +740,7 @@ function AdminEvents() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                     {selectedEvent.photos.map((photo) => (
                       <div key={photo._id} className="relative aspect-video rounded-xl overflow-hidden group bg-slate-900 border border-slate-200/50 dark:border-white/10">
-                        <img src={`${API}${photo.url}`} alt={photo.filename} className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" />
+                        <img src={getMediaUrl(photo.url)} alt={photo.filename} className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" />
                         <button
                           onClick={() => handleDeletePhoto(photo._id)}
                           className="absolute top-2 right-2 bg-rose-600/90 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-rose-500 cursor-pointer shadow transition"
@@ -757,7 +762,7 @@ function AdminEvents() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {selectedEvent.videos.map((video) => (
                       <div key={video._id} className="relative rounded-2xl overflow-hidden bg-black border border-slate-200/50 dark:border-white/10 group flex flex-col justify-between">
-                        <video src={`${API}${video.url}`} controls className="w-full aspect-video object-cover" />
+                        <video src={getMediaUrl(video.url)} controls className="w-full aspect-video object-cover" />
                         <div className="p-3 bg-slate-50 dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
                           <span className="text-[8px] font-bold text-slate-400 truncate max-w-[70%]">{video.filename}</span>
                           <button
