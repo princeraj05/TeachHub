@@ -2,8 +2,18 @@ const nodemailer = require("nodemailer");
 
 const sendOtpEmail = async (email, otp) => {
   const apiKey = process.env.EMAIL_API_KEY || process.env.RESEND_API_KEY || process.env.BREVO_API_KEY || process.env.SENDINBLUE_API_KEY;
-  const fromEmail = process.env.EMAIL_FROM || "onboarding@resend.dev";
-  const fromName = process.env.EMAIL_FROM_NAME || "Your School";
+  let fromEmail = process.env.EMAIL_FROM || "onboarding@resend.dev";
+  let fromName = process.env.EMAIL_FROM_NAME || "Your School";
+
+  if (process.env.MAIL_FROM) {
+    const match = process.env.MAIL_FROM.match(/^(?:"?([^"]*)"?\s)?(?:<(.+)>)?$/);
+    if (match) {
+      if (match[1]) fromName = match[1].trim();
+      if (match[2]) fromEmail = match[2].trim();
+    } else {
+      fromEmail = process.env.MAIL_FROM;
+    }
+  }
 
   const emailSubject = "Your School - Login Verification Code";
   const emailHtml = `
@@ -93,45 +103,54 @@ const sendOtpEmail = async (email, otp) => {
   }
 
   // 2. SMTP fallback
+  const service = process.env.EMAIL_SERVICE;
   const host = process.env.SMTP_HOST || process.env.EMAIL_HOST;
   const port = process.env.SMTP_PORT || process.env.EMAIL_PORT || 587;
-  const user = process.env.SMTP_USER || process.env.EMAIL_USER;
-  const pass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+  const user = process.env.EMAIL_USER || process.env.SMTP_USER;
+  const pass = process.env.EMAIL_PASS || process.env.SMTP_PASS;
 
-  if (!host || !user || !pass) {
+  if (!service && !host && !user) {
     console.warn("No mail delivery credentials configured (no API keys or SMTP options). Email cannot be delivered.");
     return { success: false, message: "Missing email credentials" };
   }
 
   try {
-    const transporterOptions = {
-      host,
-      port: parseInt(port),
-      secure: parseInt(port) === 465,
-      auth: {
-        user,
-        pass,
-      },
-      family: 4,
-      connectionTimeout: 5000,
-      greetingTimeout: 5000,
-      socketTimeout: 5000
-    };
-
-    if (host.includes("gmail.com")) {
-      delete transporterOptions.host;
-      delete transporterOptions.port;
-      delete transporterOptions.secure;
-      transporterOptions.service = "gmail";
+    let transporterOptions;
+    if (service === "gmail" || (host && host.includes("gmail.com"))) {
+      transporterOptions = {
+        service: "gmail",
+        auth: {
+          user,
+          pass,
+        }
+      };
+    } else {
+      transporterOptions = {
+        host,
+        port: parseInt(port),
+        secure: parseInt(port) === 465,
+        auth: {
+          user,
+          pass,
+        },
+        family: 4,
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 5000
+      };
     }
 
     const transporter = nodemailer.createTransport(transporterOptions);
     const mailOptions = {
-      from: `"${fromName}" <${user}>`,
+      from: `"${fromName}" <${fromEmail || user}>`,
       to: email,
       subject: emailSubject,
       html: emailHtml
     };
+
+    if (process.env.ADMIN_REPLY_TO) {
+      mailOptions.replyTo = process.env.ADMIN_REPLY_TO;
+    }
 
     await transporter.sendMail(mailOptions);
     console.log("Email sent successfully via SMTP");
