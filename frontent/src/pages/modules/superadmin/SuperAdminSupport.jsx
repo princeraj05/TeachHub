@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaComments, FaSchool, FaPhone } from "react-icons/fa";
+import { useCall } from "../../../context/CallContext";
 import SupportChatEngine from "../../../components/SupportChatEngine";
 
 function SuperAdminSupport() {
@@ -14,6 +15,8 @@ function SuperAdminSupport() {
   const [callsHistory, setCallsHistory] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const { socket } = useCall();
+
   useEffect(() => {
     fetchContacts();
 
@@ -25,6 +28,31 @@ function SuperAdminSupport() {
       window.removeEventListener("call:history-updated", handleCallHistoryUpdate);
     };
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUserStatusChange = ({ userId, isOnline, lastSeen }) => {
+      setContacts(prev =>
+        prev.map(contact =>
+          contact._id === userId
+            ? { ...contact, isOnline, lastSeen }
+            : contact
+        )
+      );
+
+      setActiveContact(prev => {
+        if (!prev || prev._id !== userId) return prev;
+        return { ...prev, isOnline, lastSeen };
+      });
+    };
+
+    socket.on("user:status-change", handleUserStatusChange);
+
+    return () => {
+      socket.off("user:status-change", handleUserStatusChange);
+    };
+  }, [socket]);
 
   const fetchContacts = async () => {
     try {

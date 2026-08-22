@@ -216,6 +216,7 @@ export const CallProvider = ({ children }) => {
       socket.off("call:offer");
       socket.off("call:answer");
       socket.off("call:ice-candidate");
+      socket.disconnect();
     };
   }, [token, callState]);
 
