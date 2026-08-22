@@ -2,26 +2,16 @@ import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { 
   FaPaperPlane, FaBroadcastTower, FaComments, FaUserCircle, FaSchool, 
-  FaPhone, FaVideo, FaMicrophone, FaMicrophoneSlash, FaVideoSlash, 
-  FaTimes, FaPaperclip, FaFile, FaFilePdf, FaFileWord, FaFileExcel, 
-  FaFilePowerpoint, FaFileArchive, FaSmile, FaReply, FaTrash, 
-  FaRegSmile, FaCheck, FaCheckDouble, FaVolumeUp, FaVolumeMute, 
-  FaArrowLeft, FaUndo, FaPlay, FaPause
+  FaPhone, FaVideo, FaMicrophone, FaTimes, FaPaperclip, FaFile, FaFilePdf, 
+  FaFileWord, FaFileExcel, FaFilePowerpoint, FaFileArchive, FaSmile, FaReply, 
+  FaTrash, FaCheck, FaCheckDouble, FaPause, FaPlay, FaArrowLeft, FaUndo
 } from "react-icons/fa";
-import socket from "../socket";
+import { useCall } from "../context/CallContext";
 
 const EMOJI_CATEGORIES = {
   "Smileys": ["😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🤩", "🥳", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🤭", "🤫", "🤥", "😶", "😐", "😑", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😵", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕"],
   "Gestures": ["👍", "👎", "👊", "✊", "🤛", "🤜", "🤞", "✌️", "🤟", "🤘", "👌", "👈", "👉", "👆", "👇", "☝️", "✋", "🤚", "🖐️", "🖖", "👋", "🤙", "💪", "🙏", "✍️", "👏", "🙌", "👐"],
   "Hearts": ["❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "💔", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝"]
-};
-
-const STUN_SERVERS = {
-  iceServers: [
-    { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:stun1.l.google.com:19302" },
-    { urls: "stun:stun2.l.google.com:19302" }
-  ]
 };
 
 function SupportChatEngine({ activeContact, onBack, userRole }) {
@@ -44,41 +34,46 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
-  
-  // Call States
-  const [callState, setCallState] = useState("idle"); // idle, calling, ringing, active
-  const [callType, setCallType] = useState(null); // voice, video
-  const [callDuration, setCallDuration] = useState(0);
-  const [incomingCallData, setIncomingCallData] = useState(null);
-  const [currentCallId, setCurrentCallId] = useState(null);
-  
-  // Media Devices Toggle
-  const [micMuted, setMicMuted] = useState(false);
-  const [cameraOff, setCameraOff] = useState(false);
 
   // Audio Playback
   const [currentlyPlayingAudio, setCurrentlyPlayingAudio] = useState(null);
+
+  // Global Call Context hook
+  const { socket, startCall } = useCall();
 
   // Refs
   const chatContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const mediaRecorderRef = useRef(null);
-  const rtcPeerRef = useRef(null);
-  const localStreamRef = useRef(null);
-  const remoteStreamRef = useRef(null);
-  const localVideoRef = useRef(null);
-  const remoteVideoRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const recordingTimerRef = useRef(null);
-  const callTimerRef = useRef(null);
-  
-  // Synthetic Sound Synthesizers for calling effects
-  const audioContextRef = useRef(null);
-  const ringOscillatorRef = useRef(null);
 
-  // Initialize WebRTC and Call listeners
+  // Initialize socket listeners for active contact messaging & status updates
   useEffect(() => {
-    // Listen for status/ticks update
+    if (!socket) return;
+
+    socket.on("support:new-message", (msg) => {
+      if (
+        msg.type === "personal" &&
+        activeContact &&
+        ((msg.sender._id === currentUserId && msg.receiver._id === activeContact._id) ||
+          (msg.sender._id === activeContact._id && msg.receiver._id === currentUserId))
+      ) {
+        setMessages(prev => {
+          if (prev.some(m => m._id === msg._id || (msg.clientMessageId && m.clientMessageId === msg.clientMessageId))) {
+            return prev;
+          }
+          return [...prev, msg];
+        });
+
+        // Trigger read receipt if we are the recipient
+        if (msg.receiver._id === currentUserId) {
+          socket.emit("message:read", { senderId: activeContact._id });
+        }
+        setTimeout(scrollToBottom, 50);
+      }
+    });
+
     socket.on("message:status-update", ({ messageId, status, receiverId }) => {
       if (activeContact && receiverId === activeContact._id) {
         setMessages(prev => prev.map(m => m._id === messageId ? { ...m, status } : m));
@@ -103,7 +98,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
       }
     });
 
-    // Listen for dynamic typing changes
     socket.on("typing:start", ({ senderId }) => {
       if (activeContact && senderId === activeContact._id) {
         setTypingUser(activeContact.name);
@@ -116,81 +110,16 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
       }
     });
 
-    // WebRTC Calls signaling listeners
-    socket.on("call:incoming", ({ callId, callerId, callerName, callerAvatar, type }) => {
-      setIncomingCallData({ callId, callerId, callerName, callerAvatar, type });
-      setCallType(type);
-      setCallState("ringing");
-      setCurrentCallId(callId);
-      triggerCallRingSound();
-    });
-
-    socket.on("call:accepted", async ({ callId }) => {
-      stopCallingSounds();
-      setCallState("active");
-      startCallTimer();
-      // Start connection handshake
-      await createWebRTCOffer();
-    });
-
-    socket.on("call:rejected", ({ callId }) => {
-      cleanupActiveCall("Call Rejected");
-    });
-
-    socket.on("call:busy", ({ callId }) => {
-      cleanupActiveCall("User Busy");
-    });
-
-    socket.on("call:cancelled", ({ callId }) => {
-      cleanupActiveCall("Call Cancelled");
-    });
-
-    socket.on("call:ended", ({ callId }) => {
-      cleanupActiveCall("Call Ended");
-    });
-
-    socket.on("call:offer", async ({ senderId, offer }) => {
-      if (callState === "ringing" || callState === "active") {
-        await handleIncomingWebRTCOffer(offer);
-      }
-    });
-
-    socket.on("call:answer", async ({ senderId, answer }) => {
-      if (rtcPeerRef.current) {
-        await rtcPeerRef.current.setRemoteDescription(new RTCSessionDescription(answer));
-      }
-    });
-
-    socket.on("call:ice-candidate", async ({ senderId, candidate }) => {
-      if (rtcPeerRef.current && candidate) {
-        try {
-          await rtcPeerRef.current.addIceCandidate(new RTCIceCandidate(candidate));
-        } catch (e) {
-          console.error("Error adding ice candidate:", e);
-        }
-      }
-    });
-
     return () => {
+      socket.off("support:new-message");
       socket.off("message:status-update");
       socket.off("message:read-receipt");
       socket.off("message:reaction-updated");
       socket.off("message:deleted-everyone");
       socket.off("typing:start");
       socket.off("typing:stop");
-      socket.off("call:incoming");
-      socket.off("call:accepted");
-      socket.off("call:rejected");
-      socket.off("call:busy");
-      socket.off("call:cancelled");
-      socket.off("call:ended");
-      socket.off("call:offer");
-      socket.off("call:answer");
-      socket.off("call:ice-candidate");
-      stopCallingSounds();
-      cleanupActiveCallStreams();
     };
-  }, [activeContact, callState]);
+  }, [activeContact, socket]);
 
   // Load chat history when active contact changes
   useEffect(() => {
@@ -199,17 +128,11 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
     setHasMore(true);
     if (activeContact) {
       loadHistory(1, true);
-      // Emit message read receipt to mark incoming messages read
-      socket.emit("message:read", { senderId: activeContact._id });
+      if (socket) {
+        socket.emit("message:read", { senderId: activeContact._id });
+      }
     }
-  }, [activeContact]);
-
-  // Request browser notifications permissions on mount
-  useEffect(() => {
-    if (Notification.permission === "default") {
-      Notification.requestPermission();
-    }
-  }, []);
+  }, [activeContact, socket]);
 
   const loadHistory = async (pageNumber, isInitial = false) => {
     if (!activeContact) return;
@@ -228,7 +151,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
         setMessages(res.data);
         setTimeout(scrollToBottom, 100);
       } else {
-        // Prepend messages and maintain scroll position
         const prevScrollHeight = chatContainerRef.current?.scrollHeight || 0;
         setMessages(prev => [...res.data, ...prev]);
         setTimeout(() => {
@@ -256,14 +178,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Browser notifications builder
-  const showBrowserNotification = (title, body) => {
-    if (Notification.permission === "granted" && document.hidden) {
-      new Notification(title, { body, icon: "/favicon.ico" });
-    }
-  };
-
-  // Emitter wrapper for sending message via HTTP with fallback
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
     if ((!newMessage.trim() && !audioBlob) || !activeContact) return;
@@ -272,7 +186,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
     let contentToSend = newMessage;
     let finalAttachments = [];
 
-    // Voice message sending branch
     if (audioBlob) {
       try {
         setUploadProgress("Uploading voice note...");
@@ -287,7 +200,7 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
           }
         });
         finalAttachments = [res.data];
-        contentToSend = ""; // clear text
+        contentToSend = "";
       } catch (err) {
         alert("Failed to upload audio recording: " + err.message);
         setUploadProgress(null);
@@ -307,7 +220,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
       clientMessageId: tempMessageId
     };
 
-    // Optimistic UI state insertion
     const optimisticMsg = {
       _id: tempMessageId,
       sender: { _id: currentUserId, name: "Me", role: userRole },
@@ -330,35 +242,29 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
       const res = await axios.post(`${API}/api/support/message`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      // Replace optimistic entry with server returned entry
       setMessages(prev => prev.map(m => m._id === tempMessageId ? res.data : m));
     } catch (err) {
       console.error("HTTP fallback sending error:", err);
-      // Remove or mark message failed
       setMessages(prev => prev.map(m => m._id === tempMessageId ? { ...m, status: "failed" } : m));
     }
   };
 
-  // Keyboard debounce triggers typing alerts
   const handleComposerTyping = (e) => {
     setNewMessage(e.target.value);
     
-    // Stop typing timeout handler
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    
-    socket.emit("typing:start", { receiverId: activeContact._id });
-
-    typingTimeoutRef.current = setTimeout(() => {
-      socket.emit("typing:stop", { receiverId: activeContact._id });
-    }, 2000);
+    if (socket) {
+      socket.emit("typing:start", { receiverId: activeContact._id });
+      typingTimeoutRef.current = setTimeout(() => {
+        socket.emit("typing:stop", { receiverId: activeContact._id });
+      }, 2000);
+    }
   };
 
-  // Select attachments processing
   const handleAttachmentUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate size (max 50MB)
     if (file.size > 50 * 1024 * 1024) {
       alert("Maximum file limit is 50MB.");
       return;
@@ -411,7 +317,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
     }
   };
 
-  // Audio recording handlers
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -456,7 +361,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
     }
   };
 
-  // Reactions & Deletes actions
   const triggerReaction = async (messageId, emoji) => {
     try {
       await axios.post(`${API}/api/support/react`, { messageId, emoji }, {
@@ -480,233 +384,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
     }
   };
 
-  // WebAudio oscillator effects for ringtones
-  const triggerCallRingSound = () => {
-    try {
-      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      ringOscillatorRef.current = audioContextRef.current.createOscillator();
-      const gainNode = audioContextRef.current.createGain();
-
-      ringOscillatorRef.current.type = "sine";
-      ringOscillatorRef.current.frequency.setValueAtTime(440, audioContextRef.current.currentTime);
-      gainNode.gain.setValueAtTime(0.3, audioContextRef.current.currentTime);
-
-      // Pulse ringtone sound
-      gainNode.gain.setValueAtTime(0.3, audioContextRef.current.currentTime);
-      ringOscillatorRef.current.connect(gainNode);
-      gainNode.connect(audioContextRef.current.destination);
-      ringOscillatorRef.current.start();
-    } catch (e) {
-      console.warn("WebAudio ringing audio build failed:", e);
-    }
-  };
-
-  const stopCallingSounds = () => {
-    try {
-      if (ringOscillatorRef.current) {
-        ringOscillatorRef.current.stop();
-        ringOscillatorRef.current = null;
-      }
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-        audioContextRef.current = null;
-      }
-    } catch (e) {
-      // safe bypass
-    }
-  };
-
-  // WebRTC Setup Calls
-  const initiateCall = (type) => {
-    setCallType(type);
-    setCallState("calling");
-    socket.emit("call:initiate", { receiverId: activeContact._id, type });
-    triggerCallRingSound();
-    
-    // Call timeout: automatically cancel call if no answer in 30 seconds
-    setTimeout(() => {
-      if (callState === "calling") {
-        cancelActiveCall();
-      }
-    }, 30000);
-  };
-
-  const acceptIncomingCall = () => {
-    if (!incomingCallData) return;
-    stopCallingSounds();
-    setCallState("active");
-    socket.emit("call:accept", { callId: incomingCallData.callId });
-    startCallTimer();
-  };
-
-  const rejectIncomingCall = () => {
-    if (!incomingCallData) return;
-    stopCallingSounds();
-    socket.emit("call:reject", { callId: incomingCallData.callId });
-    setIncomingCallData(null);
-    setCallState("idle");
-  };
-
-  const cancelActiveCall = () => {
-    stopCallingSounds();
-    if (currentCallId) {
-      socket.emit("call:timeout", { callId: currentCallId });
-    }
-    cleanupActiveCall("Call Cancelled");
-  };
-
-  const endActiveCall = () => {
-    if (currentCallId) {
-      socket.emit("call:end", { callId: currentCallId, duration: callDuration });
-    }
-    cleanupActiveCall("Call Ended");
-  };
-
-  const startCallTimer = () => {
-    setCallDuration(0);
-    callTimerRef.current = setInterval(() => {
-      setCallDuration(prev => prev + 1);
-    }, 1000);
-  };
-
-  const cleanupActiveCall = (reason) => {
-    stopCallingSounds();
-    clearInterval(callTimerRef.current);
-    cleanupActiveCallStreams();
-    setCallState("idle");
-    setCallType(null);
-    setCallDuration(0);
-    setIncomingCallData(null);
-    setCurrentCallId(null);
-    if (reason) alert(reason);
-  };
-
-  const cleanupActiveCallStreams = () => {
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => track.stop());
-      localStreamRef.current = null;
-    }
-    if (rtcPeerRef.current) {
-      rtcPeerRef.current.close();
-      rtcPeerRef.current = null;
-    }
-  };
-
-  // WebRTC core RTCPeerConnection methods
-  const createWebRTCOffer = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: callType === "video"
-      });
-      localStreamRef.current = stream;
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-      }
-
-      rtcPeerRef.current = new RTCPeerConnection(STUN_SERVERS);
-      
-      stream.getTracks().forEach(track => {
-        rtcPeerRef.current.addTrack(track, stream);
-      });
-
-      rtcPeerRef.current.onicecandidate = (event) => {
-        if (event.candidate && activeContact) {
-          socket.emit("call:ice-candidate", {
-            receiverId: activeContact._id,
-            candidate: event.candidate
-          });
-        }
-      };
-
-      rtcPeerRef.current.ontrack = (event) => {
-        remoteStreamRef.current = event.streams[0];
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = event.streams[0];
-        }
-      };
-
-      const offer = await rtcPeerRef.current.createOffer();
-      await rtcPeerRef.current.setLocalDescription(offer);
-
-      socket.emit("call:offer", {
-        receiverId: activeContact._id,
-        offer
-      });
-    } catch (err) {
-      alert("Failed to access camera/mic: " + err.message);
-      endActiveCall();
-    }
-  };
-
-  const handleIncomingWebRTCOffer = async (offer) => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: callType === "video"
-      });
-      localStreamRef.current = stream;
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-      }
-
-      rtcPeerRef.current = new RTCPeerConnection(STUN_SERVERS);
-
-      stream.getTracks().forEach(track => {
-        rtcPeerRef.current.addTrack(track, stream);
-      });
-
-      rtcPeerRef.current.onicecandidate = (event) => {
-        if (event.candidate && incomingCallData) {
-          socket.emit("call:ice-candidate", {
-            receiverId: incomingCallData.callerId,
-            candidate: event.candidate
-          });
-        }
-      };
-
-      rtcPeerRef.current.ontrack = (event) => {
-        remoteStreamRef.current = event.streams[0];
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = event.streams[0];
-        }
-      };
-
-      await rtcPeerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
-      const answer = await rtcPeerRef.current.createAnswer();
-      await rtcPeerRef.current.setLocalDescription(answer);
-
-      socket.emit("call:answer", {
-        receiverId: incomingCallData.callerId,
-        answer
-      });
-    } catch (err) {
-      alert("Failed to build WebRTC Answer: " + err.message);
-      rejectIncomingCall();
-    }
-  };
-
-  const toggleMic = () => {
-    if (localStreamRef.current) {
-      const audioTrack = localStreamRef.current.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = micMuted;
-        setMicMuted(!micMuted);
-      }
-    }
-  };
-
-  const toggleCamera = () => {
-    if (localStreamRef.current) {
-      const videoTrack = localStreamRef.current.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = cameraOff;
-        setCameraOff(!cameraOff);
-      }
-    }
-  };
-
-  // Helper file icons mapper
   const renderFileIcon = (mimeType) => {
     if (mimeType.includes("pdf")) return <FaFilePdf className="text-red-500 text-3xl" />;
     if (mimeType.includes("word") || mimeType.includes("doc")) return <FaFileWord className="text-blue-500 text-3xl" />;
@@ -716,7 +393,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
     return <FaFile className="text-slate-400 text-3xl" />;
   };
 
-  // Formatting presence label
   const getPresenceText = () => {
     if (!activeContact) return "";
     if (activeContact.isOnline) return "Online";
@@ -731,12 +407,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
       return `Last seen today at ${timeStr}`;
     }
     return `Last seen on ${date.toLocaleDateString()} at ${timeStr}`;
-  };
-
-  const formatCallDuration = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -764,16 +434,16 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
           </div>
         </div>
 
-        {/* WebRTC Calling Actions */}
+        {/* Global WebRTC calling hooks trigger */}
         <div className="flex items-center gap-2">
           <button 
-            onClick={() => initiateCall("voice")}
+            onClick={() => startCall(activeContact, "voice")}
             className="p-3 rounded-full hover:bg-slate-100 text-slate-600 transition hover:text-[#7C3AED] cursor-pointer"
           >
             <FaPhone className="text-sm" />
           </button>
           <button 
-            onClick={() => initiateCall("video")}
+            onClick={() => startCall(activeContact, "video")}
             className="p-3 rounded-full hover:bg-slate-100 text-slate-600 transition hover:text-[#7C3AED] cursor-pointer"
           >
             <FaVideo className="text-sm" />
@@ -794,9 +464,8 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
           </div>
         )}
 
-        {messages.map((msg, index) => {
+        {messages.map((msg) => {
           const isOwn = msg.sender._id === currentUserId;
-          const showReplyIcon = !isOwn;
           
           return (
             <div 
@@ -810,7 +479,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
                   : "bg-white border border-slate-200/60 text-slate-700 rounded-tl-none"
               }`}>
                 
-                {/* Quoted Quote Message view */}
                 {msg.replyTo && (
                   <div 
                     onClick={() => {
@@ -828,7 +496,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
                   </div>
                 )}
 
-                {/* Render Attachments */}
                 {msg.attachments && msg.attachments.length > 0 && (
                   <div className="space-y-2 mb-2">
                     {msg.attachments.map((attach, i) => {
@@ -886,7 +553,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
                         );
                       }
 
-                      // Generic document view
                       return (
                         <a 
                           key={i} 
@@ -905,16 +571,13 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
                   </div>
                 )}
 
-                {/* Content text */}
                 {msg.content && <p className="whitespace-pre-wrap">{msg.content}</p>}
 
-                {/* Footer Meta: ticks and timestamps */}
                 <div className="flex items-center justify-end gap-1.5 mt-1.5 select-none">
                   <span className={`text-[8px] font-medium ${isOwn ? "text-white/70" : "text-slate-400"}`}>
                     {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                   
-                  {/* WhatsApp style ticks */}
                   {isOwn && (
                     <span className="text-[10px]">
                       {msg.status === "sent" && <FaCheck className="text-white/60" />}
@@ -924,21 +587,18 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
                   )}
                 </div>
 
-                {/* Reactions badge badges list */}
                 {msg.reactions && msg.reactions.length > 0 && (
                   <div className="absolute -bottom-2.5 right-2 bg-white border border-slate-200 rounded-full px-1.5 py-0.5 flex items-center gap-0.5 shadow-sm">
                     {msg.reactions.map((react, k) => (
-                      <span key={k} title={`Reacted by user`} className="text-[10px]">{react.emoji}</span>
+                      <span key={k} title={`Reacted`} className="text-[10px]">{react.emoji}</span>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* Message Context Overlay (Reply, Reaction Picker, Delete) */}
               <div className={`absolute top-0 group-hover:flex hidden items-center gap-1 bg-white border border-slate-200 shadow-lg p-1.5 rounded-xl z-20 ${
                 isOwn ? "right-[72%]" : "left-[72%]"
               }`}>
-                {/* Emojis Reactions shortcuts */}
                 {["👍", "❤️", "😂", "😮", "😢", "🙏"].map(emoji => (
                   <button 
                     key={emoji}
@@ -970,14 +630,12 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Typing indicator toast */}
       {typingUser && (
         <div className="px-4 py-1.5 bg-white border-t border-slate-100 text-[10px] text-slate-500 font-bold tracking-wider select-none animate-pulse">
           {typingUser} is typing...
         </div>
       )}
 
-      {/* Uploading progress tracker */}
       {uploadProgress && (
         <div className="px-4 py-2 bg-[#7C3AED]/10 text-white flex items-center justify-between text-xs font-bold font-sans">
           <span>{uploadProgress}</span>
@@ -987,7 +645,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
         </div>
       )}
 
-      {/* Quoted Quoting target details preview */}
       {replyingTo && (
         <div className="p-3 bg-white border-t border-slate-200 flex items-center justify-between select-none">
           <div className="border-l-4 border-[#7C3AED] pl-3">
@@ -1000,10 +657,9 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
         </div>
       )}
 
-      {/* Chat Composer Input toolbar */}
+      {/* Composer Input toolbar */}
       <div className="p-4 bg-white border-t border-slate-200">
         
-        {/* Emoji drawer list */}
         {showEmojiPicker && (
           <div className="border border-slate-200 rounded-2xl bg-white p-3 mb-3 shadow-lg max-h-56 overflow-y-auto">
             {Object.keys(EMOJI_CATEGORIES).map(cat => (
@@ -1028,7 +684,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
           </div>
         )}
 
-        {/* Custom Attachment Popup */}
         {showAttachmentMenu && (
           <div className="absolute bottom-20 left-4 bg-white border border-slate-200 rounded-2xl shadow-xl p-3 z-30 flex flex-col gap-2.5">
             <label className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-slate-50 rounded-xl cursor-pointer text-xs font-bold text-slate-600">
@@ -1056,7 +711,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
             <FaPaperclip className="text-sm" />
           </button>
 
-          {/* Typing input */}
           <input 
             type="text"
             placeholder={isRecording ? "Recording audio..." : "Type your message here..."}
@@ -1066,7 +720,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
             className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all disabled:opacity-50"
           />
 
-          {/* Recorder indicator buttons */}
           {isRecording ? (
             <div className="flex items-center gap-2 animate-pulse">
               <span className="text-[10px] text-red-500 font-bold">{recordingDuration}s</span>
@@ -1074,7 +727,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
                 type="button"
                 onClick={stopRecording}
                 className="bg-green-500 text-white p-3.5 rounded-xl flex items-center justify-center hover:opacity-90 active:scale-95 transition cursor-pointer"
-                title="Save recording"
               >
                 <FaCheck className="text-xs" />
               </button>
@@ -1082,7 +734,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
                 type="button"
                 onClick={cancelRecording}
                 className="bg-red-500 text-white p-3.5 rounded-xl flex items-center justify-center hover:opacity-90 active:scale-95 transition cursor-pointer"
-                title="Cancel recording"
               >
                 <FaTimes className="text-xs" />
               </button>
@@ -1118,7 +769,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
                   type="button"
                   onClick={startRecording}
                   className="bg-slate-50 border border-slate-250/60 text-slate-500 p-3.5 rounded-xl flex items-center justify-center hover:bg-slate-100 transition cursor-pointer"
-                  title="Record audio message"
                 >
                   <FaMicrophone className="text-xs" />
                 </button>
@@ -1127,101 +777,6 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
           )}
         </form>
       </div>
-
-      {/* WebRTC Calling modal & Video Streams Overlay panels */}
-      {callState !== "idle" && (
-        <div className="absolute inset-0 bg-slate-900/95 z-50 flex flex-col justify-between p-8 text-white">
-          
-          {/* Top Panel */}
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-24 h-24 rounded-full bg-[#7C3AED] text-white flex items-center justify-center font-bold text-4xl shadow-2xl">
-              {incomingCallData ? incomingCallData.callerName.charAt(0) : activeContact.name.charAt(0)}
-            </div>
-            <h2 className="text-xl font-bold font-sans">
-              {incomingCallData ? incomingCallData.callerName : activeContact.name}
-            </h2>
-            <p className="text-sm font-semibold tracking-wider text-slate-400 capitalize">
-              {callState === "ringing" ? "Incoming " : callState === "calling" ? "Calling... " : "Call Connected "}
-              ({callType} call)
-            </p>
-            {callState === "active" && (
-              <p className="text-xs font-mono tracking-widest text-[#7C3AED] font-black">
-                {formatCallDuration(callDuration)}
-              </p>
-            )}
-          </div>
-
-          {/* Video Streams panel container */}
-          {callType === "video" && callState === "active" && (
-            <div className="flex-1 my-6 relative flex gap-4 justify-center items-center">
-              <video 
-                ref={remoteVideoRef} 
-                autoPlay 
-                playsInline 
-                className="w-full h-full rounded-2xl bg-black object-cover border border-slate-700 shadow-xl"
-              />
-              <video 
-                ref={localVideoRef} 
-                autoPlay 
-                playsInline 
-                muted 
-                className="absolute bottom-4 right-4 w-1/4 max-w-[120px] rounded-xl bg-slate-800 object-cover border-2 border-white shadow-2xl"
-              />
-            </div>
-          )}
-
-          {/* WebRTC Calling Action triggers */}
-          <div className="flex justify-center gap-6 items-center select-none">
-            {callState === "ringing" ? (
-              <>
-                <button 
-                  onClick={acceptIncomingCall}
-                  className="bg-green-600 hover:bg-green-500 p-5 rounded-full flex items-center justify-center shadow-lg transform hover:scale-105 transition cursor-pointer"
-                >
-                  <FaPhone className="text-xl" />
-                </button>
-                <button 
-                  onClick={rejectIncomingCall}
-                  className="bg-red-600 hover:bg-red-500 p-5 rounded-full flex items-center justify-center shadow-lg transform hover:scale-105 transition cursor-pointer"
-                >
-                  <FaTimes className="text-xl" />
-                </button>
-              </>
-            ) : (
-              <>
-                <button 
-                  onClick={toggleMic}
-                  className={`p-4 rounded-full flex items-center justify-center transition cursor-pointer ${
-                    micMuted ? "bg-red-600 text-white" : "bg-slate-700/60 hover:bg-slate-700"
-                  }`}
-                  title="Toggle Microphone"
-                >
-                  {micMuted ? <FaMicrophoneSlash className="text-lg" /> : <FaMicrophone className="text-lg" />}
-                </button>
-                
-                {callType === "video" && (
-                  <button 
-                    onClick={toggleCamera}
-                    className={`p-4 rounded-full flex items-center justify-center transition cursor-pointer ${
-                      cameraOff ? "bg-red-600 text-white" : "bg-slate-700/60 hover:bg-slate-700"
-                    }`}
-                    title="Toggle Camera"
-                  >
-                    {cameraOff ? <FaVideoSlash className="text-lg" /> : <FaVideo className="text-lg" />}
-                  </button>
-                )}
-
-                <button 
-                  onClick={callState === "active" ? endActiveCall : cancelActiveCall}
-                  className="bg-red-600 hover:bg-red-500 p-5 rounded-full flex items-center justify-center shadow-lg transform hover:scale-105 transition cursor-pointer"
-                >
-                  <FaTimes className="text-xl" />
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

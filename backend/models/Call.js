@@ -18,7 +18,7 @@ const callSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["completed", "missed", "rejected", "busy", "timeout"],
+    enum: ["pending", "ringing", "completed", "missed", "rejected", "busy", "timeout", "cancelled"],
     required: true
   },
   duration: {

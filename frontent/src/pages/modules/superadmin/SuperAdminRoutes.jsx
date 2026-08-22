@@ -4,10 +4,12 @@ import SuperAdminDashboard from "./SuperAdminDashboard";
 import SuperAdminSupport from "./SuperAdminSupport";
 import SuperAdminProfile from "./SuperAdminProfile";
 
+import { CallProvider } from "../../../context/CallContext";
+
 function SuperAdminRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<SuperAdminLayout />}>
+      <Route path="/" element={<CallProvider><SuperAdminLayout /></CallProvider>}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<SuperAdminDashboard />} />
         <Route path="support" element={<SuperAdminSupport />} />

@@ -110,24 +110,34 @@ const io = new Server(server, {
 });
 
 const jwt = require("jsonwebtoken");
+const User = require("./models/User");
+const Message = require("./models/Message");
+const Call = require("./models/Call");
 
-io.use((socket, next) => {
+io.use(async (socket, next) => {
   const token = socket.handshake.auth?.token;
   if (!token) {
     return next(new Error("Authentication error: No token provided"));
   }
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    socket.user = decoded;
+    // Fetch database-authoritative user profile
+    const dbUser = await User.findById(decoded.id).select("name email role schoolName avatar");
+    if (!dbUser) {
+      return next(new Error("Authentication error: User not found"));
+    }
+    socket.user = {
+      id: dbUser._id.toString(),
+      role: dbUser.role,
+      schoolName: dbUser.schoolName || "",
+      name: dbUser.name || "School Member",
+      avatar: dbUser.avatar || ""
+    };
     next();
   } catch (err) {
     return next(new Error("Authentication error: Invalid token"));
   }
 });
-
-const User = require("./models/User");
-const Message = require("./models/Message");
-const Call = require("./models/Call");
 
 const activeSockets = new Map(); // userId -> Set<socket.id>
 
@@ -258,14 +268,35 @@ io.on("connection", (socket) => {
   // WebRTC Audio/Video Calling Router with verification
   socket.on("call:initiate", async ({ receiverId, type }) => {
     try {
-      if (await canCommunicate(socket.user, receiverId)) {
-        // Create Call record
+      const senderUser = await User.findById(userId);
+      const receiverUser = await User.findById(receiverId);
+
+      if (!senderUser || !receiverUser) {
+        return socket.emit("call:error", { message: "Caller or Receiver not found" });
+      }
+
+      if (await canCommunicate(senderUser, receiverId)) {
+        const receiverSockets = activeSockets.get(receiverId.toString());
+        if (!receiverSockets || receiverSockets.size === 0) {
+          // Receiver offline: create missed Call record
+          const call = await Call.create({
+            caller: userId,
+            receiver: receiverId,
+            type,
+            status: "missed",
+            schoolName: senderUser.schoolName || ""
+          });
+          socket.emit("call:rejected", { reason: "unavailable", callId: call._id });
+          return;
+        }
+
+        // Create Call record with status "pending"
         const call = await Call.create({
           caller: userId,
           receiver: receiverId,
           type,
-          status: "missed",
-          schoolName: socket.user.schoolName || ""
+          status: "pending",
+          schoolName: senderUser.schoolName || ""
         });
 
         socket.currentCallId = call._id;
@@ -273,8 +304,8 @@ io.on("connection", (socket) => {
         emitToUser(receiverId, "call:incoming", {
           callId: call._id,
           callerId: userId,
-          callerName: socket.user.name || "School Member",
-          callerAvatar: socket.user.avatar || "",
+          callerName: senderUser.name || "School Member",
+          callerAvatar: senderUser.avatar || "",
           type
         });
       } else {
@@ -282,6 +313,19 @@ io.on("connection", (socket) => {
       }
     } catch (err) {
       console.error("Error initiating call:", err);
+    }
+  });
+
+  socket.on("call:cancel", async ({ callId }) => {
+    try {
+      const call = await Call.findById(callId);
+      if (call) {
+        call.status = "cancelled";
+        await call.save();
+        emitToUser(call.receiver.toString(), "call:cancelled", { callId });
+      }
+    } catch (err) {
+      console.error("Error cancelling call:", err);
     }
   });
 

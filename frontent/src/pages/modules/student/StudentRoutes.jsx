@@ -9,13 +9,15 @@ import StudentExams from "./pages/StudentExams";
 import StudentProfile from "./pages/StudentProfile";
 import StudentSupport from "./pages/StudentSupport";
 
+import { CallProvider } from "../../../context/CallContext";
+
 function StudentRoutes() {
 
   return (
 
     <Routes>
 
-      <Route path="/" element={<StudentLayout />}>
+      <Route path="/" element={<CallProvider><StudentLayout /></CallProvider>}>
 
         <Route index element={<Navigate to="dashboard" />} />
 

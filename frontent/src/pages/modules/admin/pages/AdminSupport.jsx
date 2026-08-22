@@ -1,24 +1,34 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaBroadcastTower, FaComments, FaSchool } from "react-icons/fa";
+import { FaBroadcastTower, FaComments, FaPhone } from "react-icons/fa";
 import SupportChatEngine from "../../../../components/SupportChatEngine";
 
 function AdminSupport() {
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const token = localStorage.getItem("token");
+  const currentUserId = localStorage.getItem("userId");
 
   const [activeTab, setActiveTab] = useState("superadmin"); // superadmin, teachers, students
-  const [subTab, setSubTab] = useState("personal"); // personal, broadcast
+  const [subTab, setSubTab] = useState("personal"); // personal, broadcast, calls
 
   const [contacts, setContacts] = useState([]);
   const [activeContact, setActiveContact] = useState(null);
   const [broadcastMessages, setBroadcastMessages] = useState([]);
+  const [callsHistory, setCallsHistory] = useState([]);
   const [newBroadcast, setNewBroadcast] = useState("");
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
     fetchContacts();
+
+    const handleCallHistoryUpdate = () => {
+      fetchCallsHistory();
+    };
+    window.addEventListener("call:history-updated", handleCallHistoryUpdate);
+    return () => {
+      window.removeEventListener("call:history-updated", handleCallHistoryUpdate);
+    };
   }, []);
 
   const fetchContacts = async () => {
@@ -29,7 +39,6 @@ function AdminSupport() {
       });
       setContacts(res.data);
       
-      // Auto-select Super Admin if we are in superadmin tab initially
       const superAdmin = res.data.find(c => c.role === "superadmin");
       if (superAdmin && activeTab === "superadmin") {
         setActiveContact(superAdmin);
@@ -57,6 +66,20 @@ function AdminSupport() {
     }
   };
 
+  const fetchCallsHistory = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${API}/api/support/calls`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCallsHistory(res.data);
+    } catch (err) {
+      console.error("Error fetching calls:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setActiveContact(null);
@@ -77,6 +100,8 @@ function AdminSupport() {
     setSubTab(sub);
     if (sub === "broadcast") {
       fetchBroadcastHistory();
+    } else if (sub === "calls") {
+      fetchCallsHistory();
     }
   };
 
@@ -176,7 +201,7 @@ function AdminSupport() {
                       : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
                   }`}
                 >
-                  Personal Chats
+                  Personal
                 </button>
                 <button
                   onClick={() => handleSubTabChange("broadcast")}
@@ -187,6 +212,16 @@ function AdminSupport() {
                   }`}
                 >
                   Broadcasts
+                </button>
+                <button
+                  onClick={() => handleSubTabChange("calls")}
+                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold text-center border cursor-pointer ${
+                    subTab === "calls"
+                      ? "bg-slate-800 text-white border-slate-800"
+                      : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
+                  }`}
+                >
+                  Calls
                 </button>
               </div>
 
@@ -254,6 +289,60 @@ function AdminSupport() {
                   </form>
                 </div>
               )}
+
+              {subTab === "calls" && (
+                <div className="flex-1 overflow-y-auto divide-y divide-slate-100/50 bg-white">
+                  {callsHistory.length === 0 ? (
+                    <div className="p-6 text-center text-slate-400 text-xs font-semibold select-none">
+                      No call history found.
+                    </div>
+                  ) : (
+                    callsHistory.map((call) => {
+                      const isOutgoing = call.caller?._id === currentUserId;
+                      const partner = isOutgoing ? call.receiver : call.caller;
+                      if (!partner) return null;
+                      
+                      const isMissed = call.status === "missed";
+                      const isRejected = call.status === "rejected";
+                      const isCompleted = call.status === "completed";
+
+                      return (
+                        <div
+                          key={call._id}
+                          className="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition border-b border-slate-100/50"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black flex-shrink-0">
+                              {partner.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-slate-700 truncate">{partner.name}</p>
+                              <div className="flex items-center gap-1 mt-0.5 select-none">
+                                <span className={`text-[9px] font-bold uppercase tracking-wider ${
+                                  isMissed || isRejected ? "text-rose-500" : isCompleted ? "text-green-500" : "text-amber-500"
+                                }`}>
+                                  {isOutgoing ? "Outgoing" : "Incoming"} · {call.status}
+                                </span>
+                                <span className="text-[9px] text-slate-400 font-medium">
+                                  · {new Date(call.createdAt).toLocaleDateString()} {new Date(call.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                              {isCompleted && call.duration > 0 && (
+                                <p className="text-[9px] text-slate-400 font-semibold font-mono mt-0.5">
+                                  Duration: {Math.floor(call.duration / 60)}m {call.duration % 60}s
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-slate-400 text-xs">
+                            {call.type === "video" ? "🎥" : "📞"}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Messaging Area / Chat Engine */}
@@ -270,7 +359,7 @@ function AdminSupport() {
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/10">
                     <div className="w-16 h-16 rounded-3xl bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center text-2xl mb-4">
-                      <FaComments />
+                      <FaPhone />
                     </div>
                     <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">No Chat Selected</h3>
                     <p className="text-xs text-slate-400 mt-1 max-w-xs leading-relaxed">
@@ -278,7 +367,7 @@ function AdminSupport() {
                     </p>
                   </div>
                 )
-              ) : (
+              ) : subTab === "broadcast" ? (
                 /* Broadcast messages view */
                 <div className="flex-1 flex flex-col h-full bg-white relative">
                   <div className="p-4 border-b border-slate-100 bg-white">
@@ -308,6 +397,17 @@ function AdminSupport() {
                       ))
                     )}
                   </div>
+                </div>
+              ) : (
+                /* Call history default display placeholder when on calls tab */
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/10">
+                  <div className="w-16 h-16 rounded-3xl bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center text-2xl mb-4 shadow-sm">
+                    <FaPhone />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Calls History Log</h3>
+                  <p className="text-xs text-slate-400 mt-1 max-w-xs leading-relaxed">
+                    View call history in the sidebar on the left. Dial voice or video calls inside active conversation windows.
+                  </p>
                 </div>
               )}
             </div>

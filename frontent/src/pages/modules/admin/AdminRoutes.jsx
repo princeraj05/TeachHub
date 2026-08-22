@@ -26,13 +26,15 @@ import AdminRequests from "./pages/Requests/AdminRequests";
 import LiveProctoring from "../teacher/pages/LiveProctoring/LiveProctoring";
 
 
+import { CallProvider } from "../../../context/CallContext";
+
 function AdminRoutes() {
 
   return (
 
     <Routes>
 
-      <Route path="/" element={<AdminLayout />}>
+      <Route path="/" element={<CallProvider><AdminLayout /></CallProvider>}>
 
         <Route index element={<Navigate to="dashboard" />} />
 

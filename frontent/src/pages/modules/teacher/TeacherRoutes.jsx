@@ -16,13 +16,15 @@ import MyClasses from "./pages/MyClasses/MyClasses";
 import TeacherSupport from "./pages/TeacherSupport";
 import LiveProctoring from "./pages/LiveProctoring/LiveProctoring";
 
+import { CallProvider } from "../../../context/CallContext";
+
 function TeacherRoutes() {
 
   return (
 
     <Routes>
 
-      <Route path="/" element={<TeacherLayout />}>
+      <Route path="/" element={<CallProvider><TeacherLayout /></CallProvider>}>
 
         <Route index element={<Navigate to="dashboard" replace />} />
 

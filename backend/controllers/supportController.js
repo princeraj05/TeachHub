@@ -394,7 +394,12 @@ exports.deleteMessage = async (req, res) => {
 exports.getCallHistory = async (req, res) => {
   try {
     const currentUserId = req.user.id;
-    const schoolName = req.user.schoolName || "";
+    // Resolve user's actual schoolName from DB if missing in token
+    let schoolName = req.user.schoolName || "";
+    if (!schoolName && req.user.role !== "superadmin") {
+      const user = await User.findById(currentUserId);
+      if (user) schoolName = user.schoolName || "";
+    }
 
     const calls = await Call.find({
       $or: [
@@ -410,7 +415,17 @@ exports.getCallHistory = async (req, res) => {
     // Apply strict school isolation checks to the logs
     const filteredCalls = calls.filter(c => {
       if (req.user.role === "superadmin") return true;
-      return c.schoolName === schoolName;
+      
+      let recordSchool = c.schoolName || "";
+      if (!recordSchool) {
+        const callerSchool = c.caller?.schoolName || "";
+        const receiverSchool = c.receiver?.schoolName || "";
+        if (callerSchool && receiverSchool && callerSchool === receiverSchool) {
+          recordSchool = callerSchool;
+        }
+      }
+      
+      return recordSchool === schoolName;
     });
 
     res.json(filteredCalls);
