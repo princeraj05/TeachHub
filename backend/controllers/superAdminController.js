@@ -51,10 +51,23 @@ exports.assignRole = async (req, res) => {
     }
 
     user.role = role;
-    user.schoolName = (role === "unassigned") ? "" : schoolName || "";
+    const assignedSchoolName = (role === "unassigned") ? "" : (schoolName || "").trim();
+    user.schoolName = assignedSchoolName;
 
     if (role !== "student") {
       user.classId = null; // Reset class if no longer a student
+    }
+
+    if (assignedSchoolName) {
+      const School = require("../models/School");
+      const normalized = assignedSchoolName.toLowerCase().replace(/\s+/g, " ");
+      const exists = await School.findOne({ normalizedName: normalized });
+      if (!exists) {
+        await School.create({
+          name: assignedSchoolName,
+          normalizedName: normalized
+        });
+      }
     }
 
     await user.save();

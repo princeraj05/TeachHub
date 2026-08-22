@@ -23,6 +23,8 @@ const adminProfileRoutes = require("./routes/adminProfileRoutes");
 const superAdminRoutes = require("./routes/superAdminRoutes");
 const supportRoutes = require("./routes/supportRoutes");
 const eventRoutes = require("./routes/eventRoutes");
+const schoolRoutes = require("./routes/schoolRoutes");
+const aboutAppRoutes = require("./routes/aboutAppRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -61,8 +63,32 @@ mongoose
         { schoolName: "G.D Accedmy" }
       );
       console.log("Database Migration: Updated Banny Thapar's school to G.D Accedmy", result);
+
+      // Non-destructive startup check: ensure all unique schoolName values in User database have corresponding School records
+      const School = require("./models/School");
+      const userSchools = await User.distinct("schoolName", { schoolName: { $ne: "" } });
+      for (const rawName of userSchools) {
+        const trimmed = rawName.trim();
+        const normalized = trimmed.toLowerCase().replace(/\s+/g, " ");
+        if (!normalized) continue;
+        const exists = await School.findOne({ normalizedName: normalized });
+        if (!exists) {
+          console.log(`Startup Sync: Creating missing School record for '${trimmed}'`);
+          await School.create({
+            name: trimmed,
+            normalizedName: normalized
+          });
+        }
+      }
+      // Seed AboutApp global config if not present
+      const AboutApp = require("./models/AboutApp");
+      const appInfo = await AboutApp.findOne();
+      if (!appInfo) {
+        console.log("Startup Sync: Seeding initial global AboutApp configuration...");
+        await AboutApp.create({});
+      }
     } catch (migrationError) {
-      console.error("Migration Error:", migrationError);
+      console.error("Migration/Startup Sync Error:", migrationError);
     }
   })
   .catch((err) => console.log(err));
@@ -90,6 +116,8 @@ app.use("/api/admin/profile", adminProfileRoutes);
 app.use("/api/superadmin", superAdminRoutes);
 app.use("/api/support", supportRoutes);
 app.use("/api/events", eventRoutes);
+app.use("/api/schools", schoolRoutes);
+app.use("/api/about-app", aboutAppRoutes);
 
 const path = require("path");
 const fs = require("fs");

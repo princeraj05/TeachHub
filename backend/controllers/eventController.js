@@ -47,6 +47,13 @@ exports.createEvent = async (req, res) => {
       return res.status(400).json({ message: "Your account is not assigned to a school" });
     }
 
+    // Automatically determine status based on eventDate
+    const inputDate = new Date(eventDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    inputDate.setHours(0, 0, 0, 0);
+    const status = inputDate < today ? "completed" : "upcoming";
+
     const event = await Event.create({
       schoolName: authUser.schoolName,
       title,
@@ -54,7 +61,7 @@ exports.createEvent = async (req, res) => {
       description: description || "",
       eventDate,
       eventTime,
-      status: "upcoming",
+      status,
       createdBy: req.user.id
     });
 
@@ -73,17 +80,11 @@ exports.getEvents = async (req, res) => {
     }
 
     let query = {};
-    if (authUser.role === "superadmin") {
-      // Super Admin can filter by school query parameter
-      const { schoolName } = req.query;
-      if (schoolName) {
-        query.schoolName = schoolName;
-      }
+    const { schoolName } = req.query;
+    if (authUser.role === "superadmin" || schoolName) {
+      if (schoolName && schoolName !== "all") query.schoolName = schoolName;
     } else {
-      // Standard users must be isolated to their schoolName
-      if (!authUser.schoolName) {
-        return res.status(200).json([]);
-      }
+      if (!authUser.schoolName) return res.status(200).json([]);
       query.schoolName = authUser.schoolName;
     }
 
@@ -103,9 +104,9 @@ exports.getUpcomingEvents = async (req, res) => {
     }
 
     let query = { status: "upcoming" };
-    if (authUser.role === "superadmin") {
-      const { schoolName } = req.query;
-      if (schoolName) query.schoolName = schoolName;
+    const { schoolName } = req.query;
+    if (authUser.role === "superadmin" || schoolName) {
+      if (schoolName && schoolName !== "all") query.schoolName = schoolName;
     } else {
       if (!authUser.schoolName) return res.status(200).json([]);
       query.schoolName = authUser.schoolName;
@@ -127,9 +128,9 @@ exports.getCompletedEvents = async (req, res) => {
     }
 
     let query = { status: "completed" };
-    if (authUser.role === "superadmin") {
+    if (authUser.role === "superadmin" || req.query.global === "true") {
       const { schoolName } = req.query;
-      if (schoolName) query.schoolName = schoolName;
+      if (schoolName && schoolName !== "all") query.schoolName = schoolName;
     } else {
       if (!authUser.schoolName) return res.status(200).json([]);
       query.schoolName = authUser.schoolName;
@@ -188,7 +189,19 @@ exports.updateEvent = async (req, res) => {
     if (title) event.title = title;
     if (subtitle !== undefined) event.subtitle = subtitle;
     if (description !== undefined) event.description = description;
-    if (eventDate) event.eventDate = eventDate;
+    if (eventDate) {
+      event.eventDate = eventDate;
+      // Recalculate status based on the new date
+      const inputDate = new Date(eventDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      inputDate.setHours(0, 0, 0, 0);
+      if (inputDate < today) {
+        event.status = "completed";
+      } else {
+        event.status = "upcoming";
+      }
+    }
     if (eventTime) event.eventTime = eventTime;
     if (status) event.status = status;
 

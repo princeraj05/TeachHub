@@ -385,3 +385,39 @@ exports.submitStudentExam = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// ================= GET DETAILED EXAM RESULT =================
+exports.getStudentExamResult = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+    const examId = req.params.examId;
+
+    const submission = await ExamSubmission.findOne({ student: studentId, exam: examId });
+    if (!submission) {
+      return res.status(404).json({ message: "Exam submission not found for this student" });
+    }
+
+    const exam = await Exam.findById(examId).populate("subject", "name");
+    if (!exam) {
+      return res.status(404).json({ message: "Exam not found" });
+    }
+
+    res.json({
+      _id: submission._id,
+      score: submission.score,
+      total: submission.total,
+      correct: submission.correct,
+      wrong: submission.wrong,
+      answers: submission.answers,
+      exam: {
+        _id: exam._id,
+        subject: exam.subject?.name || "—",
+        date: exam.date,
+        schoolName: exam.schoolName || "",
+        questions: exam.questions
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

@@ -72,4 +72,13 @@ studentController.submitStudentAdmissionExam
 );
 
 
+// ================= STUDENT EXAM RESULT =================
+router.get(
+  "/exams/:examId/result",
+  protect,
+  authorize("student", "unassigned"),
+  studentController.getStudentExamResult
+);
+
+
 module.exports = router;

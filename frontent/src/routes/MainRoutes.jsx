@@ -39,7 +39,7 @@ function MainRoutes() {
       
       {/* Pending Approval */}
       <Route
-        path="/pending"
+        path="/pending/*"
         element={
           <ProtectedRoute allowedRoles={["unassigned"]}>
             <PendingApproval />

@@ -10,6 +10,10 @@ import StudentProfile from "./pages/StudentProfile";
 import StudentSupport from "./pages/StudentSupport";
 import StudentEvents from "./pages/StudentEvents";
 
+import SchoolDirectory from "./pages/SchoolDirectory";
+import SchoolDetails from "./pages/SchoolDetails";
+import AboutAppPage from "./pages/AboutAppPage";
+
 import { CallProvider } from "../../../context/CallContext";
 
 function StudentRoutes() {
@@ -29,6 +33,9 @@ function StudentRoutes() {
         <Route path="profile" element={<StudentProfile />} />
         <Route path="support" element={<StudentSupport />} />
         <Route path="events" element={<StudentEvents />} />
+        <Route path="schools" element={<SchoolDirectory />} />
+        <Route path="schools/:name" element={<SchoolDetails />} />
+        <Route path="about" element={<AboutAppPage />} />
 
       </Route>
 

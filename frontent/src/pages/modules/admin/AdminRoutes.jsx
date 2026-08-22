@@ -25,6 +25,7 @@ import AdminSupport from "./pages/AdminSupport";
 import AdminRequests from "./pages/Requests/AdminRequests";
 import LiveProctoring from "../teacher/pages/LiveProctoring/LiveProctoring";
 import AdminEvents from "./pages/AdminEvents";
+import AboutYourSchool from "./pages/AboutYourSchool";
 
 
 import { CallProvider } from "../../../context/CallContext";
@@ -76,6 +77,9 @@ function AdminRoutes() {
 
         {/* Events */}
         <Route path="events" element={<AdminEvents />} />
+
+        {/* School Config */}
+        <Route path="about-school" element={<AboutYourSchool />} />
 
       </Route>
 

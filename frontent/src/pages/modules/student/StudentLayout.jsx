@@ -11,7 +11,9 @@ import {
   FaComments,
   FaSun,
   FaMoon,
-  FaCalendarAlt
+  FaCalendarAlt,
+  FaSchool,
+  FaInfoCircle
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -67,6 +69,8 @@ function StudentLayout() {
     { to: "/student/exams", icon: <FaFileAlt className="text-xl" />, label: "My Exams" },
     { to: "/student/support", icon: <FaComments className="text-xl" />, label: "Support Chat" },
     { to: "/student/events", icon: <FaCalendarAlt className="text-xl" />, label: "Events" },
+    { to: "/student/schools", icon: <FaSchool className="text-xl" />, label: "School" },
+    { to: "/student/about", icon: <FaInfoCircle className="text-xl" />, label: "About App" },
     { to: "/student/profile", icon: <FaUserCircle className="text-xl" />, label: "Profile" },
   ];
 
