@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { 
   FaCalendarAlt, FaClock, FaPlus, FaTrash, FaEdit, 
-  FaCheckCircle, FaTimes, FaImage, FaVideo, FaEye 
+  FaCheckCircle, FaTimes, FaImage, FaVideo, FaEye, FaExpand 
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -16,6 +16,19 @@ function AdminEvents() {
     return url.startsWith("http") ? url : `${API}${url}`;
   };
 
+  const openLightbox = (type, url, filename) => {
+    setLightboxMedia({ type, url: getMediaUrl(url), filename });
+    setLightboxOpen(true);
+  };
+
+  const getDownloadUrl = (url) => {
+    if (!url) return "";
+    if (url.includes("cloudinary.com")) {
+      return url.replace("/upload/", "/upload/fl_attachment/");
+    }
+    return url;
+  };
+
   const [activeTab, setActiveTab] = useState("upcoming"); // upcoming, completed
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -25,6 +38,9 @@ function AdminEvents() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
+
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxMedia, setLightboxMedia] = useState(null);
 
   // Form input states
   const [title, setTitle] = useState("");
@@ -737,11 +753,18 @@ function AdminEvents() {
                 {selectedEvent.photos && selectedEvent.photos.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                     {selectedEvent.photos.map((photo) => (
-                      <div key={photo._id} className="relative aspect-video rounded-xl overflow-hidden group bg-slate-900 border border-slate-200/50 dark:border-white/10">
+                      <div 
+                        key={photo._id} 
+                        className="relative aspect-video rounded-xl overflow-hidden group bg-slate-900 border border-slate-200/50 dark:border-white/10 cursor-zoom-in"
+                        onClick={() => openLightbox('photo', photo.url, photo.filename)}
+                      >
                         <img src={getMediaUrl(photo.url)} alt={photo.filename} className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold transition">
+                          View Fullscreen
+                        </div>
                         <button
-                          onClick={() => handleDeletePhoto(photo._id)}
-                          className="absolute top-2 right-2 bg-rose-600/90 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-rose-500 cursor-pointer shadow transition"
+                          onClick={(e) => { e.stopPropagation(); handleDeletePhoto(photo._id); }}
+                          className="absolute top-2 right-2 bg-rose-600/90 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-rose-500 cursor-pointer shadow transition z-10"
                         >
                           <FaTrash className="text-xs" />
                         </button>
@@ -761,15 +784,26 @@ function AdminEvents() {
                     {selectedEvent.videos.map((video) => (
                       <div key={video._id} className="relative rounded-2xl overflow-hidden bg-black border border-slate-200/50 dark:border-white/10 group flex flex-col justify-between">
                         <video src={getMediaUrl(video.url)} controls className="w-full aspect-video object-cover" />
-                        <div className="p-3 bg-slate-50 dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
-                          <span className="text-[8px] font-bold text-slate-400 truncate max-w-[70%]">{video.filename}</span>
-                          <button
-                            onClick={() => handleDeleteVideo(video._id)}
-                            className="bg-rose-550/10 hover:bg-rose-500 text-rose-600 hover:text-white p-2 rounded-lg cursor-pointer transition shadow border border-rose-500/15"
-                            title="Delete Video"
-                          >
-                            <FaTrash className="text-xs" />
-                          </button>
+                        <div className="p-3 bg-slate-50 dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/5 flex items-center justify-between gap-2">
+                          <span className="text-[8px] font-bold text-slate-400 truncate max-w-[50%]">{video.filename}</span>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => openLightbox('video', video.url, video.filename)}
+                              className="p-2 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-350 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg cursor-pointer transition border border-slate-200 dark:border-white/10"
+                              title="Watch Fullscreen"
+                            >
+                              <FaExpand className="text-[10px]" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteVideo(video._id)}
+                              className="bg-rose-550/10 hover:bg-rose-500 text-rose-600 hover:text-white p-2 rounded-lg cursor-pointer transition shadow border border-rose-500/15"
+                              title="Delete Video"
+                            >
+                              <FaTrash className="text-xs" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -780,6 +814,63 @@ function AdminEvents() {
               </div>
 
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. LIGHTBOX / FULLSCREEN MEDIA VIEWER */}
+      {lightboxOpen && lightboxMedia && (
+        <div className="fixed inset-0 bg-[#070b13]/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4">
+          {/* Top Control Bar */}
+          <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent text-white select-none z-10">
+            <div>
+              <button
+                type="button"
+                onClick={() => setLightboxOpen(false)}
+                className="flex items-center gap-2 text-xs font-black uppercase tracking-wider bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl transition cursor-pointer"
+              >
+                ← Back
+              </button>
+            </div>
+            {lightboxMedia.filename && (
+              <span className="text-[10px] font-bold text-slate-400 hidden sm:block truncate max-w-xs">{lightboxMedia.filename}</span>
+            )}
+            <div className="flex items-center gap-3">
+              <a
+                href={getDownloadUrl(lightboxMedia.url)}
+                download
+                target="_blank"
+                rel="noreferrer"
+                className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-black uppercase tracking-wider px-4 py-2 rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow"
+              >
+                Download / Save
+              </a>
+              <button
+                type="button"
+                onClick={() => setLightboxOpen(false)}
+                className="text-white hover:text-slate-300 bg-white/10 p-2 rounded-xl cursor-pointer"
+              >
+                <FaTimes />
+              </button>
+            </div>
+          </div>
+
+          {/* Media Container */}
+          <div className="w-full max-w-4xl max-h-[80vh] flex items-center justify-center relative">
+            {lightboxMedia.type === "photo" ? (
+              <img
+                src={lightboxMedia.url}
+                alt="Fullscreen Preview"
+                className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl animate-scaleUp"
+              />
+            ) : (
+              <video
+                src={lightboxMedia.url}
+                controls
+                autoPlay
+                className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl animate-scaleUp"
+              />
+            )}
           </div>
         </div>
       )}
