@@ -45,7 +45,7 @@ studentController.getStudentAttendance
 router.get(
 "/exams",
 protect,
-authorize("student"),
+authorize("student", "unassigned"),
 studentController.getStudentExams
 );
 

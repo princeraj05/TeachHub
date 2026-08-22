@@ -17,9 +17,18 @@ import {
 const SORA = "'Sora', sans-serif";
 
 function SchoolDetails() {
-  const { name } = useParams();
-  const navigate = useNavigate();
+  const params = useParams();
   const location = useLocation();
+  
+  let name = params.name;
+  if (!name) {
+    const match = location.pathname.match(/\/pending\/schools\/(.+)/);
+    if (match) {
+      name = decodeURIComponent(match[1]);
+    }
+  }
+
+  const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
 

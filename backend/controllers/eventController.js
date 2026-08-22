@@ -128,8 +128,8 @@ exports.getCompletedEvents = async (req, res) => {
     }
 
     let query = { status: "completed" };
-    if (authUser.role === "superadmin" || req.query.global === "true") {
-      const { schoolName } = req.query;
+    const { schoolName } = req.query;
+    if (authUser.role === "superadmin" || req.query.global === "true" || schoolName) {
       if (schoolName && schoolName !== "all") query.schoolName = schoolName;
     } else {
       if (!authUser.schoolName) return res.status(200).json([]);
