@@ -23,10 +23,20 @@ const sendOtpEmail = async (email, otp) => {
     </div>
   `;
 
+  let provider = (process.env.EMAIL_PROVIDER || "").toLowerCase();
+  if (!provider) {
+    if (apiKey && apiKey.startsWith("re_")) {
+      provider = "resend";
+    } else if (process.env.RESEND_API_KEY) {
+      provider = "resend";
+    } else if (process.env.BREVO_API_KEY || process.env.SENDINBLUE_API_KEY) {
+      provider = "brevo";
+    }
+  }
+
   // 1. HTTP API (Resend or Brevo)
-  if (apiKey) {
-    const isResend = apiKey.startsWith("re_") || process.env.RESEND_API_KEY;
-    if (isResend) {
+  if (apiKey && (provider === "resend" || provider === "brevo")) {
+    if (provider === "resend") {
       try {
         console.log("Sending verification email via Resend HTTP API...");
         const response = await fetch("https://api.resend.com/emails", {
@@ -52,7 +62,7 @@ const sendOtpEmail = async (email, otp) => {
       } catch (apiError) {
         console.error("Resend API call failed:", apiError);
       }
-    } else {
+    } else if (provider === "brevo") {
       // Brevo API
       try {
         console.log("Sending verification email via Brevo HTTP API...");
