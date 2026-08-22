@@ -398,52 +398,67 @@ function AdminLayout() {
         </div>
       </aside>
 
-      {/* MOBILE: Floating Bottom Navigation Bar */}
-      <nav className="md:hidden fixed bottom-4 left-4 right-4 h-16 bg-white/95 dark:bg-[#0B132A]/95 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl z-45 flex items-center justify-around px-2 transition-all duration-200">
+      {/* MOBILE: Fixed Bottom Navigation Bar (Flat style with text labels) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white dark:bg-[#0B132A] border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-around z-45 px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] select-none">
+        {/* Dashboard */}
         <Link
           to="/admin/dashboard"
-          className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all ${
-            isActive("/admin/dashboard") ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400"
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
+            isActive("/admin/dashboard") ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400 dark:text-slate-500"
           }`}
         >
           <FaTachometerAlt className="text-lg" />
+          <span className="text-[9px] font-bold tracking-tight">Dashboard</span>
         </Link>
 
-        {/* Hamburger/Menu grid popup */}
+        {/* Requests */}
+        <Link
+          to="/admin/requests"
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 relative transition-all duration-200 ${
+            isActive("/admin/requests") ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400 dark:text-slate-500"
+          }`}
+        >
+          <FaUserPlus className="text-lg" />
+          <span className="text-[9px] font-bold tracking-tight">Requests</span>
+          {requestCount > 0 && (
+            <span className="absolute top-1.5 right-4 bg-rose-500 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-full animate-bounce">
+              {requestCount}
+            </span>
+          )}
+        </Link>
+
+        {/* Conduct Exam */}
+        <Link
+          to="/admin/proctoring"
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
+            isActive("/admin/proctoring") ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400 dark:text-slate-500"
+          }`}
+        >
+          <FaTv className="text-lg" />
+          <span className="text-[9px] font-bold tracking-tight">Conduct</span>
+        </Link>
+
+        {/* Support */}
+        <Link
+          to="/admin/support"
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
+            isActive("/admin/support") ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400 dark:text-slate-500"
+          }`}
+        >
+          <FaComments className="text-lg" />
+          <span className="text-[9px] font-bold tracking-tight">Support</span>
+        </Link>
+
+        {/* More */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all cursor-pointer ${
-            mobileMenuOpen ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400"
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 cursor-pointer ${
+            mobileMenuOpen ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400 dark:text-slate-500"
           }`}
         >
           <FaThLarge className="text-lg" />
+          <span className="text-[9px] font-bold tracking-tight">More</span>
         </button>
-
-        <Link
-          to="/admin/exam-schedule"
-          className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all ${
-            isActive("/admin/exam-schedule") ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400"
-          }`}
-        >
-          <FaCalendarAlt className="text-lg" />
-        </Link>
-
-        {/* Theme button for mobile */}
-        <button
-          onClick={toggleTheme}
-          className="flex flex-col items-center justify-center w-12 h-12 rounded-xl text-slate-400 transition-all cursor-pointer"
-        >
-          {theme === "dark" ? <FaSun className="text-lg text-amber-500" /> : <FaMoon className="text-lg" />}
-        </button>
-
-        {/* Profile */}
-        <Link
-          to="/admin/profile"
-          className="relative w-8 h-8 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white text-xs font-black shadow-md border border-white/20"
-        >
-          {name.charAt(0).toUpperCase()}
-          <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-450 rounded-full border-2 border-white dark:border-[#0B132A]" />
-        </Link>
       </nav>
 
       {/* MOBILE: Bottom Sheet Sliding Modal Menu */}
@@ -453,7 +468,7 @@ function AdminLayout() {
             className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden animate-fadeIn"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="fixed bottom-24 left-4 right-4 max-h-[75vh] bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-2xl z-50 overflow-y-auto animate-slideUp text-slate-700 dark:text-slate-300">
+          <div className="fixed bottom-20 left-4 right-4 max-h-[75vh] bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-2xl z-50 overflow-y-auto animate-slideUp text-slate-700 dark:text-slate-300">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/[0.08] pb-4 mb-4">
               <div className="flex items-center gap-2.5">
                 <FaGraduationCap className="text-xl text-[#7C3AED] dark:text-[#38BDF8]" />

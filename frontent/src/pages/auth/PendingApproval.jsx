@@ -19,7 +19,9 @@ import {
   FaLock,
   FaBookOpen,
   FaCalendarAlt,
-  FaInfoCircle
+  FaInfoCircle,
+  FaThLarge,
+  FaTimes
 } from "react-icons/fa";
 import UserProfile from "../../components/UserProfile";
 import GlobalEvents from "../modules/student/pages/GlobalEvents";
@@ -38,6 +40,7 @@ function PendingApproval() {
 
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [user, setUser] = useState({ name: "Loading...", email: "", role: "", avatar: "" });
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Derive active tab from URL path
   const getActiveTab = () => {
@@ -103,6 +106,10 @@ function PendingApproval() {
     const interval = setInterval(checkRoleStatus, 3000);
     return () => clearInterval(interval);
   }, [navigate, API, token]);
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const toggleTheme = () => {
     const nextTheme = theme === "dark" ? "light" : "dark";
@@ -287,7 +294,7 @@ function PendingApproval() {
     <div style={{ fontFamily: SORA }} className="min-h-screen bg-[#F8FAFC] dark:bg-[#090F1C] text-slate-800 dark:text-white transition-colors duration-200">
       
       {/* Sidebar Navigation */}
-      <aside className="fixed left-0 top-0 bottom-0 h-screen w-20 lg:w-64 bg-white dark:bg-[#0B132A] border-r border-slate-200/60 dark:border-white/10 flex flex-col justify-between py-6 px-3 z-40 transition-all duration-200">
+      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 h-screen w-20 lg:w-64 bg-white dark:bg-[#0B132A] border-r border-slate-200/60 dark:border-white/10 flex flex-col justify-between py-6 px-3 z-40 transition-all duration-200">
         <div className="space-y-8">
           {/* Logo */}
           <div className="flex items-center justify-center lg:justify-start lg:px-4 gap-3">
@@ -426,8 +433,121 @@ function PendingApproval() {
         </div>
       </aside>
 
+      {/* MOBILE: Fixed Bottom Navigation Bar (Flat style with text labels) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white dark:bg-[#0B132A] border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-around z-45 px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] select-none">
+        {/* Wait Karo / Status */}
+        <Link
+          to="/pending"
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
+            isLinkActive("status") ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400 dark:text-slate-500"
+          }`}
+        >
+          <FaClock className="text-lg" />
+          <span className="text-[9px] font-bold tracking-tight">Status</span>
+        </Link>
+
+        {/* Event */}
+        <Link
+          to="/pending/events"
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
+            isLinkActive("events") ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400 dark:text-slate-500"
+          }`}
+        >
+          <FaCalendarAlt className="text-lg" />
+          <span className="text-[9px] font-bold tracking-tight">Event</span>
+        </Link>
+
+        {/* School */}
+        <Link
+          to="/pending/schools"
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
+            isLinkActive("schools") ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400 dark:text-slate-500"
+          }`}
+        >
+          <FaSchool className="text-lg" />
+          <span className="text-[9px] font-bold tracking-tight">School</span>
+        </Link>
+
+        {/* Exam */}
+        <Link
+          to="/pending/exams"
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
+            isLinkActive("exams") ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400 dark:text-slate-500"
+          }`}
+        >
+          <FaBookOpen className="text-lg" />
+          <span className="text-[9px] font-bold tracking-tight">Exam</span>
+        </Link>
+
+        {/* More */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 cursor-pointer ${
+            mobileMenuOpen ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400 dark:text-slate-500"
+          }`}
+        >
+          <FaThLarge className="text-lg" />
+          <span className="text-[9px] font-bold tracking-tight">More</span>
+        </button>
+      </nav>
+
+      {/* MOBILE: Bottom Sheet Sliding Menu */}
+      {mobileMenuOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden animate-fadeIn"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div className="fixed bottom-20 left-4 right-4 max-h-[75vh] bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-2xl z-50 overflow-y-auto animate-slideUp text-slate-700 dark:text-slate-300">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/[0.08] pb-4 mb-4">
+              <div className="flex items-center gap-2.5">
+                <FaGraduationCap className="text-xl text-[#7C3AED] dark:text-[#38BDF8]" />
+                <span className="text-base font-extrabold text-slate-800 dark:text-white">TeachHub Pending Portal</span>
+              </div>
+              <button
+                className="text-slate-400 hover:text-slate-650 dark:hover:text-white bg-slate-100 dark:bg-white/5 p-1.5 rounded-xl transition"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <FaTimes className="text-xs" />
+              </button>
+            </div>
+
+            <div className="space-y-5">
+              {/* Category: Account */}
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Settings</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <Link to="/pending/profile" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">My Profile</Link>
+                  <Link to="/pending/about" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">About App</Link>
+                </div>
+              </div>
+
+              {/* Category: Actions */}
+              <div className="pt-4 border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-between">
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    toggleTheme();
+                  }}
+                  className="text-xs font-bold text-[#7C3AED] dark:text-[#38BDF8] hover:underline"
+                >
+                  Change Theme
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-550 dark:text-rose-400 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition"
+                >
+                  <FaSignOutAlt />
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Main Content Area */}
-      <main className="pl-20 lg:pl-64 min-h-screen flex items-center justify-center p-6 sm:p-12 transition-all duration-200 select-none">
+      <main className="pl-0 md:pl-20 lg:pl-64 pb-20 md:pb-0 min-h-screen flex items-center justify-center p-6 sm:p-12 transition-all duration-200 select-none">
         {renderTabContent()}
       </main>
     </div>

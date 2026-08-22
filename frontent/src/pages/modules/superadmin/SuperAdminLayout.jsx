@@ -69,7 +69,7 @@ function SuperAdminLayout() {
       <div className="fixed -bottom-40 left-1/3 w-96 h-96 rounded-full bg-[#38BDF8]/10 dark:bg-[#38BDF8]/5 blur-[120px] pointer-events-none z-0" />
 
       {/* Sidebar - Instagram Style */}
-      <aside className="fixed left-0 top-0 bottom-0 h-screen w-20 lg:w-64 border-r border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0B132A] flex flex-col justify-between py-8 px-4 z-40 select-none transition-all duration-200">
+      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 h-screen w-20 lg:w-64 border-r border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0B132A] flex flex-col justify-between py-8 px-4 z-40 select-none transition-all duration-200">
         <div className="flex flex-col gap-8">
           {/* Logo / Branding */}
           <div className="flex items-center gap-3 px-2.5">
@@ -128,8 +128,26 @@ function SuperAdminLayout() {
         </div>
       </aside>
 
+      {/* MOBILE: Fixed Bottom Navigation Bar */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white dark:bg-[#0B132A] border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-around z-45 px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] select-none">
+        {navLinks.map((link) => (
+          <Link
+            key={link.to}
+            to={link.to}
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
+              isActive(link.to)
+                ? "text-[#7C3AED] dark:text-[#38BDF8]"
+                : "text-slate-400 dark:text-slate-500"
+            }`}
+          >
+            <div className="text-lg">{link.icon}</div>
+            <span className="text-[9px] font-bold tracking-tight">{link.label.split(" ")[0]}</span>
+          </Link>
+        ))}
+      </nav>
+
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 pl-20 lg:pl-64 relative z-10">
+      <div className="flex-1 flex flex-col min-w-0 pl-0 md:pl-20 lg:pl-64 pb-16 md:pb-0 relative z-10">
         {/* Header */}
         <header className="flex items-center justify-between bg-white/60 dark:bg-[#0B132A]/60 backdrop-blur-md px-6 py-4 mx-4 md:mx-6 mt-4 border border-slate-200/50 dark:border-white/10 rounded-2xl shadow-sm z-30 select-none">
           <div>
