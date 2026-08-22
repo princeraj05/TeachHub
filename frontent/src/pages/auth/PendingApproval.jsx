@@ -229,6 +229,10 @@ function PendingApproval() {
   const [requestedRole, setRequestedRole] = useState("student");
   const [submitting, setSubmitting] = useState(false);
 
+  // Upcoming Events states
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
+
   // Exam Proctoring states
   const [activeTest, setActiveTest] = useState(null); // null or "admission"
   const [testStep, setTestStep] = useState("setup"); // "setup" | "taking" | "graded"
@@ -521,6 +525,32 @@ function PendingApproval() {
       });
   }, []);
 
+  // Fetch upcoming events based on requestedSchool or assigned schoolName
+  useEffect(() => {
+    const API = import.meta.env.VITE_API_URL;
+    const token = localStorage.getItem("token");
+    const school = user.schoolName || user.requestedSchool;
+    if (!token || !school) {
+      setUpcomingEvents([]);
+      return;
+    }
+
+    setLoadingEvents(true);
+    axios
+      .get(`${API}/api/events/upcoming`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then((res) => {
+        setUpcomingEvents(res.data || []);
+      })
+      .catch((err) => {
+        console.error("Error loading upcoming events:", err);
+      })
+      .finally(() => {
+        setLoadingEvents(false);
+      });
+  }, [user.schoolName, user.requestedSchool]);
+
   const toggleTheme = () => {
     const nextTheme = theme === "dark" ? "light" : "dark";
     setTheme(nextTheme);
@@ -652,9 +682,10 @@ function PendingApproval() {
 
       {/* Main Content Area */}
       <main className="pl-20 lg:pl-64 min-h-screen flex items-center justify-center p-6 sm:p-12 transition-all duration-200">
-                {activeTab === "status" && (
-          <div className="w-full flex items-center justify-center">
-            <div className="max-w-md w-full bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl p-8 text-center relative overflow-hidden transition-all duration-200">
+        {activeTab === "status" && (
+          <div className="w-full flex flex-col xl:flex-row items-center xl:items-start justify-center gap-8 max-w-5xl">
+            {/* Status Card */}
+            <div className="w-full max-w-md bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl p-8 text-center relative overflow-hidden transition-all duration-200 shrink-0">
               {/* Ambient glow */}
               <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-[#7C3AED]/10 blur-[50px] pointer-events-none" />
               
@@ -707,7 +738,7 @@ function PendingApproval() {
 
               {/* Status: Standard Pending */}
               {(user.requestStatus === "pending" || !user.requestStatus) && (
-                <div className="space-y-4">
+                <div className="space-y-4 text-center">
                   {user.requestedSchool && (
                     <div className="mb-6 px-4 py-3 bg-amber-500/15 border border-amber-500/20 rounded-2xl text-left flex items-start gap-3">
                       <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping mt-1 shrink-0" />
@@ -735,6 +766,52 @@ function PendingApproval() {
                 </div>
               )}
             </div>
+
+            {/* Upcoming Events Card */}
+            {(user.schoolName || user.requestedSchool) && (
+              <div className="w-full max-w-md bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl p-8 relative overflow-hidden transition-all duration-200 text-left shrink-0">
+                <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-[#38BDF8]/10 blur-[50px] pointer-events-none" />
+                
+                <div className="flex items-center gap-3 border-b border-slate-100 dark:border-white/5 pb-4 mb-6 select-none">
+                  <div className="w-10 h-10 rounded-xl bg-[#7C3AED]/15 text-[#7C3AED] dark:text-[#38BDF8] flex items-center justify-center text-lg">
+                    <FaCalendarAlt />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">Upcoming Events</h3>
+                    <p className="text-[9px] text-slate-400 font-bold mt-0.5">Stay tuned with school life</p>
+                  </div>
+                </div>
+
+                {loadingEvents ? (
+                  <div className="py-12 text-center flex flex-col items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-[#7C3AED] border-t-transparent rounded-full animate-spin mb-2" />
+                    <p className="text-[10px] text-slate-400 font-bold">Syncing events calendar...</p>
+                  </div>
+                ) : upcomingEvents.length === 0 ? (
+                  <div className="py-10 text-center bg-slate-50/50 dark:bg-white/[0.01] border border-slate-150 dark:border-white/5 rounded-2xl p-6">
+                    <p className="text-xs text-slate-400 font-medium leading-relaxed italic">No upcoming events scheduled yet for your school.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1">
+                    {upcomingEvents.map((ev) => (
+                      <div key={ev._id} className="bg-slate-50/60 dark:bg-white/[0.02] border border-slate-200/40 dark:border-white/5 p-4 rounded-2xl hover:border-slate-300 dark:hover:border-white/10 transition">
+                        <h4 className="text-xs font-black text-slate-800 dark:text-white">{ev.title}</h4>
+                        {ev.subtitle && <p className="text-[9px] font-bold text-[#7C3AED] dark:text-[#38BDF8] mt-0.5 uppercase tracking-wide">{ev.subtitle}</p>}
+                        
+                        <div className="flex items-center gap-3 text-[9px] text-slate-400 font-bold mt-3">
+                          <span className="flex items-center gap-1"><FaCalendarAlt /> {new Date(ev.eventDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+                          <span className="flex items-center gap-1"><FaClock /> {ev.eventTime}</span>
+                        </div>
+                        
+                        {ev.description && (
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 leading-relaxed line-clamp-2">{ev.description}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 

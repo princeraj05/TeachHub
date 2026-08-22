@@ -15,6 +15,7 @@ import TeacherProfile from "./pages/Profile/TeacherProfile";
 import MyClasses from "./pages/MyClasses/MyClasses";
 import TeacherSupport from "./pages/TeacherSupport";
 import LiveProctoring from "./pages/LiveProctoring/LiveProctoring";
+import TeacherEvents from "./pages/TeacherEvents";
 
 import { CallProvider } from "../../../context/CallContext";
 
@@ -45,6 +46,7 @@ function TeacherRoutes() {
         <Route path="profile" element={<TeacherProfile />} />
         <Route path="my-classes" element={<MyClasses/>}/>
         <Route path="support" element={<TeacherSupport />} />
+        <Route path="events" element={<TeacherEvents />} />
 
       </Route>
 

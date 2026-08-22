@@ -76,6 +76,7 @@ function TeacherLayout() {
     { to: "/teacher/exam-schedule", icon: <FaCalendarAlt className="text-xl" />, label: "Exams" },
     { to: "/teacher/proctoring", icon: <FaTv className="text-xl" />, label: "Conduct Exam" },
     { to: "/teacher/support", icon: <FaComments className="text-xl" />, label: "Support" },
+    { to: "/teacher/events", icon: <FaCalendarAlt className="text-xl" />, label: "Events" },
     { to: "/teacher/profile", icon: <FaUserCircle className="text-xl" />, label: "Profile" }
   ];
 

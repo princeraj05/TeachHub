@@ -22,6 +22,7 @@ const examRoutes = require("./routes/examRoutes");
 const adminProfileRoutes = require("./routes/adminProfileRoutes");
 const superAdminRoutes = require("./routes/superAdminRoutes");
 const supportRoutes = require("./routes/supportRoutes");
+const eventRoutes = require("./routes/eventRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -88,6 +89,7 @@ app.use("/api/exams", examRoutes);
 app.use("/api/admin/profile", adminProfileRoutes);
 app.use("/api/superadmin", superAdminRoutes);
 app.use("/api/support", supportRoutes);
+app.use("/api/events", eventRoutes);
 
 const path = require("path");
 const fs = require("fs");

@@ -8,6 +8,7 @@ import StudentAttendance from "./pages/StudentAttendance";
 import StudentExams from "./pages/StudentExams";
 import StudentProfile from "./pages/StudentProfile";
 import StudentSupport from "./pages/StudentSupport";
+import StudentEvents from "./pages/StudentEvents";
 
 import { CallProvider } from "../../../context/CallContext";
 
@@ -27,6 +28,7 @@ function StudentRoutes() {
         <Route path="exams" element={<StudentExams />} />
         <Route path="profile" element={<StudentProfile />} />
         <Route path="support" element={<StudentSupport />} />
+        <Route path="events" element={<StudentEvents />} />
 
       </Route>
 

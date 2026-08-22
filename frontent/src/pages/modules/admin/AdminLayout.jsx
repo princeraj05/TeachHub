@@ -327,6 +327,19 @@ function AdminLayout() {
               <span className="hidden lg:block text-sm font-semibold">Support</span>
             </Link>
 
+            {/* Events */}
+            <Link
+              to="/admin/events"
+              className={`flex items-center gap-4 px-3.5 py-3 rounded-xl transition-all duration-200 ${
+                isActive("/admin/events")
+                  ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] dark:bg-[#38BDF8]/10 font-bold"
+                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <div className="flex-shrink-0"><FaCalendarAlt className="text-xl" /></div>
+              <span className="hidden lg:block text-sm font-semibold">Events</span>
+            </Link>
+
             {/* Profile */}
             <Link
               to="/admin/profile"
@@ -484,6 +497,14 @@ function AdminLayout() {
                 <div className="grid grid-cols-2 gap-2">
                   <Link to="/admin/attendance-report" className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Attendance Report</Link>
                   <Link to="/admin/exam-results" className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Exam Results</Link>
+                </div>
+              </div>
+
+              {/* Category: Events */}
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Events</p>
+                <div className="grid grid-cols-1 gap-2">
+                  <Link to="/admin/events" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Manage School Events</Link>
                 </div>
               </div>
 
