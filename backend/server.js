@@ -36,6 +36,8 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
+      "http://localhost",
+      "capacitor://localhost",
       "https://myschool-admin-panel.vercel.app"
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],

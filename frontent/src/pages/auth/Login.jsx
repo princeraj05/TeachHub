@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaEnvelope, FaLock, FaGraduationCap, FaCheckCircle, FaSun, FaMoon } from "react-icons/fa";
@@ -19,6 +19,12 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [devOtpMessage, setDevOtpMessage] = useState("");
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      GoogleAuth.initialize();
+    }
+  }, []);
 
   const toggleTheme = () => {
     const nextTheme = theme === "dark" ? "light" : "dark";
