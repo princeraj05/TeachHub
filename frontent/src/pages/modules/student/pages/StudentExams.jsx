@@ -103,6 +103,22 @@ function StudentExams() {
 
   const socketRef = useRef(null);
 
+  // Media streams
+  const [cameraStream, setCameraStream] = useState(null);
+  const [screenStream, setScreenStream] = useState(null);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [screenActive, setScreenActive] = useState(false);
+  const [mediaError, setMediaError] = useState("");
+
+  // Test content
+  const [testPaper, setTestPaper] = useState(null);
+  const [currentQIndex, setCurrentQIndex] = useState(0);
+  const [activeSection, setActiveSection] = useState("Mathematics");
+  const [selectedAnswers, setSelectedAnswers] = useState([]);
+  const [loadingTest, setLoadingTest] = useState(false);
+  const [submittingTest, setSubmittingTest] = useState(false);
+  const [testResult, setTestResult] = useState(null);
+
   useEffect(() => {
     if (testStep === "taking") {
       const proctorVal = activeTest === "admission"
@@ -195,22 +211,6 @@ function StudentExams() {
       clearInterval(screenInterval);
     };
   }, [testStep, cameraStream, screenStream, cameraActive, screenActive, activeTest, profile, selectedClassExam]);
-  
-  // Media streams
-  const [cameraStream, setCameraStream] = useState(null);
-  const [screenStream, setScreenStream] = useState(null);
-  const [cameraActive, setCameraActive] = useState(false);
-  const [screenActive, setScreenActive] = useState(false);
-  const [mediaError, setMediaError] = useState("");
-
-  // Test content
-  const [testPaper, setTestPaper] = useState(null);
-  const [currentQIndex, setCurrentQIndex] = useState(0);
-  const [activeSection, setActiveSection] = useState("Mathematics");
-  const [selectedAnswers, setSelectedAnswers] = useState([]);
-  const [loadingTest, setLoadingTest] = useState(false);
-  const [submittingTest, setSubmittingTest] = useState(false);
-  const [testResult, setTestResult] = useState(null);
 
   useEffect(() => {
     axios
