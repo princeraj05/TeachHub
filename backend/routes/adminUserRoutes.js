@@ -10,6 +10,7 @@ processJoinRequest,
 getAdmissionExam,
 saveAdmissionExam,
 assignClass,
+addStudent,
 deleteUser
 } = require("../controllers/adminUserController");
 
@@ -18,6 +19,7 @@ router.use(authorize("admin"));
 
 router.get("/teachers",getTeachers);
 router.get("/students",getStudents);
+router.post("/students", addStudent);
 router.get("/join-requests", getJoinRequests);
 router.post("/process-request", processJoinRequest);
 router.get("/admission-exam", getAdmissionExam);

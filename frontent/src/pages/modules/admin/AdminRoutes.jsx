@@ -26,6 +26,7 @@ import AdminRequests from "./pages/Requests/AdminRequests";
 import LiveProctoring from "../teacher/pages/LiveProctoring/LiveProctoring";
 import AdminEvents from "./pages/AdminEvents";
 import AboutYourSchool from "./pages/AboutYourSchool";
+import CreateTimetable from "./pages/CreateTimetable";
 
 
 import { CallProvider } from "../../../context/CallContext";
@@ -80,6 +81,7 @@ function AdminRoutes() {
 
         {/* School Config */}
         <Route path="about-school" element={<AboutYourSchool />} />
+        <Route path="create-timetable" element={<CreateTimetable />} />
 
       </Route>
 

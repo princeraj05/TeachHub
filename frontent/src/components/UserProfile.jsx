@@ -17,9 +17,9 @@ function UserProfile() {
   const API = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
 
-  const [user, setUser] = useState({ name: "", email: "", role: "", phoneNumber: "", avatar: "" });
+  const [user, setUser] = useState({ name: "", email: "", role: "", phoneNumber: "", fatherMobileNumber: "", motherMobileNumber: "", avatar: "" });
   const [editMode, setEditMode] = useState(false);
-  const [formData, setFormData] = useState({ name: "", phoneNumber: "", avatar: "" });
+  const [formData, setFormData] = useState({ name: "", phoneNumber: "", fatherMobileNumber: "", motherMobileNumber: "", avatar: "" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -37,6 +37,8 @@ function UserProfile() {
       setFormData({
         name: res.data.name || "",
         phoneNumber: res.data.phoneNumber || "",
+        fatherMobileNumber: res.data.fatherMobileNumber || "",
+        motherMobileNumber: res.data.motherMobileNumber || "",
         avatar: res.data.avatar || ""
       });
     } catch (err) {
@@ -223,6 +225,10 @@ function UserProfile() {
                 )}
               </div>
             </div>
+            {user.role === "student" && [
+              ["fatherMobileNumber", "Father Mobile Number"],
+              ["motherMobileNumber", "Mother Mobile Number"]
+            ].map(([field, label]) => <div key={field} className="bg-slate-50 dark:bg-white/5 border border-slate-200/40 dark:border-white/[0.04] rounded-2xl p-3.5 sm:p-4 flex items-center gap-3 sm:gap-4"><div className="w-9 h-9 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-600 shrink-0"><FaPhone /></div><div className="flex-1 min-w-0"><p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{label}</p>{editMode ? <input type="tel" name={field} value={formData[field]} onChange={handleChange} placeholder="Enter mobile number" className="mt-1 w-full bg-white dark:bg-[#1E293B] border rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-white" /> : <p className="text-slate-800 dark:text-slate-200 font-bold text-sm mt-0.5">{user[field] || "Not Provided"}</p>}</div></div>)}
           </div>
 
           {/* Action buttons */}
@@ -235,6 +241,8 @@ function UserProfile() {
                     setFormData({
                       name: user.name || "",
                       phoneNumber: user.phoneNumber || "",
+                      fatherMobileNumber: user.fatherMobileNumber || "",
+                      motherMobileNumber: user.motherMobileNumber || "",
                       avatar: user.avatar || ""
                     });
                     setEditMode(false);

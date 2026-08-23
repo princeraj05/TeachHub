@@ -25,6 +25,7 @@ const supportRoutes = require("./routes/supportRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const schoolRoutes = require("./routes/schoolRoutes");
 const aboutAppRoutes = require("./routes/aboutAppRoutes");
+const featureRoutes = require("./routes/featureRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -117,6 +118,7 @@ app.use("/api/support", supportRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/schools", schoolRoutes);
 app.use("/api/about-app", aboutAppRoutes);
+app.use("/api", featureRoutes);
 
 const path = require("path");
 const fs = require("fs");

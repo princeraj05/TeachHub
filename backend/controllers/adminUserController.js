@@ -343,3 +343,26 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// ================= DIRECT ADD STUDENT =================
+exports.addStudent = async (req, res) => {
+  try {
+    const { name, email, phoneNumber = "", classId } = req.body;
+    if (!name?.trim() || !email?.trim()) return res.status(400).json({ message: "Name and email are required" });
+    const normalizedEmail = email.trim().toLowerCase();
+    let student = await User.findOne({ email: normalizedEmail });
+    if (student && student.schoolName && student.schoolName !== req.user.schoolName) return res.status(409).json({ message: "This email is already associated with another school" });
+    if (student && student.role !== "unassigned" && student.role !== "student") return res.status(409).json({ message: "This email already belongs to another user role" });
+    let targetClass = null;
+    if (classId) {
+      targetClass = await Class.findOne({ _id: classId, schoolName: req.user.schoolName });
+      if (!targetClass) return res.status(400).json({ message: "Class does not belong to your school" });
+    }
+    if (!student) student = new User({ name: name.trim(), email: normalizedEmail });
+    student.name = name.trim(); student.phoneNumber = phoneNumber; student.role = "student"; student.schoolName = req.user.schoolName;
+    student.requestedSchool = ""; student.requestedRole = ""; student.requestStatus = "approved"; student.classId = targetClass?._id || null;
+    await student.save();
+    if (targetClass && !targetClass.students.some(id => String(id) === String(student._id))) { targetClass.students.push(student._id); await targetClass.save(); }
+    res.status(student.isNew ? 201 : 200).json({ message: "Student added to your school", student: await User.findById(student._id).populate("classId", "name section").select("-password") });
+  } catch (error) { res.status(500).json({ message: "Could not add student" }); }
+};

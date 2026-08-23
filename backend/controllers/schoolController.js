@@ -74,6 +74,10 @@ exports.updateMySchool = async (req, res) => {
       totalClasses,
       availableClasses,
       schoolTypes,
+      schoolType,
+      teacherAppointmentBooking,
+      appointmentMode,
+      appointmentDetails,
       admissionExam,
       directAdmission,
       description
@@ -86,6 +90,16 @@ exports.updateMySchool = async (req, res) => {
     if (totalClasses !== undefined) school.totalClasses = totalClasses;
     if (availableClasses !== undefined) school.availableClasses = availableClasses;
     if (schoolTypes !== undefined) school.schoolTypes = schoolTypes;
+    if (schoolType !== undefined) {
+      if (!["Private", "Government", ""].includes(schoolType)) return res.status(400).json({ message: "Invalid school type" });
+      school.schoolType = schoolType;
+    }
+    if (teacherAppointmentBooking !== undefined) school.teacherAppointmentBooking = Boolean(teacherAppointmentBooking);
+    if (appointmentMode !== undefined) {
+      if (!["Online", "Offline", ""].includes(appointmentMode)) return res.status(400).json({ message: "Invalid appointment mode" });
+      school.appointmentMode = appointmentMode;
+    }
+    if (appointmentDetails !== undefined) school.appointmentDetails = String(appointmentDetails).slice(0, 1000);
     if (admissionExam !== undefined) school.admissionExam = admissionExam;
     if (directAdmission !== undefined) school.directAdmission = directAdmission;
     if (description !== undefined) school.description = description;

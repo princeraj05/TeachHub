@@ -13,6 +13,8 @@ import StudentEvents from "./pages/StudentEvents";
 import SchoolDirectory from "./pages/SchoolDirectory";
 import SchoolDetails from "./pages/SchoolDetails";
 import AboutAppPage from "./pages/AboutAppPage";
+import TeacherOnLeave from "./pages/TeacherOnLeave";
+import TimetableView from "../../../components/TimetableView";
 
 import { CallProvider } from "../../../context/CallContext";
 
@@ -36,6 +38,8 @@ function StudentRoutes() {
         <Route path="schools" element={<SchoolDirectory />} />
         <Route path="schools/:name" element={<SchoolDetails />} />
         <Route path="about" element={<AboutAppPage />} />
+        <Route path="teacher-on-leave" element={<TeacherOnLeave />} />
+        <Route path="showtimetable" element={<TimetableView />} />
 
       </Route>
 

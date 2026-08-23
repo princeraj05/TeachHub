@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaBroadcastTower, FaComments, FaPhone } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import { useCall } from "../../../../context/CallContext";
 import SupportChatEngine from "../../../../components/SupportChatEngine";
 
@@ -127,6 +128,8 @@ function TeacherSupport() {
   const studentContacts = contacts.filter(c => c.role === "student");
 
   return (
+    <>
+    <div className="mb-3 flex justify-end"><Link to="/teacher/support/groups" className="rounded-xl bg-[#7C3AED] px-4 py-2 text-xs font-bold text-white">Make Group</Link></div>
     <div className="font-sans flex flex-col h-[calc(100vh-140px)] bg-white border border-slate-200/60 rounded-3xl overflow-hidden shadow-sm">
       {/* Tab bar */}
       <div className="flex border-b border-slate-100 bg-slate-50/50 p-2 gap-2 select-none">
@@ -367,6 +370,7 @@ function TeacherSupport() {
         )}
       </div>
     </div>
+    </>
   );
 }
 

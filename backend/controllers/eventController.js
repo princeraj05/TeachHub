@@ -277,6 +277,7 @@ exports.uploadPhotos = async (req, res) => {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: "No files uploaded" });
     }
+    if ((event.photos?.length || 0) + req.files.length > 10) return res.status(400).json({ message: "An event can contain a maximum of 10 photos" });
 
     const newPhotos = [];
     for (const file of req.files) {
@@ -329,6 +330,7 @@ exports.uploadVideos = async (req, res) => {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: "No files uploaded" });
     }
+    if ((event.videos?.length || 0) + req.files.length > 5) return res.status(400).json({ message: "An event can contain a maximum of 5 videos" });
 
     const newVideos = [];
     for (const file of req.files) {
@@ -336,6 +338,10 @@ exports.uploadVideos = async (req, res) => {
         folder: "teachhub/events/videos",
         resource_type: "video"
       });
+      if (Number(result.duration || 0) > 60) {
+        await cloudinary.uploader.destroy(result.public_id, { resource_type: "video" });
+        return res.status(400).json({ message: "Each video must be 1 minute or shorter" });
+      }
       newVideos.push({
         url: result.secure_url,
         filename: result.public_id,

@@ -38,6 +38,10 @@ const schoolSchema = new mongoose.Schema({
     type: [String],
     default: []
   },
+  schoolType: { type: String, enum: ["Private", "Government", ""], default: "" },
+  teacherAppointmentBooking: { type: Boolean, default: false },
+  appointmentMode: { type: String, enum: ["Online", "Offline", ""], default: "" },
+  appointmentDetails: { type: String, default: "" },
   admissionExam: {
     type: Boolean,
     default: null

@@ -111,7 +111,8 @@ user:{
 _id:user._id,
 name:user.name,
 email:user.email,
-role:user.role
+role:user.role,
+schoolName:user.schoolName || ""
 }
 
 });
@@ -357,7 +358,7 @@ exports.getProfile = async (req, res) => {
 // ================= UPDATE PROFILE =================
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, phoneNumber, avatar } = req.body;
+    const { name, phoneNumber, avatar, fatherMobileNumber, motherMobileNumber } = req.body;
     
     const user = await User.findById(req.user.id);
     if (!user) {
@@ -367,6 +368,15 @@ exports.updateProfile = async (req, res) => {
     if (name) user.name = name;
     if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
     if (avatar !== undefined) user.avatar = avatar;
+    const phonePattern = /^[0-9+()\-\s]{7,20}$/;
+    if (fatherMobileNumber !== undefined) {
+      if (fatherMobileNumber && !phonePattern.test(fatherMobileNumber)) return res.status(400).json({ message: "Father mobile number is invalid" });
+      user.fatherMobileNumber = fatherMobileNumber;
+    }
+    if (motherMobileNumber !== undefined) {
+      if (motherMobileNumber && !phonePattern.test(motherMobileNumber)) return res.status(400).json({ message: "Mother mobile number is invalid" });
+      user.motherMobileNumber = motherMobileNumber;
+    }
 
     await user.save();
 
@@ -379,6 +389,8 @@ exports.updateProfile = async (req, res) => {
         role: user.role,
         schoolName: user.schoolName,
         phoneNumber: user.phoneNumber,
+        fatherMobileNumber: user.fatherMobileNumber,
+        motherMobileNumber: user.motherMobileNumber,
         avatar: user.avatar
       }
     });

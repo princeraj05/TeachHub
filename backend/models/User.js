@@ -27,6 +27,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ""
   },
+  fatherMobileNumber: { type: String, default: "", trim: true, maxlength: 20 },
+  motherMobileNumber: { type: String, default: "", trim: true, maxlength: 20 },
   avatar: {
     type: String,
     default: ""

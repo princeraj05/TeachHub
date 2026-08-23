@@ -26,6 +26,10 @@ function AboutYourSchool() {
   const [admissionExam, setAdmissionExam] = useState("null"); // "true" | "false" | "null"
   const [directAdmission, setDirectAdmission] = useState("null"); // "true" | "false" | "null"
   const [description, setDescription] = useState("");
+  const [schoolType, setSchoolType] = useState("");
+  const [appointmentBooking, setAppointmentBooking] = useState(false);
+  const [appointmentMode, setAppointmentMode] = useState("Offline");
+  const [appointmentDetails, setAppointmentDetails] = useState("");
 
   useEffect(() => {
     fetchMySchool();
@@ -57,6 +61,10 @@ function AboutYourSchool() {
         else setDirectAdmission("null");
 
         setDescription(data.description || "");
+        setSchoolType(data.schoolType || "");
+        setAppointmentBooking(Boolean(data.teacherAppointmentBooking));
+        setAppointmentMode(data.appointmentMode || "Offline");
+        setAppointmentDetails(data.appointmentDetails || "");
       }
     } catch (err) {
       console.error("Error loading my school info:", err);
@@ -93,6 +101,10 @@ function AboutYourSchool() {
         admissionExam: admissionExam === "true" ? true : admissionExam === "false" ? false : null,
         directAdmission: directAdmission === "true" ? true : directAdmission === "false" ? false : null,
         description
+        ,schoolType
+        ,teacherAppointmentBooking: appointmentBooking
+        ,appointmentMode: appointmentBooking ? appointmentMode : ""
+        ,appointmentDetails
       };
 
       await axios.put(`${API}/api/schools/my-school`, payload, {
@@ -333,6 +345,16 @@ function AboutYourSchool() {
                 <option value="false">No</option>
               </select>
             </div>
+          </div>
+        </div>
+
+        {/* School Description */}
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl p-6 shadow-md space-y-4">
+          <h3 className="text-xs font-black uppercase text-slate-455 tracking-wider">School Type & Teacher Appointments</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <select value={schoolType} onChange={(e) => setSchoolType(e.target.value)} className="px-4 py-3 bg-slate-50 dark:bg-[#1E293B] border rounded-xl text-xs dark:text-white"><option value="">Select School Type</option><option value="Private">Private</option><option value="Government">Government</option></select>
+            <label className="flex items-center gap-2 text-xs font-bold dark:text-white"><input type="checkbox" checked={appointmentBooking} onChange={(e) => setAppointmentBooking(e.target.checked)} /> Enable teacher appointment booking</label>
+            {appointmentBooking && <><select value={appointmentMode} onChange={(e) => setAppointmentMode(e.target.value)} className="px-4 py-3 bg-slate-50 dark:bg-[#1E293B] border rounded-xl text-xs dark:text-white"><option>Offline</option><option>Online</option></select><input value={appointmentDetails} onChange={(e) => setAppointmentDetails(e.target.value)} placeholder="Availability or appointment details" className="px-4 py-3 bg-slate-50 dark:bg-[#1E293B] border rounded-xl text-xs dark:text-white" /></>}
           </div>
         </div>
 

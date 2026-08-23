@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { 
+import {
   FaCalendarAlt, FaClock, FaPlus, FaTrash, FaEdit, 
   FaCheckCircle, FaTimes, FaImage, FaVideo, FaEye, FaExpand 
 } from "react-icons/fa";
+import { compressImage, videoDuration } from "../../../../utils/mediaCompression";
 import EventGallery from "../../../../components/EventGallery";
 
 const SORA = "'Sora', sans-serif";
@@ -55,6 +56,7 @@ function AdminEvents() {
   // File upload state trackers
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  const [compressionInfo, setCompressionInfo] = useState("");
 
   useEffect(() => {
     fetchEvents();
@@ -153,12 +155,13 @@ function AdminEvents() {
 
     setUploading(true);
     setUploadError("");
-    const formData = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      formData.append("photos", files[i]);
-    }
-
+    if ((selectedEvent.photos?.length || 0) + files.length > 10) { setUploadError("An event can contain a maximum of 10 photos."); return; }
     try {
+      const compressed = await Promise.all([...files].map(compressImage));
+      const original = [...files].reduce((sum, file) => sum + file.size, 0), final = compressed.reduce((sum, file) => sum + file.size, 0);
+      setCompressionInfo(`Original size: ${(original / 1048576).toFixed(2)} MB · Compressed size: ${(final / 1048576).toFixed(2)} MB · ${original ? Math.max(0, ((1 - final / original) * 100)).toFixed(0) : 0}% saved`);
+      const formData = new FormData(); compressed.forEach(file => formData.append("photos", file));
+
       const res = await axios.post(
         `${API}/api/events/${selectedEvent._id}/photos`,
         formData,
@@ -185,12 +188,9 @@ function AdminEvents() {
 
     setUploading(true);
     setUploadError("");
-    const formData = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      formData.append("videos", files[i]);
-    }
+    if ((selectedEvent.videos?.length || 0) + files.length > 5) { setUploadError("An event can contain a maximum of 5 videos."); return; }
+    try { const durations = await Promise.all([...files].map(videoDuration)); if (durations.some(duration => duration > 60)) { setUploadError("Each video must be 1 minute or shorter."); return; } setCompressionInfo(`Video duration verified before upload. Original size: ${([...files].reduce((sum, file) => sum + file.size, 0) / 1048576).toFixed(2)} MB`); const formData = new FormData(); [...files].forEach(file => formData.append("videos", file));
 
-    try {
       const res = await axios.post(
         `${API}/api/events/${selectedEvent._id}/videos`,
         formData,
@@ -746,6 +746,7 @@ function AdminEvents() {
                     {uploadError}
                   </div>
                 )}
+                {compressionInfo && <p className="mt-2 text-[10px] font-bold text-emerald-600">{compressionInfo}</p>}
               </div>
 
               <EventGallery

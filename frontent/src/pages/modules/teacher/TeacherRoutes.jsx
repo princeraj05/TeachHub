@@ -16,6 +16,9 @@ import MyClasses from "./pages/MyClasses/MyClasses";
 import TeacherSupport from "./pages/TeacherSupport";
 import LiveProctoring from "./pages/LiveProctoring/LiveProctoring";
 import TeacherEvents from "./pages/TeacherEvents";
+import TeacherLeave from "./pages/TeacherLeave";
+import TimetableView from "../../../components/TimetableView";
+import GroupChat from "./pages/GroupChat";
 
 import { CallProvider } from "../../../context/CallContext";
 
@@ -47,6 +50,9 @@ function TeacherRoutes() {
         <Route path="my-classes" element={<MyClasses/>}/>
         <Route path="support" element={<TeacherSupport />} />
         <Route path="events" element={<TeacherEvents />} />
+        <Route path="on-leave" element={<TeacherLeave />} />
+        <Route path="showtimetable" element={<TimetableView />} />
+        <Route path="support/groups" element={<GroupChat />} />
 
       </Route>
 

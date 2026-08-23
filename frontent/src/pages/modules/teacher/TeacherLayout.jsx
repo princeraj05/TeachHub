@@ -56,6 +56,8 @@ function TeacherLayout() {
     { to: "/teacher/proctoring", icon: <FaTv className="text-xl" />, label: "Conduct Exam" },
     { to: "/teacher/support", icon: <FaComments className="text-xl" />, label: "Support" },
     { to: "/teacher/events", icon: <FaCalendarAlt className="text-xl" />, label: "Events" },
+    { to: "/teacher/showtimetable", icon: <FaCalendarAlt className="text-xl" />, label: "Show Timetable" },
+    { to: "/teacher/on-leave", icon: <FaUserShield className="text-xl" />, label: "On Leave" },
     { to: "/teacher/profile", icon: <FaUserCircle className="text-xl" />, label: "Profile" }
   ];
 

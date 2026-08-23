@@ -19,6 +19,7 @@ function SuperAdminDashboard() {
   const token = localStorage.getItem("token");
 
   const [users, setUsers] = useState([]);
+  const [userSection, setUserSection] = useState("pending");
   const [schools, setSchools] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -119,11 +120,12 @@ function SuperAdminDashboard() {
   const uniqueSchoolsCount = schools.length;
 
   const filteredUsers = nonSuperAdminUsers.filter((u) => {
+    const matchesSection = userSection === "pending" ? u.role === "unassigned" : u.role !== "unassigned";
     const matchesSearch =
       u.name?.toLowerCase().includes(search.toLowerCase()) ||
       u.email?.toLowerCase().includes(search.toLowerCase());
     const matchesRole = roleFilter === "" || u.role === roleFilter;
-    return matchesSearch && matchesRole;
+    return matchesSection && matchesSearch && matchesRole;
   });
 
   return (
@@ -159,6 +161,10 @@ function SuperAdminDashboard() {
       </div>
 
       {/* Filter and Search Bar */}
+      <div className="flex gap-2 mb-4">
+        <button onClick={() => setUserSection("pending")} className={`px-4 py-2 rounded-xl text-xs font-bold ${userSection === "pending" ? "bg-[#7C3AED] text-white" : "bg-white text-slate-600 border"}`}>Pending Users ({pendingCount})</button>
+        <button onClick={() => setUserSection("approved")} className={`px-4 py-2 rounded-xl text-xs font-bold ${userSection === "approved" ? "bg-[#7C3AED] text-white" : "bg-white text-slate-600 border"}`}>Approved Users ({totalUsers - pendingCount})</button>
+      </div>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div className="relative flex-1 max-w-md">
           <FaSearch className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 text-sm pointer-events-none" />
