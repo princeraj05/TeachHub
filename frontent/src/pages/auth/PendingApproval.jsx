@@ -413,7 +413,7 @@ function PendingApproval() {
       </aside>
 
       {/* MOBILE: Fixed Bottom Navigation Bar (Flat style with text labels) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white dark:bg-[#0B132A] border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-around z-45 px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] select-none">
+      <nav className="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-[#0B132A] border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-around z-[60] px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] select-none">
         {/* Wait Karo / Status */}
         <Link
           to="/pending"
@@ -526,7 +526,7 @@ function PendingApproval() {
       )}
 
       {/* Main Content Area */}
-      <main className="flex-1 h-screen overflow-y-auto pl-0 md:pl-20 lg:pl-64 pb-20 md:pb-6 flex items-center justify-center p-6 sm:p-12 transition-all duration-200 select-none">
+      <main className="flex-1 h-screen overflow-y-auto pl-0 md:pl-20 lg:pl-64 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6 flex items-center justify-center p-6 sm:p-12 transition-all duration-200 select-none">
         {renderTabContent()}
       </main>
     </div>

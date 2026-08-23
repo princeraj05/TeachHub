@@ -73,6 +73,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 .dark ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); }
 .dark ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.55); }
+
+.mobile-bottom-nav {
+  min-height: 4rem;
+  padding-bottom: env(safe-area-inset-bottom);
+  pointer-events: auto;
+  touch-action: manipulation;
+}
 ::-webkit-scrollbar-thumb {
   background: rgba(124, 90, 237, 0.2);
   border-radius: 9999px;

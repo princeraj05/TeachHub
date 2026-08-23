@@ -108,7 +108,7 @@ function SuperAdminLayout() {
       </aside>
 
       {/* MOBILE: Fixed Bottom Navigation Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white dark:bg-[#0B132A] border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-around z-45 px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] select-none">
+      <nav className="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-[#0B132A] border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-around z-[60] px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] select-none">
         {navLinks.map((link) => (
           <Link
             key={link.to}
@@ -126,7 +126,7 @@ function SuperAdminLayout() {
       </nav>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-screen overflow-y-auto min-w-0 pl-0 md:pl-20 lg:pl-64 pb-16 md:pb-0 relative z-10">
+      <div className="flex-1 flex flex-col h-screen overflow-y-auto min-w-0 pl-0 md:pl-20 lg:pl-64 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0 relative z-10">
         {/* Header */}
         <header className="flex items-center justify-between bg-white/60 dark:bg-[#0B132A]/60 backdrop-blur-md px-6 py-4 mx-4 md:mx-6 mt-4 border border-slate-200/50 dark:border-white/10 rounded-2xl shadow-sm z-30 select-none">
           <div>
@@ -163,7 +163,7 @@ function SuperAdminLayout() {
 
             {profileDropdownOpen && (
               <>
-                <div className="fixed inset-0 z-45" onClick={() => setProfileDropdownOpen(false)} />
+                <div className="fixed inset-0 z-[45]" onClick={() => setProfileDropdownOpen(false)} />
                 <div className="absolute right-0 top-12 w-52 bg-[#0F172A] border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 text-slate-350 animate-fadeIn">
                   <div className="px-3 py-2 border-b border-white/[0.08] mb-1">
                     <p className="text-xs font-bold text-white truncate">{name}</p>
