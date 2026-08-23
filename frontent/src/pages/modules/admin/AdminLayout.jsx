@@ -1,5 +1,6 @@
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useTheme } from "../../../context/ThemeContext";
 import axios from "axios";
 import {
   FaTachometerAlt,
@@ -31,7 +32,7 @@ function AdminLayout() {
   const [activePopover, setActivePopover] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+  const { theme, toggleTheme } = useTheme();
   const [requestCount, setRequestCount] = useState(0);
   const [currentSchoolName, setCurrentSchoolName] = useState(localStorage.getItem("schoolName") || "Admin Workspace");
 
@@ -61,17 +62,6 @@ function AdminLayout() {
   }, []);
 
   useEffect(() => {
-    // Sync theme on load
-    const currentTheme = localStorage.getItem("theme") || "light";
-    setTheme(currentTheme);
-    if (currentTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
-
-  useEffect(() => {
     const API = import.meta.env.VITE_API_URL;
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -94,17 +84,6 @@ function AdminLayout() {
       })
       .catch((err) => console.log("Admin profile sync error:", err));
   }, []);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === "dark" ? "light" : "dark";
-    setTheme(nextTheme);
-    localStorage.setItem("theme", nextTheme);
-    if (nextTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  };
 
   const handleLogout = () => {
     localStorage.clear();

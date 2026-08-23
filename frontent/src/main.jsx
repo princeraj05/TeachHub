@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
+import { ThemeProvider } from './context/ThemeContext.jsx'
 
 // Theme initialization
 if (localStorage.getItem("theme") === "dark" || (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
@@ -13,6 +14,6 @@ if (localStorage.getItem("theme") === "dark" || (!("theme" in localStorage) && w
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App />
+    <ThemeProvider><App /></ThemeProvider>
   </StrictMode>,
 )

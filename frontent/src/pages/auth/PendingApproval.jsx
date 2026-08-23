@@ -29,6 +29,7 @@ import SchoolDirectory from "../modules/student/pages/SchoolDirectory";
 import SchoolDetails from "../modules/student/pages/SchoolDetails";
 import StudentExams from "../modules/student/pages/StudentExams";
 import AboutAppPage from "../modules/student/pages/AboutAppPage";
+import { useTheme } from "../../context/ThemeContext";
 
 const SORA = "'Sora', sans-serif";
 
@@ -38,7 +39,7 @@ function PendingApproval() {
   const API = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
 
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+  const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState({ name: "Loading...", email: "", role: "", avatar: "" });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -54,17 +55,6 @@ function PendingApproval() {
   };
 
   const activeTab = getActiveTab();
-
-  // Sync theme on load
-  useEffect(() => {
-    const currentTheme = localStorage.getItem("theme") || "light";
-    setTheme(currentTheme);
-    if (currentTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
 
   // Poll for role assignment updates
   useEffect(() => {
@@ -110,17 +100,6 @@ function PendingApproval() {
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === "dark" ? "light" : "dark";
-    setTheme(nextTheme);
-    localStorage.setItem("theme", nextTheme);
-    if (nextTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  };
 
   const handleLogout = () => {
     localStorage.clear();

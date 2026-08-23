@@ -6,6 +6,7 @@ import { auth, googleProvider } from "../../config/firebase";
 import { signInWithPopup, signInWithCredential, GoogleAuthProvider } from "firebase/auth";
 import { Capacitor } from "@capacitor/core";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
+import { useTheme } from "../../context/ThemeContext";
 
 const SORA = "'Sora', sans-serif";
 
@@ -18,7 +19,7 @@ function Login() {
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [devOtpMessage, setDevOtpMessage] = useState("");
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+  const { theme, toggleTheme } = useTheme();
   const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
@@ -34,17 +35,6 @@ function Login() {
       GoogleAuth.initialize();
     }
   }, []);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === "dark" ? "light" : "dark";
-    setTheme(nextTheme);
-    localStorage.setItem("theme", nextTheme);
-    if (nextTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  };
 
   const saveAuthAndNavigate = (data) => {
     localStorage.setItem("token", data.token);

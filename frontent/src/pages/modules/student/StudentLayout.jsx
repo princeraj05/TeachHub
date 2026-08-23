@@ -1,5 +1,6 @@
 import { Outlet, useNavigate, Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useTheme } from "../../../context/ThemeContext";
 import {
   FaTachometerAlt,
   FaBook,
@@ -26,31 +27,9 @@ function StudentLayout() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+  const { theme, toggleTheme } = useTheme();
 
   const name = localStorage.getItem("name") || "Student";
-
-  useEffect(() => {
-    // Sync theme on load
-    const currentTheme = localStorage.getItem("theme") || "light";
-    setTheme(currentTheme);
-    if (currentTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === "dark" ? "light" : "dark";
-    setTheme(nextTheme);
-    localStorage.setItem("theme", nextTheme);
-    if (nextTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  };
 
   const handleLogout = () => {
     localStorage.clear();
