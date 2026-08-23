@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FaChevronLeft, FaChevronRight, FaDownload, FaExpand, FaImage, FaTimes, FaTrash, FaVideo } from "react-icons/fa";
+import { FaChevronDown, FaChevronLeft, FaChevronRight, FaChevronUp, FaDownload, FaExpand, FaImage, FaTimes, FaTrash, FaVideo } from "react-icons/fa";
 
 const downloadUrl = (url) => url?.includes("cloudinary.com") ? url.replace("/upload/", "/upload/fl_attachment/") : url;
 
-function MediaVideo({ media, index, getMediaUrl, videoRefs, registerVideo, onDelete }) {
+function MediaVideo({ media, index, total, getMediaUrl, videoRefs, registerVideo, onActive, onDelete }) {
   const [ratio, setRatio] = useState(null);
+  const itemRef = useRef(null);
   const url = getMediaUrl(media.url);
   const pauseOthers = () => videoRefs.current.forEach((video, videoIndex) => {
     if (videoIndex !== index && video && !video.paused) video.pause();
@@ -12,17 +13,20 @@ function MediaVideo({ media, index, getMediaUrl, videoRefs, registerVideo, onDel
 
   useEffect(() => {
     const video = videoRefs.current[index];
-    if (!video || !window.IntersectionObserver) return undefined;
+    const item = itemRef.current;
+    if (!video || !item || !window.IntersectionObserver) return undefined;
     const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting && !video.paused) video.pause();
-    }, { threshold: 0.35 });
-    observer.observe(video);
+      if (entry.intersectionRatio >= 0.6) onActive(index);
+      if (entry.intersectionRatio < 0.35 && !video.paused) video.pause();
+    }, { threshold: [0.35, 0.6] });
+    observer.observe(item);
     return () => observer.disconnect();
-  }, [index, videoRefs]);
+  }, [index, onActive, videoRefs]);
 
   return (
-    <article className="snap-center shrink-0 rounded-2xl overflow-hidden bg-slate-950 border border-slate-200/60 dark:border-white/10 shadow-sm w-full sm:w-[min(100%,34rem)] mx-auto">
-      <div className="flex items-center justify-center bg-black min-h-32">
+    <article ref={itemRef} className="snap-start min-h-full w-full shrink-0 flex flex-col items-center justify-center py-3">
+      <div className="w-full max-w-[34rem] rounded-2xl overflow-hidden bg-slate-950 border border-slate-200/60 dark:border-white/10 shadow-lg">
+      <div className="flex items-center justify-center bg-black">
         <video
           ref={(node) => registerVideo(index, node)}
           src={url}
@@ -31,7 +35,7 @@ function MediaVideo({ media, index, getMediaUrl, videoRefs, registerVideo, onDel
           playsInline
           onLoadedMetadata={(event) => setRatio(event.currentTarget.videoWidth / event.currentTarget.videoHeight)}
           onPlay={pauseOthers}
-          className="w-full max-h-[72vh] object-contain"
+          className="max-h-[calc(min(70vh,42rem)-5rem)] max-w-full object-contain"
           style={ratio ? { aspectRatio: String(ratio) } : undefined}
         />
       </div>
@@ -42,6 +46,8 @@ function MediaVideo({ media, index, getMediaUrl, videoRefs, registerVideo, onDel
           {onDelete && <button type="button" onClick={() => onDelete(media._id)} className="rounded-lg p-2 text-rose-500 hover:bg-rose-500/10" title="Delete video"><FaTrash /></button>}
         </div>
       </div>
+      </div>
+      <span className="mt-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Video {index + 1} of {total}</span>
     </article>
   );
 }
@@ -50,12 +56,21 @@ export default function EventGallery({ event, api = "", onDeletePhoto, onDeleteV
   const photos = event?.photos || [];
   const videos = event?.videos || [];
   const [photoIndex, setPhotoIndex] = useState(null);
+  const [activeVideo, setActiveVideo] = useState(0);
   const touchStart = useRef(null);
   const videoRefs = useRef([]);
+  const videoFeedRef = useRef(null);
   const getMediaUrl = (url) => url?.startsWith("http") ? url : `${api}${url || ""}`;
   const closePhoto = () => setPhotoIndex(null);
   const movePhoto = useCallback((direction) => setPhotoIndex((current) => (current + direction + photos.length) % photos.length), [photos.length]);
   const registerVideo = (index, node) => { videoRefs.current[index] = node; };
+  const goToVideo = (index) => videoFeedRef.current?.children[index]?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const setActiveAndPauseOthers = useCallback((index) => {
+    setActiveVideo(index);
+    videoRefs.current.forEach((video, videoIndex) => {
+      if (videoIndex !== index && video && !video.paused) video.pause();
+    });
+  }, []);
 
   useEffect(() => {
     if (photoIndex === null) return undefined;
@@ -88,9 +103,16 @@ export default function EventGallery({ event, api = "", onDeletePhoto, onDeleteV
 
       <section className="border-t border-slate-100 dark:border-white/5 pt-6">
         <h4 className="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-800 dark:text-white"><FaVideo className="text-[#7C3AED] dark:text-[#38BDF8]" /> Videos ({videos.length})</h4>
-        {videos.length ? <div className="flex snap-y snap-mandatory flex-col gap-5 sm:grid sm:grid-cols-2 xl:grid-cols-3 sm:snap-none">
-          {videos.map((video, index) => <MediaVideo key={video._id || video.url || index} media={video} index={index} getMediaUrl={getMediaUrl} videoRefs={videoRefs} registerVideo={registerVideo} onDelete={onDeleteVideo} />)}
-        </div> : <p className="text-[10px] font-bold italic text-slate-400">No videos uploaded to this event gallery yet.</p>}
+        {videos.length ? <>
+          <div ref={videoFeedRef} className="h-[min(70vh,42rem)] overflow-y-auto overscroll-contain snap-y snap-mandatory scroll-smooth rounded-3xl bg-slate-100/70 dark:bg-black/20 border border-slate-200/60 dark:border-white/10 px-3" aria-label="Vertical video feed">
+            {videos.map((video, index) => <MediaVideo key={video._id || video.url || index} media={video} index={index} total={videos.length} getMediaUrl={getMediaUrl} videoRefs={videoRefs} registerVideo={registerVideo} onActive={setActiveAndPauseOthers} onDelete={onDeleteVideo} />)}
+          </div>
+          <div className="mt-3 flex items-center justify-center gap-3 text-xs font-black text-slate-500 dark:text-slate-300">
+            <button type="button" onClick={() => goToVideo(Math.max(0, activeVideo - 1))} disabled={activeVideo === 0} className="rounded-xl p-2 hover:bg-[#7C3AED]/10 disabled:opacity-30" aria-label="Previous video"><FaChevronUp /></button>
+            <span>{activeVideo + 1} / {videos.length}</span>
+            <button type="button" onClick={() => goToVideo(Math.min(videos.length - 1, activeVideo + 1))} disabled={activeVideo === videos.length - 1} className="rounded-xl p-2 hover:bg-[#7C3AED]/10 disabled:opacity-30" aria-label="Next video"><FaChevronDown /></button>
+          </div>
+        </> : <p className="text-[10px] font-bold italic text-slate-400">No videos uploaded to this event gallery yet.</p>}
       </section>
 
       {photoIndex !== null && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#070b13]/95 p-3 backdrop-blur-sm" onClick={closePhoto} onTouchStart={(event) => { touchStart.current = event.changedTouches[0].clientX; }} onTouchEnd={(event) => { const distance = event.changedTouches[0].clientX - touchStart.current; if (Math.abs(distance) > 45) movePhoto(distance < 0 ? 1 : -1); }}>
