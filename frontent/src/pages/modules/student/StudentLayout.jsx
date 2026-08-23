@@ -13,7 +13,9 @@ import {
   FaMoon,
   FaCalendarAlt,
   FaSchool,
-  FaInfoCircle
+  FaInfoCircle,
+  FaThLarge,
+  FaTimes
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
