@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { FaCalendarAlt, FaClock, FaImage, FaVideo, FaEye, FaTimes, FaSchool, FaExpand } from "react-icons/fa";
+import EventGallery from "../../../components/EventGallery";
 
 const SORA = "'Sora', sans-serif";
 
@@ -248,8 +249,10 @@ function SuperAdminEvents() {
                 <p className="text-xs text-slate-755 dark:text-slate-350 leading-relaxed whitespace-pre-wrap">{selectedEvent.description}</p>
               </div>
 
-              {/* Photos Grid */}
-              <div className="border-t border-slate-100 dark:border-white/5 pt-6 mb-8">
+              <EventGallery event={selectedEvent} api={API} />
+
+              {/* Legacy media markup retained only for backwards-compatible state handling. */}
+              <div className="hidden border-t border-slate-100 dark:border-white/5 pt-6 mb-8">
                 <h4 className="text-xs font-extrabold text-slate-800 dark:text-white uppercase tracking-wider mb-4">Photos ({selectedEvent.photos?.length || 0})</h4>
                 {selectedEvent.photos && selectedEvent.photos.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -272,7 +275,7 @@ function SuperAdminEvents() {
               </div>
 
               {/* Videos Grid */}
-              <div className="border-t border-slate-100 dark:border-white/5 pt-6">
+              <div className="hidden border-t border-slate-100 dark:border-white/5 pt-6">
                 <h4 className="text-xs font-extrabold text-slate-800 dark:text-white uppercase tracking-wider mb-4">Videos ({selectedEvent.videos?.length || 0})</h4>
                 {selectedEvent.videos && selectedEvent.videos.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">

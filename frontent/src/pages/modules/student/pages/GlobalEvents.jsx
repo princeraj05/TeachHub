@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaCalendarAlt, FaClock, FaSchool, FaImage, FaVideo, FaMapMarkerAlt } from "react-icons/fa";
+import { FaCalendarAlt, FaClock, FaSchool } from "react-icons/fa";
+import EventGallery from "../../../../components/EventGallery";
 
 const SORA = "'Sora', sans-serif";
 
@@ -83,40 +84,7 @@ function GlobalEvents() {
                 </p>
               )}
 
-              {/* Photos Gallery */}
-              {ev.photos && ev.photos.length > 0 && (
-                <div className="mb-6">
-                  <h4 className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-widest mb-3 flex items-center gap-1.5">
-                    <FaImage /> Photo Gallery ({ev.photos.length})
-                  </h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {ev.photos.map((photo, pIdx) => (
-                      <a href={photo.url} target="_blank" rel="noreferrer" key={photo._id || pIdx} className="group relative block aspect-video rounded-2xl overflow-hidden border border-slate-200/60 dark:border-white/5 shadow-sm bg-slate-100 dark:bg-white/5 cursor-zoom-in">
-                        <img src={photo.url} alt={`Gallery ${pIdx}`} className="w-full h-full object-cover transition duration-300 group-hover:scale-105" />
-                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition duration-150 flex items-center justify-center text-white text-[10px] font-black uppercase tracking-widest">
-                          Zoom In
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Videos Gallery */}
-              {ev.videos && ev.videos.length > 0 && (
-                <div>
-                  <h4 className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-widest mb-3 flex items-center gap-1.5">
-                    <FaVideo /> Video Gallery ({ev.videos.length})
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {ev.videos.map((vid, vIdx) => (
-                      <div key={vid._id || vIdx} className="rounded-2xl overflow-hidden border border-slate-200/60 dark:border-white/5 shadow-sm bg-slate-100 dark:bg-[#090F1C]">
-                        <video src={vid.url} controls className="w-full aspect-video object-cover" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <EventGallery event={ev} api={API} />
 
             </div>
           ))}
