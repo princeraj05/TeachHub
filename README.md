@@ -52,3 +52,9 @@ https://myschool-admin-panel.onrender.com
 ## Author
 
 Prince Raj
+
+## Payment configuration
+
+Payment credentials are backend-only. Copy `backend/.env.example` to the secure backend environment and provide Razorpay Test/Live key pairs plus the webhook secret. Never add a Razorpay secret to `frontent/.env` or a `VITE_*` variable.
+
+Amounts in payment configuration APIs are integer paise (for example, `100000` is ₹1,000). Razorpay checkout must use the safe order response from the backend and send its callback only to `POST /api/payments/verify-checkout`; the webhook endpoint is `POST /api/payments/webhook`.

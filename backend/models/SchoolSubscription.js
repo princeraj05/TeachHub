@@ -1,0 +1,3 @@
+const mongoose = require("mongoose");
+const schema = new mongoose.Schema({ schoolName: { type: String, unique: true, required: true, index: true }, monthlyFee: { type: Number, required: true, min: 1 }, currency: { type: String, default: "INR" }, status: { type: String, enum: ["Active", "PastDue", "Suspended", "Free"], default: "PastDue" }, freeUntil: { type: Date, default: null }, nextBillingDate: { type: Date, default: null }, updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true } }, { timestamps: true });
+module.exports = mongoose.model("SchoolSubscription", schema);

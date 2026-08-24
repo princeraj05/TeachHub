@@ -26,6 +26,8 @@ const eventRoutes = require("./routes/eventRoutes");
 const schoolRoutes = require("./routes/schoolRoutes");
 const aboutAppRoutes = require("./routes/aboutAppRoutes");
 const featureRoutes = require("./routes/featureRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
+const paymentController = require("./controllers/paymentController");
 
 const app = express();
 const server = http.createServer(app);
@@ -46,6 +48,8 @@ app.use(
 
 // ================= MIDDLEWARE =================
 
+// Razorpay's signature is calculated from the exact bytes; this route must precede JSON parsing.
+app.post("/api/payments/webhook", express.raw({ type: "application/json", limit: "1mb" }), paymentController.webhook);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
@@ -119,6 +123,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/schools", schoolRoutes);
 app.use("/api/about-app", aboutAppRoutes);
 app.use("/api", featureRoutes);
+app.use("/api", paymentRoutes);
 
 const path = require("path");
 const fs = require("fs");
