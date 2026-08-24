@@ -7,11 +7,17 @@ const subjectSchema = new mongoose.Schema({
     required: true
   },
 
-  class: {
+  // `class` is kept temporarily for existing records. New subjects use
+  // `classes`, so one subject (for example Mathematics) can serve many levels.
+  class: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Class",
-    required: true
-  },
+    ref: "Class"
+  }],
+
+  classes: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Class"
+  }],
 
   teacher: {
     type: mongoose.Schema.Types.ObjectId,
@@ -25,5 +31,7 @@ const subjectSchema = new mongoose.Schema({
   }
 
 });
+
+subjectSchema.index({ schoolName: 1, name: 1 });
 
 module.exports = mongoose.model("Subject", subjectSchema);

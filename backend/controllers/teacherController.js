@@ -127,7 +127,7 @@ const teacherId = req.user.id;
 const subjects = await Subject
 .find({ teacher: teacherId })
 .populate({
-path:"class",
+path:"classes",
 select:"name section"
 });
 

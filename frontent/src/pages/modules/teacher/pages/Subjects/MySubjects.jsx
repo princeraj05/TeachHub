@@ -103,7 +103,7 @@ function MySubjects() {
                 {/* Footer status / class badge */}
                 <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
                   <span className="inline-flex items-center bg-indigo-50 text-indigo-700 font-bold text-[10px] px-2.5 py-1 rounded-md border border-indigo-100 select-none">
-                    Class {s.class?.name} ({s.class?.section || "—"})
+                    {(s.classes || []).map(item => `Class ${item.name} (${item.section || "—"})`).join(", ") || "No class assigned"}
                   </span>
                   <span className="inline-flex items-center text-[10px] font-bold text-teal-650 bg-teal-50 border border-teal-100 px-2.5 py-0.5 rounded-full select-none">
                     Active

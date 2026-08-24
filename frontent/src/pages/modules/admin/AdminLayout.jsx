@@ -132,7 +132,7 @@ function AdminLayout() {
       )}
 
       {/* DESKTOP: Left Compact/Instagram Sidebar */}
-      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 h-screen w-20 lg:w-64 border-r border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0B132A] flex flex-col justify-between py-8 px-4 z-40 select-none transition-all duration-200">
+      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 h-screen w-20 lg:w-64 border-r border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0B132A] flex flex-col py-5 px-4 z-40 select-none overflow-y-auto overscroll-contain transition-all duration-200">
         <div className="flex flex-col gap-8">
           {/* Logo / Branding */}
           <div className="flex items-center gap-3 px-2.5">
@@ -371,7 +371,7 @@ function AdminLayout() {
         </div>
 
         {/* Bottom Actions */}
-        <div className="flex flex-col gap-2 border-t border-slate-100 dark:border-white/[0.08] pt-4">
+        <div className="mt-auto flex flex-col gap-2 border-t border-slate-100 dark:border-white/[0.08] pt-4">
           {/* Appearance Toggle */}
           <button
             onClick={toggleTheme}

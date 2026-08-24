@@ -16,9 +16,11 @@ const paymentSchema = new mongoose.Schema({
   razorpaySignature: { type: String, select: false, default: "" },
   receiptNumber: { type: String, unique: true, sparse: true },
   offlineReference: { type: String, trim: true, maxlength: 120, default: "" },
+  offlineDecisionReason: { type: String, trim: true, maxlength: 500, default: "" },
   transactionReference: { type: String, trim: true, maxlength: 120, default: "" },
   refunds: [{ refundId: String, amount: { type: Number, min: 1 }, reason: { type: String, maxlength: 500 }, refundedAt: Date, initiatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" } }],
   verifiedAt: { type: Date, default: null },
+  paidAt: { type: Date, default: null },
   metadata: { type: mongoose.Schema.Types.Mixed, default: {} }
 }, { timestamps: true });
 paymentSchema.index({ schoolName: 1, purpose: 1, status: 1, createdAt: -1 });

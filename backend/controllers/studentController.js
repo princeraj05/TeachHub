@@ -26,7 +26,7 @@ exports.getStudentDashboard = async (req, res) => {
     if (classData) {
 
       const subjectList = await Subject.find({
-        class: classData._id
+        $or: [{ class: classData._id }, { classes: classData._id }]
       });
 
       subjects = subjectList.length;
@@ -86,7 +86,7 @@ exports.getStudentSubjects = async (req,res)=>{
     }
 
     const subjects = await Subject.find({
-      class: classData._id
+      $or: [{ class: classData._id }, { classes: classData._id }]
     }).populate("teacher","name");
 
     res.json(subjects);
