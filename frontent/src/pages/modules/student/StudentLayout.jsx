@@ -15,6 +15,7 @@ import {
   FaCalendarAlt,
   FaSchool,
   FaInfoCircle,
+  FaCreditCard,
   FaThLarge,
   FaTimes
 } from "react-icons/fa";
@@ -54,6 +55,7 @@ function StudentLayout() {
     { to: "/student/teacher-on-leave", icon: <FaUserCircle className="text-xl" />, label: "Teacher On Leave" },
     { to: "/student/schools", icon: <FaSchool className="text-xl" />, label: "School" },
     { to: "/student/about", icon: <FaInfoCircle className="text-xl" />, label: "About App" },
+    { to: "/student/payments", icon: <FaCreditCard className="text-xl" />, label: "Pay School Fee" },
     { to: "/student/profile", icon: <FaUserCircle className="text-xl" />, label: "Profile" },
   ];
 

@@ -19,6 +19,7 @@ import TeacherEvents from "./pages/TeacherEvents";
 import TeacherLeave from "./pages/TeacherLeave";
 import TimetableView from "../../../components/TimetableView";
 import GroupChat from "./pages/GroupChat";
+import PaymentCenter from "../../../components/PaymentCenter";
 
 import { CallProvider } from "../../../context/CallContext";
 
@@ -53,6 +54,7 @@ function TeacherRoutes() {
         <Route path="on-leave" element={<TeacherLeave />} />
         <Route path="showtimetable" element={<TimetableView />} />
         <Route path="support/groups" element={<GroupChat />} />
+        <Route path="payments" element={<PaymentCenter role="teacher" />} />
 
       </Route>
 

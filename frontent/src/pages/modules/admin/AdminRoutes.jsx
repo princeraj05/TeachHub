@@ -29,6 +29,7 @@ import AboutYourSchool from "./pages/AboutYourSchool";
 import CreateTimetable from "./pages/CreateTimetable";
 import Appointments from "./pages/Appointments";
 import TeacherLeaves from "./pages/TeacherLeaves";
+import PaymentCenter from "../../../components/PaymentCenter";
 
 
 import { CallProvider } from "../../../context/CallContext";
@@ -86,6 +87,7 @@ function AdminRoutes() {
         <Route path="create-timetable" element={<CreateTimetable />} />
         <Route path="appointments" element={<Appointments />} />
         <Route path="teacher-leaves" element={<TeacherLeaves />} />
+        <Route path="payments" element={<PaymentCenter role="admin" />} />
 
       </Route>
 

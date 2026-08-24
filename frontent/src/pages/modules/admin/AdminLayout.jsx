@@ -20,7 +20,8 @@ import {
   FaMoon,
   FaUserPlus,
   FaTv,
-  FaInfoCircle
+  FaInfoCircle,
+  FaMoneyBillWave
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -157,6 +158,9 @@ function AdminLayout() {
             >
               <div className="flex-shrink-0"><FaTachometerAlt className="text-xl" /></div>
               <span className="hidden lg:block text-sm font-semibold">Dashboard</span>
+            </Link>
+            <Link to="/admin/payments" className={`flex items-center gap-4 px-3.5 py-3 rounded-xl transition-all duration-200 ${isActive("/admin/payments") ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] dark:bg-[#38BDF8]/10 font-bold" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"}`}>
+              <FaMoneyBillWave className="text-xl" /><span className="hidden lg:block text-sm font-semibold">Payments</span>
             </Link>
 
             {/* About Your School */}

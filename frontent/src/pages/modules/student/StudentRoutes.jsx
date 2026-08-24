@@ -14,6 +14,7 @@ import SchoolDirectory from "./pages/SchoolDirectory";
 import SchoolDetails from "./pages/SchoolDetails";
 import AboutAppPage from "./pages/AboutAppPage";
 import TeacherOnLeave from "./pages/TeacherOnLeave";
+import StudentPayments from "./pages/StudentPayments";
 import TimetableView from "../../../components/TimetableView";
 import GroupChat from "../teacher/pages/GroupChat";
 
@@ -42,6 +43,7 @@ function StudentRoutes() {
         <Route path="about" element={<AboutAppPage />} />
         <Route path="teacher-on-leave" element={<TeacherOnLeave />} />
         <Route path="showtimetable" element={<TimetableView />} />
+        <Route path="payments" element={<StudentPayments />} />
 
       </Route>
 

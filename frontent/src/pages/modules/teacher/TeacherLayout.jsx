@@ -17,7 +17,8 @@ import {
   FaComments,
   FaSun,
   FaMoon,
-  FaTv
+  FaTv,
+  FaMoneyBillWave
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -59,6 +60,7 @@ function TeacherLayout() {
     { to: "/teacher/showtimetable", icon: <FaCalendarAlt className="text-xl" />, label: "Show Timetable" },
     { to: "/teacher/on-leave", icon: <FaUserShield className="text-xl" />, label: "On Leave" },
     { to: "/teacher/profile", icon: <FaUserCircle className="text-xl" />, label: "Profile" }
+    ,{ to: "/teacher/payments", icon: <FaMoneyBillWave className="text-xl" />, label: "My Payments" }
   ];
 
   return (

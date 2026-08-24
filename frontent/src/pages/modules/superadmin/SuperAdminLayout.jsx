@@ -11,7 +11,8 @@ import {
   FaMoon,
   FaUserCircle,
   FaCalendarAlt,
-  FaInfoCircle
+  FaInfoCircle,
+  FaMoneyBillWave
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -37,6 +38,7 @@ function SuperAdminLayout() {
     { to: "/superadmin/support", icon: <FaComments className="text-xl" />, label: "Support Chat" },
     { to: "/superadmin/events", icon: <FaCalendarAlt className="text-xl" />, label: "Events" },
     { to: "/superadmin/about", icon: <FaInfoCircle className="text-xl" />, label: "About App" },
+    { to: "/superadmin/payments", icon: <FaMoneyBillWave className="text-xl" />, label: "Payments" },
     { to: "/superadmin/profile", icon: <FaUserCircle className="text-xl" />, label: "Profile" },
   ];
 
