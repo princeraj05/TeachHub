@@ -12,12 +12,16 @@ function SchoolDirectory() {
   const token = localStorage.getItem("token");
 
   const [schools, setSchools] = useState([]);
+  const [appointments, setAppointments] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [selectedSchool, setSelectedSchool] = useState("");
   const [requestedRole, setRequestedRole] = useState("student");
   const [submitting, setSubmitting] = useState(false);
+  const [appointmentDate, setAppointmentDate] = useState("");
+  const [appointmentTime, setAppointmentTime] = useState("");
+  const [appointmentNotes, setAppointmentNotes] = useState("");
 
   useEffect(() => {
     fetchData();
@@ -26,18 +30,22 @@ function SchoolDirectory() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [schoolsRes, profileRes] = await Promise.all([
+      const [schoolsRes, profileRes, appointmentsRes] = await Promise.all([
         axios.get(`${API}/api/schools`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/api/auth/profile`, { headers: { Authorization: `Bearer ${token}` } })
+        axios.get(`${API}/api/auth/profile`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/api/appointments`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
       setSchools(schoolsRes.data || []);
       setUser(profileRes.data);
+      setAppointments(appointmentsRes.data || []);
     } catch (err) {
       console.error("Error loading school directory:", err);
     } finally {
       setLoading(false);
     }
   };
+
+  const selectedSchoolDetails = schools.find((school) => school.name === selectedSchool);
 
   const handleJoinSubmit = (e) => {
     e.preventDefault();
@@ -49,13 +57,21 @@ function SchoolDirectory() {
       return;
     }
 
+    if (requestedRole === "teacher" && selectedSchoolDetails?.teacherAppointmentBooking && (!appointmentDate || !appointmentTime)) {
+      alert("Choose an appointment date and time to continue.");
+      return;
+    }
+
     setSubmitting(true);
-    axios
-      .put(
+    const bookingRequest = requestedRole === "teacher" && selectedSchoolDetails?.teacherAppointmentBooking
+      ? axios.post(`${API}/api/appointments`, { schoolName: selectedSchool, date: appointmentDate, time: appointmentTime, notes: appointmentNotes }, { headers: { Authorization: `Bearer ${token}` } })
+      : Promise.resolve();
+    bookingRequest
+      .then(() => axios.put(
         `${API}/api/auth/join-request`,
         { schoolName: selectedSchool, role: requestedRole },
         { headers: { Authorization: `Bearer ${token}` } }
-      )
+      ))
       .then((res) => {
         setUser((prev) => ({
           ...prev,
@@ -163,7 +179,7 @@ function SchoolDirectory() {
                     <button
                       onClick={() => {
                         setSelectedSchool(school.name);
-                        setShowJoinModal(true);
+                        setAppointmentDate(""); setAppointmentTime(""); setAppointmentNotes(""); setShowJoinModal(true);
                       }}
                       className="text-[10px] font-black uppercase tracking-wider bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-[#38BDF8] dark:hover:bg-[#0EA5E9] text-white dark:text-[#090F1C] px-4 py-2.5 rounded-xl shadow-sm transition duration-150 cursor-pointer"
                     >
@@ -181,6 +197,8 @@ function SchoolDirectory() {
           <p className="text-xs text-slate-400 dark:text-slate-500 font-bold italic">No schools registered in system.</p>
         </div>
       )}
+
+      {appointments.length > 0 && <div className="mt-8 border-t border-slate-200 pt-6"><h3 className="text-sm font-black text-slate-800 dark:text-white">My Teacher Appointments</h3><div className="mt-3 space-y-2">{appointments.map((appointment) => <div className="rounded-xl border bg-slate-50 dark:bg-white/[0.02] p-3 text-xs dark:text-white" key={appointment._id}><b>{appointment.schoolName}</b> · {new Date(appointment.date).toLocaleDateString()} at {appointment.time} · {appointment.mode} <span className="ml-2 font-bold text-violet-700">{appointment.status}</span></div>)}</div></div>}
 
       {/* Join Request Modal */}
       {showJoinModal && (
@@ -226,13 +244,15 @@ function SchoolDirectory() {
                 </div>
               </div>
 
+              {requestedRole === "teacher" && selectedSchoolDetails?.teacherAppointmentBooking && <div className="space-y-3 rounded-2xl border border-violet-200 bg-violet-50/60 p-4"><div><p className="text-sm font-black text-violet-900">Book Appointment</p><p className="text-xs text-violet-700 mt-1">Mode: {selectedSchoolDetails.appointmentMode || "Offline"}{selectedSchoolDetails.appointmentDetails ? ` · ${selectedSchoolDetails.appointmentDetails}` : ""}</p></div><div className="grid grid-cols-2 gap-3"><input required type="date" min={new Date().toISOString().slice(0, 10)} value={appointmentDate} onChange={(event) => setAppointmentDate(event.target.value)} className="rounded-xl border p-3 text-xs" /><input required type="time" value={appointmentTime} onChange={(event) => setAppointmentTime(event.target.value)} className="rounded-xl border p-3 text-xs" /></div><textarea value={appointmentNotes} onChange={(event) => setAppointmentNotes(event.target.value)} maxLength="1000" placeholder="Notes (optional)" className="w-full rounded-xl border p-3 text-xs" /></div>}
+
               <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
                   disabled={submitting}
                   className="flex-1 bg-gradient-to-r from-[#7C3AED] to-[#312E81] hover:opacity-90 active:scale-[0.99] text-white py-3.5 rounded-2xl text-xs font-bold shadow-md shadow-[#7C3AED]/15 transition-all cursor-pointer disabled:opacity-50"
                 >
-                  {submitting ? "Sending..." : "Submit Request"}
+                  {submitting ? "Sending..." : requestedRole === "teacher" && selectedSchoolDetails?.teacherAppointmentBooking ? "Book Appointment & Submit" : "Submit Request"}
                 </button>
                 <button
                   type="button"

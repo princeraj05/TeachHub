@@ -1,4 +1,6 @@
 const Exam = require("../models/Exam");
+const User = require("../models/User");
+const Class = require("../models/Class");
 
 
 // ================= CREATE EXAM =================
@@ -9,7 +11,7 @@ try{
 
 const { classId, subjectId, date, mode, negativeMarking, negativeMarkValue, questions, proctorId } = req.body;
 
-if (!req.user || !req.user.schoolName) {
+if (!req.user || (req.user.role !== "superadmin" && !req.user.schoolName)) {
   return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
 }
 
@@ -50,11 +52,21 @@ exports.getAllExams = async (req,res)=>{
 
 try{
 
-if (!req.user || !req.user.schoolName) {
+if (!req.user || (req.user.role !== "superadmin" && !req.user.schoolName)) {
   return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
 }
 
-const exams = await Exam.find({ schoolName: req.user.schoolName })
+const query = req.user.role === "superadmin" ? {} : { schoolName: req.user.schoolName };
+if (req.user.role === "student") {
+  const student = await User.findById(req.user.id).select("classId").lean();
+  if (!student?.classId) return res.json([]);
+  query.class = student.classId;
+}
+if (req.user.role === "teacher") {
+  const classIds = await Class.find({ schoolName: req.user.schoolName, teacher: req.user.id }).distinct("_id");
+  query.$or = [{ proctor: req.user.id }, { class: { $in: classIds } }];
+}
+const exams = await Exam.find(query)
 .populate("class","name section")
 .populate("subject","name")
 .populate("proctor", "name email role")

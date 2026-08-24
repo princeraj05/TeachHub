@@ -4,7 +4,7 @@ import {
   FaCalendarAlt, FaClock, FaPlus, FaTrash, FaEdit, 
   FaCheckCircle, FaTimes, FaImage, FaVideo, FaEye, FaExpand 
 } from "react-icons/fa";
-import { compressImage, videoDuration } from "../../../../utils/mediaCompression";
+import { compressImage, compressVideo, videoDuration } from "../../../../utils/mediaCompression";
 import EventGallery from "../../../../components/EventGallery";
 
 const SORA = "'Sora', sans-serif";
@@ -155,11 +155,12 @@ function AdminEvents() {
 
     setUploading(true);
     setUploadError("");
-    if ((selectedEvent.photos?.length || 0) + files.length > 10) { setUploadError("An event can contain a maximum of 10 photos."); return; }
+    if ((selectedEvent.photos?.length || 0) + files.length > 10) { setUploadError("An event can contain a maximum of 10 photos."); setUploading(false); return; }
     try {
       const compressed = await Promise.all([...files].map(compressImage));
       const original = [...files].reduce((sum, file) => sum + file.size, 0), final = compressed.reduce((sum, file) => sum + file.size, 0);
-      setCompressionInfo(`Original size: ${(original / 1048576).toFixed(2)} MB · Compressed size: ${(final / 1048576).toFixed(2)} MB · ${original ? Math.max(0, ((1 - final / original) * 100)).toFixed(0) : 0}% saved`);
+      const compressionSummary = `Original size: ${(original / 1048576).toFixed(2)} MB · Compressed size: ${(final / 1048576).toFixed(2)} MB · ${original ? Math.max(0, ((1 - final / original) * 100)).toFixed(0) : 0}% saved`;
+      setCompressionInfo(compressionSummary);
       const formData = new FormData(); compressed.forEach(file => formData.append("photos", file));
 
       const res = await axios.post(
@@ -169,6 +170,9 @@ function AdminEvents() {
           headers: { 
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data" 
+          },
+          onUploadProgress: (progress) => {
+            if (progress.total) setCompressionInfo(`Uploading photos… ${Math.round((progress.loaded / progress.total) * 100)}% · ${compressionSummary}`);
           }
         }
       );
@@ -188,8 +192,19 @@ function AdminEvents() {
 
     setUploading(true);
     setUploadError("");
-    if ((selectedEvent.videos?.length || 0) + files.length > 5) { setUploadError("An event can contain a maximum of 5 videos."); return; }
-    try { const durations = await Promise.all([...files].map(videoDuration)); if (durations.some(duration => duration > 60)) { setUploadError("Each video must be 1 minute or shorter."); return; } setCompressionInfo(`Video duration verified before upload. Original size: ${([...files].reduce((sum, file) => sum + file.size, 0) / 1048576).toFixed(2)} MB`); const formData = new FormData(); [...files].forEach(file => formData.append("videos", file));
+    if ((selectedEvent.videos?.length || 0) + files.length > 5) { setUploadError("An event can contain a maximum of 5 videos."); setUploading(false); return; }
+    try {
+      const sourceFiles = [...files];
+      const durations = await Promise.all(sourceFiles.map(videoDuration));
+      if (durations.some(duration => duration > 60)) { setUploadError("Each video must be 1 minute or shorter."); return; }
+      setCompressionInfo("Compressing video before upload…");
+      const compressed = await Promise.all(sourceFiles.map(compressVideo));
+      const originalSize = sourceFiles.reduce((sum, file) => sum + file.size, 0);
+      const compressedSize = compressed.reduce((sum, file) => sum + file.size, 0);
+      const saved = originalSize ? Math.max(0, (1 - compressedSize / originalSize) * 100).toFixed(0) : 0;
+      const compressionSummary = `Original size: ${(originalSize / 1048576).toFixed(2)} MB · Compressed size: ${(compressedSize / 1048576).toFixed(2)} MB · ${saved}% saved`;
+      setCompressionInfo(compressionSummary);
+      const formData = new FormData(); compressed.forEach(file => formData.append("videos", file));
 
       const res = await axios.post(
         `${API}/api/events/${selectedEvent._id}/videos`,
@@ -198,6 +213,9 @@ function AdminEvents() {
           headers: { 
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data" 
+          },
+          onUploadProgress: (progress) => {
+            if (progress.total) setCompressionInfo(`Uploading video… ${Math.round((progress.loaded / progress.total) * 100)}% · ${compressionSummary}`);
           }
         }
       );

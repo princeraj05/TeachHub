@@ -25,8 +25,11 @@ const storage = multer.diskStorage({
 const fileFilter = (req, file, cb) => {
   const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
   const allowedVideoTypes = ["video/mp4", "video/webm", "video/quicktime", "video/mov"];
+  const extension = path.extname(file.originalname || "").toLowerCase();
+  const imageExtensions = [".jpg", ".jpeg", ".png", ".webp"];
+  const videoExtensions = [".mp4", ".webm", ".mov"];
   
-  if (allowedImageTypes.includes(file.mimetype) || allowedVideoTypes.includes(file.mimetype)) {
+  if ((allowedImageTypes.includes(file.mimetype) && imageExtensions.includes(extension)) || (allowedVideoTypes.includes(file.mimetype) && videoExtensions.includes(extension))) {
     cb(null, true);
   } else {
     cb(new Error("File type not allowed. Please upload JPG, JPEG, PNG, WEBP images or MP4, WEBM, MOV videos."));

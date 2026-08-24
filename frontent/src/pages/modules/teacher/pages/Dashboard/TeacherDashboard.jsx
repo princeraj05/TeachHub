@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import TodayTimetableWidget from "../../../../../components/TodayTimetableWidget";
 
 import {
   BarChart,
@@ -234,6 +235,9 @@ function TeacherDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Recent Students Table */}
+      <TodayTimetableWidget />
 
       {/* Recent Students Table */}
       <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col justify-between">

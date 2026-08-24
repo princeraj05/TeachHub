@@ -178,9 +178,11 @@ exports.processJoinRequest = async (req, res) => {
 
     // Reset requested fields upon processing so they can apply again if rejected
     if (action === "rejected") {
+      // Retain the outcome for audit/UI purposes, but clear the requested
+      // school so the person is free to submit a new application later.
       candidate.requestedSchool = "";
       candidate.requestedRole = "";
-      candidate.requestStatus = "";
+      candidate.requestStatus = "rejected";
     }
 
     await candidate.save();
@@ -351,18 +353,22 @@ exports.addStudent = async (req, res) => {
     if (!name?.trim() || !email?.trim()) return res.status(400).json({ message: "Name and email are required" });
     const normalizedEmail = email.trim().toLowerCase();
     let student = await User.findOne({ email: normalizedEmail });
-    if (student && student.schoolName && student.schoolName !== req.user.schoolName) return res.status(409).json({ message: "This email is already associated with another school" });
+    if (student && (student.schoolName && student.schoolName !== req.user.schoolName || student.requestedSchool && student.requestedSchool !== req.user.schoolName)) return res.status(409).json({ message: "This email is already associated with another school" });
     if (student && student.role !== "unassigned" && student.role !== "student") return res.status(409).json({ message: "This email already belongs to another user role" });
     let targetClass = null;
     if (classId) {
       targetClass = await Class.findOne({ _id: classId, schoolName: req.user.schoolName });
       if (!targetClass) return res.status(400).json({ message: "Class does not belong to your school" });
     }
+    const isNewStudent = !student;
     if (!student) student = new User({ name: name.trim(), email: normalizedEmail });
+    if (phoneNumber && !/^[0-9+()\-\s]{7,20}$/.test(phoneNumber)) return res.status(400).json({ message: "Mobile number is invalid" });
+    const previousClassId = student.classId;
     student.name = name.trim(); student.phoneNumber = phoneNumber; student.role = "student"; student.schoolName = req.user.schoolName;
     student.requestedSchool = ""; student.requestedRole = ""; student.requestStatus = "approved"; student.classId = targetClass?._id || null;
     await student.save();
+    if (previousClassId && String(previousClassId) !== String(targetClass?._id || "")) await Class.updateOne({ _id: previousClassId }, { $pull: { students: student._id } });
     if (targetClass && !targetClass.students.some(id => String(id) === String(student._id))) { targetClass.students.push(student._id); await targetClass.save(); }
-    res.status(student.isNew ? 201 : 200).json({ message: "Student added to your school", student: await User.findById(student._id).populate("classId", "name section").select("-password") });
+    res.status(isNewStudent ? 201 : 200).json({ message: "Student added to your school", student: await User.findById(student._id).populate("classId", "name section").select("-password") });
   } catch (error) { res.status(500).json({ message: "Could not add student" }); }
 };

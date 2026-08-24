@@ -15,6 +15,7 @@ import SchoolDetails from "./pages/SchoolDetails";
 import AboutAppPage from "./pages/AboutAppPage";
 import TeacherOnLeave from "./pages/TeacherOnLeave";
 import TimetableView from "../../../components/TimetableView";
+import GroupChat from "../teacher/pages/GroupChat";
 
 import { CallProvider } from "../../../context/CallContext";
 
@@ -34,6 +35,7 @@ function StudentRoutes() {
         <Route path="exams" element={<StudentExams />} />
         <Route path="profile" element={<StudentProfile />} />
         <Route path="support" element={<StudentSupport />} />
+        <Route path="support/groups" element={<GroupChat />} />
         <Route path="events" element={<StudentEvents />} />
         <Route path="schools" element={<SchoolDirectory />} />
         <Route path="schools/:name" element={<SchoolDetails />} />

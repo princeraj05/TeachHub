@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { FaBroadcastTower, FaComments, FaPhone } from "react-icons/fa";
 import { useCall } from "../../../../context/CallContext";
@@ -130,6 +131,7 @@ function StudentSupport() {
     <div className="font-sans flex flex-col h-[calc(100vh-140px)] bg-white border border-slate-200/60 rounded-3xl overflow-hidden shadow-sm">
       {/* Tab bar */}
       <div className="flex border-b border-slate-100 bg-slate-50/50 p-2 gap-2 select-none">
+        <Link to="/student/support/groups" className="ml-auto px-4 py-2 rounded-xl text-xs font-bold bg-violet-100 text-violet-700 hover:bg-violet-200">My Group Chats</Link>
         <button
           onClick={() => handleTabChange("admin")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${

@@ -30,6 +30,14 @@ const deletePhysicalFile = (filename) => {
   }
 };
 
+const cleanupTemporaryUploads = (files = []) => files.forEach((file) => {
+  try { if (file?.path && fs.existsSync(file.path)) fs.unlinkSync(file.path); } catch (_) { /* best-effort cleanup */ }
+});
+
+const cleanupCloudinaryUploads = async (publicIds, resourceType) => {
+  await Promise.all(publicIds.map((publicId) => cloudinary.uploader.destroy(publicId, { resource_type: resourceType }).catch(() => null)));
+};
+
 // 1. Create Event (Admin only)
 exports.createEvent = async (req, res) => {
   try {
@@ -81,7 +89,7 @@ exports.getEvents = async (req, res) => {
 
     let query = {};
     const { schoolName } = req.query;
-    if (authUser.role === "superadmin" || schoolName) {
+    if (authUser.role === "superadmin") {
       if (schoolName && schoolName !== "all") query.schoolName = schoolName;
     } else {
       if (!authUser.schoolName) return res.status(200).json([]);
@@ -111,7 +119,7 @@ exports.getUpcomingEvents = async (req, res) => {
       eventDate: { $gte: today }
     };
     const { schoolName } = req.query;
-    if (authUser.role === "superadmin" || schoolName) {
+    if (authUser.role === "superadmin") {
       if (schoolName && schoolName !== "all") query.schoolName = schoolName;
     } else {
       if (!authUser.schoolName) return res.status(200).json([]);
@@ -143,7 +151,7 @@ exports.getCompletedEvents = async (req, res) => {
       ]
     };
     const { schoolName } = req.query;
-    if (authUser.role === "superadmin" || req.query.global === "true" || schoolName) {
+    if (authUser.role === "superadmin") {
       if (schoolName && schoolName !== "all") query.schoolName = schoolName;
     } else {
       if (!authUser.schoolName) return res.status(200).json([]);
@@ -259,6 +267,7 @@ exports.completeEvent = async (req, res) => {
 
 // 8. Upload Photos to Event
 exports.uploadPhotos = async (req, res) => {
+  const uploadedIds = [];
   try {
     const authUser = await getAuthoritativeSchool(req.user.id);
     if (!authUser || (authUser.role !== "admin" && authUser.role !== "superadmin")) {
@@ -276,6 +285,9 @@ exports.uploadPhotos = async (req, res) => {
 
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: "No files uploaded" });
+    }
+    if (req.files.some((file) => !["image/jpeg", "image/png", "image/webp"].includes(file.mimetype))) {
+      return res.status(400).json({ message: "Photos must be JPG, PNG, or WEBP images" });
     }
     if ((event.photos?.length || 0) + req.files.length > 10) return res.status(400).json({ message: "An event can contain a maximum of 10 photos" });
 
@@ -285,20 +297,13 @@ exports.uploadPhotos = async (req, res) => {
         folder: "teachhub/events/photos",
         resource_type: "image"
       });
+      uploadedIds.push(result.public_id);
       newPhotos.push({
         url: result.secure_url,
         filename: result.public_id,
         mimeType: file.mimetype,
         size: file.size
       });
-      // Delete temporary local file
-      try {
-        if (fs.existsSync(file.path)) {
-          fs.unlinkSync(file.path);
-        }
-      } catch (err) {
-        console.error("Local file delete error:", err);
-      }
     }
 
     event.photos.push(...newPhotos);
@@ -306,12 +311,16 @@ exports.uploadPhotos = async (req, res) => {
 
     res.json(event);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    await cleanupCloudinaryUploads(uploadedIds, "image");
+    res.status(500).json({ message: "Could not upload photos" });
+  } finally {
+    cleanupTemporaryUploads(req.files);
   }
 };
 
 // 9. Upload Videos to Event
 exports.uploadVideos = async (req, res) => {
+  const uploadedIds = [];
   try {
     const authUser = await getAuthoritativeSchool(req.user.id);
     if (!authUser || (authUser.role !== "admin" && authUser.role !== "superadmin")) {
@@ -330,6 +339,9 @@ exports.uploadVideos = async (req, res) => {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: "No files uploaded" });
     }
+    if (req.files.some((file) => !["video/mp4", "video/webm", "video/quicktime", "video/mov"].includes(file.mimetype))) {
+      return res.status(400).json({ message: "Videos must be MP4, WEBM, or MOV files" });
+    }
     if ((event.videos?.length || 0) + req.files.length > 5) return res.status(400).json({ message: "An event can contain a maximum of 5 videos" });
 
     const newVideos = [];
@@ -338,8 +350,9 @@ exports.uploadVideos = async (req, res) => {
         folder: "teachhub/events/videos",
         resource_type: "video"
       });
+      uploadedIds.push(result.public_id);
       if (Number(result.duration || 0) > 60) {
-        await cloudinary.uploader.destroy(result.public_id, { resource_type: "video" });
+        await cleanupCloudinaryUploads(uploadedIds, "video");
         return res.status(400).json({ message: "Each video must be 1 minute or shorter" });
       }
       newVideos.push({
@@ -348,14 +361,6 @@ exports.uploadVideos = async (req, res) => {
         mimeType: file.mimetype,
         size: file.size
       });
-      // Delete temporary local file
-      try {
-        if (fs.existsSync(file.path)) {
-          fs.unlinkSync(file.path);
-        }
-      } catch (err) {
-        console.error("Local file delete error:", err);
-      }
     }
 
     event.videos.push(...newVideos);
@@ -363,7 +368,10 @@ exports.uploadVideos = async (req, res) => {
 
     res.json(event);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    await cleanupCloudinaryUploads(uploadedIds, "video");
+    res.status(500).json({ message: "Could not upload videos" });
+  } finally {
+    cleanupTemporaryUploads(req.files);
   }
 };
 

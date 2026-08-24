@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "axios";
-import { FaUserGraduate, FaEnvelope, FaSearch, FaUsers, FaTrash } from "react-icons/fa";
+import { FaUserGraduate, FaEnvelope, FaSearch, FaUsers, FaTrash, FaUserPlus } from "react-icons/fa";
 
 function Students() {
   const API = import.meta.env.VITE_API_URL;
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
   const [search, setSearch] = useState("");
+  const [newStudent, setNewStudent] = useState({ name: "", email: "", phoneNumber: "", classId: "" });
+  const [adding, setAdding] = useState(false);
+  const [addMessage, setAddMessage] = useState("");
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -58,6 +61,28 @@ function Students() {
     }
   };
 
+  const handleAddStudent = async (event) => {
+    event.preventDefault();
+    setAdding(true);
+    setAddMessage("");
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axiosInstance.post(`${API}/api/admin/users/students`, newStudent, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setStudents((current) => {
+        const withoutExisting = current.filter((student) => student._id !== response.data.student._id);
+        return [response.data.student, ...withoutExisting];
+      });
+      setNewStudent({ name: "", email: "", phoneNumber: "", classId: "" });
+      setAddMessage(response.data.message || "Student added successfully.");
+    } catch (error) {
+      setAddMessage(error.response?.data?.message || "Could not add student.");
+    } finally {
+      setAdding(false);
+    }
+  };
+
   const filtered = students.filter(
     (s) =>
       s.name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -103,6 +128,18 @@ function Students() {
           <span className="text-xs font-bold text-teal-700">{students.length} Registered Students</span>
         </div>
       </div>
+
+      <form onSubmit={handleAddStudent} className="mb-6 grid grid-cols-1 gap-3 rounded-2xl border border-teal-100 bg-teal-50/40 p-4 sm:grid-cols-2 lg:grid-cols-5">
+        <input required value={newStudent.name} onChange={(event) => setNewStudent({ ...newStudent, name: event.target.value })} placeholder="Student name" className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm" />
+        <input required type="email" value={newStudent.email} onChange={(event) => setNewStudent({ ...newStudent, email: event.target.value })} placeholder="Email address" className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm" />
+        <input value={newStudent.phoneNumber} onChange={(event) => setNewStudent({ ...newStudent, phoneNumber: event.target.value })} placeholder="Mobile number (optional)" className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm" />
+        <select value={newStudent.classId} onChange={(event) => setNewStudent({ ...newStudent, classId: event.target.value })} className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+          <option value="">Assign class later</option>
+          {classes.map((classItem) => <option key={classItem._id} value={classItem._id}>{classItem.name} {classItem.section}</option>)}
+        </select>
+        <button disabled={adding} className="flex items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"><FaUserPlus />{adding ? "Adding…" : "Add Student"}</button>
+        {addMessage && <p className="sm:col-span-2 lg:col-span-5 text-xs font-semibold text-teal-700">{addMessage}</p>}
+      </form>
 
       {/* ── Search Toolbar ── */}
       <div className="relative mb-6 max-w-md">
@@ -172,6 +209,7 @@ function Students() {
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider w-14">#</th>
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Student Name</th>
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Email Address</th>
+                <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Parent Contacts</th>
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Class & Section</th>
                 <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider w-36">System Role</th>
                 <th className="px-6 py-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider w-28">Actions</th>
@@ -180,7 +218,7 @@ function Students() {
             <tbody className="divide-y divide-slate-100/80">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="py-20 text-center">
+                  <td colSpan="7" className="py-20 text-center">
                     <FaUserGraduate className="text-slate-200 text-5xl mx-auto mb-4" />
                     <p className="text-slate-500 text-sm font-bold">No students found</p>
                     <p className="text-slate-400 text-xs mt-1">Try searching for a different user.</p>
@@ -203,6 +241,10 @@ function Students() {
                         <FaEnvelope className="text-slate-400 text-xs flex-shrink-0" />
                         <span className="text-sm">{s.email}</span>
                       </div>
+                    </td>
+                    <td className="px-6 py-4.5 text-xs text-slate-500">
+                      <div>Father: {s.fatherMobileNumber || "—"}</div>
+                      <div>Mother: {s.motherMobileNumber || "—"}</div>
                     </td>
                     <td className="px-6 py-4.5">
                       <select

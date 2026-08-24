@@ -11,6 +11,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { FaBook, FaClipboardCheck, FaFileAlt, FaCalendarAlt } from "react-icons/fa";
+import TodayTimetableWidget from "../../../../components/TodayTimetableWidget";
 
 const SORA = "'Sora', sans-serif";
 
@@ -165,6 +166,9 @@ function StudentDashboard() {
           </div>
         ))}
       </div>
+
+      {/* Charts & Snapshot Row */}
+      <TodayTimetableWidget />
 
       {/* Charts & Snapshot Row */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">

@@ -121,6 +121,7 @@ function SchoolDetails() {
   const showClasses = isPresent(school.totalClasses);
   const showAvailableClasses = isPresent(school.availableClasses);
   const showTypes = isArrayPresent(school.schoolTypes);
+  const showSchoolType = isPresent(school.schoolType);
   
   // Boolean displays must not hide when false
   const showAdmissionExam = school.admissionExam !== null && school.admissionExam !== undefined;
@@ -160,7 +161,7 @@ function SchoolDetails() {
       </div>
 
       {/* Grid containing principal & about app description */}
-      {(showPrincipal || showDescription || showTypes) && (
+      {(showPrincipal || showDescription || showTypes || showSchoolType) && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
           {/* Main Info */}
           <div className="md:col-span-2 space-y-6">
@@ -185,6 +186,13 @@ function SchoolDetails() {
                     </span>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {showSchoolType && (
+              <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 p-6 rounded-3xl shadow-md">
+                <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">School Type</h3>
+                <p className="text-sm font-black text-slate-800 dark:text-white">{school.schoolType}</p>
               </div>
             )}
           </div>

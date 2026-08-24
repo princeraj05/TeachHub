@@ -112,15 +112,17 @@ function SuperAdminDashboard() {
 
   // Stats calculation
   const nonSuperAdminUsers = users.filter((u) => u.role !== "superadmin");
+  const isPendingUser = (user) => user.role === "unassigned" && user.requestStatus !== "rejected" || ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
+  const approvalLabel = (user) => user.requestStatus === "rejected" ? "Rejected" : isPendingUser(user) ? "Pending" : "Approved";
   const totalUsers = nonSuperAdminUsers.length;
-  const pendingCount = nonSuperAdminUsers.filter((u) => u.role === "unassigned").length;
+  const pendingCount = nonSuperAdminUsers.filter(isPendingUser).length;
   const adminCount = nonSuperAdminUsers.filter((u) => u.role === "admin").length;
   const teacherCount = nonSuperAdminUsers.filter((u) => u.role === "teacher").length;
   const studentCount = nonSuperAdminUsers.filter((u) => u.role === "student").length;
   const uniqueSchoolsCount = schools.length;
 
   const filteredUsers = nonSuperAdminUsers.filter((u) => {
-    const matchesSection = userSection === "pending" ? u.role === "unassigned" : u.role !== "unassigned";
+    const matchesSection = userSection === "pending" ? isPendingUser(u) : !isPendingUser(u);
     const matchesSearch =
       u.name?.toLowerCase().includes(search.toLowerCase()) ||
       u.email?.toLowerCase().includes(search.toLowerCase());
@@ -216,13 +218,15 @@ function SuperAdminDashboard() {
                   <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">User Info</th>
                   <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Current Role</th>
                   <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Assigned School</th>
+                  <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Created</th>
                   <th className="px-6 py-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider w-28">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100/80">
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="py-20 text-center">
+                    <td colSpan="6" className="py-20 text-center">
                       <FaUsers className="text-slate-200 text-5xl mx-auto mb-4" />
                       <p className="text-slate-500 text-sm font-bold">No users found</p>
                     </td>
@@ -256,6 +260,8 @@ function SuperAdminDashboard() {
                           {u.schoolName || <span className="text-slate-400 font-medium italic">Not Assigned</span>}
                         </p>
                       </td>
+                      <td className="px-6 py-4"><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${approvalLabel(u) === "Pending" ? "bg-amber-50 text-amber-700" : approvalLabel(u) === "Rejected" ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"}`}>{approvalLabel(u)}</span></td>
+                      <td className="px-6 py-4 text-xs text-slate-500">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}</td>
                       <td className="px-6 py-4 text-center">
                         {u.role === "superadmin" ? (
                           <span className="text-xs text-slate-400 font-medium italic">ReadOnly</span>
