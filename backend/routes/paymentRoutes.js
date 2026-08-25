@@ -17,7 +17,7 @@ router.put("/payments/:id/approve-offline", protect, authorize("admin"), payment
 router.put("/payments/:id/reject-offline", protect, authorize("admin"), payment.rejectOffline);
 router.post("/payments/:id/refund", protect, authorize("superadmin"), payment.refundPayment);
 router.get("/payment-settings", protect, authorize("superadmin", "admin", "teacher"), payment.getSettings);
-router.put("/payment-settings", protect, authorize("superadmin"), payment.updateSettings);
+router.put("/payment-settings", protect, authorize("superadmin", "admin", "teacher"), payment.updateSettings);
 router.get("/admin/fee-plan", protect, authorize("admin"), payment.getFeePlan);
 router.put("/admin/fee-plan", protect, authorize("admin"), payment.setFeePlan);
 router.get("/admin/teacher-compensations", protect, authorize("admin"), payment.listTeacherCompensations);

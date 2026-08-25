@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { startBackendPayment } from "../utils/razorpayCheckout";
 
 const auth = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
 const money = value => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format((value || 0) / 100);
@@ -48,11 +49,30 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
       setNotice("Teacher salary saved."); load(); onChange?.();
     } catch (error) { setNotice(error.response?.data?.message || "Salary could not be saved."); }
   };
-  const grantFree = async item => {
-    const days = window.prompt(`Free period for ${item.subscription.schoolName}: number of days`, "30");
-    if (days === null) return;
+  const payTeacher = async (teacher, offline = false) => {
     try {
-      await axios.post(`${apiBase}/api/superadmin/subscriptions/${encodeURIComponent(item.subscription.schoolName)}/free-period`, { days: Number(days), type: "PROMOTIONAL", reason: "Administrative free period" }, { headers: auth() });
+      if (offline) {
+        const method = window.prompt("Method: CASH, BANK_TRANSFER, MANUAL_UPI, or CHEQUE", "BANK_TRANSFER");
+        const reference = window.prompt("Payment reference");
+        if (!method || !reference) return;
+        await axios.post(`${apiBase}/api/admin/teacher-payments/${teacher._id}/offline-request`, { method, reference }, { headers: auth() });
+        setNotice("Teacher payment is awaiting verification.");
+      } else {
+        await startBackendPayment({ apiBase, token: localStorage.getItem("token"), createOrderEndpoint: `/api/teacher-payments/${teacher._id}/create-order`, customer: { name: localStorage.getItem("name") } });
+        setNotice("Teacher payment was verified.");
+      }
+      load(); onChange?.();
+    } catch (error) { setNotice(error.response?.data?.message || error.message || "Teacher payment could not be created."); }
+  };
+  const grantFree = async item => {
+    const type = window.prompt("Free-period type: FREE_TRIAL, PROMOTIONAL, COMPENSATION, SPECIAL_OFFER, or OTHER", "PROMOTIONAL");
+    if (!type) return;
+    const startDate = window.prompt("Start date (YYYY-MM-DD, leave blank for today)", "");
+    const endDate = window.prompt("End date (YYYY-MM-DD), or leave blank to use duration", "");
+    const days = endDate ? null : window.prompt(`Free period for ${item.subscription.schoolName}: number of days (7, 15, 30, 60, 90, or custom)`, "30");
+    if (days === null && !endDate) return;
+    try {
+      await axios.post(`${apiBase}/api/superadmin/subscriptions/${encodeURIComponent(item.subscription.schoolName)}/free-period`, { ...(startDate && { startDate }), ...(endDate ? { endDate } : { days: Number(days) }), type: type.toUpperCase(), reason: "Administrative free period" }, { headers: auth() });
       setNotice("Free period granted."); load(); onChange?.();
     } catch (error) { setNotice(error.response?.data?.message || "Free period could not be granted."); }
   };
@@ -63,6 +83,11 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
       await axios.put(`${apiBase}/api/superadmin/subscriptions/${encodeURIComponent(item.subscription.schoolName)}/status`, { status }, { headers: auth() });
       setNotice("Subscription status updated."); load(); onChange?.();
     } catch (error) { setNotice(error.response?.data?.message || "Status could not be updated."); }
+  };
+  const cancelFree = async period => {
+    const reason = window.prompt("Reason for cancelling this free period") || "";
+    try { await axios.put(`${apiBase}/api/superadmin/free-periods/${period._id}/cancel`, { reason }, { headers: auth() }); setNotice("Free period cancelled."); load(); onChange?.(); }
+    catch (error) { setNotice(error.response?.data?.message || "Free period could not be cancelled."); }
   };
   const configureSubscription = async () => {
     const schoolName = window.prompt("Exact school name"); if (!schoolName) return;
@@ -84,8 +109,8 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
         <label className="text-sm font-semibold">Monthly student fee (₹)<input value={fee} onChange={e => setFee(e.target.value)} type="number" min="0.01" step="0.01" required className="mt-1 block rounded-lg border p-2" /></label>
         <button className="rounded-lg bg-[#7C3AED] px-4 py-2 text-sm font-bold text-white">Save fee plan</button>
       </form>
-      <div className="mt-5 divide-y divide-slate-100 dark:divide-white/10">{teachers.map(teacher => { const item = compensations.find(c => String(c.teacher?._id || c.teacher) === String(teacher._id)); return <div key={teacher._id} className="flex items-center justify-between gap-3 py-3 text-sm"><span>{teacher.name} {item ? `· ${money(item.salary)}/month` : "· Salary not set"}</span><button onClick={() => saveSalary(teacher)} className="rounded-lg border px-3 py-1.5 font-bold">Set salary</button></div>; })}</div>
+      <div className="mt-5 divide-y divide-slate-100 dark:divide-white/10">{teachers.map(teacher => { const item = compensations.find(c => String(c.teacher?._id || c.teacher) === String(teacher._id)); return <div key={teacher._id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"><span>{teacher.name} {item ? `· ${money(item.salary)}/${item.paymentCycle?.toLowerCase() || "month"}` : "· Salary not set"}</span><div className="flex gap-2"><button onClick={() => saveSalary(teacher)} className="rounded-lg border px-3 py-1.5 font-bold">Set salary</button>{item && <><button onClick={() => payTeacher(teacher)} className="rounded-lg bg-[#7C3AED] px-3 py-1.5 font-bold text-white">Pay online</button><button onClick={() => payTeacher(teacher, true)} className="rounded-lg border px-3 py-1.5 font-bold">Pay offline</button></>}</div></div>; })}</div>
     </>}
-    {role === "superadmin" && <><button onClick={configureSubscription} className="mt-4 rounded-lg bg-[#7C3AED] px-4 py-2 text-sm font-bold text-white">Configure school subscription</button><div className="mt-2 divide-y divide-slate-100 dark:divide-white/10">{subscriptions.map(item => <div key={item.subscription._id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"><div><b>{item.subscription.schoolName}</b><p className="text-slate-500">{money(item.subscription.monthlyFee)} · {item.billing.status} · next {new Date(item.subscription.nextBillingDate).toLocaleDateString()}</p></div><div className="flex gap-2"><button onClick={() => grantFree(item)} className="rounded-lg border px-3 py-1.5 font-bold">Grant free period</button><button onClick={() => changeStatus(item)} className="rounded-lg border px-3 py-1.5 font-bold">Change status</button></div></div>)}</div></>}
+    {role === "superadmin" && <><button onClick={configureSubscription} className="mt-4 rounded-lg bg-[#7C3AED] px-4 py-2 text-sm font-bold text-white">Configure school subscription</button><div className="mt-2 divide-y divide-slate-100 dark:divide-white/10">{subscriptions.map(item => <div key={item.subscription._id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"><div><b>{item.subscription.schoolName}</b><p className="text-slate-500">{money(item.subscription.monthlyFee)} · {item.billing.status} · next {new Date(item.subscription.nextBillingDate).toLocaleDateString()}</p>{item.freePeriods?.filter(period => period.status === "Active").map(period => <p key={period._id} className="mt-1 text-xs text-emerald-700">Free: {new Date(period.startDate).toLocaleDateString()}–{new Date(period.endDate).toLocaleDateString()} <button onClick={() => cancelFree(period)} className="underline">cancel</button></p>)}</div><div className="flex gap-2"><button onClick={() => grantFree(item)} className="rounded-lg border px-3 py-1.5 font-bold">Grant free period</button><button onClick={() => changeStatus(item)} className="rounded-lg border px-3 py-1.5 font-bold">Change status</button></div></div>)}</div></>}
   </section>;
 }
