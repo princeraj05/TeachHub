@@ -834,7 +834,7 @@ function PendingApproval() {
       )}
 
       {/* Main Content Area */}
-      <main className={`flex-1 h-screen overflow-y-auto pl-0 md:pl-20 lg:pl-64 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6 flex ${activeTab === "status" ? "items-start justify-center pt-6 md:pt-12" : "items-center justify-center"} p-6 sm:p-12 transition-all duration-200 select-none`}>
+      <main className="flex-1 h-screen overflow-y-auto pl-0 md:pl-20 lg:pl-64 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6 flex items-start justify-center pt-6 md:pt-12 p-6 sm:p-12 transition-all duration-200 select-none">
         {renderTabContent()}
       </main>
 
