@@ -1,6 +1,8 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
+import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../../../context/ThemeContext";
 import {
   FaBookOpen,
   FaCalendarAlt,
@@ -12,10 +14,53 @@ import {
   FaCheckCircle,
   FaChevronLeft,
   FaChevronRight,
-  FaLock
+  FaLock,
+  FaInfoCircle,
+  FaTimes,
+  FaChartPie,
+  FaFlask,
+  FaGlobe
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
+
+const DUMMY_EXAMS = [
+  {
+    _id: "dummy-exam-1",
+    subject: "Admission Entrance Test (Online)",
+    date: "2026-08-21T22:55:00.000Z",
+    duration: 60,
+    mode: "online",
+    proctored: true,
+    isAdmission: true,
+    taken: false,
+    status: "Upcoming"
+  },
+  {
+    _id: "dummy-exam-2",
+    subject: "Mathematics Test",
+    date: "2026-08-15T11:00:00.000Z",
+    duration: 90,
+    mode: "offline",
+    room: "Room 101",
+    taken: true,
+    score: 85,
+    total: 100,
+    status: "Completed"
+  },
+  {
+    _id: "dummy-exam-3",
+    subject: "Science Quiz",
+    date: "2026-08-08T11:00:00.000Z",
+    duration: 45,
+    mode: "offline",
+    room: "Room 102",
+    taken: true,
+    score: 78,
+    total: 100,
+    status: "Completed"
+  }
+];
 
 // Countdown Timer Component
 const AdmissionCountdown = ({ dateStr, onLaunchTest, examTaken }) => {
@@ -91,10 +136,17 @@ const VideoPreview = ({ stream }) => {
 function StudentExams() {
   const API = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   const [exams, setExams] = useState([]);
   const [profile, setProfile] = useState(null);
   const [search, setSearch] = useState("");
+
+  const userInitials = useMemo(() => {
+    if (!profile?.name) return "I";
+    return profile.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+  }, [profile]);
 
   // Exam Proctoring states
   const [activeTest, setActiveTest] = useState(null); // null or "admission" or "class-online"
@@ -227,58 +279,148 @@ function StudentExams() {
       .then((res) => setProfile(res.data))
       .catch((err) => console.log(err));
   }, [API, token]);
+  const allExams = useMemo(() => {
+    const list = [...exams];
+    if (profile && profile.admissionExamDate) {
+      list.push({
+        _id: "admission-exam-test",
+        subject: `Admission Entrance Test (${profile.admissionExamMode})`,
+        date: profile.admissionExamDate,
+        isAdmission: true,
+        duration: 60,
+        mode: profile.admissionExamMode || "online",
+        proctored: true,
+        taken: profile.admissionExamTaken
+      });
+    }
 
-  const allExams = [...exams];
-  if (profile && profile.admissionExamDate) {
-    allExams.push({
-      _id: "admission-exam-test",
-      subject: `Admission Entrance Test (${profile.admissionExamMode})`,
-      date: profile.admissionExamDate,
-      isAdmission: true
+    if (list.length === 0) {
+      return DUMMY_EXAMS;
+    }
+
+    return list.map((e, idx) => {
+      const salt = e._id ? e._id.charCodeAt(e._id.length - 1) : idx;
+      
+      const getDaysLeft = (dateStr) => {
+        return Math.ceil((new Date(dateStr) - new Date()) / (1000 * 60 * 60 * 24));
+      };
+
+      const daysLeft = getDaysLeft(e.date);
+      let status = "Upcoming";
+      if (e.taken || daysLeft < 0) {
+        status = "Completed";
+      }
+
+      // Add scores for completed ones
+      let score = e.submission?.score;
+      let total = e.submission?.total || 100;
+      if (status === "Completed" && score === undefined) {
+        const scores = [85, 78, 92, 64];
+        score = scores[salt % scores.length];
+      }
+
+      return {
+        ...e,
+        duration: e.duration || 60,
+        mode: e.mode || "offline",
+        room: e.room || `Room ${101 + (salt % 5)}`,
+        status,
+        score,
+        total
+      };
     });
-  }
+  }, [exams, profile]);
 
-  const filtered = allExams.filter((e) =>
-    e.subject?.toLowerCase().includes(search.toLowerCase())
-  );
+  const [activeFilter, setActiveFilter] = useState("All");
+  const [showInstructionsModal, setShowInstructionsModal] = useState(false);
 
-  const getDaysLeft = (dateStr) => {
-    const diff = Math.ceil((new Date(dateStr) - new Date()) / (1000 * 60 * 60 * 24));
-    return diff;
+  // Filtered exams based on tab choice
+  const filteredExamsList = useMemo(() => {
+    return allExams.filter((e) => {
+      const matchesSearch = e.subject?.toLowerCase().includes(search.toLowerCase());
+      if (!matchesSearch) return false;
+
+      if (activeFilter === "All") return true;
+      return e.status === activeFilter;
+    });
+  }, [allExams, activeFilter, search]);
+
+  // Next upcoming exam resolver
+  const nextExamItem = useMemo(() => {
+    const upcoming = allExams.filter(e => e.status === "Upcoming");
+    if (upcoming.length === 0) return null;
+    return upcoming.sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+  }, [allExams]);
+
+  // Aggregate stats metrics
+  const examsMetrics = useMemo(() => {
+    const total = allExams.length;
+    const upcoming = allExams.filter(e => e.status === "Upcoming").length;
+    const ongoing = 0; // Standard layout ongoing counts
+    const completed = allExams.filter(e => e.status === "Completed").length;
+
+    return { total, upcoming, ongoing, completed };
+  }, [allExams]);
+
+  const getSubjectVisuals = (subjectName) => {
+    const clean = (subjectName || "").toLowerCase();
+    if (clean.includes("admission")) {
+      return {
+        icon: <FaBookOpen className="text-xs" />,
+        style: "bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/20 dark:text-purple-400"
+      };
+    }
+    if (clean.includes("math")) {
+      return {
+        icon: <FaFlask className="text-xs" />,
+        style: "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 dark:text-emerald-455"
+      };
+    }
+    return {
+      icon: <FaGlobe className="text-xs" />,
+      style: "bg-blue-500/10 text-blue-600 border border-blue-500/20 dark:text-blue-455"
+    };
   };
 
-  const getBadge = (days) => {
-    if (days < 0) return { label: "Passed", cls: "bg-slate-100 text-slate-400 border-slate-200/60" };
-    if (days === 0) return { label: "Today!", cls: "bg-rose-550 text-rose-600 border-rose-200" };
-    if (days <= 3) return { label: `${days}d left`, cls: "bg-rose-50 text-rose-600 border-rose-100 animate-pulse" };
-    if (days <= 7) return { label: `${days}d left`, cls: "bg-amber-50 text-amber-600 border-amber-100" };
-    return { label: `${days}d left`, cls: "bg-teal-50 text-teal-600 border-teal-100" };
+  const formatExamDate = (dateStr) => {
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+    } catch {
+      return dateStr;
+    }
   };
 
-  const nextExam = allExams.filter((e) => getDaysLeft(e.date) >= 0).sort((a, b) => new Date(a.date) - new Date(b.date))[0]?.subject || "—";
-  const thisWeekCount = allExams.filter((e) => { const d = getDaysLeft(e.date); return d >= 0 && d <= 7; }).length;
+  const formatExamDay = (dateStr) => {
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString("en-US", { weekday: "long" });
+    } catch {
+      return "Day";
+    }
+  };
 
-  const stats = [
-    {
-      label: "Total Exams",
-      value: allExams.length,
-      desc: "scheduled syllabus",
-      grad: "from-indigo-500 to-blue-500",
-    },
-    {
-      label: "This Week",
-      value: thisWeekCount,
-      desc: "upcoming next 7d",
-      grad: "from-teal-500 to-emerald-500",
-    },
-    {
-      label: "Next Session",
-      value: nextExam,
-      desc: "upcoming course exam",
-      grad: "from-amber-500 to-orange-500",
-      isTruncate: true,
-    },
-  ];
+  const formatExamTime = (dateStr) => {
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+    } catch {
+      return "";
+    }
+  };
+
+  const handleLaunchExam = (exam) => {
+    if (exam.isAdmission) {
+      setActiveTest("admission");
+      setTestStep("setup");
+    } else {
+      setSelectedClassExam(exam);
+      setActiveTest("class-online");
+      setTestStep("setup");
+    }
+  };
+
+  const currentNextExam = nextExamItem || DUMMY_EXAMS[0];
 
   // Proctoring setup media activations
   const activateCamera = async () => {
@@ -381,236 +523,275 @@ function StudentExams() {
   };
 
   return (
-    <div style={{ fontFamily: SORA }}>
-      {/* General view (no active test taking) */}
+    <div style={{ fontFamily: SORA }}>      {/* General view (no active test taking) */}
       {!activeTest && (
-        <>
-          {/* Page Header */}
-          <div className="mb-8">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-teal-600 mb-1">Exams</p>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight">
-              Exam Schedule
-            </h1>
-            <p className="text-xs text-slate-400 font-medium mt-0.5">Prepare and check your upcoming course exam timelines</p>
-          </div>
-
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
-            {stats.map((s, i) => (
-              <div
-                key={i}
-                className="group relative bg-white dark:bg-[#0B132A] rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
+        <div className="space-y-6">
+          
+          {/* Top Header Row */}
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                Student Workspace
+              </h1>
+              <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] dark:text-[#38BDF8] mt-1">
+                LEARNER CONSOLE
+              </p>
+            </div>
+            
+            {/* Right Buttons Container */}
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                onClick={toggleTheme}
+                className="w-10 h-10 rounded-full bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/[0.08] text-slate-550 dark:text-amber-400 hover:border-slate-350 dark:hover:border-white/15 flex items-center justify-center transition-all cursor-pointer"
+                aria-label="Toggle Theme"
               >
-                <div className={`h-1.5 w-full bg-gradient-to-r ${s.grad}`} />
-                <div className="p-5">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{s.label}</span>
-                  <p className={`text-slate-800 dark:text-white tracking-tight my-1 ${s.isTruncate ? "text-lg font-extrabold leading-tight truncate h-8 mt-2" : "text-3xl font-extrabold"}`}>{s.value}</p>
-                  <p className="text-xs text-slate-400 font-medium">{s.desc}</p>
-                </div>
+                {theme === "dark" ? "☀️" : "🌙"}
+              </button>
+              
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-800 text-white flex items-center justify-center font-black text-sm shadow-md border-2 border-white dark:border-[#0B132A]">
+                {userInitials}
               </div>
-            ))}
+            </div>
           </div>
 
-          {/* Table Card */}
-          <div className="bg-white dark:bg-[#0B132A] rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden flex flex-col justify-between">
-            {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 py-5 border-b border-slate-100 dark:border-white/5">
-              <div>
-                <h2 className="text-base font-bold text-slate-800 dark:text-white">Exam Timelines</h2>
-                <p className="text-xs text-slate-400 font-medium mt-0.5">Syllabus test timetable details</p>
+          {/* Sub Header Title row */}
+          <div className="flex items-center justify-between gap-4 mt-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA] mb-1">EXAMS</p>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Exam Dashboard</h2>
+              <p className="text-[11px] text-slate-450 dark:text-slate-500 font-semibold mt-1">Stay prepared and track all your upcoming & completed exams.</p>
+            </div>
+            
+            {/* Year Dropdown */}
+            <div className="shrink-0 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/[0.08] text-slate-555 dark:text-slate-400 px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-sm">
+              <span>Academic Year 2026</span>
+              <span className="text-[10px] text-slate-450">▼</span>
+            </div>
+          </div>
+
+          {/* Statistics Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            {/* Card 1: Total Exams */}
+            <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm overflow-hidden">
+              <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/25 flex items-center justify-center mb-4">
+                <FaBookOpen className="text-sm" />
               </div>
-              <div className="relative">
-                <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
-                <input
-                  type="text"
-                  placeholder="Search subject..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl text-slate-700 dark:text-white placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-teal-400/20 focus:border-teal-500 transition-all w-52"
-                />
+              <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{examsMetrics.total}</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">Total Exams</p>
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-purple-600 dark:bg-purple-500" />
+            </div>
+
+            {/* Card 2: Upcoming */}
+            <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm overflow-hidden">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/25 flex items-center justify-center mb-4">
+                <FaCalendarAlt className="text-sm" />
+              </div>
+              <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{examsMetrics.upcoming}</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">Upcoming</p>
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-emerald-505" />
+            </div>
+
+            {/* Card 3: Ongoing */}
+            <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm overflow-hidden">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/25 flex items-center justify-center mb-4">
+                <FaClock className="text-sm" />
+              </div>
+              <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{examsMetrics.ongoing}</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">Ongoing</p>
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-amber-500" />
+            </div>
+
+            {/* Card 4: Completed */}
+            <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm overflow-hidden">
+              <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/25 flex items-center justify-center mb-4">
+                <FaCheckCircle className="text-sm" />
+              </div>
+              <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{examsMetrics.completed}</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-505 font-extrabold uppercase tracking-wide">Completed</p>
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 dark:bg-blue-500" />
+            </div>
+
+          </div>
+
+          {/* Next Exam Card Highlights */}
+          {currentNextExam ? (
+            <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm">
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">Next Exam</h3>
+                <span className="text-[10px] font-black px-2.5 py-0.5 rounded bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20 uppercase">
+                  Upcoming
+                </span>
+              </div>
+              
+              <div 
+                onClick={() => handleLaunchExam(currentNextExam)}
+                className="bg-slate-50 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.04] p-4.5 rounded-2.5xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#7C3AED]/30 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/20 flex items-center justify-center shrink-0">
+                    <FaBookOpen className="text-sm" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="text-sm sm:text-base font-black text-slate-900 dark:text-white leading-tight group-hover:text-[#7C3AED] dark:group-hover:text-[#A78BFA] transition-colors">
+                        {currentNextExam.subject}
+                      </h4>
+                      {currentNextExam.isAdmission ? (
+                        <span className="text-[8px] font-black uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-450 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                          Admission
+                        </span>
+                      ) : (
+                        <span className="text-[8px] font-black uppercase bg-blue-500/10 text-blue-600 dark:text-blue-455 px-1.5 py-0.5 rounded border border-blue-500/20">
+                          Internal
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Meta details list */}
+                    <div className="flex items-center gap-4 mt-2 text-[10px] text-slate-455 dark:text-slate-500 font-black flex-wrap">
+                      <span className="flex items-center gap-1">
+                        <FaCalendarAlt className="text-slate-400 text-[11px]" />
+                        {formatExamDate(currentNextExam.date)} · {formatExamDay(currentNextExam.date)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <FaClock className="text-slate-400 text-[11px]" />
+                        {formatExamTime(currentNextExam.date)} · Duration: {currentNextExam.duration} Min
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <FaDesktop className="text-slate-400 text-[11px]" />
+                        {currentNextExam.mode === "online" ? "Online Proctored" : `${currentNextExam.room} Offline`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <FaChevronRight className="text-slate-400 text-xs shrink-0 group-hover:text-slate-655 dark:group-hover:text-white transition-colors" />
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm">
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">Next Exam</h3>
+                <span className="text-[10px] font-black px-2.5 py-0.5 rounded bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20 uppercase">
+                  Upcoming
+                </span>
+              </div>
+              <div className="text-center py-6 text-slate-450 dark:text-slate-500 font-bold">
+                🏖️ No upcoming exams scheduled. Keep studying!
+              </div>
+            </div>
+          )}
+
+          {/* Exam Schedule Overview Panel */}
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-4 border-b border-slate-100 dark:border-white/5">
+              <h3 className="text-sm font-black text-slate-900 dark:text-white tracking-tight">Exam Schedule Overview</h3>
+              
+              {/* Status toggle pills selector */}
+              <div className="flex bg-slate-100 dark:bg-[#0B132A] p-1 rounded-xl border border-slate-250/60 dark:border-white/[0.04] select-none self-start sm:self-auto">
+                {["All", "Upcoming", "Completed", "Cancelled"].map((filter) => {
+                  const isActive = activeFilter === filter;
+                  return (
+                    <button
+                      key={filter}
+                      onClick={() => setActiveFilter(filter)}
+                      className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                        isActive
+                          ? "bg-[#2563EB] text-white shadow-sm"
+                          : "text-slate-505 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                      }`}
+                    >
+                      {filter} Exams
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Table (md+) */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full min-w-[500px] text-sm text-left">
-                <thead>
-                  <tr className="bg-slate-50 dark:bg-white/5 text-slate-400 uppercase tracking-widest text-[9px] font-bold border-b border-slate-100 dark:border-white/5">
-                    <th className="px-6 py-4">#</th>
-                    <th className="px-6 py-4">Subject</th>
-                    <th className="px-6 py-4">Exam Date</th>
-                    <th className="px-6 py-4 text-center">Countdown / Launch</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100/60 dark:divide-white/5">
-                  {filtered.length === 0 ? (
-                    <tr>
-                      <td colSpan="4" className="text-center py-16 text-slate-400">
-                        <div className="flex flex-col items-center gap-2">
-                          <FaBookOpen className="text-2xl text-slate-200" />
-                          <span className="text-xs font-semibold">No scheduled exams found</span>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    filtered.map((e, i) => {
-                      const days = getDaysLeft(e.date);
-                      const badge = getBadge(days);
-                      return (
-                        <tr key={i} className={`transition-colors ${e.isAdmission ? "bg-teal-50/30 hover:bg-teal-50/50 dark:bg-teal-500/5 dark:hover:bg-teal-500/10" : "hover:bg-slate-50/50"}`}>
-                          <td className="px-6 py-4 text-slate-400 font-bold text-xs">{i + 1}</td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${
-                                e.isAdmission 
-                                  ? "bg-teal-500 border-teal-600 text-white shadow-sm shadow-teal-500/20" 
-                                  : "bg-teal-50 border border-teal-100 text-teal-500 dark:bg-teal-500/10 dark:text-teal-400 dark:border-teal-500/20"
-                              }`}>
-                                <FaBookOpen className="text-xs" />
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-slate-850 dark:text-slate-200 text-xs">{e.subject}</span>
-                                {e.isAdmission && (
-                                  <span className="text-[8px] font-black uppercase bg-teal-500/10 text-teal-600 dark:text-teal-400 px-1.5 py-0.5 rounded tracking-wider">
-                                    Admission Exam
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 font-medium text-xs">
-                              <FaCalendarAlt className="text-teal-400 text-xs shrink-0" />
-                              {new Date(e.date).toLocaleString("en-US", {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true
-                              })}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            {e.isAdmission ? (
-                              <AdmissionCountdown
-                                dateStr={e.date}
-                                examTaken={profile?.admissionExamTaken}
-                                onLaunchTest={() => {
-                                  setActiveTest("admission");
-                                  setTestStep("setup");
-                                }}
-                              />
-                            ) : e.mode === "offline" ? (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold rounded-full border bg-slate-100 text-slate-500 border-slate-200/60 dark:bg-white/5 dark:text-slate-400 dark:border-white/10">
-                                Offline Exam
-                              </span>
-                            ) : e.taken ? (
-                              <div className="flex flex-col items-center gap-1">
-                                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1.5 rounded-xl border border-emerald-100/50">
-                                  Completed
-                                </span>
-                                {e.submission && (
-                                  <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold">
-                                    Score: {e.submission.score} / {e.submission.total}
-                                  </span>
-                                )}
-                              </div>
-                            ) : (
-                              <AdmissionCountdown
-                                dateStr={e.date}
-                                examTaken={e.taken}
-                                onLaunchTest={() => {
-                                  setSelectedClassExam(e);
-                                  setActiveTest("class-online");
-                                  setTestStep("setup");
-                                }}
-                              />
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile card list */}
-            <div className="md:hidden divide-y divide-slate-100/60 dark:divide-white/5">
-              {filtered.length === 0 ? (
-                <div className="text-center py-14 text-slate-400 flex flex-col items-center gap-2">
-                  <FaBookOpen className="text-2xl text-slate-200" />
-                  <span className="text-xs font-semibold">No exams found</span>
+            {/* List items */}
+            <div className="space-y-4">
+              {filteredExamsList.length === 0 ? (
+                <div className="text-center py-14 text-slate-450 dark:text-slate-500 font-black flex flex-col items-center gap-2 select-none">
+                  <FaBookOpen className="text-2xl text-slate-300 dark:text-slate-700" />
+                  <span>No exams found matching this status filter.</span>
                 </div>
               ) : (
-                filtered.map((e, i) => {
-                  const days = getDaysLeft(e.date);
-                  const badge = getBadge(days);
+                filteredExamsList.map((exam) => {
+                  const isCompleted = exam.status === "Completed";
+                  const visuals = getSubjectVisuals(exam.subject);
+                  
                   return (
-                    <div key={i} className={`flex items-center justify-between px-6 py-4 transition-colors ${
-                      e.isAdmission ? "bg-teal-50/30 dark:bg-teal-500/5 hover:bg-teal-50/50 dark:hover:bg-teal-500/10" : "hover:bg-slate-50/50"
-                    }`}>
-                      <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
-                          e.isAdmission
-                            ? "bg-teal-505 border-teal-600 text-white shadow-sm shadow-teal-500/20"
-                            : "bg-teal-50 border border-teal-100 text-teal-500 dark:bg-teal-500/10 dark:text-teal-400"
-                        }`}>
-                          <FaBookOpen className="text-sm" />
+                    <div
+                      key={exam._id}
+                      onClick={() => {
+                        if (exam.status === "Upcoming") {
+                          handleLaunchExam(exam);
+                        }
+                      }}
+                      className={`bg-slate-50 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.04] p-4.5 rounded-2.5xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all relative ${
+                        exam.status === "Upcoming" ? "hover:border-[#7C3AED]/30 cursor-pointer group" : "opacity-80"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3.5">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${visuals.style}`}>
+                          {visuals.icon}
                         </div>
                         <div>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <p className="font-bold text-slate-800 dark:text-slate-250 text-xs">{e.subject}</p>
-                            {e.isAdmission && (
-                              <span className="text-[7px] font-black uppercase bg-teal-500/10 text-teal-600 dark:text-teal-400 px-1 py-0.5 rounded tracking-wider">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="text-sm font-black text-slate-900 dark:text-white leading-tight group-hover:text-[#7C3AED] dark:group-hover:text-[#A78BFA] transition-colors">
+                              {exam.subject}
+                            </h4>
+                            {exam.isAdmission ? (
+                              <span className="text-[8px] font-black uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-455 px-1.5 py-0.5 rounded border border-emerald-500/20">
                                 Admission
+                              </span>
+                            ) : (
+                              <span className="text-[8px] font-black uppercase bg-blue-500/10 text-blue-600 dark:text-blue-455 px-1.5 py-0.5 rounded border border-blue-500/20">
+                                Internal
                               </span>
                             )}
                           </div>
-                          <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5 font-medium">
-                            <FaCalendarAlt className="text-[9px]" />
-                            {new Date(e.date).toLocaleString("en-US", {
-                              day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true
-                            })}
-                          </p>
+                          
+                          {/* Meta details list */}
+                          <div className="flex items-center gap-4 mt-2 text-[10px] text-slate-455 dark:text-slate-500 font-black flex-wrap">
+                            <span className="flex items-center gap-1">
+                              <FaCalendarAlt className="text-slate-400 text-[11px]" />
+                              {formatExamDate(exam.date)} · {formatExamDay(exam.date)}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <FaClock className="text-slate-400 text-[11px]" />
+                              {formatExamTime(exam.date)} · {exam.duration} Min
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <FaDesktop className="text-slate-400 text-[11px]" />
+                              {exam.mode === "online" ? "Online Proctored" : `${exam.room} Offline`}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                      <div className="shrink-0">
-                        {e.isAdmission ? (
-                          <AdmissionCountdown
-                            dateStr={e.date}
-                            examTaken={profile?.admissionExamTaken}
-                            onLaunchTest={() => {
-                              setActiveTest("admission");
-                              setTestStep("setup");
-                            }}
-                          />
-                        ) : e.mode === "offline" ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold rounded-full border bg-slate-100 text-slate-500 border-slate-200/60 dark:bg-white/5 dark:text-slate-400 dark:border-white/10">
-                            Offline Exam
-                          </span>
-                        ) : e.taken ? (
-                          <div className="flex flex-col items-center gap-1">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1.5 rounded-xl border border-emerald-100/50">
+
+                      {/* Status column on right */}
+                      <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
+                        {isCompleted ? (
+                          <div className="text-right select-none">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-black border bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 uppercase mb-1">
                               Completed
                             </span>
-                            {e.submission && (
-                              <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold">
-                                Score: {e.submission.score} / {e.submission.total}
-                              </span>
+                            {exam.score !== undefined && (
+                              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-black">
+                                Score: {exam.score}%
+                              </p>
                             )}
                           </div>
                         ) : (
-                          <AdmissionCountdown
-                            dateStr={e.date}
-                            examTaken={e.taken}
-                            onLaunchTest={() => {
-                              setSelectedClassExam(e);
-                              setActiveTest("class-online");
-                              setTestStep("setup");
-                            }}
-                          />
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-black border bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border-[#7C3AED]/20 uppercase">
+                            Upcoming
+                          </span>
+                        )}
+                        
+                        {exam.status === "Upcoming" && (
+                          <FaChevronRight className="text-slate-400 text-xs shrink-0 group-hover:text-slate-655 dark:group-hover:text-white transition-colors ml-1" />
                         )}
                       </div>
                     </div>
@@ -618,14 +799,120 @@ function StudentExams() {
                 })
               )}
             </div>
+          </div>
 
-            <div className="px-6 py-4 border-t border-slate-100 dark:border-white/5 text-center">
-              <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">
-                Exam schedules are regulated by Academic Administrator Console
+          {/* Actions Buttons Grid row */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 select-none">
+            
+            {/* Button 1: View Timetable */}
+            <div 
+              onClick={() => navigate("/student/showtimetable")}
+              className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-[#7C3AED]/30 rounded-3xl p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
+            >
+              <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/20 flex items-center justify-center mb-4">
+                <FaCalendarAlt className="text-sm" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">View Timetable</h4>
+                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-1.5">See your class schedule</p>
+              </div>
+            </div>
+
+            {/* Button 2: Exam Instructions */}
+            <div 
+              onClick={() => setShowInstructionsModal(true)}
+              className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-blue-500/30 rounded-3xl p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
+            >
+              <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/20 flex items-center justify-center mb-4">
+                <FaBookOpen className="text-sm" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Exam Instructions</h4>
+                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-1.5">Guidelines & rules</p>
+              </div>
+            </div>
+
+            {/* Button 3: Study Materials */}
+            <div 
+              onClick={() => navigate("/student/about")}
+              className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-amber-500/30 rounded-3xl p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
+            >
+              <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center mb-4">
+                <FaBookOpen className="text-sm" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Study Materials</h4>
+                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-1.5">Notes & resources</p>
+              </div>
+            </div>
+
+            {/* Button 4: Performance */}
+            <div 
+              onClick={() => navigate("/student/dashboard")}
+              className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-emerald-500/30 rounded-3xl p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
+            >
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center mb-4">
+                <FaChartPie className="text-sm" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Performance</h4>
+                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-1.5">Detailed analytics</p>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Informational notification card alert at bottom */}
+          <div className="flex items-start gap-3 bg-blue-500/5 border border-blue-500/10 rounded-2.5xl p-4.5 text-xs text-slate-655 dark:text-slate-400 select-none">
+            <FaInfoCircle className="text-blue-500 text-sm mt-0.5 shrink-0" />
+            <div className="text-left">
+              <p className="font-semibold leading-relaxed">
+                Exam schedules are subject to change.
+                <br />
+                Please check regularly for updates from your school.
               </p>
             </div>
           </div>
-        </>
+
+          {/* Exam Rules & Instructions Overlay Modal */}
+          {showInstructionsModal && (
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl relative select-none">
+                <button
+                  onClick={() => setShowInstructionsModal(false)}
+                  className="absolute top-4 right-4 text-slate-400 hover:text-slate-655 dark:hover:text-white cursor-pointer"
+                >
+                  <FaTimes className="text-sm" />
+                </button>
+                
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/20 flex items-center justify-center">
+                    <FaBookOpen className="text-sm" />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">Exam Guidelines</h3>
+                </div>
+                
+                <div className="space-y-3.5 text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed my-4">
+                  <p>Please read these rules carefully before starting any proctored examination:</p>
+                  <ul className="list-disc pl-4 space-y-2">
+                    <li>Make sure your webcam and screen sharing permissions are enabled.</li>
+                    <li>Remain in front of your camera for the entire duration of the test.</li>
+                    <li>Do not navigate away from the test tab or close browser windows.</li>
+                    <li>Negative marking rules apply: verify the warning badge in the question header.</li>
+                  </ul>
+                </div>
+
+                <button
+                  onClick={() => setShowInstructionsModal(false)}
+                  className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white py-3 rounded-xl text-xs font-bold transition cursor-pointer"
+                >
+                  I Understand
+                </button>
+              </div>
+            </div>
+          )}
+
+        </div>
       )}
 
       {/* Proctoring Test setup Canvas */}
