@@ -55,7 +55,8 @@ exports.getStudentDashboard = async (req, res) => {
     res.json({
       subjects,
       attendance,
-      exams
+      exams,
+      achievements: 0
     });
 
   } catch (error) {

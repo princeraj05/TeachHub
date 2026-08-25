@@ -1,36 +1,93 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import axiosInstance from "axios";
+import { Link, useNavigate } from "react-router-dom";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  CartesianGrid,
-} from "recharts";
-import { FaBook, FaClipboardCheck, FaFileAlt, FaCalendarAlt } from "react-icons/fa";
-import TodayTimetableWidget from "../../../../components/TodayTimetableWidget";
+  FaBookOpen,
+  FaClipboardCheck,
+  FaFileAlt,
+  FaTrophy,
+  FaChevronRight,
+  FaCalendarAlt,
+  FaClock,
+  FaSchool,
+  FaVolumeUp,
+  FaExclamationTriangle
+} from "react-icons/fa";
+import { useTheme } from "../../../../context/ThemeContext";
 
 const SORA = "'Sora', sans-serif";
 
-const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-slate-900/90 backdrop-blur-md text-white text-xs font-bold px-3 py-2 rounded-xl shadow-xl border border-white/10">
-        <p className="text-slate-400 mb-0.5 font-medium">{label}</p>
-        <p className="text-[#38BDF8] text-sm font-extrabold">{payload[0].value}</p>
-      </div>
-    );
+const DUMMY_CLASSES = [
+  {
+    _id: "dummy-class-1",
+    startTime: "09:00 AM",
+    endTime: "10:00 AM",
+    subject: { name: "Mathematics" },
+    room: "Room 101",
+    teacher: { name: "Lovely Coder" }
+  },
+  {
+    _id: "dummy-class-2",
+    startTime: "10:00 AM",
+    endTime: "11:00 AM",
+    subject: { name: "Science" },
+    room: "Room 102",
+    teacher: { name: "Lovely Coder" }
+  },
+  {
+    _id: "dummy-class-3",
+    startTime: "11:00 AM",
+    endTime: "12:00 PM",
+    subject: { name: "Social Science" },
+    room: "Room 103",
+    teacher: { name: "Lovely Coder" }
   }
-  return null;
-};
+];
 
 function StudentDashboard() {
   const API = import.meta.env.VITE_API_URL;
-  const [data, setData] = useState({ subjects: 0, attendance: 0, exams: 0 });
+  const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
+
+  const [data, setData] = useState({ subjects: 0, attendance: 0, exams: 0, achievements: 0 });
   const [profile, setProfile] = useState(null);
+  const [timetableEntries, setTimetableEntries] = useState([]);
+  const [loadingTimetable, setLoadingTimetable] = useState(false);
+
+  // Generate week days list (Monday to Sunday) centered around current week
+  const weekDays = useMemo(() => {
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // Sunday=0, Monday=1, ...
+    const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    const monday = new Date(today);
+    monday.setDate(diff);
+
+    const weekdaysShort = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const weekdaysFull = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + i);
+      
+      const isToday = date.toDateString() === new Date().toDateString();
+      const dayNum = date.getDate();
+      const months = ["May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr"];
+      const monthName = date.toLocaleDateString("en-US", { month: "short" });
+      
+      days.push({
+        short: weekdaysShort[i],
+        full: weekdaysFull[i],
+        label: `${dayNum} ${monthName}`,
+        isToday,
+        dateStr: date.toISOString().split("T")[0]
+      });
+    }
+    return days;
+  }, []);
+
+  const todayDay = weekDays.find(d => d.isToday) || weekDays[0];
+  const [selectedDay, setSelectedDay] = useState(todayDay);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -49,70 +106,118 @@ function StudentDashboard() {
       .catch((err) => console.log("Student Profile Error:", err));
   }, [API]);
 
-  const chartData = [
-    { name: "Subjects", value: data.subjects },
-    { name: "Attendance", value: data.attendance },
-    { name: "Exams", value: data.exams },
-  ];
+  // Fetch timetable entries when selected day changes
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setLoadingTimetable(true);
+    axiosInstance
+      .get(`${API}/api/timetable?day=${selectedDay.full}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then((res) => {
+        setTimetableEntries(res.data || []);
+      })
+      .catch((err) => {
+        console.log("Error loading day timetable:", err);
+        setTimetableEntries([]);
+      })
+      .finally(() => {
+        setLoadingTimetable(false);
+      });
+  }, [API, selectedDay]);
 
-  const BAR_COLORS = ["#7C3AED", "#38BDF8", "#312E81"];
+  const studentName = profile?.name ? profile.name.split(" ")[0] : "Learner";
+  const userInitials = profile?.name
+    ? profile.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)
+    : "U";
 
-  const cards = [
-    {
-      label: "Enrolled Subjects",
-      value: data.subjects,
-      icon: <FaBook className="text-base" />,
-      grad: "from-[#312E81] to-indigo-700",
-      shadow: "shadow-indigo-500/10",
-      suffix: "",
-    },
-    {
-      label: "Attendance Rate",
-      value: data.attendance,
-      icon: <FaClipboardCheck className="text-base" />,
-      grad: "from-[#7C3AED] to-purple-500",
-      shadow: "shadow-purple-500/10",
-      suffix: "%",
-    },
-    {
-      label: "Upcoming Exams",
-      value: data.exams,
-      icon: <FaFileAlt className="text-base" />,
-      grad: "from-[#38BDF8] to-cyan-500",
-      shadow: "shadow-cyan-500/10",
-      suffix: "",
-    },
-  ];
+  // Helper to parse time strings like "09:00 AM" into minutes since midnight
+  const parseTimeToMinutes = (timeStr) => {
+    if (!timeStr) return 0;
+    const clean = timeStr.trim().toUpperCase();
+    const match = clean.match(/^(\d+):(\d+)\s*(AM|PM)?$/);
+    if (!match) return 0;
+    let hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    const ampm = match[3];
+    if (ampm) {
+      if (ampm === "PM" && hours < 12) hours += 12;
+      if (ampm === "AM" && hours === 12) hours = 0;
+    }
+    return hours * 60 + minutes;
+  };
 
-  const quickInfo = [
-    { emoji: "📚", label: "Subjects Enrolled", val: data.subjects },
-    { emoji: "📊", label: "Attendance Progress", val: `${data.attendance}%` },
-    { emoji: "📝", label: "Upcoming Exams", val: data.exams },
-    { emoji: "📅", label: "Academic Year", val: "2026" },
-  ];
+  // Helper to determine status based on current time
+  const getClassStatus = (startTime, endTime) => {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const start = parseTimeToMinutes(startTime);
+    const end = parseTimeToMinutes(endTime);
+
+    if (currentMinutes < start) return "Upcoming";
+    if (currentMinutes < end) return "Ongoing";
+    return "Completed";
+  };
+
+  // Resolve how many classes a day has (Mon-Fri default, Sat-Sun holiday)
+  const getDayClassesCount = (day) => {
+    if (day.full === "Saturday" || day.full === "Sunday") {
+      return "Holiday";
+    }
+    if (day.full === "Friday") {
+      return "2 Classes";
+    }
+    return "3 Classes";
+  };
+
+  // Switch display elements: either live db entries, or fallback to dummy list
+  const activeClasses = useMemo(() => {
+    if (selectedDay.full === "Saturday" || selectedDay.full === "Sunday") {
+      return [];
+    }
+    if (timetableEntries.length > 0) {
+      return timetableEntries;
+    }
+    // Fallback: Return dummy classes if database has none
+    if (selectedDay.full === "Friday") {
+      return DUMMY_CLASSES.slice(0, 2);
+    }
+    return DUMMY_CLASSES;
+  }, [selectedDay, timetableEntries]);
 
   return (
-    <div style={{ fontFamily: SORA }}>
-      {/* Page Header */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div style={{ fontFamily: SORA }} className="w-full max-w-4xl mx-auto space-y-6 text-left select-none pb-8">
+      
+      {/* Top Header Row */}
+      <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED] mb-1">Overview</p>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
             Student Dashboard
           </h1>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">
-            Welcome back! Stay updated on your academic metrics.
+          <p className="text-xs text-slate-505 dark:text-slate-400 font-medium mt-1">
+            Welcome back, {studentName}! 👋
           </p>
         </div>
-        <div className="flex items-center gap-2.5 bg-slate-100 border border-slate-200/60 rounded-2xl px-4 py-2.5 w-fit text-xs font-bold text-slate-500 select-none shadow-sm">
-          <FaCalendarAlt className="text-slate-400" />
-          Academic Year 2026
+        
+        {/* Right Buttons Container */}
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={toggleTheme}
+            className="w-10 h-10 rounded-full bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/[0.08] text-slate-505 dark:text-amber-400 hover:border-slate-350 dark:hover:border-white/15 flex items-center justify-center transition-all cursor-pointer"
+            aria-label="Toggle Theme"
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
+          
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-800 text-white flex items-center justify-center font-black text-sm shadow-md border-2 border-white dark:border-[#0B132A]">
+            {userInitials}
+          </div>
         </div>
       </div>
 
       {/* Admission Exam Scheduling Alert */}
       {profile && profile.admissionExamDate && (
-        <div className="mb-8 p-5 bg-gradient-to-r from-teal-500/10 to-emerald-500/10 dark:from-teal-500/15 dark:to-emerald-500/15 border border-teal-200/50 dark:border-teal-500/20 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden transition-all duration-200">
+        <div className="p-5 bg-gradient-to-r from-teal-500/10 to-emerald-500/10 dark:from-teal-500/15 dark:to-emerald-500/15 border border-teal-200/50 dark:border-teal-500/20 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden transition-all duration-200">
           <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/5 rounded-full blur-xl pointer-events-none" />
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-2xl bg-teal-500 text-white flex items-center justify-center shadow-lg shrink-0 text-xl font-bold">
@@ -123,13 +228,13 @@ function StudentDashboard() {
               <h3 className="text-sm font-black text-slate-800 dark:text-white tracking-tight">
                 Your School Admission Test has been Scheduled!
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 leading-relaxed max-w-xl">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 leading-relaxed">
                 Congratulations on being accepted to <strong className="font-bold text-slate-850 dark:text-white">{profile.schoolName}</strong>! Your admission test will take place on:
                 <br />
-                <span className="inline-flex items-center gap-1.5 font-bold text-[#7C3AED] dark:text-[#38BDF8] mt-1 bg-[#7C3AED]/10 dark:bg-[#38BDF8]/10 px-2 py-0.5 rounded text-[11px]">
+                <span className="inline-flex items-center gap-1.5 font-bold text-[#7C3AED] dark:text-[#38BDF8] mt-2 bg-[#7C3AED]/10 dark:bg-[#38BDF8]/10 px-2 py-0.5 rounded text-[11px]">
                   <FaCalendarAlt /> {new Date(profile.admissionExamDate).toLocaleDateString("en-US", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </span>
-                <span className="inline-flex items-center gap-1.5 font-bold text-teal-600 dark:text-teal-400 ml-2 mt-1 bg-teal-500/10 px-2 py-0.5 rounded text-[11px]">
+                <span className="inline-flex items-center gap-1.5 font-bold text-teal-600 dark:text-teal-400 ml-2 mt-2 bg-teal-500/10 px-2 py-0.5 rounded text-[11px]">
                   Mode: {profile.admissionExamMode}
                 </span>
               </p>
@@ -138,141 +243,224 @@ function StudentDashboard() {
         </div>
       )}
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
-        {cards.map((c, i) => (
-          <div
-            key={i}
-            className="group relative bg-white rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
+      {/* Weekly Timetable Panel Wrapper */}
+      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-sm">
+        <div className="flex items-center justify-between gap-3 mb-6">
+          <div>
+            <h2 className="text-base font-black text-slate-900 dark:text-white tracking-tight">Weekly Timetable</h2>
+            <p className="text-[11px] text-slate-450 dark:text-slate-500 font-semibold mt-1">Your class schedule for the week</p>
+          </div>
+          
+          <Link
+            to="/student/showtimetable"
+            className="rounded-xl border border-slate-200 dark:border-white/[0.08] hover:border-slate-350 dark:hover:border-white/15 px-3 py-2 text-xs font-black text-[#7C3AED] dark:text-[#A78BFA] flex items-center gap-1.5 bg-slate-50 dark:bg-white/[0.01] transition-all"
           >
-            {/* Hover bar */}
-            <div className={`h-1.5 w-full bg-gradient-to-r ${c.grad}`} />
+            <FaCalendarAlt className="text-xs" />
+            View Full Timetable
+          </Link>
+        </div>
 
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${c.grad} flex items-center justify-center text-white shadow-lg ${c.shadow} group-hover:scale-105 transition-all duration-300`}>
-                  {c.icon}
+        {/* Horizontal scrollable row of weekdays */}
+        <div className="flex gap-3 overflow-x-auto pb-3 mb-6 scrollbar-none">
+          {weekDays.map((day) => {
+            const isSelected = selectedDay.full === day.full;
+            const countLabel = getDayClassesCount(day);
+            const isHoliday = countLabel === "Holiday";
+            
+            return (
+              <div
+                key={day.full}
+                onClick={() => setSelectedDay(day)}
+                className={`flex-1 min-w-[85px] p-3.5 rounded-2.5xl flex flex-col items-center justify-center cursor-pointer transition-all border ${
+                  isSelected
+                    ? "bg-[#7C3AED]/10 border-[#7C3AED] text-[#7C3AED] dark:text-[#A78BFA] shadow-md shadow-[#7C3AED]/5"
+                    : "bg-slate-50 dark:bg-[#0B132A]/40 border-slate-200/60 dark:border-white/[0.04] text-slate-505 dark:text-slate-400 hover:border-slate-300 dark:hover:border-white/[0.08]"
+                }`}
+              >
+                {day.isToday && (
+                  <span className="text-[8px] font-black uppercase bg-[#7C3AED] text-white px-2 py-0.5 rounded-full mb-1.5 shadow-sm">
+                    Today
+                  </span>
+                )}
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">{day.short}</span>
+                <span className="text-xs font-black mt-1.5 text-slate-800 dark:text-white">{day.label}</span>
+                
+                {/* Visual Icon */}
+                <div className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center mt-3 shadow-sm ${
+                  isHoliday 
+                    ? day.full === "Saturday" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "bg-rose-500/10 text-rose-500 border border-rose-500/20"
+                    : "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                }`}>
+                  <FaCalendarAlt className="text-xs" />
                 </div>
-                <span className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full select-none">
-                  Active
+                
+                <span className={`text-[9px] font-extrabold mt-2.5 ${
+                  isHoliday 
+                    ? "text-slate-400" 
+                    : isSelected ? "text-[#7C3AED] dark:text-[#A78BFA]" : "text-emerald-500"
+                }`}>
+                  • {countLabel}
                 </span>
               </div>
-              <p className="text-3xl font-extrabold text-slate-800 tracking-tight mb-1">
-                {c.value}
-                {c.suffix && <span className="text-lg font-bold text-slate-400 ml-0.5">{c.suffix}</span>}
-              </p>
-              <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wide">{c.label}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
 
-      {/* Charts & Snapshot Row */}
-      <TodayTimetableWidget />
-
-      {/* Charts & Snapshot Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Bar Chart Panel */}
-        <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col justify-between">
-          <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-slate-800">Academic Overview</h2>
-              <p className="text-xs text-slate-400 font-medium mt-0.5">Academic details breakdown</p>
-            </div>
-            <span className="text-[10px] font-extrabold bg-purple-50 border border-purple-100 text-[#7C3AED] px-3 py-1 rounded-full select-none">
-              Live
+        {/* Selected day timeline details card */}
+        <div className="bg-slate-50 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.04] p-5 rounded-3xl relative overflow-hidden">
+          <div className="flex items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-150 dark:border-white/5">
+            <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">
+              {selectedDay.full}, {selectedDay.label}
+            </h3>
+            
+            <span className={`text-[10px] font-black px-3 py-1 rounded-full border ${
+              activeClasses.length === 0
+                ? "bg-rose-500/10 text-rose-500 border-rose-500/20"
+                : "bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400"
+            }`}>
+              {activeClasses.length === 0 ? "Holiday" : `${activeClasses.length} Classes`}
             </span>
           </div>
-          <div className="p-6">
-            <div className="w-full h-[240px] sm:h-[280px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} barSize={32} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis
-                    dataKey="name"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 11, fontFamily: SORA, fill: "#94a3b8", fontWeight: 700 }}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 10, fontFamily: SORA, fill: "#cbd5e1", fontWeight: 500 }}
-                    allowDecimals={false}
-                  />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(15, 23, 42, 0.02)", radius: 8 }} />
-                  <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                    {chartData.map((_, idx) => (
-                      <Cell key={idx} fill={BAR_COLORS[idx % BAR_COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
 
-        {/* Quick Info & Attendance Progress */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col justify-between">
-          <div>
-            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h2 className="text-base font-bold text-slate-800">Quick Info</h2>
-                <p className="text-xs text-slate-400 font-medium mt-0.5">Personal metrics lookup</p>
-              </div>
-              <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
-                <FaCalendarAlt className="text-[#7C3AED] text-xs" />
-              </div>
+          {loadingTimetable ? (
+            <div className="py-12 text-center">
+              <div className="w-8 h-8 border-3 border-[#7C3AED] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-xs text-slate-450 dark:text-slate-500 font-bold">Syncing class timeline...</p>
             </div>
-            
-            <div className="p-6 space-y-3">
-              {quickInfo.map((row, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between bg-slate-50 hover:bg-slate-100/60 transition-colors rounded-xl px-4 py-3.5 border border-slate-100/80"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-base bg-white w-8 h-8 rounded-lg shadow-sm border border-slate-200/40 flex items-center justify-center select-none">
-                      {row.emoji}
+          ) : activeClasses.length === 0 ? (
+            <div className="text-center py-10 text-slate-450 dark:text-slate-500 font-bold">
+              🏖️ No classes scheduled. Enjoy your weekend holiday!
+            </div>
+          ) : (
+            <div className="relative border-l border-slate-200 dark:border-white/5 pl-7 ml-3.5 space-y-6 my-2">
+              {activeClasses.map((cls, cIdx) => {
+                const status = getClassStatus(cls.startTime, cls.endTime);
+                return (
+                  <div key={cls._id || cIdx} className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 select-none">
+                    
+                    {/* Circle axis indicator */}
+                    <span className={`absolute -left-[34px] w-2.5 h-2.5 rounded-full border-2 border-white dark:border-[#0B132A] ${
+                      status === "Ongoing" ? "bg-emerald-500" : status === "Completed" ? "bg-slate-500" : "bg-[#7C3AED]"
+                    }`} />
+                    
+                    <div className="flex items-start gap-4">
+                      <span className="text-[10px] text-slate-505 dark:text-slate-400 font-black shrink-0 w-28 flex items-center gap-1.5">
+                        <FaClock className="text-slate-400 text-[11px]" />
+                        {cls.startTime} - {cls.endTime}
+                      </span>
+                      
+                      <div>
+                        <h4 className="text-xs font-black text-slate-900 dark:text-white">
+                          {cls.subject?.name || "Class Lecture"}
+                        </h4>
+                        <p className="text-[10px] text-slate-450 dark:text-slate-550 font-bold mt-1">
+                          {profile?.classId?.name || "1"} - {profile?.classId?.section || "A"}  •  {cls.room || "Room"}  •  {cls.teacher?.name || "Lovely Coder"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span className={`shrink-0 self-start sm:self-center text-[9px] font-black px-2.5 py-0.5 rounded-full border ${
+                      status === "Ongoing" ? "bg-emerald-500/10 text-emerald-555 border-emerald-500/20 animate-pulse" :
+                      status === "Completed" ? "bg-slate-500/10 text-slate-500 border-slate-500/20" :
+                      "bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border-[#7C3AED]/20"
+                    }`}>
+                      {status}
                     </span>
-                    <span className="text-xs font-bold text-slate-655">{row.label}</span>
-                  </div>
-                  <span className="text-xs font-extrabold text-slate-800">{row.val}</span>
-                </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Attendance progress display */}
-          <div className="px-6 pb-6 pt-1">
-            <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-4">
-              <div className="flex justify-between text-xs font-bold text-slate-505 mb-2">
-                <span>Attendance Progress</span>
-                <span className="text-[#7C3AED]">{data.attendance}%</span>
-              </div>
-              <div className="w-full h-2 bg-slate-200/50 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-[#7C3AED] to-[#38BDF8] rounded-full transition-all duration-700"
-                  style={{ width: `${Math.min(data.attendance, 100)}%` }}
-                />
-              </div>
-              <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider mt-2.5 flex items-center gap-1.5">
-                {data.attendance >= 75 ? (
-                  <>
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Status: Excellent (Above Threshold)
-                  </>
-                ) : (
-                  <>
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-                    Status: Warning (Below 75% Threshold)
-                  </>
-                )}
-              </p>
+                  </div>
+                );
+              })}
             </div>
-          </div>
+          )}
+
+          {/* Button: View Full Day Timetable */}
+          <button
+            onClick={() => navigate("/student/showtimetable")}
+            className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white py-3.5 rounded-2xl text-xs font-black text-center transition-all mt-6 flex items-center justify-center gap-1.5 shadow-md shadow-[#7C3AED]/15 cursor-pointer"
+          >
+            View Full Day Timetable <FaChevronRight className="text-[9px]" />
+          </button>
         </div>
       </div>
+
+      {/* Today's Overview grid layout */}
+      <div>
+        <h2 className="text-base font-black text-slate-900 dark:text-white tracking-tight mb-4 px-1">Today's Overview</h2>
+        
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          {/* Card 1: Subjects Enrolled */}
+          <div className="bg-white dark:bg-[#0B132A]/80 border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-[#7C3AED] border border-[#7C3AED]/25 flex items-center justify-center mb-4">
+              <FaBookOpen className="text-sm" />
+            </div>
+            <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
+              {data.subjects}
+            </p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">
+              Subjects Enrolled
+            </p>
+          </div>
+
+          {/* Card 2: Attendance Rate */}
+          <div className="bg-white dark:bg-[#0B132A]/80 border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/25 flex items-center justify-center mb-4">
+              <FaClipboardCheck className="text-sm" />
+            </div>
+            <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
+              {data.attendance}%
+            </p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">
+              Attendance Rate
+            </p>
+          </div>
+
+          {/* Card 3: Upcoming Exams */}
+          <div className="bg-white dark:bg-[#0B132A]/80 border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/25 flex items-center justify-center mb-4">
+              <FaFileAlt className="text-sm" />
+            </div>
+            <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
+              {data.exams}
+            </p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">
+              Upcoming Exams
+            </p>
+          </div>
+
+          {/* Card 4: Achievements Earned */}
+          <div className="bg-white dark:bg-[#0B132A]/80 border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/25 flex items-center justify-center mb-4">
+              <FaTrophy className="text-sm" />
+            </div>
+            <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
+              {data.achievements}
+            </p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">
+              Achievements Earned
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+      {/* Megaphone banner banner at bottom */}
+      <div 
+        onClick={() => navigate("/student/exams")}
+        className="flex items-center justify-between bg-blue-500/5 hover:bg-blue-500/10 border border-blue-500/10 rounded-2.5xl p-4.5 text-xs select-none transition-colors cursor-pointer"
+      >
+        <div className="flex items-center gap-3 text-slate-655 dark:text-slate-400">
+          <div className="w-9 h-9 rounded-xl bg-blue-500/15 text-[#38BDF8] flex items-center justify-center shrink-0 text-base">
+            <FaVolumeUp className="text-sm shrink-0" />
+          </div>
+          <div className="text-left">
+            <h4 className="text-xs font-black text-slate-900 dark:text-white">Stay Updated</h4>
+            <p className="text-[10px] text-slate-450 dark:text-slate-500 font-bold mt-0.5">Check your timetable, attendance and exam schedule regularly.</p>
+          </div>
+        </div>
+        <FaChevronRight className="text-slate-400 text-xs shrink-0" />
+      </div>
+
     </div>
   );
 }
