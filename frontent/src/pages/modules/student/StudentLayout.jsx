@@ -173,15 +173,15 @@ function StudentLayout() {
         </Link>
 
         {/* More */}
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 cursor-pointer ${
-            mobileMenuOpen ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400 dark:text-slate-500"
+        <Link
+          to="/student/profile"
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
+            isActive("/student/profile") ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400 dark:text-slate-500"
           }`}
         >
           <FaThLarge className="text-lg" />
           <span className="text-[9px] font-bold tracking-tight">More</span>
-        </button>
+        </Link>
       </nav>
 
       {/* MOBILE: Bottom Sheet Sliding Menu */}
