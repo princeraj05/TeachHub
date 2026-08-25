@@ -88,9 +88,13 @@ exports.getEvents = async (req, res) => {
     }
 
     let query = {};
-    const { schoolName } = req.query;
-    if (authUser.role === "superadmin") {
-      if (schoolName && schoolName !== "all") query.schoolName = schoolName;
+    const { schoolName, global } = req.query;
+    if (global === "true") {
+      // Global feed: no schoolName restriction
+    } else if (schoolName) {
+      query.schoolName = schoolName;
+    } else if (authUser.role === "superadmin") {
+      // Superadmin default: no restriction
     } else {
       if (!authUser.schoolName) return res.status(200).json([]);
       query.schoolName = authUser.schoolName;
@@ -118,9 +122,13 @@ exports.getUpcomingEvents = async (req, res) => {
       status: "upcoming",
       eventDate: { $gte: today }
     };
-    const { schoolName } = req.query;
-    if (authUser.role === "superadmin") {
-      if (schoolName && schoolName !== "all") query.schoolName = schoolName;
+    const { schoolName, global } = req.query;
+    if (global === "true") {
+      // Global feed: no schoolName restriction
+    } else if (schoolName) {
+      query.schoolName = schoolName;
+    } else if (authUser.role === "superadmin") {
+      // Superadmin default: no restriction
     } else {
       if (!authUser.schoolName) return res.status(200).json([]);
       query.schoolName = authUser.schoolName;
@@ -150,9 +158,13 @@ exports.getCompletedEvents = async (req, res) => {
         { eventDate: { $lt: today } }
       ]
     };
-    const { schoolName } = req.query;
-    if (authUser.role === "superadmin") {
-      if (schoolName && schoolName !== "all") query.schoolName = schoolName;
+    const { schoolName, global } = req.query;
+    if (global === "true") {
+      // Global feed: no schoolName restriction
+    } else if (schoolName) {
+      query.schoolName = schoolName;
+    } else if (authUser.role === "superadmin") {
+      // Superadmin default: no restriction
     } else {
       if (!authUser.schoolName) return res.status(200).json([]);
       query.schoolName = authUser.schoolName;
