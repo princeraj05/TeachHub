@@ -4,14 +4,13 @@ import {
   FaCalendarAlt, 
   FaClock, 
   FaImage, 
-  FaVideo, 
   FaEye, 
   FaTimes, 
-  FaExpand,
-  FaSearch,
-  FaFilter,
-  FaMapMarkerAlt,
-  FaInfoCircle
+  FaSearch, 
+  FaFilter, 
+  FaMapMarkerAlt, 
+  FaInfoCircle,
+  FaCheckCircle
 } from "react-icons/fa";
 import EventGallery from "../../../../components/EventGallery";
 import { useTheme } from "../../../../context/ThemeContext";
@@ -97,10 +96,9 @@ const MOCK_UPCOMING = [
     description: "Festival of lights celebration with cultural performances and activities.",
     subtitle: "Celebration",
     eventDate: "2026-11-10T00:00:00.000Z",
-    eventTime: "4:00 PM",
+    eventTime: "4:05 PM",
     location: "School Campus",
     category: "Celebration",
-    daysLeftStatic: 62,
     themeColor: "amber",
     avatarBg: "bg-amber-955/15 border border-amber-500/20 text-amber-500",
     badgeBg: "bg-amber-955/20 text-amber-400 border border-amber-500/20",
@@ -111,6 +109,85 @@ const MOCK_UPCOMING = [
         <path d="M18 9c-1.25 2.5-1.5 4.5-1.5 5.5 0 1.1.9 1.75 1.5 1.75s1.5-.65 1.5-1.75c0-1-0.25-3-1.5-5.5z" fill="#EF4444" />
       </svg>
     )
+  }
+];
+
+const MOCK_COMPLETED = [
+  {
+    _id: "mock-completed-1",
+    title: "Independence Day Celebration",
+    description: "Celebrated 78th Independence Day with flag hoisting and cultural programs.",
+    subtitle: "Celebration",
+    eventDate: "2026-08-15T00:00:00.000Z",
+    eventTime: "9:00 AM",
+    location: "School Ground",
+    category: "Celebration",
+    themeColor: "emerald",
+    dotColor: "bg-emerald-500",
+    badgeBg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
+    coverPhoto: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80",
+    photos: [
+      { _id: "p1", url: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80", filename: "flag_hoisting.jpg" },
+      { _id: "p2", url: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=800&auto=format&fit=crop&q=80", filename: "cultural_dance.jpg" }
+    ],
+    videos: []
+  },
+  {
+    _id: "mock-completed-2",
+    title: "Teachers' Day Celebration",
+    description: "Honored our teachers for their dedication and endless support.",
+    subtitle: "Celebration",
+    eventDate: "2026-09-05T00:00:00.000Z",
+    eventTime: "10:30 AM",
+    location: "Auditorium",
+    category: "Celebration",
+    themeColor: "blue",
+    dotColor: "bg-blue-500",
+    badgeBg: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20",
+    coverPhoto: "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&auto=format&fit=crop&q=80",
+    photos: [
+      { _id: "p3", url: "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&auto=format&fit=crop&q=80", filename: "teachers_gathering.jpg" },
+      { _id: "p4", url: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80", filename: "award_distribution.jpg" }
+    ],
+    videos: []
+  },
+  {
+    _id: "mock-completed-3",
+    title: "Annual Sports Day",
+    description: "Students participated in various sports events and competitions.",
+    subtitle: "Sports",
+    eventDate: "2026-09-20T00:00:00.000Z",
+    eventTime: "8:00 AM",
+    location: "Sports Field",
+    category: "Sports",
+    themeColor: "purple",
+    dotColor: "bg-purple-500",
+    badgeBg: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20",
+    coverPhoto: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&auto=format&fit=crop&q=80",
+    photos: [
+      { _id: "p5", url: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&auto=format&fit=crop&q=80", filename: "running_race.jpg" },
+      { _id: "p6", url: "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800&auto=format&fit=crop&q=80", filename: "trophy_winners.jpg" }
+    ],
+    videos: []
+  },
+  {
+    _id: "mock-completed-4",
+    title: "Diwali Celebration",
+    description: "Festival of lights celebrated with enthusiasm, diyas, and activities.",
+    subtitle: "Celebration",
+    eventDate: "2026-11-10T00:00:00.000Z",
+    eventTime: "4:00 PM",
+    location: "School Campus",
+    category: "Celebration",
+    themeColor: "amber",
+    dotColor: "bg-amber-500",
+    badgeBg: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20",
+    coverPhoto: "https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?w=800&auto=format&fit=crop&q=80",
+    photos: [
+      { _id: "p7", url: "https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?w=800&auto=format&fit=crop&q=80", filename: "diyas_lighting.jpg" },
+      { _id: "p8", url: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=800&auto=format&fit=crop&q=80", filename: "rangoli_art.jpg" }
+    ],
+    videos: []
   }
 ];
 
@@ -184,7 +261,7 @@ function StudentEvents() {
 
   const getFormattedDate = (dateStr) => {
     if (!dateStr) return "";
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    const options = { day: 'numeric', month: 'short', year: 'numeric' };
     return new Date(dateStr).toLocaleDateString(undefined, options);
   };
 
@@ -201,12 +278,14 @@ function StudentEvents() {
     return staticBackup || 0;
   };
 
-  // Combine real database events with fallback mockup entries for upcoming
+  // Combine real database events with fallback mockup entries
   const displayEvents = useMemo(() => {
     let combined = [...events];
     
     if (activeTab === "upcoming" && combined.length === 0) {
       combined = MOCK_UPCOMING;
+    } else if (activeTab === "completed" && combined.length === 0) {
+      combined = MOCK_COMPLETED;
     }
 
     // Filter local search and category match
@@ -258,7 +337,9 @@ function StudentEvents() {
           {activeTab === "upcoming" ? "Upcoming Events" : "Completed Events"}
         </h2>
         <p className="text-xs text-slate-450 dark:text-slate-400 font-semibold mt-0.5">
-          Explore and stay updated with all upcoming events and celebrations.
+          {activeTab === "upcoming" 
+            ? "Explore and stay updated with all upcoming events and celebrations."
+            : "Explore past events and celebrations from your school."}
         </p>
       </div>
 
@@ -279,7 +360,7 @@ function StudentEvents() {
           onClick={() => setActiveTab("completed")}
           className={`flex items-center justify-center gap-1.5 py-3 rounded-xl text-[10px] font-black uppercase transition cursor-pointer ${
             activeTab === "completed"
-              ? "bg-[#7C3AED] text-white shadow-[#7C3AED]/15"
+              ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/15"
               : "text-slate-500 hover:bg-slate-200/50 dark:hover:bg-white/5"
           }`}
         >
@@ -294,7 +375,7 @@ function StudentEvents() {
           <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
           <input
             type="text"
-            placeholder="Search events..."
+            placeholder={activeTab === "upcoming" ? "Search events..." : "Search completed events..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B132A] text-slate-800 dark:text-white placeholder-slate-400 text-xs font-semibold focus:outline-none focus:border-[#7C3AED]"
@@ -337,26 +418,19 @@ function StudentEvents() {
         /* Events cards list */
         <div className="space-y-4">
           {displayEvents.map((ev) => {
-            const isMock = ev._id.startsWith("mock-upcoming-");
             
             // Render upcoming card
             if (activeTab === "upcoming") {
               const daysLeft = getDaysLeft(ev.eventDate, ev.daysLeftStatic);
-              
-              // Colors configuration
-              let colorClass = "purple";
               let dotBg = "bg-purple-500";
               let cardGlow = "hover:border-purple-550/30";
               if (ev.themeColor === "emerald") {
-                colorClass = "emerald";
                 dotBg = "bg-emerald-500";
                 cardGlow = "hover:border-emerald-550/30";
               } else if (ev.themeColor === "blue") {
-                colorClass = "blue";
                 dotBg = "bg-[#0EA5E9]";
                 cardGlow = "hover:border-blue-550/30";
               } else if (ev.themeColor === "amber") {
-                colorClass = "amber";
                 dotBg = "bg-amber-500";
                 cardGlow = "hover:border-amber-550/30";
               }
@@ -416,12 +490,34 @@ function StudentEvents() {
             }
 
             // Render completed events layout card
-            const hasCover = ev.photos && ev.photos.length > 0;
-            const coverUrl = hasCover ? getMediaUrl(ev.photos[0].url) : null;
+            const coverUrl = ev.coverPhoto || (ev.photos && ev.photos.length > 0 ? getMediaUrl(ev.photos[0].url) : null);
+            
+            // Setup style attributes based on completed colors
+            let dotBg = "bg-emerald-500";
+            let calendarColor = "text-emerald-500";
+            let clockColor = "text-emerald-555";
+            let cardGlow = "hover:border-emerald-550/30";
+            if (ev.themeColor === "blue") {
+              dotBg = "bg-blue-500";
+              calendarColor = "text-blue-500";
+              clockColor = "text-blue-500";
+              cardGlow = "hover:border-blue-550/30";
+            } else if (ev.themeColor === "purple") {
+              dotBg = "bg-purple-500";
+              calendarColor = "text-[#7C3AED]";
+              clockColor = "text-[#7C3AED]";
+              cardGlow = "hover:border-purple-550/30";
+            } else if (ev.themeColor === "amber") {
+              dotBg = "bg-amber-500";
+              calendarColor = "text-amber-500";
+              clockColor = "text-amber-500";
+              cardGlow = "hover:border-amber-550/30";
+            }
+
             return (
               <div 
                 key={ev._id}
-                className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-[#7C3AED]/20 rounded-3xl overflow-hidden flex flex-col sm:flex-row shadow-sm transition-all duration-200"
+                className={`bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] ${cardGlow} rounded-2.5xl overflow-hidden flex flex-col sm:flex-row shadow-sm transition-all duration-200`}
               >
                 {/* Cover Image left/top */}
                 <div className="w-full sm:w-44 h-40 shrink-0 bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b sm:border-b-0 sm:border-r border-slate-200/50 dark:border-white/10 select-none">
@@ -429,38 +525,59 @@ function StudentEvents() {
                     <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
                   ) : (
                     <div className="text-center text-slate-400">
-                      <FaImage className="text-2xl mb-1.5 opacity-50 mx-auto" />
+                      <FaImage className="text-2xl mb-1.5 opacity-55 mx-auto" />
                       <p className="text-[9px] font-black">No Cover Uploaded</p>
                     </div>
                   )}
                 </div>
 
                 {/* Details main body */}
-                <div className="p-5 flex-1 flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-sm font-black text-slate-900 dark:text-white leading-snug">{ev.title}</h3>
-                    {ev.subtitle && (
-                      <p className="text-[9px] font-extrabold text-[#7C3AED] dark:text-[#38BDF8] mt-1 uppercase tracking-wider">{ev.subtitle}</p>
-                    )}
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 leading-relaxed line-clamp-2">
+                <div className="p-5 flex-1 flex flex-col justify-between min-w-0">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 select-none">
+                      <span className={`w-2 h-2 rounded-full ${dotBg}`} />
+                      <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-tight truncate">
+                        {ev.title}
+                      </h3>
+                    </div>
+                    
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold leading-relaxed mt-1 line-clamp-2">
                       {ev.description || "No description provided."}
                     </p>
-                  </div>
 
-                  {/* Footer metadata and View gallery CTA */}
-                  <div className="flex items-center justify-between gap-4 mt-4 pt-3 border-t border-slate-100 dark:border-white/5 select-none">
-                    <div className="flex items-center gap-3 text-[10px] text-slate-450 dark:text-slate-550 font-bold">
-                      <span className="flex items-center gap-1"><FaCalendarAlt /> {getFormattedDate(ev.eventDate)}</span>
-                      <span className="flex items-center gap-1"><FaClock /> {ev.eventTime}</span>
+                    {/* Metadata badge parameters */}
+                    <div className="flex items-center gap-4 text-[10px] text-slate-450 dark:text-slate-400 font-extrabold mt-3.5 select-none">
+                      <span className="flex items-center gap-1.5">
+                        <FaCalendarAlt className={`${calendarColor} text-[11px]`} /> 
+                        {getFormattedDate(ev.eventDate)}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <FaClock className={`${clockColor} text-[11px]`} /> 
+                        {ev.eventTime}
+                      </span>
                     </div>
-
-                    <button
-                      onClick={() => openGallery(ev)}
-                      className="bg-[#7C3AED]/10 hover:bg-[#7C3AED]/20 text-[#7C3AED] dark:text-[#38BDF8] dark:bg-[#38BDF8]/10 dark:hover:bg-[#38BDF8]/20 font-black text-[10px] py-1.5 px-4 rounded-xl transition cursor-pointer"
-                    >
-                      View Gallery
-                    </button>
                   </div>
+                </div>
+
+                {/* Completed Details (Right) */}
+                <div className="p-5 sm:border-l border-slate-100 dark:border-white/5 flex flex-col justify-between items-center sm:items-end justify-center shrink-0 gap-3 text-center sm:text-right select-none bg-slate-50/20 dark:bg-white/[0.005]">
+                  <div className="flex flex-col items-center sm:items-end gap-1">
+                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider ${
+                      ev.badgeBg || "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                    }`}>
+                      <FaCheckCircle className="text-[10px]" /> Completed
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-extrabold mt-1">
+                      Completed on {getFormattedDate(ev.eventDate)}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => openGallery(ev)}
+                    className="bg-transparent hover:bg-slate-100 dark:hover:bg-white/5 text-[#7C3AED] dark:text-[#38BDF8] border border-[#7C3AED]/20 dark:border-[#38BDF8]/20 font-black text-[10px] py-2 px-4 rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                  >
+                    <FaEye /> View Gallery
+                  </button>
                 </div>
               </div>
             );
@@ -472,7 +589,9 @@ function StudentEvents() {
       <div className="bg-slate-100/50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.04] p-4.5 rounded-2.5xl flex items-start gap-3 select-none">
         <FaInfoCircle className="text-base text-[#38BDF8] shrink-0 mt-0.5" />
         <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
-          Event details are subject to change. Please check regularly for latest updates.
+          {activeTab === "upcoming"
+            ? "Event details are subject to change. Please check regularly for latest updates."
+            : "Completed events and galleries are stored for your reference. You can revisit photos and videos anytime."}
         </p>
       </div>
 
@@ -529,15 +648,6 @@ function StudentEvents() {
               <span className="text-[10px] font-bold text-slate-400 hidden sm:block truncate max-w-xs">{lightboxMedia.filename}</span>
             )}
             <div className="flex items-center gap-3">
-              <a
-                href={getDownloadUrl(lightboxMedia.url)}
-                download
-                target="_blank"
-                rel="noreferrer"
-                className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-black uppercase tracking-wider px-4 py-2 rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow"
-              >
-                Download / Save
-              </a>
               <button
                 type="button"
                 onClick={() => setLightboxOpen(false)}
@@ -550,20 +660,11 @@ function StudentEvents() {
 
           {/* Media Container */}
           <div className="w-full max-w-4xl max-h-[80vh] flex items-center justify-center relative">
-            {lightboxMedia.type === "photo" ? (
-              <img
-                src={lightboxMedia.url}
-                alt="Fullscreen Preview"
-                className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl animate-scaleUp"
-              />
-            ) : (
-              <video
-                src={lightboxMedia.url}
-                controls
-                autoPlay
-                className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl animate-scaleUp"
-              />
-            )}
+            <img
+              src={lightboxMedia.url}
+              alt="Fullscreen Preview"
+              className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl animate-scaleUp"
+            />
           </div>
         </div>
       )}
