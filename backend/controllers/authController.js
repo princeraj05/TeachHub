@@ -406,7 +406,11 @@ exports.updateProfile = async (req, res) => {
       timezone,
       language,
       about,
-      password
+      password,
+      emailNotifications,
+      smsNotifications,
+      pushNotifications,
+      dndMode
     } = req.body;
     
     const user = await User.findById(req.user.id);
@@ -430,6 +434,10 @@ exports.updateProfile = async (req, res) => {
     if (timezone !== undefined) user.timezone = timezone;
     if (language !== undefined) user.language = language;
     if (about !== undefined) user.about = about;
+    if (emailNotifications !== undefined) user.emailNotifications = emailNotifications;
+    if (smsNotifications !== undefined) user.smsNotifications = smsNotifications;
+    if (pushNotifications !== undefined) user.pushNotifications = pushNotifications;
+    if (dndMode !== undefined) user.dndMode = dndMode;
 
     const phonePattern = /^[0-9+()\-\s]{7,20}$/;
     if (fatherMobileNumber !== undefined) {
@@ -461,7 +469,11 @@ exports.updateProfile = async (req, res) => {
         about: user.about,
         fatherMobileNumber: user.fatherMobileNumber,
         motherMobileNumber: user.motherMobileNumber,
-        avatar: user.avatar
+        avatar: user.avatar,
+        emailNotifications: user.emailNotifications,
+        smsNotifications: user.smsNotifications,
+        pushNotifications: user.pushNotifications,
+        dndMode: user.dndMode
       }
     });
   } catch (error) {

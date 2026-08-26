@@ -36,6 +36,10 @@ const userSchema = new mongoose.Schema({
   timezone: { type: String, default: "" },
   language: { type: String, default: "" },
   about: { type: String, default: "" },
+  emailNotifications: { type: Boolean, default: true },
+  smsNotifications: { type: Boolean, default: true },
+  pushNotifications: { type: Boolean, default: true },
+  dndMode: { type: Boolean, default: false },
 
   fatherMobileNumber: { type: String, default: "", trim: true, maxlength: 20 },
   motherMobileNumber: { type: String, default: "", trim: true, maxlength: 20 },

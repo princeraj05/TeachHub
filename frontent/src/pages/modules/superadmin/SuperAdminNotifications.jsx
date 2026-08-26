@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import {
   FaBell,
   FaFileAlt,
@@ -26,6 +27,7 @@ const SORA = "'Sora', sans-serif";
 function SuperAdminNotifications() {
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
 
   // Notifications state
   const [notifications, setNotifications] = useState([]);
@@ -49,7 +51,40 @@ function SuperAdminNotifications() {
 
   useEffect(() => {
     fetchNotifications();
+    fetchSettings();
   }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await axios.get(`${API}/api/auth/profile`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data) {
+        setEmailAlerts(res.data.emailNotifications !== undefined ? res.data.emailNotifications : true);
+        setSmsAlerts(res.data.smsNotifications !== undefined ? res.data.smsNotifications : true);
+        setPushAlerts(res.data.pushNotifications !== undefined ? res.data.pushNotifications : true);
+        setDndStatus(res.data.dndMode !== undefined ? res.data.dndMode : false);
+      }
+    } catch (err) {
+      console.error("Error loading notification settings:", err);
+    }
+  };
+
+  const handleToggleSetting = async (key, currentValue, setter) => {
+    try {
+      const newValue = !currentValue;
+      await axios.put(`${API}/api/auth/profile`, {
+        [key]: newValue
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setter(newValue);
+      setSuccessMsg("Notification preferences updated successfully!");
+      setTimeout(() => setSuccessMsg(""), 3000);
+    } catch (err) {
+      console.error("Error updating setting:", err);
+    }
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -569,23 +604,23 @@ function SuperAdminNotifications() {
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Quick Actions</span>
             
             <div className="space-y-2">
-              <button onClick={() => alert("Open pending approvals logs...")} className="w-full text-left bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 p-2.5 rounded-xl text-slate-705 dark:text-slate-200 text-xs font-bold transition flex items-center gap-2 cursor-pointer border-0">
+              <button onClick={() => navigate("/superadmin/schools")} className="w-full text-left bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 p-2.5 rounded-xl text-slate-705 dark:text-slate-200 text-xs font-bold transition flex items-center gap-2 cursor-pointer border-0">
                 <FaFolderOpen className="text-purple-500 shrink-0" /> View Pending Approvals
               </button>
 
-              <button onClick={() => alert("Open payments logs...")} className="w-full text-left bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 p-2.5 rounded-xl text-slate-705 dark:text-slate-200 text-xs font-bold transition flex items-center gap-2 cursor-pointer border-0">
+              <button onClick={() => navigate("/superadmin/payments")} className="w-full text-left bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 p-2.5 rounded-xl text-slate-705 dark:text-slate-200 text-xs font-bold transition flex items-center gap-2 cursor-pointer border-0">
                 <FaMoney className="text-emerald-500 shrink-0" /> View Payments
               </button>
 
-              <button onClick={() => alert("Open support center...")} className="w-full text-left bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 p-2.5 rounded-xl text-slate-705 dark:text-slate-200 text-xs font-bold transition flex items-center gap-2 cursor-pointer border-0">
+              <button onClick={() => navigate("/superadmin/support")} className="w-full text-left bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 p-2.5 rounded-xl text-slate-705 dark:text-slate-200 text-xs font-bold transition flex items-center gap-2 cursor-pointer border-0">
                 <FaComments className="text-amber-500 shrink-0" /> Open Support Center
               </button>
 
-              <button onClick={() => alert("Open add campus panel...")} className="w-full text-left bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 p-2.5 rounded-xl text-slate-705 dark:text-slate-200 text-xs font-bold transition flex items-center gap-2 cursor-pointer border-0">
+              <button onClick={() => navigate("/superadmin/schools")} className="w-full text-left bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 p-2.5 rounded-xl text-slate-705 dark:text-slate-200 text-xs font-bold transition flex items-center gap-2 cursor-pointer border-0">
                 <FaPlusCircle className="text-blue-500 shrink-0" /> Add New School
               </button>
 
-              <button onClick={() => alert("Open server status overview...")} className="w-full text-left bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 p-2.5 rounded-xl text-slate-705 dark:text-slate-200 text-xs font-bold transition flex items-center gap-2 cursor-pointer border-0">
+              <button onClick={() => navigate("/superadmin/about")} className="w-full text-left bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 p-2.5 rounded-xl text-slate-705 dark:text-slate-200 text-xs font-bold transition flex items-center gap-2 cursor-pointer border-0">
                 <FaServer className="text-rose-500 shrink-0" /> System Status
               </button>
             </div>
@@ -597,14 +632,14 @@ function SuperAdminNotifications() {
             
             <div className="space-y-1.5">
               {[
-                { label: "Email Notifications", value: emailAlerts, setter: setEmailAlerts },
-                { label: "SMS Notifications", value: smsAlerts, setter: setSmsAlerts },
-                { label: "Push Notifications", value: pushAlerts, setter: setPushAlerts },
-                { label: "Do Not Disturb", value: dndStatus, setter: setDndStatus }
+                { key: "emailNotifications", label: "Email Notifications", value: emailAlerts, setter: setEmailAlerts },
+                { key: "smsNotifications", label: "SMS Notifications", value: smsAlerts, setter: setSmsAlerts },
+                { key: "pushNotifications", label: "Push Notifications", value: pushAlerts, setter: setPushAlerts },
+                { key: "dndMode", label: "Do Not Disturb", value: dndStatus, setter: setDndStatus }
               ].map((setting, idx) => (
                 <div 
                   key={idx}
-                  onClick={() => setting.setter(p => !p)}
+                  onClick={() => handleToggleSetting(setting.key, setting.value, setting.setter)}
                   className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-white/[0.01] rounded-xl transition cursor-pointer"
                 >
                   <div className="flex flex-col text-left">
@@ -619,7 +654,7 @@ function SuperAdminNotifications() {
             </div>
 
             <button 
-              onClick={() => alert("Open advanced preferences page details.")}
+              onClick={() => navigate("/superadmin/profile")}
               className="text-[9px] font-black text-[#7C3AED] dark:text-[#38BDF8] uppercase tracking-widest hover:underline cursor-pointer block bg-transparent border-0"
             >
               Manage Preferences →
