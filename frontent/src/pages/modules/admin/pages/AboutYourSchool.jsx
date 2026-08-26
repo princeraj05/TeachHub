@@ -1,31 +1,36 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import {
-  FaSchool,
-  FaEdit,
-  FaLock,
   FaCheckCircle,
   FaInfoCircle,
-  FaGraduationCap,
-  FaUsers,
-  FaBuilding,
-  FaClipboardList,
-  FaBus,
-  FaBed,
-  FaChalkboardTeacher,
-  FaBook,
-  FaCalendarAlt,
-  FaArrowUp,
-  FaTimes
+  FaEdit,
+  FaTimes,
+  FaLock
 } from "react-icons/fa";
 
+// Import sub-navigation tab components
+import BasicInfoTab from "./AboutSchool/BasicInfoTab";
+import MediaPrincipalTab from "./AboutSchool/MediaPrincipalTab";
+import AdmissionSettingsTab from "./AboutSchool/AdmissionSettingsTab";
+import SchoolDescriptionTab from "./AboutSchool/SchoolDescriptionTab";
+
 const SORA = "'Sora', sans-serif";
+
+const TABS = [
+  { id: "basic", label: "Basic Information", breadcrumb: "Basic Information" },
+  { id: "media", label: "School Media & Principal Profile", breadcrumb: "School Media & Principal Profile" },
+  { id: "admission", label: "Admission & Settings", breadcrumb: "Admission & Settings" },
+  { id: "description", label: "School Description", breadcrumb: "School Description" }
+];
 
 function AboutYourSchool() {
   const API = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
 
-  // State managers
+  // Tabs state
+  const [activeTab, setActiveTab] = useState("basic");
+
+  // General state
   const [school, setSchool] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -33,7 +38,7 @@ function AboutYourSchool() {
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
-  // Form input states
+  // Tab 1: Basic Information form states
   const [principalName, setPrincipalName] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -52,13 +57,31 @@ function AboutYourSchool() {
   const [photo, setPhoto] = useState("");
   const [availableClasses, setAvailableClasses] = useState("");
 
-  // Categories / Facilities States
-  const [academicLevel, setAcademicLevel] = useState("");
-  const [coEducational, setCoEducational] = useState("");
-  const [schoolOperationType, setSchoolOperationType] = useState("");
-  const [admissionType, setAdmissionType] = useState("");
-  const [transportation, setTransportation] = useState("");
-  const [hostelFacility, setHostelFacility] = useState("");
+  // Tab 2: School Media & Principal details states
+  const [schoolPhotos, setSchoolPhotos] = useState([]);
+  const [principalPhoto, setPrincipalPhoto] = useState("");
+  const [principalDesignation, setPrincipalDesignation] = useState("");
+  const [principalEmail, setPrincipalEmail] = useState("");
+  const [principalPhone, setPrincipalPhone] = useState("");
+  const [principalLeadershipSince, setPrincipalLeadershipSince] = useState("");
+  const [principalIntroduction, setPrincipalIntroduction] = useState("");
+
+  // Tab 3: Admission & Settings states
+  const [schoolCategoriesList, setSchoolCategoriesList] = useState([]);
+  const [admissionProcess, setAdmissionProcess] = useState("Direct Admission");
+  const [schoolBoardType, setSchoolBoardType] = useState("Private");
+  const [teacherAppointmentBooking, setTeacherAppointmentBooking] = useState(true);
+  const [appointmentBookingType, setAppointmentBookingType] = useState("Online Booking");
+  const [appointmentAdvanceDays, setAppointmentAdvanceDays] = useState(7);
+  const [appointmentMaxPerDay, setAppointmentMaxPerDay] = useState(5);
+  const [appointmentDuration, setAppointmentDuration] = useState(30);
+  const [workingDays, setWorkingDays] = useState(["Mon", "Tue", "Wed", "Thu", "Fri"]);
+  const [openingTime, setOpeningTime] = useState("08:00 AM");
+  const [closingTime, setClosingTime] = useState("04:00 PM");
+  const [holidays, setHolidays] = useState([]);
+
+  // Tab 4: Description state
+  const [description, setDescription] = useState("");
 
   useEffect(() => {
     fetchSchoolData();
@@ -74,6 +97,8 @@ function AboutYourSchool() {
       const data = res.data;
       if (data) {
         setSchool(data);
+        
+        // Tab 1 fields
         setPrincipalName(data.principalName || "");
         setEmail(data.email || "");
         setPhoneNumber(data.phoneNumber || "");
@@ -92,13 +117,39 @@ function AboutYourSchool() {
         setPhoto(data.photo || "");
         setAvailableClasses(data.availableClasses || "");
 
-        // Categories
-        setAcademicLevel(data.academicLevel || "");
-        setCoEducational(data.coEducational || "Co-Educational");
-        setSchoolOperationType(data.schoolOperationType || "Day School");
-        setAdmissionType(data.admissionType || "Direct Admission");
-        setTransportation(data.transportation || "Available");
-        setHostelFacility(data.hostelFacility || "Not Available");
+        // Tab 2 fields
+        setSchoolPhotos(data.schoolPhotos || []);
+        setPrincipalPhoto(data.principalPhoto || "");
+        setPrincipalDesignation(data.principalDesignation || "Head of Institution");
+        setPrincipalEmail(data.principalEmail || "");
+        setPrincipalPhone(data.principalPhone || "");
+        
+        // Parse date for input type=date
+        if (data.principalLeadershipSince) {
+          const dateOnly = data.principalLeadershipSince.split("T")[0];
+          setPrincipalLeadershipSince(dateOnly);
+        } else {
+          setPrincipalLeadershipSince("");
+        }
+        
+        setPrincipalIntroduction(data.principalIntroduction || "");
+
+        // Tab 3 fields
+        setSchoolCategoriesList(data.schoolCategoriesList || []);
+        setAdmissionProcess(data.admissionProcess || "Direct Admission");
+        setSchoolBoardType(data.schoolBoardType || "Private");
+        setTeacherAppointmentBooking(data.teacherAppointmentBooking !== false);
+        setAppointmentBookingType(data.appointmentBookingType || "Online Booking");
+        setAppointmentAdvanceDays(data.appointmentAdvanceDays || 7);
+        setAppointmentMaxPerDay(data.appointmentMaxPerDay || 5);
+        setAppointmentDuration(data.appointmentDuration || 30);
+        setWorkingDays(data.workingDays || ["Mon", "Tue", "Wed", "Thu", "Fri"]);
+        setOpeningTime(data.openingTime || "08:00 AM");
+        setClosingTime(data.closingTime || "04:00 PM");
+        setHolidays(data.holidays || []);
+
+        // Tab 4 fields
+        setDescription(data.description || "");
       }
     } catch (err) {
       console.error("Error fetching school data:", err);
@@ -116,6 +167,7 @@ function AboutYourSchool() {
 
     try {
       const payload = {
+        // Tab 1 fields
         principalName,
         email,
         phoneNumber,
@@ -133,19 +185,39 @@ function AboutYourSchool() {
         motto,
         photo,
         availableClasses,
-        academicLevel,
-        coEducational,
-        schoolOperationType,
-        admissionType,
-        transportation,
-        hostelFacility
+
+        // Tab 2 fields
+        schoolPhotos,
+        principalPhoto,
+        principalDesignation,
+        principalEmail,
+        principalPhone,
+        principalLeadershipSince,
+        principalIntroduction,
+
+        // Tab 3 fields
+        schoolCategoriesList,
+        admissionProcess,
+        schoolBoardType,
+        teacherAppointmentBooking,
+        appointmentBookingType,
+        appointmentAdvanceDays,
+        appointmentMaxPerDay,
+        appointmentDuration,
+        workingDays,
+        openingTime,
+        closingTime,
+        holidays,
+
+        // Tab 4 fields
+        description
       };
 
       await axios.put(`${API}/api/schools/my-school`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setSuccess("School information updated successfully!");
+      setSuccess("School details saved successfully!");
       setIsEditing(false);
       setTimeout(() => setSuccess(""), 4000);
       fetchSchoolData();
@@ -166,46 +238,68 @@ function AboutYourSchool() {
     );
   }
 
-  // Calculate classes count for the Available Classes stat card (e.g. "10 Classes")
-  const classCountText = school?.totalClasses === 1 ? "1 Class" : `${school?.totalClasses || 0} Classes`;
+  // Get active breadcrumb name
+  const currentTabObj = TABS.find(t => t.id === activeTab) || TABS[0];
 
   return (
     <div className="bg-[#080D1A] min-h-screen text-slate-100 p-6 -m-4 md:-m-6" style={{ fontFamily: SORA }}>
       
-      {/* ── HEADER NAVIGATION ── */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* ── TOP HEADER & BREADCRUMBS ── */}
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 select-none">
         <div>
           <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 mb-1">
             <span>About Your School</span>
             <span>&gt;</span>
-            <span className="text-purple-500">Basic Information</span>
+            <span className="text-purple-500">{currentTabObj.breadcrumb}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
             About Your School
           </h1>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">
-            Manage your school's basic details and information.
+          <p className="text-xs text-slate-400 font-medium mt-0.5 animate-fadeIn">
+            Manage your school's details, media, admissions policies, and profile settings.
           </p>
         </div>
 
-        {/* Toggle Edit Button */}
-        <button
-          onClick={() => setIsEditing(!isEditing)}
-          className="flex items-center gap-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition self-start sm:self-auto cursor-pointer"
-        >
-          {isEditing ? (
-            <>
-              <FaTimes className="text-sm" /> Cancel Editing
-            </>
-          ) : (
-            <>
-              <FaEdit className="text-sm" /> Edit School Information
-            </>
-          )}
-        </button>
+        {/* Edit Button (Only visible/applicable for Basic Info, other tabs have direct inputs) */}
+        {activeTab === "basic" && (
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className="flex items-center gap-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition self-start sm:self-auto cursor-pointer"
+          >
+            {isEditing ? (
+              <>
+                <FaTimes className="text-sm" /> Cancel Editing
+              </>
+            ) : (
+              <>
+                <FaEdit className="text-sm" /> Edit School Information
+              </>
+            )}
+          </button>
+        )}
       </div>
 
-      {/* ── NOTIFICATIONS ── */}
+      {/* ── TABS NAVIGATION BAR ── */}
+      <div className="flex flex-wrap items-center gap-2 mb-6 border-b border-slate-800/80 pb-3 select-none">
+        {TABS.map(tab => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 text-xs font-bold rounded-xl transition cursor-pointer select-none ${
+                isActive
+                  ? "bg-[#7C3AED]/10 text-purple-400 border border-[#7C3AED]/30"
+                  : "text-slate-450 hover:bg-slate-850 hover:text-white"
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── STATUS MESSAGES ── */}
       {success && (
         <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm mb-6 animate-fadeIn">
           <FaCheckCircle className="text-emerald-500 text-lg shrink-0" />
@@ -219,539 +313,76 @@ function AboutYourSchool() {
         </div>
       )}
 
-      {/* ── MAIN CONTENT GRID ── */}
-      <div className="space-y-6">
+      {/* ── ACTIVE TAB VIEW CONTENT ── */}
+      <div className="mb-6">
+        {activeTab === "basic" && (
+          <BasicInfoTab
+            school={school}
+            isEditing={isEditing}
+            principalName={principalName} setPrincipalName={setPrincipalName}
+            affiliation={affiliation} setAffiliation={setAffiliation}
+            academicYear={academicYear} setAcademicYear={setAcademicYear}
+            email={email} setEmail={setEmail}
+            medium={medium} setMedium={setMedium}
+            phoneNumber={phoneNumber} setPhoneNumber={setPhoneNumber}
+            website={website} setWebsite={setWebsite}
+            address={address} setAddress={setAddress}
+            established={established} setEstablished={setEstablished}
+            status={status} setStatus={setStatus}
+            schoolType={schoolType} setSchoolType={setSchoolType}
+            registrationNumber={registrationNumber} setRegistrationNumber={setRegistrationNumber}
+            code={code} setCode={setCode}
+            category={category} setCategory={setCategory}
+            motto={motto} setMotto={setMotto}
+            photo={photo} setPhoto={setPhoto}
+            availableClasses={availableClasses} setAvailableClasses={setAvailableClasses}
+          />
+        )}
 
-        {/* CARD 1: BASIC INFORMATION */}
-        <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
-          <div className="flex items-center gap-2 border-b border-slate-800/60 pb-3 mb-5">
-            <FaSchool className="text-purple-500 text-sm" />
-            <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">Basic Information</h3>
-          </div>
+        {activeTab === "media" && (
+          <MediaPrincipalTab
+            schoolPhotos={schoolPhotos} setSchoolPhotos={setSchoolPhotos}
+            principalPhoto={principalPhoto} setPrincipalPhoto={setPrincipalPhoto}
+            principalName={principalName} setPrincipalName={setPrincipalName}
+            principalDesignation={principalDesignation} setPrincipalDesignation={setPrincipalDesignation}
+            principalEmail={principalEmail} setPrincipalEmail={setPrincipalEmail}
+            principalPhone={principalPhone} setPrincipalPhone={setPrincipalPhone}
+            principalLeadershipSince={principalLeadershipSince} setPrincipalLeadershipSince={setPrincipalLeadershipSince}
+            principalIntroduction={principalIntroduction} setPrincipalIntroduction={setPrincipalIntroduction}
+          />
+        )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            {/* School Photo (Left) */}
-            <div className="lg:col-span-4">
-              <div className="rounded-xl overflow-hidden border border-slate-800/80 aspect-[4/3] bg-slate-900 flex items-center justify-center relative group">
-                <img
-                  src={photo || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80"}
-                  alt="School Building"
-                  className="w-full h-full object-cover"
-                />
-                {isEditing && (
-                  <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center p-4 text-center">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Image URL</label>
-                    <input
-                      type="text"
-                      value={photo}
-                      placeholder="Paste Image URL"
-                      onChange={(e) => setPhoto(e.target.value)}
-                      className="w-full px-2.5 py-1.5 bg-[#0F172A] border border-slate-800 rounded-lg text-[10px] text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
+        {activeTab === "admission" && (
+          <AdmissionSettingsTab
+            schoolCategoriesList={schoolCategoriesList} setSchoolCategoriesList={setSchoolCategoriesList}
+            admissionProcess={admissionProcess} setAdmissionProcess={setAdmissionProcess}
+            schoolBoardType={schoolBoardType} setSchoolBoardType={setSchoolBoardType}
+            teacherAppointmentBooking={teacherAppointmentBooking} setTeacherAppointmentBooking={setTeacherAppointmentBooking}
+            appointmentBookingType={appointmentBookingType} setAppointmentBookingType={setAppointmentBookingType}
+            appointmentAdvanceDays={appointmentAdvanceDays} setAppointmentAdvanceDays={setAppointmentAdvanceDays}
+            appointmentMaxPerDay={appointmentMaxPerDay} setAppointmentMaxPerDay={setAppointmentMaxPerDay}
+            appointmentDuration={appointmentDuration} setAppointmentDuration={setAppointmentDuration}
+            workingDays={workingDays} setWorkingDays={setWorkingDays}
+            openingTime={openingTime} setOpeningTime={openingTime}
+            closingTime={closingTime} setClosingTime={closingTime}
+            holidays={holidays} setHolidays={setHolidays}
+          />
+        )}
 
-            {/* Profile Fields (Right) */}
-            <div className="lg:col-span-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
-                
-                {/* School Name */}
-                <div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Name</span>
-                  <p className="text-xs font-bold text-white bg-[#0F172A]/40 border border-slate-850 px-3.5 py-2 rounded-xl text-slate-400">
-                    {school?.name || "G.D Accedmy"}
-                  </p>
-                </div>
+        {activeTab === "description" && (
+          <SchoolDescriptionTab
+            description={description} setDescription={setDescription}
+            schoolName={school?.name || "G.D Accedmy"}
+          />
+        )}
+      </div>
 
-                {/* Affiliation */}
-                <div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Affiliation / Board</span>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={affiliation}
-                      onChange={(e) => setAffiliation(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
-                    />
-                  ) : (
-                    <p className="text-xs font-bold text-white px-1 py-1">{affiliation || "CBSE"}</p>
-                  )}
-                </div>
-
-                {/* Principal Name */}
-                <div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Principal Name</span>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={principalName}
-                      onChange={(e) => setPrincipalName(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
-                    />
-                  ) : (
-                    <p className="text-xs font-bold text-white px-1 py-1">{principalName || "Banny Thapar"}</p>
-                  )}
-                </div>
-
-                {/* Academic Year */}
-                <div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Academic Year</span>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={academicYear}
-                      onChange={(e) => setAcademicYear(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
-                    />
-                  ) : (
-                    <p className="text-xs font-bold text-white px-1 py-1">{academicYear || "2026 - 2027"}</p>
-                  )}
-                </div>
-
-                {/* School Email */}
-                <div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Email</span>
-                  {isEditing ? (
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
-                    />
-                  ) : (
-                    <p className="text-xs font-bold text-white px-1 py-1">{email || "gdaccedmy@gmail.com"}</p>
-                  )}
-                </div>
-
-                {/* Medium */}
-                <div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Medium</span>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={medium}
-                      onChange={(e) => setMedium(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
-                    />
-                  ) : (
-                    <p className="text-xs font-bold text-white px-1 py-1">{medium || "English"}</p>
-                  )}
-                </div>
-
-                {/* Phone Number */}
-                <div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Phone Number</span>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
-                    />
-                  ) : (
-                    <p className="text-xs font-bold text-white px-1 py-1">{phoneNumber || "+91 98765 43210"}</p>
-                  )}
-                </div>
-
-                {/* Website */}
-                <div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Website</span>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={website}
-                      onChange={(e) => setWebsite(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
-                    />
-                  ) : (
-                    <p className="text-xs font-bold text-white px-1 py-1">{website || "www.gdaccedmy.edu.in"}</p>
-                  )}
-                </div>
-
-                {/* School Address */}
-                <div className="sm:col-span-2">
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Address</span>
-                  {isEditing ? (
-                    <textarea
-                      rows="2"
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
-                    />
-                  ) : (
-                    <p className="text-xs font-bold text-white px-1 py-1 leading-relaxed">
-                      {address || "Near Sadar Hospital, Siwan, Bihar - 841226, India"}
-                    </p>
-                  )}
-                </div>
-
-                {/* School Established */}
-                <div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Established</span>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={established}
-                      onChange={(e) => setEstablished(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
-                    />
-                  ) : (
-                    <p className="text-xs font-bold text-white px-1 py-1">{established || "2010"}</p>
-                  )}
-                </div>
-
-                {/* School Status */}
-                <div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Status</span>
-                  {isEditing ? (
-                    <select
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
-                    >
-                      <option>Active</option>
-                      <option>Inactive</option>
-                    </select>
-                  ) : (
-                    <div className="px-1 py-1">
-                      <span className="inline-block text-[8px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded uppercase tracking-wider">
-                        {status || "Active"}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* School Type */}
-                <div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Type</span>
-                  {isEditing ? (
-                    <select
-                      value={schoolType}
-                      onChange={(e) => setSchoolType(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
-                    >
-                      <option>Private</option>
-                      <option>Government</option>
-                    </select>
-                  ) : (
-                    <div className="px-1 py-1">
-                      <span className="inline-block text-[8px] font-black text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded uppercase tracking-wider">
-                        {schoolType || "Private"}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Registration Number */}
-                <div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Registration Number</span>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={registrationNumber}
-                      onChange={(e) => setRegistrationNumber(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
-                    />
-                  ) : (
-                    <p className="text-xs font-bold text-white px-1 py-1">{registrationNumber || "GD/REG/2010/4125"}</p>
-                  )}
-                </div>
-
-                {/* School Code */}
-                <div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Code</span>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={code}
-                      onChange={(e) => setCode(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
-                    />
-                  ) : (
-                    <p className="text-xs font-bold text-white px-1 py-1">{code || "GDAC2026"}</p>
-                  )}
-                </div>
-
-                {/* School Category */}
-                <div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Category</span>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
-                    />
-                  ) : (
-                    <div className="px-1 py-1">
-                      <span className="inline-block text-[8px] font-black text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded uppercase tracking-wider">
-                        {category || "Secondary"}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* School Motto */}
-                <div className="sm:col-span-2">
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Motto</span>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={motto}
-                      onChange={(e) => setMotto(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
-                    />
-                  ) : (
-                    <p className="text-xs font-bold text-slate-200 px-1 py-1 italic">
-                      &ldquo;{motto || "Learn • Grow • Succeed"}&rdquo;
-                    </p>
-                  )}
-                </div>
-
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* CARD 2: OVERVIEW STATISTICS */}
-        <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
-          <div className="flex items-center gap-2 border-b border-slate-800/60 pb-3 mb-5">
-            <FaSchool className="text-purple-500 text-sm" />
-            <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">Overview Statistics</h3>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            
-            {/* Total Students */}
-            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
-              <div className="flex items-center justify-between">
-                <div className="w-7 h-7 rounded-lg bg-[#8B5CF6]/10 flex items-center justify-center text-[#8B5CF6] text-xs">
-                  <FaUsers />
-                </div>
-                <span className="text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Total Students</span>
-              </div>
-              <div className="mt-1">
-                <h4 className="text-lg font-black text-white">{school?.totalStudents ?? 0}</h4>
-                <p className="text-[8px] font-bold text-emerald-400 flex items-center gap-0.5 mt-0.5">
-                  <FaArrowUp className="text-[7px]" /> 12 this month
-                </p>
-              </div>
-            </div>
-
-            {/* Total Teachers */}
-            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
-              <div className="flex items-center justify-between">
-                <div className="w-7 h-7 rounded-lg bg-[#3B82F6]/10 flex items-center justify-center text-[#3B82F6] text-xs">
-                  <FaChalkboardTeacher />
-                </div>
-                <span className="text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Total Teachers</span>
-              </div>
-              <div className="mt-1">
-                <h4 className="text-lg font-black text-white">{school?.totalTeachers ?? 0}</h4>
-                <p className="text-[8px] font-bold text-emerald-400 flex items-center gap-0.5 mt-0.5">
-                  <FaArrowUp className="text-[7px]" /> 2 this month
-                </p>
-              </div>
-            </div>
-
-            {/* Total Classes */}
-            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
-              <div className="flex items-center justify-between">
-                <div className="w-7 h-7 rounded-lg bg-[#10B981]/10 flex items-center justify-center text-[#10B981] text-xs">
-                  <FaSchool />
-                </div>
-                <span className="text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Total Classes</span>
-              </div>
-              <div className="mt-1">
-                <h4 className="text-lg font-black text-white">{school?.totalClasses ?? 0}</h4>
-                <p className="text-[8px] font-bold text-slate-400 mt-0.5">No change</p>
-              </div>
-            </div>
-
-            {/* Total Subjects */}
-            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
-              <div className="flex items-center justify-between">
-                <div className="w-7 h-7 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center text-[#F59E0B] text-xs">
-                  <FaBook />
-                </div>
-                <span className="text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Total Subjects</span>
-              </div>
-              <div className="mt-1">
-                <h4 className="text-lg font-black text-white">{school?.totalSubjects ?? 0}</h4>
-                <p className="text-[8px] font-bold text-emerald-400 flex items-center gap-0.5 mt-0.5">
-                  <FaArrowUp className="text-[7px]" /> 3 this month
-                </p>
-              </div>
-            </div>
-
-            {/* Available Classes */}
-            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
-              <div className="flex items-center justify-between">
-                <div className="w-7 h-7 rounded-lg bg-[#14B8A6]/10 flex items-center justify-center text-[#14B8A6] text-xs">
-                  <FaCalendarAlt />
-                </div>
-                <span className="text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Available Classes</span>
-              </div>
-              <div className="mt-1">
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={availableClasses}
-                    onChange={(e) => setAvailableClasses(e.target.value)}
-                    className="w-full px-2 py-1 bg-[#0F172A] border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
-                  />
-                ) : (
-                  <h4 className="text-xs sm:text-sm font-black text-white truncate">{availableClasses || "Class 1 to 10"}</h4>
-                )}
-                <p className="text-[8px] font-bold text-teal-400 mt-0.5">{classCountText}</p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* CARD 3: SCHOOL CATEGORIES */}
-        <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
-          <div className="flex items-center gap-2 border-b border-slate-800/60 pb-3 mb-5">
-            <FaSchool className="text-purple-500 text-sm" />
-            <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">School Categories</h3>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            
-            {/* Academic Level */}
-            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 text-left">
-              <div className="w-8 h-8 rounded-lg bg-[#8B5CF6]/10 flex items-center justify-center text-[#8B5CF6] text-base mb-3">
-                <FaGraduationCap />
-              </div>
-              <span className="block text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Academic Level</span>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={academicLevel}
-                  onChange={(e) => setAcademicLevel(e.target.value)}
-                  className="w-full px-2 py-1 bg-[#0F172A] border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-purple-500 font-bold mt-1"
-                />
-              ) : (
-                <span className="block text-xs font-bold text-white mt-1">{academicLevel || "Secondary"}</span>
-              )}
-            </div>
-
-            {/* School Category */}
-            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 text-left">
-              <div className="w-8 h-8 rounded-lg bg-[#EC4899]/10 flex items-center justify-center text-[#EC4899] text-base mb-3">
-                <FaUsers />
-              </div>
-              <span className="block text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">School Category</span>
-              {isEditing ? (
-                <select
-                  value={coEducational}
-                  onChange={(e) => setCoEducational(e.target.value)}
-                  className="w-full px-2 py-1 bg-[#0F172A] border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-purple-500 font-bold mt-1"
-                >
-                  <option>Co-Educational</option>
-                  <option>Boys Only</option>
-                  <option>Girls Only</option>
-                </select>
-              ) : (
-                <span className="block text-xs font-bold text-white mt-1">{coEducational || "Co-Educational"}</span>
-              )}
-            </div>
-
-            {/* School Type */}
-            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 text-left">
-              <div className="w-8 h-8 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center text-[#F59E0B] text-base mb-3">
-                <FaBuilding />
-              </div>
-              <span className="block text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">School Type</span>
-              {isEditing ? (
-                <select
-                  value={schoolOperationType}
-                  onChange={(e) => setSchoolOperationType(e.target.value)}
-                  className="w-full px-2 py-1 bg-[#0F172A] border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-purple-500 font-bold mt-1"
-                >
-                  <option>Day School</option>
-                  <option>Boarding School</option>
-                  <option>Day & Boarding</option>
-                </select>
-              ) : (
-                <span className="block text-xs font-bold text-white mt-1">{schoolOperationType || "Day School"}</span>
-              )}
-            </div>
-
-            {/* Admission Type */}
-            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 text-left">
-              <div className="w-8 h-8 rounded-lg bg-[#3B82F6]/10 flex items-center justify-center text-[#3B82F6] text-base mb-3">
-                <FaClipboardList />
-              </div>
-              <span className="block text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Admission Type</span>
-              {isEditing ? (
-                <select
-                  value={admissionType}
-                  onChange={(e) => setAdmissionType(e.target.value)}
-                  className="w-full px-2 py-1 bg-[#0F172A] border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-purple-500 font-bold mt-1"
-                >
-                  <option>Direct Admission</option>
-                  <option>Entrance Exam</option>
-                  <option>Merit Based</option>
-                </select>
-              ) : (
-                <span className="block text-xs font-bold text-white mt-1">{admissionType || "Direct Admission"}</span>
-              )}
-            </div>
-
-            {/* Transportation */}
-            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 text-left">
-              <div className="w-8 h-8 rounded-lg bg-[#10B981]/10 flex items-center justify-center text-[#10B981] text-base mb-3">
-                <FaBus />
-              </div>
-              <span className="block text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Transportation</span>
-              {isEditing ? (
-                <select
-                  value={transportation}
-                  onChange={(e) => setTransportation(e.target.value)}
-                  className="w-full px-2 py-1 bg-[#0F172A] border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-purple-500 font-bold mt-1"
-                >
-                  <option>Available</option>
-                  <option>Not Available</option>
-                </select>
-              ) : (
-                <span className="block text-xs font-bold text-white mt-1">{transportation || "Available"}</span>
-              )}
-            </div>
-
-            {/* Hostel Facility */}
-            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 text-left">
-              <div className="w-8 h-8 rounded-lg bg-[#6366F1]/10 flex items-center justify-center text-[#6366F1] text-base mb-3">
-                <FaBed />
-              </div>
-              <span className="block text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Hostel Facility</span>
-              {isEditing ? (
-                <select
-                  value={hostelFacility}
-                  onChange={(e) => setHostelFacility(e.target.value)}
-                  className="w-full px-2 py-1 bg-[#0F172A] border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-purple-500 font-bold mt-1"
-                >
-                  <option>Available</option>
-                  <option>Not Available</option>
-                </select>
-              ) : (
-                <span className="block text-xs font-bold text-white mt-1">{hostelFacility || "Not Available"}</span>
-              )}
-            </div>
-
-          </div>
-        </div>
-
-        {/* ── FOOTER ACTION BANNER (VISIBLE IN EDIT MODE OR VIEW MODE) ── */}
-        <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl select-none">
+      {/* ── FOOTER ACTIONS (FOR NON-BASIC TABS OR EDIT MODE BASIC TAB) ── */}
+      {(activeTab !== "basic" || isEditing) && (
+        <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl select-none animate-fadeIn">
           <div className="flex items-center gap-3 text-blue-400">
             <FaInfoCircle className="text-lg shrink-0" />
-            <p className="text-xs font-bold text-slate-300">
+            <p className="text-xs font-bold text-slate-350">
               Keep your school information updated. This information is visible to parents and students.
             </p>
           </div>
@@ -769,8 +400,7 @@ function AboutYourSchool() {
             )}
           </button>
         </div>
-
-      </div>
+      )}
 
     </div>
   );

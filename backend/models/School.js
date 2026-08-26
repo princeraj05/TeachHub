@@ -77,7 +77,27 @@ const schoolSchema = new mongoose.Schema({
   schoolOperationType: { type: String, default: "Day School" },
   admissionType: { type: String, default: "Direct Admission" },
   transportation: { type: String, default: "Available" },
-  hostelFacility: { type: String, default: "Not Available" }
+  hostelFacility: { type: String, default: "Not Available" },
+
+  // New multi-tab fields
+  schoolPhotos: { type: [String], default: [] },
+  principalPhoto: { type: String, default: "" },
+  principalDesignation: { type: String, default: "" },
+  principalEmail: { type: String, default: "" },
+  principalPhone: { type: String, default: "" },
+  principalLeadershipSince: { type: String, default: "" },
+  principalIntroduction: { type: String, default: "" },
+  schoolCategoriesList: { type: [String], default: [] },
+  admissionProcess: { type: String, enum: ["Entrance Exam Required", "Direct Admission"], default: "Direct Admission" },
+  schoolBoardType: { type: String, enum: ["Private", "Government", "Government Aided", "Trust / Society"], default: "Private" },
+  appointmentBookingType: { type: String, default: "Online Booking" },
+  appointmentAdvanceDays: { type: Number, default: 7 },
+  appointmentMaxPerDay: { type: Number, default: 5 },
+  appointmentDuration: { type: Number, default: 30 },
+  workingDays: { type: [String], default: ["Mon", "Tue", "Wed", "Thu", "Fri"] },
+  openingTime: { type: String, default: "08:00 AM" },
+  closingTime: { type: String, default: "04:00 PM" },
+  holidays: [{ date: String, name: String }]
 }, { timestamps: true });
 
 module.exports = mongoose.model("School", schoolSchema);
