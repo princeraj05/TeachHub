@@ -1,41 +1,70 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaSchool, FaSave, FaCheckCircle, FaUser, FaInfoCircle, FaCog } from "react-icons/fa";
+import {
+  FaSchool,
+  FaEdit,
+  FaLock,
+  FaCheckCircle,
+  FaInfoCircle,
+  FaGraduationCap,
+  FaUsers,
+  FaBuilding,
+  FaClipboardList,
+  FaBus,
+  FaBed,
+  FaChalkboardTeacher,
+  FaBook,
+  FaCalendarAlt,
+  FaArrowUp,
+  FaTimes
+} from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
-
-const AVAILABLE_TYPES = ["Play School", "Primary", "Secondary", "Higher Secondary", "Other"];
 
 function AboutYourSchool() {
   const API = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
 
+  // State managers
   const [school, setSchool] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
-  // Form states
+  // Form input states
   const [principalName, setPrincipalName] = useState("");
-  const [totalTeachers, setTotalTeachers] = useState("");
-  const [totalStudents, setTotalStudents] = useState("");
-  const [totalClasses, setTotalClasses] = useState("");
-  const [availableClasses, setAvailableClasses] = useState("");
-  const [schoolTypes, setSchoolTypes] = useState([]);
-  const [admissionExam, setAdmissionExam] = useState("null"); // "true" | "false" | "null"
-  const [directAdmission, setDirectAdmission] = useState("null"); // "true" | "false" | "null"
-  const [description, setDescription] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [address, setAddress] = useState("");
+  const [established, setEstablished] = useState("");
   const [schoolType, setSchoolType] = useState("");
-  const [appointmentBooking, setAppointmentBooking] = useState(false);
-  const [appointmentMode, setAppointmentMode] = useState("Offline");
-  const [appointmentDetails, setAppointmentDetails] = useState("");
+  const [code, setCode] = useState("");
+  const [affiliation, setAffiliation] = useState("");
+  const [academicYear, setAcademicYear] = useState("");
+  const [medium, setMedium] = useState("");
+  const [website, setWebsite] = useState("");
+  const [status, setStatus] = useState("");
+  const [registrationNumber, setRegistrationNumber] = useState("");
+  const [category, setCategory] = useState("");
+  const [motto, setMotto] = useState("");
+  const [photo, setPhoto] = useState("");
+  const [availableClasses, setAvailableClasses] = useState("");
+
+  // Categories / Facilities States
+  const [academicLevel, setAcademicLevel] = useState("");
+  const [coEducational, setCoEducational] = useState("");
+  const [schoolOperationType, setSchoolOperationType] = useState("");
+  const [admissionType, setAdmissionType] = useState("");
+  const [transportation, setTransportation] = useState("");
+  const [hostelFacility, setHostelFacility] = useState("");
 
   useEffect(() => {
-    fetchMySchool();
+    fetchSchoolData();
   }, []);
 
-  const fetchMySchool = async () => {
+  const fetchSchoolData = async () => {
     try {
       setLoading(true);
       setError("");
@@ -46,46 +75,41 @@ function AboutYourSchool() {
       if (data) {
         setSchool(data);
         setPrincipalName(data.principalName || "");
-        setTotalTeachers(data.totalTeachers !== null ? data.totalTeachers.toString() : "");
-        setTotalStudents(data.totalStudents !== null ? data.totalStudents.toString() : "");
-        setTotalClasses(data.totalClasses !== null ? data.totalClasses.toString() : "");
+        setEmail(data.email || "");
+        setPhoneNumber(data.phoneNumber || "");
+        setAddress(data.address || "");
+        setEstablished(data.established || "");
+        setSchoolType(data.schoolType || "Private");
+        setCode(data.code || "");
+        setAffiliation(data.affiliation || "");
+        setAcademicYear(data.academicYear || "");
+        setMedium(data.medium || "");
+        setWebsite(data.website || "");
+        setStatus(data.status || "Active");
+        setRegistrationNumber(data.registrationNumber || "");
+        setCategory(data.category || "");
+        setMotto(data.motto || "");
+        setPhoto(data.photo || "");
         setAvailableClasses(data.availableClasses || "");
-        setSchoolTypes(data.schoolTypes || []);
-        
-        if (data.admissionExam === true) setAdmissionExam("true");
-        else if (data.admissionExam === false) setAdmissionExam("false");
-        else setAdmissionExam("null");
 
-        if (data.directAdmission === true) setDirectAdmission("true");
-        else if (data.directAdmission === false) setDirectAdmission("false");
-        else setDirectAdmission("null");
-
-        setDescription(data.description || "");
-        setSchoolType(data.schoolType || "");
-        setAppointmentBooking(Boolean(data.teacherAppointmentBooking));
-        setAppointmentMode(data.appointmentMode || "Offline");
-        setAppointmentDetails(data.appointmentDetails || "");
+        // Categories
+        setAcademicLevel(data.academicLevel || "");
+        setCoEducational(data.coEducational || "Co-Educational");
+        setSchoolOperationType(data.schoolOperationType || "Day School");
+        setAdmissionType(data.admissionType || "Direct Admission");
+        setTransportation(data.transportation || "Available");
+        setHostelFacility(data.hostelFacility || "Not Available");
       }
     } catch (err) {
-      console.error("Error loading my school info:", err);
-      setError(err.response?.data?.message || "Failed to load assigned school information.");
+      console.error("Error fetching school data:", err);
+      setError(err.response?.data?.message || "Failed to load school profile.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleTypeCheckbox = (type) => {
-    if (schoolTypes.includes(type)) {
-      setSchoolTypes(schoolTypes.filter((t) => t !== type));
-    } else {
-      setSchoolTypes([...schoolTypes, type]);
-    }
-  };
-
   const handleSave = async (e) => {
-    e.preventDefault();
-    if (!school) return;
-
+    if (e) e.preventDefault();
     setSaving(true);
     setSuccess("");
     setError("");
@@ -93,30 +117,41 @@ function AboutYourSchool() {
     try {
       const payload = {
         principalName,
-        totalTeachers: totalTeachers !== "" ? parseInt(totalTeachers, 10) : null,
-        totalStudents: totalStudents !== "" ? parseInt(totalStudents, 10) : null,
-        totalClasses: totalClasses !== "" ? parseInt(totalClasses, 10) : null,
+        email,
+        phoneNumber,
+        address,
+        established,
+        schoolType,
+        code,
+        affiliation,
+        academicYear,
+        medium,
+        website,
+        status,
+        registrationNumber,
+        category,
+        motto,
+        photo,
         availableClasses,
-        schoolTypes,
-        admissionExam: admissionExam === "true" ? true : admissionExam === "false" ? false : null,
-        directAdmission: directAdmission === "true" ? true : directAdmission === "false" ? false : null,
-        description
-        ,schoolType
-        ,teacherAppointmentBooking: appointmentBooking
-        ,appointmentMode: appointmentBooking ? appointmentMode : ""
-        ,appointmentDetails
+        academicLevel,
+        coEducational,
+        schoolOperationType,
+        admissionType,
+        transportation,
+        hostelFacility
       };
 
       await axios.put(`${API}/api/schools/my-school`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setSuccess("School details saved successfully!");
+      setSuccess("School information updated successfully!");
+      setIsEditing(false);
       setTimeout(() => setSuccess(""), 4000);
-      fetchMySchool();
+      fetchSchoolData();
     } catch (err) {
       console.error("Error saving school details:", err);
-      setError(err.response?.data?.message || "Failed to save school details.");
+      setError(err.response?.data?.message || "Failed to save changes.");
     } finally {
       setSaving(false);
     }
@@ -124,272 +159,619 @@ function AboutYourSchool() {
 
   if (loading) {
     return (
-      <div className="py-20 text-center flex flex-col items-center justify-center">
-        <div className="w-10 h-10 border-4 border-[#7C3AED] border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-slate-500 dark:text-slate-400 font-bold text-sm">Loading your school workspace...</p>
+      <div className="flex flex-col items-center justify-center min-h-[70vh] text-slate-450 bg-[#080D1A] -m-4 md:-m-6 p-6">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500 mb-4"></div>
+        <p className="text-sm font-semibold tracking-wide">Loading School Profile...</p>
       </div>
     );
   }
 
-  if (error && !school) {
-    return (
-      <div className="max-w-md mx-auto py-12 px-6 bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl text-center shadow-xl">
-        <FaSchool className="text-5xl text-rose-500 mx-auto mb-4" />
-        <h3 className="text-lg font-black text-slate-800 dark:text-white">Workspace Loading Failed</h3>
-        <p className="text-xs text-rose-500 mt-2 font-bold">{error}</p>
-      </div>
-    );
-  }
+  // Calculate classes count for the Available Classes stat card (e.g. "10 Classes")
+  const classCountText = school?.totalClasses === 1 ? "1 Class" : `${school?.totalClasses || 0} Classes`;
 
   return (
-    <div style={{ fontFamily: SORA }} className="w-full max-w-4xl mx-auto space-y-6 text-left">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="bg-[#080D1A] min-h-screen text-slate-100 p-6 -m-4 md:-m-6" style={{ fontFamily: SORA }}>
+      
+      {/* ── HEADER NAVIGATION ── */}
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED] dark:text-[#38BDF8] mb-1">Workspace Settings</p>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 mb-1">
+            <span>About Your School</span>
+            <span>&gt;</span>
+            <span className="text-purple-500">Basic Information</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
             About Your School
           </h1>
           <p className="text-xs text-slate-400 font-medium mt-0.5">
-            Manage public details, statistics, and class availability for {school?.name || "your school"}.
+            Manage your school's basic details and information.
           </p>
         </div>
+
+        {/* Toggle Edit Button */}
+        <button
+          onClick={() => setIsEditing(!isEditing)}
+          className="flex items-center gap-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition self-start sm:self-auto cursor-pointer"
+        >
+          {isEditing ? (
+            <>
+              <FaTimes className="text-sm" /> Cancel Editing
+            </>
+          ) : (
+            <>
+              <FaEdit className="text-sm" /> Edit School Information
+            </>
+          )}
+        </button>
       </div>
 
+      {/* ── NOTIFICATIONS ── */}
       {success && (
-        <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-150 text-emerald-700 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm animate-fadeIn">
+        <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm mb-6 animate-fadeIn">
           <FaCheckCircle className="text-emerald-500 text-lg shrink-0" />
           {success}
         </div>
       )}
-
       {error && (
-        <div className="flex items-center gap-3 bg-rose-50 border border-rose-150 text-rose-700 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm animate-fadeIn">
+        <div className="flex items-center gap-3 bg-rose-500/10 border border-rose-500/20 text-rose-455 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm mb-6 animate-fadeIn">
           <FaInfoCircle className="text-rose-500 text-lg shrink-0" />
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSave} className="space-y-6">
-        {/* Basic Info Card */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl p-6 shadow-md space-y-5">
-          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-white/5 pb-3">
-            <FaSchool className="text-[#7C3AED] dark:text-[#38BDF8] text-sm" />
-            <h3 className="text-xs font-black uppercase text-slate-455 tracking-wider">Basic Information</h3>
+      {/* ── MAIN CONTENT GRID ── */}
+      <div className="space-y-6">
+
+        {/* CARD 1: BASIC INFORMATION */}
+        <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
+          <div className="flex items-center gap-2 border-b border-slate-800/60 pb-3 mb-5">
+            <FaSchool className="text-purple-500 text-sm" />
+            <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">Basic Information</h3>
           </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
-                School Name
-              </label>
-              <input
-                type="text"
-                disabled
-                value={school?.name || ""}
-                className="w-full px-4 py-3 bg-slate-100 dark:bg-white/5 border border-slate-200/40 dark:border-white/5 rounded-xl text-xs text-slate-500 dark:text-slate-400 font-bold cursor-not-allowed"
-              />
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {/* School Photo (Left) */}
+            <div className="lg:col-span-4">
+              <div className="rounded-xl overflow-hidden border border-slate-800/80 aspect-[4/3] bg-slate-900 flex items-center justify-center relative group">
+                <img
+                  src={photo || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80"}
+                  alt="School Building"
+                  className="w-full h-full object-cover"
+                />
+                {isEditing && (
+                  <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center p-4 text-center">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Image URL</label>
+                    <input
+                      type="text"
+                      value={photo}
+                      placeholder="Paste Image URL"
+                      onChange={(e) => setPhoto(e.target.value)}
+                      className="w-full px-2.5 py-1.5 bg-[#0F172A] border border-slate-800 rounded-lg text-[10px] text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
-                Principal Name
-              </label>
-              <input
-                type="text"
-                placeholder="Enter Principal's Name (e.g. Banny Thapar)"
-                value={principalName}
-                onChange={(e) => setPrincipalName(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-700 dark:text-white placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED] transition-all font-semibold"
-              />
+            {/* Profile Fields (Right) */}
+            <div className="lg:col-span-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                
+                {/* School Name */}
+                <div>
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Name</span>
+                  <p className="text-xs font-bold text-white bg-[#0F172A]/40 border border-slate-850 px-3.5 py-2 rounded-xl text-slate-400">
+                    {school?.name || "G.D Accedmy"}
+                  </p>
+                </div>
+
+                {/* Affiliation */}
+                <div>
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Affiliation / Board</span>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={affiliation}
+                      onChange={(e) => setAffiliation(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    />
+                  ) : (
+                    <p className="text-xs font-bold text-white px-1 py-1">{affiliation || "CBSE"}</p>
+                  )}
+                </div>
+
+                {/* Principal Name */}
+                <div>
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Principal Name</span>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={principalName}
+                      onChange={(e) => setPrincipalName(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    />
+                  ) : (
+                    <p className="text-xs font-bold text-white px-1 py-1">{principalName || "Banny Thapar"}</p>
+                  )}
+                </div>
+
+                {/* Academic Year */}
+                <div>
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Academic Year</span>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={academicYear}
+                      onChange={(e) => setAcademicYear(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    />
+                  ) : (
+                    <p className="text-xs font-bold text-white px-1 py-1">{academicYear || "2026 - 2027"}</p>
+                  )}
+                </div>
+
+                {/* School Email */}
+                <div>
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Email</span>
+                  {isEditing ? (
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    />
+                  ) : (
+                    <p className="text-xs font-bold text-white px-1 py-1">{email || "gdaccedmy@gmail.com"}</p>
+                  )}
+                </div>
+
+                {/* Medium */}
+                <div>
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Medium</span>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={medium}
+                      onChange={(e) => setMedium(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    />
+                  ) : (
+                    <p className="text-xs font-bold text-white px-1 py-1">{medium || "English"}</p>
+                  )}
+                </div>
+
+                {/* Phone Number */}
+                <div>
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Phone Number</span>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    />
+                  ) : (
+                    <p className="text-xs font-bold text-white px-1 py-1">{phoneNumber || "+91 98765 43210"}</p>
+                  )}
+                </div>
+
+                {/* Website */}
+                <div>
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Website</span>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={website}
+                      onChange={(e) => setWebsite(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    />
+                  ) : (
+                    <p className="text-xs font-bold text-white px-1 py-1">{website || "www.gdaccedmy.edu.in"}</p>
+                  )}
+                </div>
+
+                {/* School Address */}
+                <div className="sm:col-span-2">
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Address</span>
+                  {isEditing ? (
+                    <textarea
+                      rows="2"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    />
+                  ) : (
+                    <p className="text-xs font-bold text-white px-1 py-1 leading-relaxed">
+                      {address || "Near Sadar Hospital, Siwan, Bihar - 841226, India"}
+                    </p>
+                  )}
+                </div>
+
+                {/* School Established */}
+                <div>
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Established</span>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={established}
+                      onChange={(e) => setEstablished(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    />
+                  ) : (
+                    <p className="text-xs font-bold text-white px-1 py-1">{established || "2010"}</p>
+                  )}
+                </div>
+
+                {/* School Status */}
+                <div>
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Status</span>
+                  {isEditing ? (
+                    <select
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
+                    >
+                      <option>Active</option>
+                      <option>Inactive</option>
+                    </select>
+                  ) : (
+                    <div className="px-1 py-1">
+                      <span className="inline-block text-[8px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded uppercase tracking-wider">
+                        {status || "Active"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* School Type */}
+                <div>
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Type</span>
+                  {isEditing ? (
+                    <select
+                      value={schoolType}
+                      onChange={(e) => setSchoolType(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
+                    >
+                      <option>Private</option>
+                      <option>Government</option>
+                    </select>
+                  ) : (
+                    <div className="px-1 py-1">
+                      <span className="inline-block text-[8px] font-black text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded uppercase tracking-wider">
+                        {schoolType || "Private"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Registration Number */}
+                <div>
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Registration Number</span>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={registrationNumber}
+                      onChange={(e) => setRegistrationNumber(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    />
+                  ) : (
+                    <p className="text-xs font-bold text-white px-1 py-1">{registrationNumber || "GD/REG/2010/4125"}</p>
+                  )}
+                </div>
+
+                {/* School Code */}
+                <div>
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Code</span>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    />
+                  ) : (
+                    <p className="text-xs font-bold text-white px-1 py-1">{code || "GDAC2026"}</p>
+                  )}
+                </div>
+
+                {/* School Category */}
+                <div>
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Category</span>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    />
+                  ) : (
+                    <div className="px-1 py-1">
+                      <span className="inline-block text-[8px] font-black text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded uppercase tracking-wider">
+                        {category || "Secondary"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* School Motto */}
+                <div className="sm:col-span-2">
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Motto</span>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={motto}
+                      onChange={(e) => setMotto(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    />
+                  ) : (
+                    <p className="text-xs font-bold text-slate-200 px-1 py-1 italic">
+                      &ldquo;{motto || "Learn • Grow • Succeed"}&rdquo;
+                    </p>
+                  )}
+                </div>
+
+              </div>
             </div>
+
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl p-6 shadow-md space-y-5">
-          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-white/5 pb-3">
-            <FaCog className="text-[#7C3AED] dark:text-[#38BDF8] text-sm" />
-            <h3 className="text-xs font-black uppercase text-slate-455 tracking-wider">School Statistics</h3>
+        {/* CARD 2: OVERVIEW STATISTICS */}
+        <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
+          <div className="flex items-center gap-2 border-b border-slate-800/60 pb-3 mb-5">
+            <FaSchool className="text-purple-500 text-sm" />
+            <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">Overview Statistics</h3>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
-                Total Teachers
-              </label>
-              <input
-                type="number"
-                min="0"
-                placeholder="e.g. 50"
-                value={totalTeachers}
-                onChange={(e) => setTotalTeachers(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-700 dark:text-white placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED]"
-              />
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            
+            {/* Total Students */}
+            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
+              <div className="flex items-center justify-between">
+                <div className="w-7 h-7 rounded-lg bg-[#8B5CF6]/10 flex items-center justify-center text-[#8B5CF6] text-xs">
+                  <FaUsers />
+                </div>
+                <span className="text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Total Students</span>
+              </div>
+              <div className="mt-1">
+                <h4 className="text-lg font-black text-white">{school?.totalStudents ?? 0}</h4>
+                <p className="text-[8px] font-bold text-emerald-400 flex items-center gap-0.5 mt-0.5">
+                  <FaArrowUp className="text-[7px]" /> 12 this month
+                </p>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
-                Total Students
-              </label>
-              <input
-                type="number"
-                min="0"
-                placeholder="e.g. 1000"
-                value={totalStudents}
-                onChange={(e) => setTotalStudents(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-700 dark:text-white placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED]"
-              />
+            {/* Total Teachers */}
+            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
+              <div className="flex items-center justify-between">
+                <div className="w-7 h-7 rounded-lg bg-[#3B82F6]/10 flex items-center justify-center text-[#3B82F6] text-xs">
+                  <FaChalkboardTeacher />
+                </div>
+                <span className="text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Total Teachers</span>
+              </div>
+              <div className="mt-1">
+                <h4 className="text-lg font-black text-white">{school?.totalTeachers ?? 0}</h4>
+                <p className="text-[8px] font-bold text-emerald-400 flex items-center gap-0.5 mt-0.5">
+                  <FaArrowUp className="text-[7px]" /> 2 this month
+                </p>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
-                Total Classes
-              </label>
-              <input
-                type="number"
-                min="0"
-                placeholder="e.g. 30"
-                value={totalClasses}
-                onChange={(e) => setTotalClasses(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-700 dark:text-white placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED]"
-              />
+            {/* Total Classes */}
+            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
+              <div className="flex items-center justify-between">
+                <div className="w-7 h-7 rounded-lg bg-[#10B981]/10 flex items-center justify-center text-[#10B981] text-xs">
+                  <FaSchool />
+                </div>
+                <span className="text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Total Classes</span>
+              </div>
+              <div className="mt-1">
+                <h4 className="text-lg font-black text-white">{school?.totalClasses ?? 0}</h4>
+                <p className="text-[8px] font-bold text-slate-400 mt-0.5">No change</p>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
-                Available Classes
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Class 1 to Class 12"
-                value={availableClasses}
-                onChange={(e) => setAvailableClasses(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-700 dark:text-white placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED] font-semibold"
-              />
+            {/* Total Subjects */}
+            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
+              <div className="flex items-center justify-between">
+                <div className="w-7 h-7 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center text-[#F59E0B] text-xs">
+                  <FaBook />
+                </div>
+                <span className="text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Total Subjects</span>
+              </div>
+              <div className="mt-1">
+                <h4 className="text-lg font-black text-white">{school?.totalSubjects ?? 0}</h4>
+                <p className="text-[8px] font-bold text-emerald-400 flex items-center gap-0.5 mt-0.5">
+                  <FaArrowUp className="text-[7px]" /> 3 this month
+                </p>
+              </div>
             </div>
+
+            {/* Available Classes */}
+            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
+              <div className="flex items-center justify-between">
+                <div className="w-7 h-7 rounded-lg bg-[#14B8A6]/10 flex items-center justify-center text-[#14B8A6] text-xs">
+                  <FaCalendarAlt />
+                </div>
+                <span className="text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Available Classes</span>
+              </div>
+              <div className="mt-1">
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={availableClasses}
+                    onChange={(e) => setAvailableClasses(e.target.value)}
+                    className="w-full px-2 py-1 bg-[#0F172A] border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                  />
+                ) : (
+                  <h4 className="text-xs sm:text-sm font-black text-white truncate">{availableClasses || "Class 1 to 10"}</h4>
+                )}
+                <p className="text-[8px] font-bold text-teal-400 mt-0.5">{classCountText}</p>
+              </div>
+            </div>
+
           </div>
         </div>
 
-        {/* Categories Checklist */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl p-6 shadow-md space-y-5">
-          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-white/5 pb-3">
-            <FaSchool className="text-[#7C3AED] dark:text-[#38BDF8] text-sm" />
-            <h3 className="text-xs font-black uppercase text-slate-455 tracking-wider">School Types / Categories</h3>
+        {/* CARD 3: SCHOOL CATEGORIES */}
+        <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
+          <div className="flex items-center gap-2 border-b border-slate-800/60 pb-3 mb-5">
+            <FaSchool className="text-purple-500 text-sm" />
+            <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">School Categories</h3>
           </div>
 
-          <div>
-            <span className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">
-              Select all categories that apply to this center
-            </span>
-            <div className="flex flex-wrap gap-4">
-              {AVAILABLE_TYPES.map((type) => {
-                const isChecked = schoolTypes.includes(type);
-                return (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => handleTypeCheckbox(type)}
-                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border transition-all duration-150 cursor-pointer ${
-                      isChecked
-                        ? "border-[#7C3AED] bg-[#7C3AED]/5 text-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8]/5 dark:text-[#38BDF8] font-bold"
-                        : "border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] text-slate-500 dark:text-slate-400 hover:bg-slate-100/50"
-                    }`}
-                  >
-                    <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center text-[8px] ${
-                      isChecked ? "bg-[#7C3AED] dark:bg-[#38BDF8] border-none text-white dark:text-slate-900 font-extrabold" : "border-slate-300 bg-white dark:bg-[#1E293B]"
-                    }`}>
-                      {isChecked && "✓"}
-                    </span>
-                    <span className="text-xs font-semibold">{type}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Admission Options */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl p-6 shadow-md space-y-5">
-          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-white/5 pb-3">
-            <FaInfoCircle className="text-[#7C3AED] dark:text-[#38BDF8] text-sm" />
-            <h3 className="text-xs font-black uppercase text-slate-455 tracking-wider">Admission Requirements</h3>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
-                Interest / Entrance Exam
-              </label>
-              <select
-                value={admissionExam}
-                onChange={(e) => setAdmissionExam(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED] cursor-pointer font-semibold"
-              >
-                <option value="null">Not Configured (Hidden)</option>
-                <option value="true">Yes (Exam Required)</option>
-                <option value="false">No (Direct/Syllabus Join)</option>
-              </select>
+          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            
+            {/* Academic Level */}
+            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 text-left">
+              <div className="w-8 h-8 rounded-lg bg-[#8B5CF6]/10 flex items-center justify-center text-[#8B5CF6] text-base mb-3">
+                <FaGraduationCap />
+              </div>
+              <span className="block text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Academic Level</span>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={academicLevel}
+                  onChange={(e) => setAcademicLevel(e.target.value)}
+                  className="w-full px-2 py-1 bg-[#0F172A] border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-purple-500 font-bold mt-1"
+                />
+              ) : (
+                <span className="block text-xs font-bold text-white mt-1">{academicLevel || "Secondary"}</span>
+              )}
             </div>
 
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
-                Direct Admission
-              </label>
-              <select
-                value={directAdmission}
-                onChange={(e) => setDirectAdmission(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED] cursor-pointer font-semibold"
-              >
-                <option value="null">Not Configured (Hidden)</option>
-                <option value="true">Yes</option>
-                <option value="false">No</option>
-              </select>
+            {/* School Category */}
+            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 text-left">
+              <div className="w-8 h-8 rounded-lg bg-[#EC4899]/10 flex items-center justify-center text-[#EC4899] text-base mb-3">
+                <FaUsers />
+              </div>
+              <span className="block text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">School Category</span>
+              {isEditing ? (
+                <select
+                  value={coEducational}
+                  onChange={(e) => setCoEducational(e.target.value)}
+                  className="w-full px-2 py-1 bg-[#0F172A] border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-purple-500 font-bold mt-1"
+                >
+                  <option>Co-Educational</option>
+                  <option>Boys Only</option>
+                  <option>Girls Only</option>
+                </select>
+              ) : (
+                <span className="block text-xs font-bold text-white mt-1">{coEducational || "Co-Educational"}</span>
+              )}
             </div>
+
+            {/* School Type */}
+            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 text-left">
+              <div className="w-8 h-8 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center text-[#F59E0B] text-base mb-3">
+                <FaBuilding />
+              </div>
+              <span className="block text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">School Type</span>
+              {isEditing ? (
+                <select
+                  value={schoolOperationType}
+                  onChange={(e) => setSchoolOperationType(e.target.value)}
+                  className="w-full px-2 py-1 bg-[#0F172A] border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-purple-500 font-bold mt-1"
+                >
+                  <option>Day School</option>
+                  <option>Boarding School</option>
+                  <option>Day & Boarding</option>
+                </select>
+              ) : (
+                <span className="block text-xs font-bold text-white mt-1">{schoolOperationType || "Day School"}</span>
+              )}
+            </div>
+
+            {/* Admission Type */}
+            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 text-left">
+              <div className="w-8 h-8 rounded-lg bg-[#3B82F6]/10 flex items-center justify-center text-[#3B82F6] text-base mb-3">
+                <FaClipboardList />
+              </div>
+              <span className="block text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Admission Type</span>
+              {isEditing ? (
+                <select
+                  value={admissionType}
+                  onChange={(e) => setAdmissionType(e.target.value)}
+                  className="w-full px-2 py-1 bg-[#0F172A] border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-purple-500 font-bold mt-1"
+                >
+                  <option>Direct Admission</option>
+                  <option>Entrance Exam</option>
+                  <option>Merit Based</option>
+                </select>
+              ) : (
+                <span className="block text-xs font-bold text-white mt-1">{admissionType || "Direct Admission"}</span>
+              )}
+            </div>
+
+            {/* Transportation */}
+            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 text-left">
+              <div className="w-8 h-8 rounded-lg bg-[#10B981]/10 flex items-center justify-center text-[#10B981] text-base mb-3">
+                <FaBus />
+              </div>
+              <span className="block text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Transportation</span>
+              {isEditing ? (
+                <select
+                  value={transportation}
+                  onChange={(e) => setTransportation(e.target.value)}
+                  className="w-full px-2 py-1 bg-[#0F172A] border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-purple-500 font-bold mt-1"
+                >
+                  <option>Available</option>
+                  <option>Not Available</option>
+                </select>
+              ) : (
+                <span className="block text-xs font-bold text-white mt-1">{transportation || "Available"}</span>
+              )}
+            </div>
+
+            {/* Hostel Facility */}
+            <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 text-left">
+              <div className="w-8 h-8 rounded-lg bg-[#6366F1]/10 flex items-center justify-center text-[#6366F1] text-base mb-3">
+                <FaBed />
+              </div>
+              <span className="block text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Hostel Facility</span>
+              {isEditing ? (
+                <select
+                  value={hostelFacility}
+                  onChange={(e) => setHostelFacility(e.target.value)}
+                  className="w-full px-2 py-1 bg-[#0F172A] border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-purple-500 font-bold mt-1"
+                >
+                  <option>Available</option>
+                  <option>Not Available</option>
+                </select>
+              ) : (
+                <span className="block text-xs font-bold text-white mt-1">{hostelFacility || "Not Available"}</span>
+              )}
+            </div>
+
           </div>
         </div>
 
-        {/* School Description */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl p-6 shadow-md space-y-4">
-          <h3 className="text-xs font-black uppercase text-slate-455 tracking-wider">School Type & Teacher Appointments</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <select value={schoolType} onChange={(e) => setSchoolType(e.target.value)} className="px-4 py-3 bg-slate-50 dark:bg-[#1E293B] border rounded-xl text-xs dark:text-white"><option value="">Select School Type</option><option value="Private">Private</option><option value="Government">Government</option></select>
-            <label className="flex items-center gap-2 text-xs font-bold dark:text-white"><input type="checkbox" checked={appointmentBooking} onChange={(e) => setAppointmentBooking(e.target.checked)} /> Enable teacher appointment booking</label>
-            {appointmentBooking && <><select value={appointmentMode} onChange={(e) => setAppointmentMode(e.target.value)} className="px-4 py-3 bg-slate-50 dark:bg-[#1E293B] border rounded-xl text-xs dark:text-white"><option>Offline</option><option>Online</option></select><input value={appointmentDetails} onChange={(e) => setAppointmentDetails(e.target.value)} placeholder="Availability or appointment details" className="px-4 py-3 bg-slate-50 dark:bg-[#1E293B] border rounded-xl text-xs dark:text-white" /></>}
+        {/* ── FOOTER ACTION BANNER (VISIBLE IN EDIT MODE OR VIEW MODE) ── */}
+        <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl select-none">
+          <div className="flex items-center gap-3 text-blue-400">
+            <FaInfoCircle className="text-lg shrink-0" />
+            <p className="text-xs font-bold text-slate-300">
+              Keep your school information updated. This information is visible to parents and students.
+            </p>
           </div>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold px-6 py-3 rounded-xl shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer w-full sm:w-auto justify-center"
+          >
+            {saving ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <FaLock className="text-xs" /> Save Changes
+              </>
+            )}
+          </button>
         </div>
 
-        {/* School Description */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl p-6 shadow-md space-y-5">
-          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-white/5 pb-3">
-            <FaInfoCircle className="text-[#7C3AED] dark:text-[#38BDF8] text-sm" />
-            <h3 className="text-xs font-black uppercase text-slate-455 tracking-wider">General Information Description</h3>
-          </div>
+      </div>
 
-          <div>
-            <textarea
-              rows="5"
-              placeholder="Provide a detailed description of the school, history, facilities, admissions timeline..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-700 dark:text-white placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED] leading-relaxed font-semibold"
-            />
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full sm:w-auto bg-gradient-to-r from-[#7C3AED] to-[#312E81] hover:opacity-90 active:scale-[0.99] text-white px-8 py-3.5 rounded-2xl text-xs font-bold shadow-md shadow-[#7C3AED]/15 flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed font-extrabold uppercase tracking-wide"
-        >
-          {saving ? (
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <>
-              <FaSave /> Save Changes
-            </>
-          )}
-        </button>
-      </form>
     </div>
   );
 }

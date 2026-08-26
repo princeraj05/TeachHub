@@ -53,7 +53,31 @@ const schoolSchema = new mongoose.Schema({
   description: {
     type: String,
     default: ""
-  }
+  },
+  
+  // Extended fields for About Your School profile
+  email: { type: String, default: "" },
+  phoneNumber: { type: String, default: "" },
+  address: { type: String, default: "" },
+  established: { type: String, default: "" },
+  code: { type: String, default: "" },
+  affiliation: { type: String, default: "" },
+  academicYear: { type: String, default: "" },
+  medium: { type: String, default: "" },
+  website: { type: String, default: "" },
+  status: { type: String, default: "Active" },
+  registrationNumber: { type: String, default: "" },
+  category: { type: String, default: "" },
+  motto: { type: String, default: "" },
+  photo: { type: String, default: "" },
+  
+  // School Categories / Facilities
+  academicLevel: { type: String, default: "" },
+  coEducational: { type: String, default: "Co-Educational" },
+  schoolOperationType: { type: String, default: "Day School" },
+  admissionType: { type: String, default: "Direct Admission" },
+  transportation: { type: String, default: "Available" },
+  hostelFacility: { type: String, default: "Not Available" }
 }, { timestamps: true });
 
 module.exports = mongoose.model("School", schoolSchema);
