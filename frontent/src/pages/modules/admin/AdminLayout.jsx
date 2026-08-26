@@ -2,6 +2,7 @@ import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useTheme } from "../../../context/ThemeContext";
 import axios from "axios";
+import { performLogout } from "../../../utils/logout";
 import {
   FaTachometerAlt,
   FaUsers,
@@ -87,8 +88,7 @@ function AdminLayout() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.clear();
-    navigate("/");
+    performLogout(navigate);
   };
 
   // Close menus when route changes

@@ -2,6 +2,7 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
+import { performLogout } from "../../utils/logout";
 import {
   FaGraduationCap,
   FaClock,
@@ -142,8 +143,7 @@ function PendingApproval() {
   }, [location.pathname]);
 
   const handleLogout = () => {
-    localStorage.clear();
-    navigate("/");
+    performLogout(navigate);
   };
 
   const initials = user.name

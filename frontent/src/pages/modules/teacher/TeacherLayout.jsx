@@ -1,6 +1,7 @@
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useTheme } from "../../../context/ThemeContext";
+import { performLogout } from "../../../utils/logout";
 import {
   FaTachometerAlt,
   FaUserGraduate,
@@ -34,10 +35,7 @@ function TeacherLayout() {
   const name = localStorage.getItem("name") || "Teacher";
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.clear();
-    navigate("/");
+    performLogout(navigate);
   };
 
   useEffect(() => {

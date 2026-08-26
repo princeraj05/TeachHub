@@ -25,6 +25,7 @@ if (firebaseConfig.apiKey) {
     // Initialize Firebase Auth
     auth = getAuth(app);
     googleProvider = new GoogleAuthProvider();
+    googleProvider.setCustomParameters({ prompt: 'select_account' });
 
     // Initialize Analytics if measurementId is present and running in browser
     if (firebaseConfig.measurementId && typeof window !== "undefined") {

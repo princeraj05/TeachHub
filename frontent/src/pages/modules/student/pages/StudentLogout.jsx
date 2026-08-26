@@ -10,6 +10,7 @@ import {
   FaArrowLeft 
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
+import { performLogout } from "../../../../utils/logout";
 
 const SORA = "'Sora', sans-serif";
 
@@ -32,10 +33,8 @@ function StudentLogout() {
     } catch (err) {
       console.error("Backend logout error:", err);
     } finally {
-      // Clear storage and redirect
-      localStorage.clear();
       setLoading(false);
-      navigate("/");
+      await performLogout(navigate);
     }
   };
 
