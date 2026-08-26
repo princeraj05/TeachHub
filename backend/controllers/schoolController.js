@@ -319,10 +319,25 @@ exports.uploadSchoolPhoto = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
-    // Construct local static file link
-    const fileUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
-    res.json({ url: fileUrl });
+    const cloudinary = require("../config/cloudinary");
+    const fs = require("fs");
+
+    // Upload file to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "teachhub_schools",
+    });
+
+    // Clean up local temp file
+    if (fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+
+    res.json({ url: result.secure_url });
   } catch (error) {
+    const fs = require("fs");
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
     res.status(500).json({ message: error.message });
   }
 };

@@ -277,7 +277,14 @@ export default function TeacherManagement() {
               {/* Circular Avatar */}
               <div className="relative w-28 h-28 rounded-full overflow-hidden border border-slate-800 bg-slate-900 mb-4 flex items-center justify-center">
                 {teacherData?.avatar ? (
-                  <img src={teacherData.avatar} alt="Teacher" className="w-full h-full object-cover" />
+                  <img
+                    src={teacherData.avatar}
+                    alt="Teacher"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(teacherData.name)}`;
+                    }}
+                  />
                 ) : (
                   <span className="text-3xl font-black text-white">{nameInitials(teacherData?.name)}</span>
                 )}
@@ -396,7 +403,14 @@ export default function TeacherManagement() {
               {photos.map((photo, idx) => (
                 <div key={photo._id || idx} className="flex flex-col gap-2 bg-slate-900/40 border border-slate-800 rounded-2xl p-2.5 relative group">
                   <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-800 bg-[#0F172A]">
-                    <img src={photo.url} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
+                    <img
+                      src={photo.url}
+                      alt={`Gallery ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=400&q=80";
+                      }}
+                    />
                     
                     {/* Index Badge */}
                     <span className="absolute top-2 left-2 w-5 h-5 rounded-full bg-purple-600 text-white text-[10px] font-black flex items-center justify-center shadow-md">

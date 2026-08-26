@@ -76,6 +76,9 @@ function BasicInfoTab({
                 src={photo || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80"}
                 alt="School Building"
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src = "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80";
+                }}
               />
               {isEditing && (
                 <div className="absolute inset-0 bg-black/85 flex flex-col items-center justify-center p-4 text-center">

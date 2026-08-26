@@ -149,7 +149,14 @@ function MediaPrincipalTab({
           {schoolPhotos.map((url, idx) => (
             <div key={idx} className="flex flex-col gap-2">
               <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-800 bg-[#0F172A] group">
-                <img src={url} alt={`School Photo ${idx + 1}`} className="w-full h-full object-cover" />
+                <img
+                  src={url}
+                  alt={`School Photo ${idx + 1}`}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.src = "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80";
+                  }}
+                />
                 <span className="absolute top-2 left-2 w-5 h-5 rounded-full bg-purple-600 text-white text-[10px] font-black flex items-center justify-center shadow-md">
                   {idx + 1}
                 </span>
@@ -231,6 +238,9 @@ function MediaPrincipalTab({
                   src={principalPhoto || "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=300&h=300&q=80"}
                   alt="Principal"
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.src = "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=300&h=300&q=80";
+                  }}
                 />
                 <input
                   type="file"
