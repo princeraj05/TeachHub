@@ -12,7 +12,8 @@ import {
   FaUserCircle,
   FaCalendarAlt,
   FaInfoCircle,
-  FaMoneyBillWave
+  FaMoneyBillWave,
+  FaUsers
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -34,10 +35,10 @@ function SuperAdminLayout() {
   const isActive = (path) => location.pathname === path;
 
   const navLinks = [
-    { to: "/superadmin/dashboard", icon: <FaTachometerAlt className="text-xl" />, label: "User Directory" },
-    { to: "/superadmin/support", icon: <FaComments className="text-xl" />, label: "Support Chat" },
+    { to: "/superadmin/dashboard", icon: <FaTachometerAlt className="text-xl" />, label: "Dashboard" },
+    { to: "/superadmin/users", icon: <FaUsers className="text-xl" />, label: "Users" },
+    { to: "/superadmin/support", icon: <FaComments className="text-xl" />, label: "Support" },
     { to: "/superadmin/events", icon: <FaCalendarAlt className="text-xl" />, label: "Events" },
-    { to: "/superadmin/about", icon: <FaInfoCircle className="text-xl" />, label: "About App" },
     { to: "/superadmin/payments", icon: <FaMoneyBillWave className="text-xl" />, label: "Payments" },
     { to: "/superadmin/profile", icon: <FaUserCircle className="text-xl" />, label: "Profile" },
   ];

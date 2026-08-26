@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   FaUsers,
@@ -23,6 +24,7 @@ import {
 const SORA = "'Sora', sans-serif";
 
 function SuperAdminDashboard() {
+  const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
 
@@ -261,7 +263,7 @@ function SuperAdminDashboard() {
             {stats.pendingApprovals}
           </p>
           <button 
-            onClick={() => { setShowUserManagement(true); setUserSection("pending"); }}
+            onClick={() => navigate("/superadmin/users")}
             className="block text-[9px] font-black text-amber-600 dark:text-amber-400 hover:underline text-left mt-2 cursor-pointer"
           >
             View pending →
@@ -401,26 +403,26 @@ function SuperAdminDashboard() {
           
           {/* Action 1 */}
           <div 
-            onClick={() => { setShowUserManagement(true); setUserSection("pending"); }}
+            onClick={() => navigate("/superadmin/users")}
             className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-purple-500/20 p-4.5 rounded-2.5xl flex flex-col items-center justify-center text-center cursor-pointer transition shadow-sm h-36 group"
           >
             <div className="w-10 h-10 rounded-full bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
               <FaUsers className="text-sm" />
             </div>
             <h4 className="text-[11px] font-black text-slate-805 dark:text-white mt-3">Approve Users</h4>
-            <p className="text-[9px] text-slate-450 mt-1">Review pending registrations</p>
+            <p className="text-[9px] text-slate-455 mt-1">Review pending registrations</p>
           </div>
 
           {/* Action 2 */}
           <div 
-            onClick={() => { setShowUserManagement(true); setUserSection("approved"); }}
+            onClick={() => navigate("/superadmin/users")}
             className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-purple-500/20 p-4.5 rounded-2.5xl flex flex-col items-center justify-center text-center cursor-pointer transition shadow-sm h-36 group"
           >
             <div className="w-10 h-10 rounded-full bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
               <FaSchool className="text-sm" />
             </div>
             <h4 className="text-[11px] font-black text-slate-805 dark:text-white mt-3">Manage Schools</h4>
-            <p className="text-[9px] text-slate-450 mt-1">Add / Edit schools</p>
+            <p className="text-[9px] text-slate-455 mt-1">Add / Edit schools</p>
           </div>
 
           {/* Action 3 */}
