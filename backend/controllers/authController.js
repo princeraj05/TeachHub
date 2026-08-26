@@ -394,7 +394,10 @@ exports.updateProfile = async (req, res) => {
         avatar: user.avatar
       }
     });
-
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 // ================= GET SCHOOLS =================
 exports.getSchools = async (req, res) => {
