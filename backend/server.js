@@ -25,6 +25,7 @@ const supportRoutes = require("./routes/supportRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const schoolRoutes = require("./routes/schoolRoutes");
 const aboutAppRoutes = require("./routes/aboutAppRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 const featureRoutes = require("./routes/featureRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const paymentController = require("./controllers/paymentController");
@@ -122,6 +123,7 @@ app.use("/api/support", supportRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/schools", schoolRoutes);
 app.use("/api/about-app", aboutAppRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use("/api", featureRoutes);
 app.use("/api", paymentRoutes);
 

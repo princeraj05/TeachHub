@@ -7,6 +7,7 @@ import SuperAdminSupport from "./SuperAdminSupport";
 import SuperAdminProfile from "./SuperAdminProfile";
 import SuperAdminEvents from "./SuperAdminEvents";
 import SuperAdminAboutApp from "./SuperAdminAboutApp";
+import SuperAdminNotifications from "./SuperAdminNotifications";
 import PaymentCenter from "../../../components/PaymentCenter";
 
 import { CallProvider } from "../../../context/CallContext";
@@ -23,6 +24,7 @@ function SuperAdminRoutes() {
         <Route path="profile" element={<SuperAdminProfile />} />
         <Route path="events" element={<SuperAdminEvents />} />
         <Route path="about" element={<SuperAdminAboutApp />} />
+        <Route path="notifications" element={<SuperAdminNotifications />} />
         <Route path="payments" element={<PaymentCenter role="superadmin" />} />
       </Route>
     </Routes>

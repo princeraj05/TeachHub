@@ -1,5 +1,6 @@
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import { useTheme } from "../../../context/ThemeContext";
 import {
   FaTachometerAlt,
@@ -14,7 +15,8 @@ import {
   FaInfoCircle,
   FaMoneyBillWave,
   FaUsers,
-  FaSchool
+  FaSchool,
+  FaBell
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -25,6 +27,27 @@ function SuperAdminLayout() {
 
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+
+  const [unreadCount, setUnreadCount] = useState(12);
+
+  useEffect(() => {
+    fetchUnreadCount();
+  }, [location.pathname]);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const res = await axios.get(`${API}/api/notifications`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const unread = res.data.filter(n => !n.isRead).length;
+      setUnreadCount(unread);
+    } catch (err) {
+      console.error("Error fetching unread count:", err);
+    }
+  };
 
   const name = localStorage.getItem("name") || "Super Admin";
 
@@ -43,6 +66,20 @@ function SuperAdminLayout() {
     { to: "/superadmin/payments", icon: <FaMoneyBillWave className="text-xl" />, label: "Payments" },
     { to: "/superadmin/about", icon: <FaInfoCircle className="text-xl" />, label: "About / Config" },
     { to: "/superadmin/support", icon: <FaComments className="text-xl" />, label: "Support" },
+    { 
+      to: "/superadmin/notifications", 
+      icon: (
+        <div className="relative">
+          <FaBell className="text-xl" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 bg-[#7C3AED] text-white text-[8px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border border-white dark:border-[#0B132A]">
+              {unreadCount}
+            </span>
+          )}
+        </div>
+      ), 
+      label: "Notifications" 
+    },
     { to: "/superadmin/profile", icon: <FaUserCircle className="text-xl" />, label: "Profile" },
   ];
 
