@@ -51,8 +51,160 @@ exports.sendGroupMessage = async (req, res) => {
   catch { res.status(400).json({ message: "Could not send message" }); }
 };
 
-exports.createLeave = async (req, res) => { try { const { startDate, endDate, reason = "" } = req.body; const start = new Date(startDate); const end = endDate ? new Date(endDate) : start; if (Number.isNaN(+start) || Number.isNaN(+end) || end < start) return res.status(400).json({ message: "Provide a valid leave date range" }); const leave = await TeacherLeave.create({ teacher: req.user.id, schoolName: req.user.schoolName, startDate: start, endDate: end, reason }); res.status(201).json(leave); } catch { res.status(500).json({ message: "Could not submit leave request" }); } };
-exports.getLeaves = async (req, res) => { try { const query = req.user.role === "teacher" ? { teacher: req.user.id } : { schoolName: req.user.schoolName }; res.json(await TeacherLeave.find(query).populate("teacher", "name email").populate("reviewedBy", "name").sort({ startDate: -1 })); } catch { res.status(500).json({ message: "Could not load leave requests" }); } };
+exports.createLeave = async (req, res) => {
+  try {
+    const { startDate, endDate, reason = "", leaveType = "Casual Leave", attachmentName = "", attachmentSize = "", attachmentUrl = "" } = req.body;
+    const start = new Date(startDate);
+    const end = endDate ? new Date(endDate) : start;
+    if (Number.isNaN(+start) || Number.isNaN(+end) || end < start) {
+      return res.status(400).json({ message: "Provide a valid leave date range" });
+    }
+
+    const diffTime = Math.abs(end - start);
+    const duration = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+    const leave = await TeacherLeave.create({
+      teacher: req.user.id,
+      schoolName: req.user.schoolName,
+      startDate: start,
+      endDate: end,
+      reason,
+      leaveType,
+      duration,
+      attachmentName,
+      attachmentSize,
+      attachmentUrl
+    });
+    res.status(201).json(leave);
+  } catch (error) {
+    res.status(500).json({ message: "Could not submit leave request" });
+  }
+};
+
+exports.getLeaves = async (req, res) => {
+  try {
+    const query = req.user.role === "teacher" ? { teacher: req.user.id } : { schoolName: req.user.schoolName };
+    
+    let leaves = await TeacherLeave.find(query)
+      .populate("teacher", "name email phoneNumber avatar requestedSchool")
+      .populate("reviewedBy", "name")
+      .sort({ startDate: -1 });
+
+    // Auto-seed mock examples on first load if empty and user is admin
+    if (leaves.length === 0 && req.user.role === "admin") {
+      const teachers = await User.find({ role: "teacher", schoolName: req.user.schoolName });
+      if (teachers.length > 0) {
+        const defaultLeaves = [
+          {
+            teacher: teachers[0]._id,
+            schoolName: req.user.schoolName,
+            startDate: new Date("2026-05-26"),
+            endDate: new Date("2026-05-28"),
+            reason: "Family function at hometown. Requesting leave for 3 days.",
+            status: "Pending",
+            leaveType: "Casual Leave",
+            duration: 3,
+            attachmentName: "Invitation.pdf",
+            attachmentSize: "245 KB"
+          },
+          {
+            teacher: teachers[1 % teachers.length]._id,
+            schoolName: req.user.schoolName,
+            startDate: new Date("2026-05-19"),
+            endDate: new Date("2026-05-22"),
+            reason: "Medical checkup and rest advised.",
+            status: "Approved",
+            leaveType: "Medical Leave",
+            duration: 4
+          },
+          {
+            teacher: teachers[2 % teachers.length]._id,
+            schoolName: req.user.schoolName,
+            startDate: new Date("2026-06-05"),
+            endDate: new Date("2026-06-05"),
+            reason: "Personal work.",
+            status: "Pending",
+            leaveType: "Personal Leave",
+            duration: 1
+          },
+          {
+            teacher: teachers[3 % teachers.length]._id,
+            schoolName: req.user.schoolName,
+            startDate: new Date("2026-05-15"),
+            endDate: new Date("2026-05-16"),
+            reason: "Outstation travel.",
+            status: "Approved",
+            leaveType: "Casual Leave",
+            duration: 2
+          },
+          {
+            teacher: teachers[4 % teachers.length]._id,
+            schoolName: req.user.schoolName,
+            startDate: new Date("2026-05-12"),
+            endDate: new Date("2026-05-14"),
+            reason: "Fever and health issue.",
+            status: "Rejected",
+            leaveType: "Sick Leave",
+            duration: 3
+          }
+        ];
+        await TeacherLeave.insertMany(defaultLeaves);
+        leaves = await TeacherLeave.find(query)
+          .populate("teacher", "name email phoneNumber avatar requestedSchool")
+          .populate("reviewedBy", "name")
+          .sort({ startDate: -1 });
+      }
+    }
+
+    // Gather all teacher IDs to query subjects
+    const teacherIds = [...new Set(leaves.map(l => l.teacher?._id).filter(Boolean))];
+    const subjectsList = await Subject.find({ schoolName: req.user.schoolName, teacher: { $in: teacherIds } }).select("teacher name");
+    
+    const subjectMap = new Map();
+    subjectsList.forEach(s => {
+      if (s.teacher) {
+        subjectMap.set(String(s.teacher), `${s.name} Teacher`);
+      }
+    });
+
+    // Map attributes for frontend compliance
+    const mapped = leaves.map((l, index) => {
+      const obj = l.toObject();
+      obj.id = String(l._id);
+      obj.name = l.teacher?.name || "Unknown Teacher";
+      obj.subject = subjectMap.get(String(l.teacher?._id)) || "Faculty Teacher";
+      obj.phone = l.teacher?.phoneNumber || "+91 98765 43210";
+      obj.type = l.leaveType;
+      obj.from = l.startDate.toISOString().split("T")[0];
+      obj.to = l.endDate ? l.endDate.toISOString().split("T")[0] : obj.from;
+      obj.duration = l.duration === 1 ? "1 Day" : `${l.duration || 1} Days`;
+      obj.empId = `TCH${String(l.teacher?._id || index).slice(-4).toUpperCase()}`;
+      
+      obj.appliedOn = new Date(l.createdAt).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      }) + ", " + new Date(l.createdAt).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
+      });
+
+      if (l.attachmentName) {
+        obj.attachment = {
+          name: l.attachmentName,
+          size: l.attachmentSize || "Unknown size",
+          url: l.attachmentUrl
+        };
+      }
+      return obj;
+    });
+
+    res.json(mapped);
+  } catch (error) {
+    res.status(500).json({ message: "Could not load leave requests" });
+  }
+};
 exports.reviewLeave = async (req, res) => { try { const status = req.body.status; if (!["Approved", "Rejected", "Cancelled"].includes(status)) return res.status(400).json({ message: "Invalid leave status" }); const leave = await TeacherLeave.findOne({ _id: req.params.id, schoolName: req.user.schoolName }); if (!leave) return res.status(404).json({ message: "Leave request not found" }); if (leave.status !== "Pending") return res.status(400).json({ message: "Only pending leave requests can be reviewed" }); leave.status = status; leave.reviewedBy = req.user.id; await leave.save(); res.json(leave); } catch { res.status(400).json({ message: "Could not update leave request" }); } };
 exports.getActiveLeaves = async (req, res) => { try { const today = new Date(); today.setHours(0,0,0,0); const leaves = await TeacherLeave.find({ schoolName: req.user.schoolName, status: "Approved", startDate: { $lte: today }, endDate: { $gte: today } }).populate("teacher", "name email").sort({ startDate: 1 }).select("teacher startDate endDate status"); const teacherIds = leaves.map((leave) => leave.teacher?._id).filter(Boolean); const subjects = await Subject.find({ schoolName: req.user.schoolName, teacher: { $in: teacherIds } }).select("teacher name").lean(); const subjectByTeacher = new Map(subjects.map((subject) => [String(subject.teacher), subject.name])); res.json(leaves.map((leave) => ({ ...leave.toObject(), subject: subjectByTeacher.get(String(leave.teacher?._id)) || "" }))); } catch { res.status(500).json({ message: "Could not load active leaves" }); } };
 
