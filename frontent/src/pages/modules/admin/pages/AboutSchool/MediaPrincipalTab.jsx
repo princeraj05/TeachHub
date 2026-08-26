@@ -7,6 +7,7 @@ import {
   FaPlus,
   FaChevronDown,
   FaUserTie,
+  FaInfoCircle
 } from "react-icons/fa";
 
 function MediaPrincipalTab({

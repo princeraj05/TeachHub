@@ -18,7 +18,8 @@ import {
   FaImage,
   FaVideo,
   FaUndo,
-  FaRedo
+  FaRedo,
+  FaEdit
 } from "react-icons/fa";
 
 function SchoolDescriptionTab({
