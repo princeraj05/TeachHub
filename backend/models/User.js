@@ -27,6 +27,16 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ""
   },
+  
+  // Custom Profile fields
+  alternateEmail: { type: String, default: "" },
+  dob: { type: String, default: "" },
+  gender: { type: String, default: "" },
+  address: { type: String, default: "" },
+  timezone: { type: String, default: "" },
+  language: { type: String, default: "" },
+  about: { type: String, default: "" },
+
   fatherMobileNumber: { type: String, default: "", trim: true, maxlength: 20 },
   motherMobileNumber: { type: String, default: "", trim: true, maxlength: 20 },
   avatar: {

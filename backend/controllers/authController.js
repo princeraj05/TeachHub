@@ -358,7 +358,21 @@ exports.getProfile = async (req, res) => {
 // ================= UPDATE PROFILE =================
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, phoneNumber, avatar, fatherMobileNumber, motherMobileNumber } = req.body;
+    const {
+      name,
+      phoneNumber,
+      avatar,
+      fatherMobileNumber,
+      motherMobileNumber,
+      alternateEmail,
+      dob,
+      gender,
+      address,
+      timezone,
+      language,
+      about,
+      password
+    } = req.body;
     
     const user = await User.findById(req.user.id);
     if (!user) {
@@ -368,6 +382,20 @@ exports.updateProfile = async (req, res) => {
     if (name) user.name = name;
     if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
     if (avatar !== undefined) user.avatar = avatar;
+
+    if (password) {
+      const bcrypt = require("bcryptjs");
+      user.password = await bcrypt.hash(password, 10);
+    }
+
+    if (alternateEmail !== undefined) user.alternateEmail = alternateEmail;
+    if (dob !== undefined) user.dob = dob;
+    if (gender !== undefined) user.gender = gender;
+    if (address !== undefined) user.address = address;
+    if (timezone !== undefined) user.timezone = timezone;
+    if (language !== undefined) user.language = language;
+    if (about !== undefined) user.about = about;
+
     const phonePattern = /^[0-9+()\-\s]{7,20}$/;
     if (fatherMobileNumber !== undefined) {
       if (fatherMobileNumber && !phonePattern.test(fatherMobileNumber)) return res.status(400).json({ message: "Father mobile number is invalid" });
@@ -389,6 +417,13 @@ exports.updateProfile = async (req, res) => {
         role: user.role,
         schoolName: user.schoolName,
         phoneNumber: user.phoneNumber,
+        alternateEmail: user.alternateEmail,
+        dob: user.dob,
+        gender: user.gender,
+        address: user.address,
+        timezone: user.timezone,
+        language: user.language,
+        about: user.about,
         fatherMobileNumber: user.fatherMobileNumber,
         motherMobileNumber: user.motherMobileNumber,
         avatar: user.avatar
