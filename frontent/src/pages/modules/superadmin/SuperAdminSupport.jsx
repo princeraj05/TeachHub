@@ -24,7 +24,8 @@ import {
   FaUser,
   FaAt,
   FaBullhorn,
-  FaRegClock
+  FaRegClock,
+  FaSort
 } from "react-icons/fa";
 import { useCall } from "../../../context/CallContext";
 
