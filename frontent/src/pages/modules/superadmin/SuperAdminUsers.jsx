@@ -19,7 +19,8 @@ import {
   FaUser,
   FaTimes,
   FaInfoCircle,
-  FaCopy
+  FaCopy,
+  FaSchool
 } from "react-icons/fa";
 import { useTheme } from "../../../context/ThemeContext";
 

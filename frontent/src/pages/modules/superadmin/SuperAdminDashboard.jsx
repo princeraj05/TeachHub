@@ -25,7 +25,7 @@ const SORA = "'Sora', sans-serif";
 
 function SuperAdminDashboard() {
   const navigate = useNavigate();
-  const API = import.meta.env.VITE_API_URL;
+  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const token = localStorage.getItem("token");
 
   // Dashboard Stats
