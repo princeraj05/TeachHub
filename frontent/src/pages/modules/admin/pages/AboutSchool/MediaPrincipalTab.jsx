@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 import {
   FaCamera,
   FaEye,
@@ -18,24 +19,12 @@ function MediaPrincipalTab({
   principalEmail, setPrincipalEmail,
   principalPhone, setPrincipalPhone,
   principalLeadershipSince, setPrincipalLeadershipSince,
-  principalIntroduction, setPrincipalIntroduction
+  principalIntroduction, setPrincipalIntroduction,
+  API
 }) {
 
   const [activePhotoPreview, setActivePhotoPreview] = useState(null);
-  const [editingPhotoIndex, setEditingPhotoIndex] = useState(null);
-  const [tempPhotoUrl, setTempPhotoUrl] = useState("");
-
-  const handleEditPhotoClick = (index) => {
-    setEditingPhotoIndex(index);
-    setTempPhotoUrl(schoolPhotos[index] || "");
-  };
-
-  const handleSavePhotoUrl = (index) => {
-    const updated = [...schoolPhotos];
-    updated[index] = tempPhotoUrl;
-    setSchoolPhotos(updated);
-    setEditingPhotoIndex(null);
-  };
+  const [activeReplaceIndex, setActiveReplaceIndex] = useState(null);
 
   const handleDeletePhoto = (index) => {
     const updated = [...schoolPhotos];
@@ -43,9 +32,79 @@ function MediaPrincipalTab({
     setSchoolPhotos(updated);
   };
 
-  const handleAddPhoto = () => {
+  const handleAddPhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
     if (schoolPhotos.length >= 5) return;
-    setSchoolPhotos([...schoolPhotos, "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=400&q=80"]);
+    
+    const formData = new FormData();
+    formData.append("image", file);
+    
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(`${API}/api/schools/upload`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (res.data?.url) {
+        setSchoolPhotos([...schoolPhotos, res.data.url]);
+      }
+    } catch (err) {
+      alert("Failed to upload image. Please try again.");
+    }
+  };
+
+  const handleReplacePhotoUpload = async (e) => {
+    if (activeReplaceIndex === null) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append("image", file);
+    
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(`${API}/api/schools/upload`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (res.data?.url) {
+        const updated = [...schoolPhotos];
+        updated[activeReplaceIndex] = res.data.url;
+        setSchoolPhotos(updated);
+      }
+    } catch (err) {
+      alert("Failed to upload image. Please try again.");
+    } finally {
+      setActiveReplaceIndex(null);
+    }
+  };
+
+  const handlePrincipalPhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append("image", file);
+    
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(`${API}/api/schools/upload`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (res.data?.url) {
+        setPrincipalPhoto(res.data.url);
+      }
+    } catch (err) {
+      alert("Failed to upload image. Please try again.");
+    }
   };
 
   return (
@@ -61,13 +120,22 @@ function MediaPrincipalTab({
           <div className="flex items-center gap-3">
             <span className="text-[10px] font-bold text-slate-400">{schoolPhotos.length} / 5 Photos</span>
             {schoolPhotos.length < 5 && (
-              <button
-                type="button"
-                onClick={handleAddPhoto}
-                className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-lg transition cursor-pointer"
-              >
-                <FaPlus /> Add Photo
-              </button>
+              <>
+                <input
+                  type="file"
+                  id="add-photo-file-input"
+                  accept="image/*"
+                  onChange={handleAddPhotoUpload}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => document.getElementById("add-photo-file-input").click()}
+                  className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-lg transition cursor-pointer"
+                >
+                  <FaPlus /> Add Photo
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -100,7 +168,7 @@ function MediaPrincipalTab({
                   {/* Refresh/Change */}
                   <button
                     type="button"
-                    onClick={() => handleEditPhotoClick(idx)}
+                    onClick={() => triggerReplacePhotoUpload(idx)}
                     className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-[11px] transition cursor-pointer"
                     title="Change Photo"
                   >
@@ -117,37 +185,15 @@ function MediaPrincipalTab({
                   </button>
                 </div>
               </div>
-
-              {/* URL Editing box if active */}
-              {editingPhotoIndex === idx && (
-                <div className="bg-[#0F172A] border border-slate-800 p-2 rounded-xl flex flex-col gap-1.5">
-                  <input
-                    type="text"
-                    value={tempPhotoUrl}
-                    onChange={(e) => setTempPhotoUrl(e.target.value)}
-                    className="w-full px-2 py-1 bg-slate-900 border border-slate-800 rounded text-[9px] text-white focus:outline-none"
-                    placeholder="Enter image URL"
-                  />
-                  <div className="flex justify-end gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setEditingPhotoIndex(null)}
-                      className="px-2 py-0.5 rounded bg-slate-800 text-[8px] text-slate-400 cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleSavePhotoUrl(idx)}
-                      className="px-2 py-0.5 rounded bg-purple-600 text-[8px] text-white cursor-pointer"
-                    >
-                      Save
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           ))}
+          <input
+            type="file"
+            id="replace-photo-file-input"
+            accept="image/*"
+            onChange={handleReplacePhotoUpload}
+            className="hidden"
+          />
 
           {/* Empty slot placeholder */}
           {schoolPhotos.length === 0 && (
@@ -186,22 +232,37 @@ function MediaPrincipalTab({
                   alt="Principal"
                   className="w-full h-full object-cover"
                 />
-                <label className="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center cursor-pointer shadow-lg group-hover:scale-105 transition">
+                <input
+                  type="file"
+                  id="principal-photo-file-input"
+                  accept="image/*"
+                  onChange={handlePrincipalPhotoUpload}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => document.getElementById("principal-photo-file-input").click()}
+                  className="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center cursor-pointer shadow-lg group-hover:scale-105 transition border-0 focus:outline-none"
+                >
                   <FaCamera className="text-xs" />
-                </label>
+                </button>
               </div>
 
-              {/* Paste URL box */}
-              <div className="flex-1 w-full space-y-2">
+              {/* Upload file selection */}
+              <div className="flex-1 w-full space-y-3">
                 <span className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Change Principal Photo</span>
-                <input
-                  type="text"
-                  value={principalPhoto}
-                  placeholder="Paste portrait image URL"
-                  onChange={(e) => setPrincipalPhoto(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-[10px] text-white focus:outline-none focus:border-purple-500 font-semibold"
-                />
-                <span className="block text-[8px] text-slate-500">JPG, PNG or WEBP, Max size 2MB. Recommended size: 500x500px.</span>
+                
+                <button
+                  type="button"
+                  onClick={() => document.getElementById("principal-photo-file-input").click()}
+                  className="px-4 py-2 bg-[#0F172A] border border-slate-800 hover:bg-slate-850 rounded-xl text-xs text-white font-bold transition cursor-pointer select-none"
+                >
+                  Choose Image File
+                </button>
+
+                <span className="block text-[8px] text-slate-500">
+                  {principalPhoto ? "Current: File uploaded successfully" : "Select a JPG, PNG or WEBP from your computer, Max size 2MB."}
+                </span>
               </div>
 
             </div>

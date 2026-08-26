@@ -312,3 +312,17 @@ exports.getSchoolDetails = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// POST /api/schools/upload
+exports.uploadSchoolPhoto = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+    // Construct local static file link
+    const fileUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+    res.json({ url: fileUrl });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

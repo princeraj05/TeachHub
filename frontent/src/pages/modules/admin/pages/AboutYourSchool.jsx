@@ -336,6 +336,7 @@ function AboutYourSchool() {
             motto={motto} setMotto={setMotto}
             photo={photo} setPhoto={setPhoto}
             availableClasses={availableClasses} setAvailableClasses={setAvailableClasses}
+            API={API}
           />
         )}
 
@@ -349,6 +350,7 @@ function AboutYourSchool() {
             principalPhone={principalPhone} setPrincipalPhone={setPrincipalPhone}
             principalLeadershipSince={principalLeadershipSince} setPrincipalLeadershipSince={setPrincipalLeadershipSince}
             principalIntroduction={principalIntroduction} setPrincipalIntroduction={setPrincipalIntroduction}
+            API={API}
           />
         )}
 

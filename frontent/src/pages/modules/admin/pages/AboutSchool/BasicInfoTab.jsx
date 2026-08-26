@@ -1,4 +1,5 @@
 import React from "react";
+import axios from "axios";
 import {
   FaSchool,
   FaUsers,
@@ -27,10 +28,34 @@ function BasicInfoTab({
   category, setCategory,
   motto, setMotto,
   photo, setPhoto,
-  availableClasses, setAvailableClasses
+  availableClasses, setAvailableClasses,
+  API
 }) {
 
   const classCountText = school?.totalClasses === 1 ? "1 Class" : `${school?.totalClasses || 0} Classes`;
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append("image", file);
+    
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(`${API}/api/schools/upload`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (res.data?.url) {
+        setPhoto(res.data.url);
+      }
+    } catch (err) {
+      alert("Failed to upload image. Please try again.");
+    }
+  };
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -53,15 +78,23 @@ function BasicInfoTab({
                 className="w-full h-full object-cover"
               />
               {isEditing && (
-                <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center p-4 text-center">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Image URL</label>
+                <div className="absolute inset-0 bg-black/85 flex flex-col items-center justify-center p-4 text-center">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Change Main Banner</span>
                   <input
-                    type="text"
-                    value={photo}
-                    placeholder="Paste Image URL"
-                    onChange={(e) => setPhoto(e.target.value)}
-                    className="w-full px-2.5 py-1.5 bg-[#0F172A] border border-slate-800 rounded-lg text-[10px] text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500 font-bold"
+                    type="file"
+                    id="main-banner-file-input"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
                   />
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById("main-banner-file-input").click()}
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-xl text-xs text-white font-bold transition cursor-pointer select-none"
+                  >
+                    Choose Photo File
+                  </button>
+                  <span className="text-[8px] text-slate-500 mt-2">Recommended: 4:3 Ratio</span>
                 </div>
               )}
             </div>
