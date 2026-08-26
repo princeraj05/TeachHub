@@ -90,8 +90,8 @@ exports.assignRole = async (req, res) => {
 // GET /api/superadmin/schools
 exports.getSchools = async (req, res) => {
   try {
-    // Derive unique schools from users who are admins
-    const schools = await User.distinct("schoolName", { schoolName: { $ne: "" } });
+    const School = require("../models/School");
+    const schools = await School.distinct("name");
     res.json(schools);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -150,10 +150,33 @@ exports.getDashboardStats = async (req, res) => {
     const admins = await User.countDocuments({ role: "admin" });
     const teachers = await User.countDocuments({ role: "teacher" });
     const students = await User.countDocuments({ role: "student" });
-    
     // 3. Schools count
-    const uniqueSchools = await User.distinct("schoolName", { schoolName: { $ne: "" } });
-    const totalSchools = uniqueSchools.length;
+    const School = require("../models/School");
+    let totalSchools = await School.countDocuments();
+    if (totalSchools === 0) {
+      const dummySchools = [
+        {
+          name: "G.D Academy",
+          normalizedName: "g.d academy",
+          email: "gdacademy@gmail.com",
+          address: "Patna, Bihar"
+        },
+        {
+          name: "Prince school",
+          normalizedName: "prince school",
+          email: "princeschool@gmail.com",
+          address: "Patna, Bihar"
+        }
+      ];
+
+      for (const ds of dummySchools) {
+        let exists = await School.findOne({ name: ds.name });
+        if (!exists) {
+          await School.create(ds);
+        }
+      }
+      totalSchools = await School.countDocuments();
+    }
     
     // 4. Financial overview
     const payments = await Payment.find({ status: "Successful" });
@@ -252,29 +275,46 @@ exports.getSchoolsDetail = async (req, res) => {
     const School = require("../models/School");
     const User = require("../models/User");
 
-    const schoolNames = await User.distinct("schoolName", { schoolName: { $ne: "" } });
+    let schoolDocs = await School.find({}).lean();
+    if (schoolDocs.length === 0) {
+      const dummySchools = [
+        {
+          name: "G.D Academy",
+          normalizedName: "g.d academy",
+          email: "gdacademy@gmail.com",
+          address: "Patna, Bihar"
+        },
+        {
+          name: "Prince school",
+          normalizedName: "prince school",
+          email: "princeschool@gmail.com",
+          address: "Patna, Bihar"
+        }
+      ];
+
+      for (const ds of dummySchools) {
+        let exists = await School.findOne({ name: ds.name });
+        if (!exists) {
+          await School.create(ds);
+        }
+      }
+      schoolDocs = await School.find({}).lean();
+    }
+
     const schoolsList = [];
 
-    for (const name of schoolNames) {
+    for (const school of schoolDocs) {
+      const name = school.name;
       const adminCount = await User.countDocuments({ schoolName: name, role: "admin" });
       const teacherCount = await User.countDocuments({ schoolName: name, role: "teacher" });
       const studentCount = await User.countDocuments({ schoolName: name, role: "student" });
-
-      let schoolDoc = await School.findOne({ name });
-      if (!schoolDoc) {
-        schoolDoc = await School.create({
-          name,
-          normalizedName: name.toLowerCase().replace(/\s+/g, " "),
-          email: `${name.toLowerCase().replace(/\s+/g, "")}@gmail.com`,
-          address: "Patna, Bihar"
-        });
-      }
 
       const plan = "Pro Plan";
       const status = "Active";
       const price = "₹2,999 / Year";
       
-      const validTillDate = new Date(schoolDoc.createdAt.getTime() + 365 * 24 * 60 * 60 * 1000);
+      const createdAtDate = school.createdAt || new Date();
+      const validTillDate = new Date(createdAtDate.getTime() + 365 * 24 * 60 * 60 * 1000);
       const validTill = validTillDate.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
@@ -282,10 +322,10 @@ exports.getSchoolsDetail = async (req, res) => {
       });
 
       schoolsList.push({
-        _id: schoolDoc._id,
+        _id: school._id,
         name,
-        email: schoolDoc.email || `${name.toLowerCase().replace(/\s+/g, "")}@gmail.com`,
-        location: schoolDoc.address || "Patna, Bihar",
+        email: school.email || `${name.toLowerCase().replace(/\s+/g, "")}@gmail.com`,
+        location: school.address || "Patna, Bihar",
         plan,
         status,
         price,
