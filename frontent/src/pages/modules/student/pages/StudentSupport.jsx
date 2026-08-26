@@ -13,7 +13,8 @@ import {
   FaPaperPlane,
   FaFileAlt,
   FaPhone,
-  FaChevronRight
+  FaChevronRight,
+  FaClock
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
 
