@@ -11,13 +11,24 @@ getAdmissionExam,
 saveAdmissionExam,
 assignClass,
 addStudent,
-deleteUser
+deleteUser,
+getTeacherProfile,
+updateTeacherProfile,
+addTeacherPhoto,
+deleteTeacherPhoto,
+reorderTeacherPhotos
 } = require("../controllers/adminUserController");
 
 router.use(protect);
 router.use(authorize("admin"));
 
 router.get("/teachers",getTeachers);
+router.get("/teachers/:id", getTeacherProfile);
+router.put("/teachers/:id", updateTeacherProfile);
+router.post("/teachers/:id/photos", addTeacherPhoto);
+router.delete("/teachers/:id/photos/:photoId", deleteTeacherPhoto);
+router.put("/teachers/:id/photos/reorder", reorderTeacherPhotos);
+
 router.get("/students",getStudents);
 router.post("/students", addStudent);
 router.get("/join-requests", getJoinRequests);

@@ -107,7 +107,21 @@ const userSchema = new mongoose.Schema({
   lastSeen: {
     type: Date,
     default: null
-  }
+  },
+  // Teacher Management Fields
+  qualification: { type: String, default: "" },
+  experience: { type: String, default: "" },
+  joiningDate: { type: String, default: "" },
+  employeeId: { type: String, default: "" },
+  rating: { type: Number, default: 4.8 },
+  reviewsCount: { type: Number, default: 32 },
+  galleryPhotos: [
+    {
+      url: { type: String, required: true },
+      filename: { type: String, default: "" },
+      uploadedAt: { type: Date, default: Date.now }
+    }
+  ]
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);

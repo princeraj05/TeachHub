@@ -29,21 +29,16 @@ import AboutYourSchool from "./pages/AboutYourSchool";
 import CreateTimetable from "./pages/CreateTimetable";
 import Appointments from "./pages/Appointments";
 import TeacherLeaves from "./pages/TeacherLeaves";
+import TeacherManagement from "./pages/TeacherManagement";
 import PaymentCenter from "../../../components/PaymentCenter";
-
 
 import { CallProvider } from "../../../context/CallContext";
 
 function AdminRoutes() {
-
   return (
-
     <Routes>
-
       <Route path="/" element={<CallProvider><AdminLayout /></CallProvider>}>
-
         <Route index element={<Navigate to="dashboard" />} />
-
         <Route path="dashboard" element={<AdminDashboard />} />
 
         {/* Users */}
@@ -58,7 +53,6 @@ function AdminRoutes() {
 
         {/* Academics */}
         <Route path="classes" element={<Classes />} />
-        
         <Route path="subjects" element={<Subjects />} />
 
         {/* Assignments */}
@@ -87,14 +81,11 @@ function AdminRoutes() {
         <Route path="create-timetable" element={<CreateTimetable />} />
         <Route path="appointments" element={<Appointments />} />
         <Route path="teacher-leaves" element={<TeacherLeaves />} />
+        <Route path="teacher-management" element={<TeacherManagement />} />
         <Route path="payments" element={<PaymentCenter role="admin" />} />
-
       </Route>
-
     </Routes>
-
   );
-
 }
 
 export default AdminRoutes;

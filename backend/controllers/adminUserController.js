@@ -372,3 +372,94 @@ exports.addStudent = async (req, res) => {
     res.status(isNewStudent ? 201 : 200).json({ message: "Student added to your school", student: await User.findById(student._id).populate("classId", "name section").select("-password") });
   } catch (error) { res.status(500).json({ message: "Could not add student" }); }
 };
+
+// ================= TEACHER PROFILE & GALLERY CONTROLLERS =================
+exports.getTeacherProfile = async (req, res) => {
+  try {
+    const teacher = await User.findOne({ _id: req.params.id, role: "teacher", schoolName: req.user.schoolName }).select("-password");
+    if (!teacher) return res.status(404).json({ message: "Teacher not found" });
+    
+    const classes = await Class.find({ teacher: teacher._id, schoolName: req.user.schoolName }).select("name section");
+    const subjects = await Subject.find({ teacher: teacher._id, schoolName: req.user.schoolName }).select("name");
+    
+    res.json({
+      ...teacher.toObject(),
+      classes,
+      subjects
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.updateTeacherProfile = async (req, res) => {
+  try {
+    const { name, email, phoneNumber, dob, gender, qualification, experience, joiningDate, employeeId } = req.body;
+    const teacher = await User.findOne({ _id: req.params.id, role: "teacher", schoolName: req.user.schoolName });
+    if (!teacher) return res.status(404).json({ message: "Teacher not found" });
+
+    if (name) teacher.name = name;
+    if (email) teacher.email = email;
+    if (phoneNumber) teacher.phoneNumber = phoneNumber;
+    if (dob !== undefined) teacher.dob = dob;
+    if (gender !== undefined) teacher.gender = gender;
+    if (qualification !== undefined) teacher.qualification = qualification;
+    if (experience !== undefined) teacher.experience = experience;
+    if (joiningDate !== undefined) teacher.joiningDate = joiningDate;
+    if (employeeId !== undefined) teacher.employeeId = employeeId;
+
+    await teacher.save();
+    res.json(teacher);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.addTeacherPhoto = async (req, res) => {
+  try {
+    const { url, filename } = req.body;
+    if (!url) return res.status(400).json({ message: "URL is required" });
+    
+    const teacher = await User.findOne({ _id: req.params.id, role: "teacher", schoolName: req.user.schoolName });
+    if (!teacher) return res.status(404).json({ message: "Teacher not found" });
+    
+    if (teacher.galleryPhotos.length >= 5) {
+      return res.status(400).json({ message: "Maximum photo limit (5) reached" });
+    }
+
+    teacher.galleryPhotos.push({ url, filename: filename || `IMG_${Date.now()}.jpg`, uploadedAt: new Date() });
+    await teacher.save();
+    res.json(teacher.galleryPhotos);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deleteTeacherPhoto = async (req, res) => {
+  try {
+    const teacher = await User.findOne({ _id: req.params.id, role: "teacher", schoolName: req.user.schoolName });
+    if (!teacher) return res.status(404).json({ message: "Teacher not found" });
+    
+    teacher.galleryPhotos = teacher.galleryPhotos.filter(photo => String(photo._id) !== String(req.params.photoId));
+    await teacher.save();
+    res.json(teacher.galleryPhotos);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.reorderTeacherPhotos = async (req, res) => {
+  try {
+    const { photos } = req.body;
+    if (!Array.isArray(photos)) return res.status(400).json({ message: "Photos array is required" });
+
+    const teacher = await User.findOne({ _id: req.params.id, role: "teacher", schoolName: req.user.schoolName });
+    if (!teacher) return res.status(404).json({ message: "Teacher not found" });
+
+    teacher.galleryPhotos = photos;
+    await teacher.save();
+    res.json(teacher.galleryPhotos);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
