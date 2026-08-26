@@ -4,6 +4,8 @@ const jwt = require("jsonwebtoken");
 const firebaseAdmin = require("../config/firebase");
 const Otp = require("../models/Otp");
 const { sendOtpEmail } = require("../utils/emailService");
+const UserSession = require("../models/UserSession");
+const { createSession } = require("../utils/sessionHelper");
 
 
 // ================= REGISTER =================
@@ -100,22 +102,25 @@ process.env.JWT_SECRET,
 );
 
 
-// response
+    // Create login session
+    await createSession(user._id, token, req);
 
-res.json({
+    // response
 
-message:"Login Successful",
-token,
+    res.json({
 
-user:{
-_id:user._id,
-name:user.name,
-email:user.email,
-role:user.role,
-schoolName:user.schoolName || ""
-}
+      message: "Login Successful",
+      token,
 
-});
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        schoolName: user.schoolName || ""
+      }
+
+    });
 
 }catch(err){
 
@@ -176,6 +181,9 @@ exports.firebaseSync = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
+
+    // Create login session
+    await createSession(user._id, token, req);
 
     res.json({
       message: "Sync Successful",
@@ -309,6 +317,9 @@ exports.verifyOTP = async (req, res) => {
       { expiresIn: "7d" }
     );
 
+    // Create login session
+    await createSession(user._id, token, req);
+
     res.status(200).json({
       message: "Verification and Login Successful",
       token,
@@ -348,6 +359,30 @@ exports.getProfile = async (req, res) => {
 
     const userObj = user.toObject();
     userObj.token = token;
+
+    // Fetch login sessions for user
+    const sessions = await UserSession.find({ userId: user._id }).sort({ createdAt: -1 });
+    const totalLogins = sessions.length;
+    const lastSession = sessions[0];
+    const prevSession = sessions[1];
+
+    userObj.loginActivity = {
+      totalLogins,
+      lastLogin: lastSession ? {
+        time: lastSession.createdAt,
+        deviceBrowser: `${lastSession.browser} on ${lastSession.device}`,
+        location: lastSession.location,
+        ip: lastSession.ip
+      } : null,
+      previousLogin: prevSession ? {
+        time: prevSession.createdAt,
+        deviceBrowser: `${prevSession.browser} on ${prevSession.device}`,
+        location: prevSession.location,
+        ip: prevSession.ip
+      } : null,
+      loginLocation: lastSession ? lastSession.location : "Unknown Location",
+      loginIp: lastSession ? lastSession.ip : "127.0.0.1"
+    };
 
     res.json(userObj);
   } catch (error) {
@@ -492,7 +527,76 @@ exports.submitJoinRequest = async (req, res) => {
 // ================= LOGOUT ACTION =================
 exports.logout = async (req, res) => {
   try {
+    const authHeader = req.headers.authorization;
+    const currentToken = authHeader ? authHeader.split(" ")[1] : null;
+
+    if (currentToken) {
+      await UserSession.updateOne(
+        { userId: req.user.id, token: currentToken },
+        { status: "Logged out" }
+      );
+    }
+
     res.json({ message: "Logged out successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ================= GET ACTIVE SESSIONS =================
+exports.getSessions = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const currentToken = authHeader ? authHeader.split(" ")[1] : null;
+
+    const sessions = await UserSession.find({ userId: req.user.id }).sort({ lastActive: -1 });
+
+    const formattedSessions = sessions.map(s => ({
+      id: s._id,
+      device: s.device,
+      browser: s.browser,
+      location: s.location,
+      ip: s.ip,
+      lastActive: s.lastActive,
+      current: s.token === currentToken,
+      status: s.status
+    }));
+
+    res.json(formattedSessions);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ================= LOGOUT SESSION =================
+exports.logoutSession = async (req, res) => {
+  try {
+    const session = await UserSession.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!session) {
+      return res.status(404).json({ message: "Session not found" });
+    }
+    session.status = "Logged out";
+    await session.save();
+    res.json({ message: "Session logged out successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ================= LOGOUT ALL OTHER SESSIONS =================
+exports.logoutAllOtherSessions = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const currentToken = authHeader ? authHeader.split(" ")[1] : null;
+
+    if (currentToken) {
+      await UserSession.updateMany(
+        { userId: req.user.id, token: { $ne: currentToken } },
+        { status: "Logged out" }
+      );
+    }
+
+    res.json({ message: "Logged out from all other sessions successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

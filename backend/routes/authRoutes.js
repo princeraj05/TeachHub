@@ -1,5 +1,5 @@
 const express = require("express");
-const { login, firebaseSync, sendOTP, verifyOTP, getProfile, updateProfile, getSchools, submitJoinRequest, logout } = require("../controllers/authController");
+const { login, firebaseSync, sendOTP, verifyOTP, getProfile, updateProfile, getSchools, submitJoinRequest, logout, getSessions, logoutSession, logoutAllOtherSessions } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -14,5 +14,10 @@ router.get("/profile", protect, getProfile);
 router.put("/profile", protect, updateProfile);
 router.get("/schools", protect, getSchools);
 router.put("/join-request", protect, submitJoinRequest);
+
+// Session endpoints
+router.get("/sessions", protect, getSessions);
+router.post("/sessions/:id/logout", protect, logoutSession);
+router.post("/sessions/logout-others", protect, logoutAllOtherSessions);
 
 module.exports = router;

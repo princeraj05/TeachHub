@@ -23,6 +23,43 @@ import {
 
 const SORA = "'Sora', sans-serif";
 
+const COMMON_TIMEZONES = [
+  "(GMT+05:30) Asia/Kolkata",
+  "(GMT+00:00) UTC",
+  "(GMT-05:00) America/New_York",
+  "(GMT-08:00) America/Los_Angeles",
+  "(GMT+00:00) Europe/London",
+  "(GMT+08:00) Asia/Singapore",
+  "(GMT+09:00) Asia/Tokyo",
+  "(GMT+04:00) Asia/Dubai",
+  "(GMT+02:00) Europe/Paris"
+];
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return "N/A";
+  const date = new Date(dateStr);
+  const day = date.getDate();
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  return `${day} ${month} ${year}`;
+};
+
+const formatDateTime = (dateStr) => {
+  if (!dateStr) return "N/A";
+  const date = new Date(dateStr);
+  const day = date.getDate();
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  return `${month} ${day}, ${year} ${String(hours).padStart(2, "0")}:${minutes} ${ampm}`;
+};
+
 function SuperAdminProfile() {
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const token = localStorage.getItem("token");
@@ -53,11 +90,7 @@ function SuperAdminProfile() {
   const [passwordSaving, setPasswordSaving] = useState(false);
 
   // Session state
-  const [sessions, setSessions] = useState([
-    { id: 1, device: "Windows PC (Windows 11)", browser: "Chrome 125.0", location: "Noida, India", ip: "103.21.45.67", lastActive: "May 18, 2025 10:35 AM", current: true, status: "Active" },
-    { id: 2, device: "Samsung Galaxy S23 (Android 14)", browser: "Chrome Mobile 125.0", location: "Noida, India", ip: "106.51.23.89", lastActive: "May 17, 2025 04:22 PM", current: false, status: "Active" },
-    { id: 3, device: "iPhone 14 (iOS 17.4)", browser: "Safari 17.4", location: "Delhi, India", ip: "117.219.10.45", lastActive: "May 16, 2025 09:15 PM", current: false, status: "Logged out" }
-  ]);
+  const [sessions, setSessions] = useState([]);
 
   // Notifications
   const [successMsg, setSuccessMsg] = useState("");
@@ -67,7 +100,21 @@ function SuperAdminProfile() {
 
   useEffect(() => {
     fetchProfile();
+    fetchSessions();
   }, []);
+
+  const fetchSessions = async () => {
+    try {
+      const res = await axios.get(`${API}/api/auth/sessions`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data) {
+        setSessions(res.data);
+      }
+    } catch (err) {
+      console.error("Error loading sessions:", err);
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -192,20 +239,34 @@ function SuperAdminProfile() {
     }
   };
 
-  const handleLogoutSession = (sessionId) => {
-    setSessions(prev =>
-      prev.map(s => (s.id === sessionId ? { ...s, status: "Logged out" } : s))
-    );
-    setSuccessMsg("Logged out from the selected device session.");
-    setTimeout(() => setSuccessMsg(""), 3000);
+  const handleLogoutSession = async (sessionId) => {
+    try {
+      await axios.post(`${API}/api/auth/sessions/${sessionId}/logout`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSuccessMsg("Logged out from the selected device session.");
+      fetchSessions();
+      setTimeout(() => setSuccessMsg(""), 3000);
+    } catch (err) {
+      console.error("Error logging out session:", err);
+      setErrorMsg("Failed to logout session.");
+      setTimeout(() => setErrorMsg(""), 3000);
+    }
   };
 
-  const handleLogoutAllOther = () => {
-    setSessions(prev =>
-      prev.map(s => (s.current ? s : { ...s, status: "Logged out" }))
-    );
-    setSuccessMsg("Logged out from all other sessions.");
-    setTimeout(() => setSuccessMsg(""), 3000);
+  const handleLogoutAllOther = async () => {
+    try {
+      await axios.post(`${API}/api/auth/sessions/logout-others`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSuccessMsg("Logged out from all other sessions.");
+      fetchSessions();
+      setTimeout(() => setSuccessMsg(""), 3000);
+    } catch (err) {
+      console.error("Error logging out other sessions:", err);
+      setErrorMsg("Failed to logout all other sessions.");
+      setTimeout(() => setErrorMsg(""), 3000);
+    }
   };
 
   if (loading) {
@@ -301,7 +362,7 @@ function SuperAdminProfile() {
               <FaPhoneAlt className="text-slate-400" /> {phoneNumber}
             </p>
             <p className="text-xs text-slate-500 font-bold flex items-center gap-1.5 justify-center sm:justify-start">
-              <FaMapMarkerAlt className="text-slate-400" /> Noida, Uttar Pradesh, India
+              <FaMapMarkerAlt className="text-slate-400" /> {address || "No Address Provided"}
             </p>
           </div>
         </div>
@@ -320,12 +381,12 @@ function SuperAdminProfile() {
 
           <div className="space-y-1">
             <span className="text-[9px] font-black text-slate-405 uppercase tracking-widest block">Member Since</span>
-            <p className="text-slate-805 dark:text-white font-extrabold flex items-center gap-1"><FaCalendarAlt /> 15 Jan 2024</p>
+            <p className="text-slate-805 dark:text-white font-extrabold flex items-center gap-1"><FaCalendarAlt /> {profile?.createdAt ? formatDate(profile.createdAt) : "N/A"}</p>
           </div>
 
           <div className="space-y-1">
             <span className="text-[9px] font-black text-slate-405 uppercase tracking-widest block">Last Login</span>
-            <p className="text-slate-805 dark:text-white font-extrabold flex items-center gap-1"><FaRegClock /> May 18, 2025</p>
+            <p className="text-slate-805 dark:text-white font-extrabold flex items-center gap-1"><FaRegClock /> {profile?.loginActivity?.lastLogin ? formatDate(profile.loginActivity.lastLogin.time) : "N/A"}</p>
           </div>
 
           <div className="col-span-2 pt-1.5">
@@ -419,7 +480,11 @@ function SuperAdminProfile() {
               <div className="space-y-1">
                 <span className="text-[9px] font-black text-slate-405 uppercase tracking-widest block">Time Zone</span>
                 {editMode ? (
-                  <input type="text" value={timezone} onChange={(e) => setTimezone(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#1E293B] text-slate-805 dark:text-white font-semibold outline-none focus:border-[#7C3AED]" />
+                  <select value={timezone} onChange={(e) => setTimezone(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#1E293B] text-slate-805 dark:text-white font-semibold outline-none focus:border-[#7C3AED] cursor-pointer">
+                    {COMMON_TIMEZONES.map((tz) => (
+                      <option key={tz} value={tz}>{tz}</option>
+                    ))}
+                  </select>
                 ) : (
                   <p className="text-slate-850 dark:text-white font-extrabold text-xs flex items-center gap-1"><FaGlobe /> {timezone}</p>
                 )}
@@ -566,10 +631,13 @@ function SuperAdminProfile() {
                 <p className="text-[10px] text-slate-455">Tracked logged-in terminals</p>
               </div>
               <button
-                onClick={() => alert("Navigate to active session audit logs.")}
+                onClick={() => {
+                  const element = document.getElementById("connected-devices-section");
+                  if (element) element.scrollIntoView({ behavior: "smooth" });
+                }}
                 className="text-[#38BDF8] hover:underline uppercase text-[9px] font-black tracking-widest cursor-pointer bg-transparent border-0"
               >
-                3 active sessions &gt;
+                {sessions.filter(s => s.status === "Active").length} active sessions &gt;
               </button>
             </div>
           </div>
@@ -586,8 +654,12 @@ function SuperAdminProfile() {
                 <FaRegClock className="text-blue-500 text-sm" /> Last Login
               </span>
               <div className="text-right">
-                <p className="text-slate-805 dark:text-white font-extrabold font-mono">May 18, 2025 10:35 AM</p>
-                <span className="text-[9px] text-slate-400 font-bold block mt-0.5">Chrome on Windows</span>
+                <p className="text-slate-805 dark:text-white font-extrabold font-mono">
+                  {profile?.loginActivity?.lastLogin ? formatDateTime(profile.loginActivity.lastLogin.time) : "N/A"}
+                </p>
+                <span className="text-[9px] text-slate-400 font-bold block mt-0.5">
+                  {profile?.loginActivity?.lastLogin?.deviceBrowser || "N/A"}
+                </span>
               </div>
             </div>
 
@@ -596,8 +668,12 @@ function SuperAdminProfile() {
                 <FaRegClock className="text-slate-400 text-sm" /> Previous Login
               </span>
               <div className="text-right">
-                <p className="text-slate-805 dark:text-white font-extrabold font-mono">May 17, 2025 04:22 PM</p>
-                <span className="text-[9px] text-slate-400 font-bold block mt-0.5">Chrome on Windows</span>
+                <p className="text-slate-805 dark:text-white font-extrabold font-mono">
+                  {profile?.loginActivity?.previousLogin ? formatDateTime(profile.loginActivity.previousLogin.time) : "N/A"}
+                </p>
+                <span className="text-[9px] text-slate-400 font-bold block mt-0.5">
+                  {profile?.loginActivity?.previousLogin?.deviceBrowser || "N/A"}
+                </span>
               </div>
             </div>
 
@@ -606,8 +682,8 @@ function SuperAdminProfile() {
                 <FaMapMarkerAlt className="text-blue-500 text-sm" /> Login Location
               </span>
               <div className="text-right">
-                <p className="text-slate-850 dark:text-white font-extrabold">Noida, Uttar Pradesh, India</p>
-                <span className="text-[9px] text-[#38BDF8] font-black block mt-0.5 font-mono">IP: 103.21.45.67</span>
+                <p className="text-slate-850 dark:text-white font-extrabold">{profile?.loginActivity?.loginLocation || "Unknown Location"}</p>
+                <span className="text-[9px] text-[#38BDF8] font-black block mt-0.5 font-mono">IP: {profile?.loginActivity?.loginIp || "Unknown"}</span>
               </div>
             </div>
 
@@ -615,7 +691,7 @@ function SuperAdminProfile() {
               <span className="flex items-center gap-2">
                 <FaUserShield className="text-slate-400 text-sm" /> Total Logins
               </span>
-              <span className="text-slate-850 dark:text-white font-black font-mono">126 logins</span>
+              <span className="text-slate-850 dark:text-white font-black font-mono">{profile?.loginActivity?.totalLogins || 0} logins</span>
             </div>
 
             <div className="flex items-center justify-between pb-1">
@@ -634,10 +710,10 @@ function SuperAdminProfile() {
       </div>
 
       {/* 5. Connected Devices & Sessions Table */}
-      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm space-y-4">
+      <div id="connected-devices-section" className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm space-y-4">
         <div>
           <h3 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">Connected Devices & Sessions</h3>
-          <p className="text-[10px] text-slate-400 font-bold mt-1 leading-relaxed">Manage your active sessions across different devices.</p>
+          <p className="text-[10px] text-slate-405 font-bold mt-1 leading-relaxed">Manage your active sessions across different devices.</p>
         </div>
 
         <div className="overflow-x-auto select-none">
@@ -654,9 +730,9 @@ function SuperAdminProfile() {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-slate-805 dark:text-white font-semibold">
               {sessions.map((session) => (
-                <tr key={session.id} className="hover:bg-slate-50/[0.02] transition-colors">
+                <tr key={session.id || session._id} className="hover:bg-slate-50/[0.02] transition-colors">
                   <td className="py-4.5 pr-4 flex items-center gap-2.5 font-extrabold text-xs">
-                    {session.device.includes("PC") ? <FaLaptop className="text-blue-500 text-sm" /> : <FaMobileAlt className="text-purple-550 text-sm" />}
+                    {session.device.includes("PC") || session.device.includes("Macintosh") || session.device.includes("Linux") ? <FaLaptop className="text-blue-500 text-sm" /> : <FaMobileAlt className="text-purple-550 text-sm" />}
                     <span>{session.device}</span>
                   </td>
                   <td className="py-4.5 px-4 font-mono text-[10px] text-slate-655 dark:text-slate-350">{session.browser}</td>
@@ -665,7 +741,7 @@ function SuperAdminProfile() {
                     <span className="text-[9px] font-black font-mono text-slate-400 block mt-0.5">{session.ip}</span>
                   </td>
                   <td className="py-4.5 px-4">
-                    <p className="text-xs font-bold text-slate-850 dark:text-white font-mono">{session.lastActive}</p>
+                    <p className="text-xs font-bold text-slate-850 dark:text-white font-mono">{formatDateTime(session.lastActive)}</p>
                     {session.current && <span className="text-[8px] font-black uppercase text-[#7C3AED] dark:text-[#38BDF8] mt-0.5 block tracking-wider">Current Session</span>}
                   </td>
                   <td className="py-4.5 px-4 text-center">
