@@ -91,7 +91,8 @@ function SuperAdminProfile() {
       }
     } catch (err) {
       console.error("Error loading profile:", err);
-      setErrorMsg("Failed to retrieve user profile settings.");
+      const msg = err.response?.data?.message || err.message || "Failed to retrieve user profile settings.";
+      setErrorMsg(msg);
     } finally {
       setLoading(false);
     }

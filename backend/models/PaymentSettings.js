@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const schema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   role: { type: String, enum: ["superadmin", "admin", "teacher"], required: true },
   schoolName: { type: String, default: "" },
   gateway: { type: String, enum: ["razorpay"], default: "razorpay" },
