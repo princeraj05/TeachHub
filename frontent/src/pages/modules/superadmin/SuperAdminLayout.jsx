@@ -39,9 +39,10 @@ function SuperAdminLayout() {
     { to: "/superadmin/dashboard", icon: <FaTachometerAlt className="text-xl" />, label: "Dashboard" },
     { to: "/superadmin/users", icon: <FaUsers className="text-xl" />, label: "Users" },
     { to: "/superadmin/schools", icon: <FaSchool className="text-xl" />, label: "Schools" },
-    { to: "/superadmin/support", icon: <FaComments className="text-xl" />, label: "Support" },
     { to: "/superadmin/events", icon: <FaCalendarAlt className="text-xl" />, label: "Events" },
     { to: "/superadmin/payments", icon: <FaMoneyBillWave className="text-xl" />, label: "Payments" },
+    { to: "/superadmin/about", icon: <FaInfoCircle className="text-xl" />, label: "About / Config" },
+    { to: "/superadmin/support", icon: <FaComments className="text-xl" />, label: "Support" },
     { to: "/superadmin/profile", icon: <FaUserCircle className="text-xl" />, label: "Profile" },
   ];
 
