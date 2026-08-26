@@ -245,3 +245,61 @@ exports.getDashboardStats = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// GET /api/superadmin/schools-detail
+exports.getSchoolsDetail = async (req, res) => {
+  try {
+    const School = require("../models/School");
+    const User = require("../models/User");
+
+    const schoolNames = await User.distinct("schoolName", { schoolName: { $ne: "" } });
+    const schoolsList = [];
+
+    for (const name of schoolNames) {
+      const adminCount = await User.countDocuments({ schoolName: name, role: "admin" });
+      const teacherCount = await User.countDocuments({ schoolName: name, role: "teacher" });
+      const studentCount = await User.countDocuments({ schoolName: name, role: "student" });
+
+      let schoolDoc = await School.findOne({ name });
+      if (!schoolDoc) {
+        schoolDoc = await School.create({
+          name,
+          normalizedName: name.toLowerCase().replace(/\s+/g, " "),
+          email: `${name.toLowerCase().replace(/\s+/g, "")}@gmail.com`,
+          address: "Patna, Bihar"
+        });
+      }
+
+      const plan = "Pro Plan";
+      const status = "Active";
+      const price = "₹2,999 / Year";
+      
+      const validTillDate = new Date(schoolDoc.createdAt.getTime() + 365 * 24 * 60 * 60 * 1000);
+      const validTill = validTillDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      });
+
+      schoolsList.push({
+        _id: schoolDoc._id,
+        name,
+        email: schoolDoc.email || `${name.toLowerCase().replace(/\s+/g, "")}@gmail.com`,
+        location: schoolDoc.address || "Patna, Bihar",
+        plan,
+        status,
+        price,
+        validTill,
+        stats: {
+          admins: adminCount || 1,
+          teachers: teacherCount || 1,
+          students: studentCount || 1
+        }
+      });
+    }
+
+    res.json(schoolsList);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

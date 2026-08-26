@@ -415,7 +415,7 @@ function SuperAdminDashboard() {
 
           {/* Action 2 */}
           <div 
-            onClick={() => navigate("/superadmin/users")}
+            onClick={() => navigate("/superadmin/schools")}
             className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-purple-500/20 p-4.5 rounded-2.5xl flex flex-col items-center justify-center text-center cursor-pointer transition shadow-sm h-36 group"
           >
             <div className="w-10 h-10 rounded-full bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
