@@ -132,7 +132,7 @@ function AdminLayout() {
       )}
 
       {/* DESKTOP: Left Compact/Instagram Sidebar */}
-      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 h-screen w-20 lg:w-64 border-r border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0B132A] flex flex-col py-5 px-4 z-40 select-none overflow-y-auto overscroll-contain transition-all duration-200">
+      <aside className="hidden md:flex md:flex-col fixed left-0 top-0 bottom-0 h-screen w-20 lg:w-64 border-r border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0B132A] py-5 px-4 z-40 select-none overflow-y-auto overscroll-contain transition-all duration-200">
         <div className="flex flex-col gap-8">
           {/* Logo / Branding */}
           <div className="flex items-center gap-3 px-2.5">
@@ -227,7 +227,8 @@ function AdminLayout() {
             </Link>
 
             {/* Users */}
-            <div className="relative">
+            {/* Users */}
+            <div className="w-full flex flex-col gap-1">
               <button
                 onClick={() => togglePopover("users")}
                 className={`flex items-center gap-4 px-3.5 py-3 rounded-xl transition-all duration-200 cursor-pointer text-left w-full ${
@@ -240,8 +241,7 @@ function AdminLayout() {
                 <span className="hidden lg:block text-sm font-semibold">Users</span>
               </button>
               {activePopover === "users" && (
-                <div className="absolute left-[76px] lg:left-[246px] top-0 w-44 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn space-y-1">
-                  <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest px-2 mb-1.5 border-b border-slate-100 dark:border-white/[0.08] pb-1">Users</p>
+                <div className="pl-4 lg:pl-10 space-y-1 animate-fadeIn w-full">
                   <Link to="/admin/teachers" className={popoverLinkClass("/admin/teachers")}>Teachers</Link>
                   <Link to="/admin/students" className={popoverLinkClass("/admin/students")}>Students</Link>
                 </div>
@@ -249,7 +249,7 @@ function AdminLayout() {
             </div>
 
             {/* Academics */}
-            <div className="relative">
+            <div className="w-full flex flex-col gap-1">
               <button
                 onClick={() => togglePopover("academics")}
                 className={`flex items-center gap-4 px-3.5 py-3 rounded-xl transition-all duration-200 cursor-pointer text-left w-full ${
@@ -262,8 +262,7 @@ function AdminLayout() {
                 <span className="hidden lg:block text-sm font-semibold">Academics</span>
               </button>
               {activePopover === "academics" && (
-                <div className="absolute left-[76px] lg:left-[246px] top-0 w-44 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn space-y-1">
-                  <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest px-2 mb-1.5 border-b border-slate-100 dark:border-white/[0.08] pb-1">Academics</p>
+                <div className="pl-4 lg:pl-10 space-y-1 animate-fadeIn w-full">
                   <Link to="/admin/classes" className={popoverLinkClass("/admin/classes")}>Classes</Link>
                   <Link to="/admin/subjects" className={popoverLinkClass("/admin/subjects")}>Subjects</Link>
                 </div>
@@ -271,7 +270,7 @@ function AdminLayout() {
             </div>
 
             {/* Assignments */}
-            <div className="relative">
+            <div className="w-full flex flex-col gap-1">
               <button
                 onClick={() => togglePopover("assignments")}
                 className={`flex items-center gap-4 px-3.5 py-3 rounded-xl transition-all duration-200 cursor-pointer text-left w-full ${
@@ -284,8 +283,7 @@ function AdminLayout() {
                 <span className="hidden lg:block text-sm font-semibold">Assignments</span>
               </button>
               {activePopover === "assignments" && (
-                <div className="absolute left-[76px] lg:left-[246px] top-0 w-48 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn space-y-1">
-                  <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest px-2 mb-1.5 border-b border-slate-100 dark:border-white/[0.08] pb-1">Assignments</p>
+                <div className="pl-4 lg:pl-10 space-y-1 animate-fadeIn w-full">
                   <Link to="/admin/assign-teacher-class" className={popoverLinkClass("/admin/assign-teacher-class")}>Assign Teacher</Link>
                   <Link to="/admin/assign-student-class" className={popoverLinkClass("/admin/assign-student-class")}>Assign Student</Link>
                   <Link to="/admin/assign-subject-teacher" className={popoverLinkClass("/admin/assign-subject-teacher")}>Assign Subject</Link>
@@ -294,7 +292,7 @@ function AdminLayout() {
             </div>
 
             {/* Reports */}
-            <div className="relative">
+            <div className="w-full flex flex-col gap-1">
               <button
                 onClick={() => togglePopover("reports")}
                 className={`flex items-center gap-4 px-3.5 py-3 rounded-xl transition-all duration-200 cursor-pointer text-left w-full ${
@@ -307,8 +305,7 @@ function AdminLayout() {
                 <span className="hidden lg:block text-sm font-semibold">Reports</span>
               </button>
               {activePopover === "reports" && (
-                <div className="absolute left-[76px] lg:left-[246px] top-0 w-48 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn space-y-1">
-                  <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest px-2 mb-1.5 border-b border-slate-100 dark:border-white/[0.08] pb-1">Reports</p>
+                <div className="pl-4 lg:pl-10 space-y-1 animate-fadeIn w-full">
                   <Link to="/admin/attendance-report" className={popoverLinkClass("/admin/attendance-report")}>Attendance Report</Link>
                   <Link to="/admin/exam-results" className={popoverLinkClass("/admin/exam-results")}>Exam Results</Link>
                 </div>
@@ -505,8 +502,8 @@ function AdminLayout() {
               <div>
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Academics</p>
                 <div className="grid grid-cols-2 gap-2">
-                  <Link to="/admin/classes" className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Classes</Link>
-                  <Link to="/admin/subjects" className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Subjects</Link>
+                  <Link to="/admin/classes" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Classes</Link>
+                  <Link to="/admin/subjects" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Subjects</Link>
                 </div>
               </div>
 
@@ -514,9 +511,9 @@ function AdminLayout() {
               <div>
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Assignments</p>
                 <div className="grid grid-cols-3 gap-2">
-                  <Link to="/admin/assign-teacher-class" className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2.5 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Assign Teacher</Link>
-                  <Link to="/admin/assign-student-class" className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2.5 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Assign Student</Link>
-                  <Link to="/admin/assign-subject-teacher" className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2.5 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Assign Subject</Link>
+                  <Link to="/admin/assign-teacher-class" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2.5 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Assign Teacher</Link>
+                  <Link to="/admin/assign-student-class" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2.5 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Assign Student</Link>
+                  <Link to="/admin/assign-subject-teacher" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2.5 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Assign Subject</Link>
                 </div>
               </div>
 
@@ -524,8 +521,8 @@ function AdminLayout() {
               <div>
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Reports</p>
                 <div className="grid grid-cols-2 gap-2">
-                  <Link to="/admin/attendance-report" className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Attendance Report</Link>
-                  <Link to="/admin/exam-results" className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Exam Results</Link>
+                  <Link to="/admin/attendance-report" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Attendance Report</Link>
+                  <Link to="/admin/exam-results" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Exam Results</Link>
                 </div>
               </div>
 
