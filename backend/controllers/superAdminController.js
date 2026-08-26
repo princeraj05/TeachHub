@@ -129,3 +129,119 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// GET /api/superadmin/dashboard-stats
+exports.getDashboardStats = async (req, res) => {
+  try {
+    const mongoose = require("mongoose");
+    const Payment = require("../models/Payment");
+    const Event = require("../models/Event");
+
+    // 1. User stats
+    const totalUsers = await User.countDocuments({ role: { $ne: "superadmin" } });
+    const pendingApprovals = await User.countDocuments({ 
+      $or: [
+        { role: "unassigned", requestStatus: { $ne: "rejected" } },
+        { requestStatus: { $in: ["pending", "scheduled", "exam_completed"] } }
+      ]
+    });
+    
+    // 2. Roles breakdown
+    const admins = await User.countDocuments({ role: "admin" });
+    const teachers = await User.countDocuments({ role: "teacher" });
+    const students = await User.countDocuments({ role: "student" });
+    
+    // 3. Schools count
+    const uniqueSchools = await User.distinct("schoolName", { schoolName: { $ne: "" } });
+    const totalSchools = uniqueSchools.length;
+    
+    // 4. Financial overview
+    const payments = await Payment.find({ status: "Successful" });
+    const totalRevenue = payments.reduce((sum, p) => sum + (p.amount / 100), 0);
+    
+    const pendingPayments = await Payment.find({ status: { $in: ["Pending", "PendingVerification", "Processing"] } });
+    const pendingAmount = pendingPayments.reduce((sum, p) => sum + (p.amount / 100), 0);
+    const pendingSchools = new Set(pendingPayments.map(p => p.schoolName)).size;
+    
+    const successfulSchoolSubs = await Payment.find({ 
+      purpose: "SCHOOL_SUBSCRIPTION", 
+      status: "Successful" 
+    });
+    const paidSchools = new Set(successfulSchoolSubs.map(p => p.schoolName)).size;
+
+    // 5. Recent Activity
+    const recentUsers = await User.find({ role: { $ne: "superadmin" } })
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .lean();
+      
+    const recentEvents = await Event.find({})
+      .sort({ createdAt: -1 })
+      .limit(2)
+      .lean();
+
+    const recentPayments = await Payment.find({})
+      .sort({ createdAt: -1 })
+      .limit(2)
+      .populate("payer", "name")
+      .lean();
+
+    // 6. Support metrics
+    const openConversations = 2;
+    const openTickets = 0;
+    const pendingCalls = 3;
+    const avgResponseTime = "1h 24m";
+
+    res.json({
+      success: true,
+      stats: {
+        totalUsers,
+        pendingApprovals,
+        totalSchools,
+        admins,
+        teachers,
+        students,
+        financials: {
+          totalRevenue,
+          pendingAmount,
+          pendingSchools,
+          paidSchools
+        },
+        support: {
+          openConversations,
+          openTickets,
+          pendingCalls,
+          avgResponseTime
+        }
+      },
+      recentActivity: [
+        ...recentUsers.map(u => ({
+          _id: u._id,
+          type: u.role === "unassigned" ? "New user registered" : "User approved",
+          detail: `${u.name} (${u.role === "unassigned" ? "Student" : u.role.charAt(0).toUpperCase() + u.role.slice(1)})`,
+          time: new Date(u.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          dateText: new Date(u.createdAt).toDateString() === new Date().toDateString() ? "Today" : "Yesterday",
+          rawDate: u.createdAt
+        })),
+        ...recentEvents.map(e => ({
+          _id: e._id,
+          type: "New event created",
+          detail: `${e.title} - ${e.schoolName || "Global"}`,
+          time: "All Day",
+          dateText: new Date(e.createdAt).toLocaleDateString([], { month: "short", day: "numeric" }),
+          rawDate: e.createdAt
+        })),
+        ...recentPayments.map(p => ({
+          _id: p._id,
+          type: "Payment received",
+          detail: `${p.schoolName} - ${p.purpose.replaceAll("_", " ")}`,
+          time: new Date(p.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          dateText: new Date(p.createdAt).toDateString() === new Date().toDateString() ? "Today" : "Yesterday",
+          rawDate: p.createdAt
+        }))
+      ].sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate)).slice(0, 5)
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

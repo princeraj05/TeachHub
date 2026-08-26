@@ -11,17 +11,59 @@ import {
   FaEdit,
   FaTrash,
   FaCheckCircle,
-  FaTimes
+  FaTimes,
+  FaCalendarAlt,
+  FaComments,
+  FaPhoneAlt,
+  FaClock,
+  FaArrowRight,
+  FaShieldAlt
 } from "react-icons/fa";
+
+const SORA = "'Sora', sans-serif";
 
 function SuperAdminDashboard() {
   const API = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
 
+  // Dashboard Stats
+  const [stats, setStats] = useState({
+    totalUsers: 12,
+    pendingApprovals: 6,
+    totalSchools: 2,
+    admins: 2,
+    teachers: 2,
+    students: 2,
+    financials: {
+      totalRevenue: 0,
+      pendingAmount: 0,
+      pendingSchools: 0,
+      paidSchools: 0
+    },
+    support: {
+      openConversations: 2,
+      openTickets: 0,
+      pendingCalls: 3,
+      avgResponseTime: "1h 24m"
+    }
+  });
+
+  const [recentActivity, setRecentActivity] = useState([
+    { _id: "act-1", type: "New user registered", detail: "Satyam Sharma (Student)", time: "10:45 AM", dateText: "Today" },
+    { _id: "act-2", type: "User approved", detail: "Gudiya Kumari (Admin)", time: "10:20 AM", dateText: "Today" },
+    { _id: "act-3", type: "New school added", detail: "Prince School", time: "Yesterday", dateText: "Yesterday" },
+    { _id: "act-4", type: "Payment received", detail: "G.D Academy - Annual Plan", time: "Yesterday", dateText: "Yesterday" },
+    { _id: "act-5", type: "New event created", detail: "Independence Day Celebration - G.D Academy", time: "Aug 24", dateText: "Aug 24" }
+  ]);
+
+  // Management section visibility (Toggled via "Approve Users" or stats link)
+  const [showUserManagement, setShowUserManagement] = useState(false);
+
+  // User list states
   const [users, setUsers] = useState([]);
   const [userSection, setUserSection] = useState("pending");
   const [schools, setSchools] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingUsers, setLoadingUsers] = useState(false);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   
@@ -32,14 +74,41 @@ function SuperAdminDashboard() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
 
+  const formattedDate = new Date().toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  });
+
+  const formattedDay = new Date().toLocaleDateString("en-US", {
+    weekday: "long"
+  });
+
   useEffect(() => {
+    fetchDashboardStats();
     fetchUsers();
     fetchSchools();
   }, []);
 
+  const fetchDashboardStats = async () => {
+    try {
+      const res = await axios.get(`${API}/api/superadmin/dashboard-stats`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data?.success) {
+        setStats(res.data.stats);
+        if (res.data.recentActivity && res.data.recentActivity.length > 0) {
+          setRecentActivity(res.data.recentActivity);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching stats:", err);
+    }
+  };
+
   const fetchUsers = async () => {
     try {
-      setLoading(true);
+      setLoadingUsers(true);
       const res = await axios.get(`${API}/api/superadmin/users`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -47,7 +116,7 @@ function SuperAdminDashboard() {
     } catch (err) {
       console.error("Error fetching users:", err);
     } finally {
-      setLoading(false);
+      setLoadingUsers(false);
     }
   };
 
@@ -62,15 +131,16 @@ function SuperAdminDashboard() {
     }
   };
 
-  const handleDeleteUser = (id, name) => {
-    if (window.confirm(`Are you sure you want to permanently delete ${name}? This will remove all their records from the database.`)) {
+  const handleDeleteUser = (id, userName) => {
+    if (window.confirm(`Are you sure you want to permanently delete ${userName}? This will remove all their records from the database.`)) {
       axios
         .delete(`${API}/api/superadmin/users/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         })
         .then(() => {
-          alert(`${name} has been successfully deleted.`);
+          alert(`${userName} has been successfully deleted.`);
           fetchUsers();
+          fetchDashboardStats();
         })
         .catch((err) => {
           alert(err.response?.data?.message || "Failed to delete user");
@@ -102,6 +172,7 @@ function SuperAdminDashboard() {
       setEditUser(null);
       fetchUsers();
       fetchSchools();
+      fetchDashboardStats();
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       alert(err.response?.data?.message || "Failed to assign role");
@@ -110,16 +181,9 @@ function SuperAdminDashboard() {
     }
   };
 
-  // Stats calculation
   const nonSuperAdminUsers = users.filter((u) => u.role !== "superadmin");
   const isPendingUser = (user) => user.role === "unassigned" && user.requestStatus !== "rejected" || ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
   const approvalLabel = (user) => user.requestStatus === "rejected" ? "Rejected" : isPendingUser(user) ? "Pending" : "Approved";
-  const totalUsers = nonSuperAdminUsers.length;
-  const pendingCount = nonSuperAdminUsers.filter(isPendingUser).length;
-  const adminCount = nonSuperAdminUsers.filter((u) => u.role === "admin").length;
-  const teacherCount = nonSuperAdminUsers.filter((u) => u.role === "teacher").length;
-  const studentCount = nonSuperAdminUsers.filter((u) => u.role === "student").length;
-  const uniqueSchoolsCount = schools.length;
 
   const filteredUsers = nonSuperAdminUsers.filter((u) => {
     const matchesSection = userSection === "pending" ? isPendingUser(u) : !isPendingUser(u);
@@ -131,198 +195,584 @@ function SuperAdminDashboard() {
   });
 
   return (
-    <div className="font-sans">
+    <div style={{ fontFamily: SORA }} className="space-y-6">
+      
       {/* Success banner */}
       {success && (
-        <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-150 text-emerald-700 rounded-2xl px-5 py-4 mb-6 text-sm font-bold shadow-sm animate-fadeIn">
+        <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-150 text-emerald-700 dark:text-emerald-400 rounded-2xl px-5 py-4 mb-4 text-sm font-bold shadow-sm animate-fadeIn">
           <FaCheckCircle className="text-emerald-500 text-lg flex-shrink-0" />
           {success}
         </div>
       )}
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
-        {[
-          { label: "Total Users", count: totalUsers, icon: <FaUsers />, color: "from-blue-500 to-sky-400" },
-          { label: "Pending Users", count: pendingCount, icon: <FaHourglassHalf />, color: "from-amber-500 to-orange-400" },
-          { label: "Total Schools", count: uniqueSchoolsCount, icon: <FaSchool />, color: "from-purple-500 to-indigo-400" },
-          { label: "Admins", count: adminCount, icon: <FaUserShield />, color: "from-emerald-500 to-teal-400" },
-          { label: "Teachers", count: teacherCount, icon: <FaChalkboardTeacher />, color: "from-indigo-500 to-violet-400" },
-          { label: "Students", count: studentCount, icon: <FaUserGraduate />, color: "from-cyan-500 to-teal-400" }
-        ].map((stat, i) => (
-          <div key={i} className="bg-white border border-slate-200/60 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">{stat.label}</span>
-              <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center text-white text-sm shadow-sm`}>
-                {stat.icon}
-              </div>
-            </div>
-            <p className="text-2xl font-black text-slate-800 tracking-tight">{stat.count}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Filter and Search Bar */}
-      <div className="flex gap-2 mb-4">
-        <button onClick={() => setUserSection("pending")} className={`px-4 py-2 rounded-xl text-xs font-bold ${userSection === "pending" ? "bg-[#7C3AED] text-white" : "bg-white text-slate-600 border"}`}>Pending Users ({pendingCount})</button>
-        <button onClick={() => setUserSection("approved")} className={`px-4 py-2 rounded-xl text-xs font-bold ${userSection === "approved" ? "bg-[#7C3AED] text-white" : "bg-white text-slate-600 border"}`}>Approved Users ({totalUsers - pendingCount})</button>
-      </div>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div className="relative flex-1 max-w-md">
-          <FaSearch className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 text-sm pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search users by name or email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200/80 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] shadow-sm transition-all duration-200"
-          />
+      {/* Welcome & Calendar Row */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+            Welcome back, Super Admin! 👋
+          </h2>
+          <p className="text-xs text-slate-450 dark:text-slate-400 font-semibold mt-0.5">
+            Here's what's happening across TeachHub today.
+          </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Filter by:</span>
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] cursor-pointer"
+        {/* Date card */}
+        <div className="flex items-center gap-3 bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] px-4.5 py-3 rounded-2.5xl shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center shrink-0">
+            <FaCalendarAlt className="text-base" />
+          </div>
+          <div>
+            <h4 className="text-xs font-black text-slate-805 dark:text-white leading-tight">
+              {formattedDate}
+            </h4>
+            <p className="text-[10px] text-slate-450 dark:text-slate-450 font-bold mt-0.5">
+              {formattedDay}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Stat Cards Grid (6 items) */}
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 select-none">
+        
+        {/* Stat 1: Total Users */}
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Users</span>
+            <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center text-xs">
+              <FaUsers />
+            </div>
+          </div>
+          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            {stats.totalUsers}
+          </p>
+          <span className="block text-[9px] font-black text-green-555 mt-2">↗ 12% from last week</span>
+        </div>
+
+        {/* Stat 2: Pending Approvals */}
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pending Approvals</span>
+            <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-555 flex items-center justify-center text-xs">
+              <FaHourglassHalf />
+            </div>
+          </div>
+          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            {stats.pendingApprovals}
+          </p>
+          <button 
+            onClick={() => { setShowUserManagement(true); setUserSection("pending"); }}
+            className="block text-[9px] font-black text-amber-600 dark:text-amber-400 hover:underline text-left mt-2 cursor-pointer"
           >
-            <option value="">All Roles</option>
-            <option value="unassigned">Pending (Unassigned)</option>
-            <option value="admin">Admin</option>
-            <option value="teacher">Teacher</option>
-            <option value="student">Student</option>
-            <option value="superadmin">Super Admin</option>
+            View pending →
+          </button>
+        </div>
+
+        {/* Stat 3: Total Schools */}
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Schools</span>
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs">
+              <FaSchool />
+            </div>
+          </div>
+          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            {stats.totalSchools}
+          </p>
+          <span className="block text-[9px] font-black text-green-555 mt-2">↗ 0 this month</span>
+        </div>
+
+        {/* Stat 4: Admins */}
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Admins</span>
+            <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center text-xs">
+              <FaUserShield />
+            </div>
+          </div>
+          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            {stats.admins}
+          </p>
+          <span className="block text-[9px] font-bold text-slate-450 mt-2">Active administrators</span>
+        </div>
+
+        {/* Stat 5: Teachers */}
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Teachers</span>
+            <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center text-xs">
+              <FaChalkboardTeacher />
+            </div>
+          </div>
+          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            {stats.teachers}
+          </p>
+          <span className="block text-[9px] font-bold text-slate-455 mt-2">Active teachers</span>
+        </div>
+
+        {/* Stat 6: Students */}
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Students</span>
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs">
+              <FaUserGraduate />
+            </div>
+          </div>
+          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            {stats.students}
+          </p>
+          <span className="block text-[9px] font-bold text-slate-450 mt-2">Active students</span>
+        </div>
+
+      </div>
+
+      {/* Financial Overview Segment */}
+      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 space-y-4 shadow-sm relative select-none">
+        
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-black text-[#7C3AED] dark:text-[#A78BFA] uppercase tracking-widest">Financial Overview</span>
+          
+          <select className="appearance-none bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white py-1.5 px-4 rounded-xl text-[10px] font-bold focus:outline-none cursor-pointer">
+            <option>This Month</option>
+            <option>Last Month</option>
+            <option>All Time</option>
           </select>
         </div>
-      </div>
 
-      {/* Users Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">User Directory</h2>
-          <span className="text-xs font-bold bg-[#7C3AED]/10 text-[#7C3AED] px-3 py-1.5 rounded-full">
-            Showing {filteredUsers.length} of {totalUsers} users
-          </span>
-        </div>
-
-        <div className="overflow-x-auto">
-          {loading ? (
-            <div className="py-20 text-center flex flex-col items-center justify-center">
-              <div className="w-10 h-10 border-4 border-[#7C3AED] border-t-transparent rounded-full animate-spin mb-4" />
-              <p className="text-slate-500 font-bold text-sm">Loading users...</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          
+          {/* Revenue */}
+          <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.01]">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-[#7C3AED] flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
             </div>
-          ) : (
-            <table className="min-w-full">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-100 select-none">
-                  <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">User Info</th>
-                  <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Current Role</th>
-                  <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Assigned School</th>
-                  <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Created</th>
-                  <th className="px-6 py-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider w-28">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100/80">
-                {filteredUsers.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="py-20 text-center">
-                      <FaUsers className="text-slate-200 text-5xl mx-auto mb-4" />
-                      <p className="text-slate-500 text-sm font-bold">No users found</p>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredUsers.map((u) => (
-                    <tr key={u._id} className="hover:bg-slate-50/50 transition-colors group">
-                      <td className="px-6 py-4">
-                        <div>
-                          <p className="text-sm font-bold text-slate-700">{u.name}</p>
-                          <p className="text-xs text-slate-400 font-medium">{u.email}</p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full border ${
-                          u.role === "superadmin"
-                            ? "bg-rose-50 border-rose-100 text-rose-700"
-                            : u.role === "admin"
-                            ? "bg-emerald-50 border-emerald-100 text-emerald-700"
-                            : u.role === "teacher"
-                            ? "bg-indigo-50 border-indigo-100 text-indigo-700"
-                            : u.role === "student"
-                            ? "bg-cyan-50 border-cyan-100 text-cyan-700"
-                            : "bg-amber-50 border-amber-100 text-amber-700"
-                        }`}>
-                          {u.role === "unassigned" ? "Pending Approval" : u.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <p className="text-xs text-slate-700 font-bold">
-                          {u.schoolName || <span className="text-slate-400 font-medium italic">Not Assigned</span>}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4"><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${approvalLabel(u) === "Pending" ? "bg-amber-50 text-amber-700" : approvalLabel(u) === "Rejected" ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"}`}>{approvalLabel(u)}</span></td>
-                      <td className="px-6 py-4 text-xs text-slate-500">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}</td>
-                      <td className="px-6 py-4 text-center">
-                        {u.role === "superadmin" ? (
-                          <span className="text-xs text-slate-400 font-medium italic">ReadOnly</span>
-                        ) : (
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => handleOpenAssignModal(u)}
-                              className="bg-slate-100 hover:bg-[#7C3AED] hover:text-white p-2 rounded-xl text-slate-500 transition duration-150 inline-flex items-center justify-center cursor-pointer"
-                              title="Edit User"
-                            >
-                              <FaEdit className="text-xs" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteUser(u._id, u.name)}
-                              className="bg-rose-50 hover:bg-rose-600 hover:text-white p-2 rounded-xl text-rose-600 transition duration-150 inline-flex items-center justify-center cursor-pointer"
-                              title="Delete User"
-                            >
-                              <FaTrash className="text-xs" />
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          )}
+            <div>
+              <h4 className="text-sm font-black text-slate-900 dark:text-white leading-tight">
+                ₹{stats.financials.totalRevenue.toFixed(2)}
+              </h4>
+              <p className="text-[9px] text-slate-450 dark:text-slate-500 font-extrabold uppercase mt-0.5">Total Revenue</p>
+              <span className="text-[8px] text-slate-400 font-bold mt-0.5 block">0% from last month</span>
+            </div>
+          </div>
+
+          {/* Pending */}
+          <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.01]">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5 rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h4 className="text-sm font-black text-slate-900 dark:text-white leading-tight">
+                ₹{stats.financials.pendingAmount.toFixed(2)}
+              </h4>
+              <p className="text-[9px] text-slate-450 dark:text-slate-500 font-extrabold uppercase mt-0.5">Pending Amount</p>
+              <span className="text-[8px] text-amber-500 font-black mt-0.5 block">{stats.financials.pendingSchools} schools</span>
+            </div>
+          </div>
+
+          {/* Paid schools */}
+          <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.01]">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h4 className="text-sm font-black text-slate-900 dark:text-white leading-tight">
+                {stats.financials.paidSchools}
+              </h4>
+              <p className="text-[9px] text-slate-450 dark:text-slate-500 font-extrabold uppercase mt-0.5">Paid Schools</p>
+              <span className="text-[8px] text-green-555 font-black mt-0.5 block">0% from last month</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* QUICK ACTIONS Segment */}
+      <div className="space-y-3 select-none">
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Quick Actions</span>
+        
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          
+          {/* Action 1 */}
+          <div 
+            onClick={() => { setShowUserManagement(true); setUserSection("pending"); }}
+            className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-purple-500/20 p-4.5 rounded-2.5xl flex flex-col items-center justify-center text-center cursor-pointer transition shadow-sm h-36 group"
+          >
+            <div className="w-10 h-10 rounded-full bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+              <FaUsers className="text-sm" />
+            </div>
+            <h4 className="text-[11px] font-black text-slate-805 dark:text-white mt-3">Approve Users</h4>
+            <p className="text-[9px] text-slate-450 mt-1">Review pending registrations</p>
+          </div>
+
+          {/* Action 2 */}
+          <div 
+            onClick={() => { setShowUserManagement(true); setUserSection("approved"); }}
+            className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-purple-500/20 p-4.5 rounded-2.5xl flex flex-col items-center justify-center text-center cursor-pointer transition shadow-sm h-36 group"
+          >
+            <div className="w-10 h-10 rounded-full bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+              <FaSchool className="text-sm" />
+            </div>
+            <h4 className="text-[11px] font-black text-slate-805 dark:text-white mt-3">Manage Schools</h4>
+            <p className="text-[9px] text-slate-450 mt-1">Add / Edit schools</p>
+          </div>
+
+          {/* Action 3 */}
+          <div 
+            onClick={() => alert("Open payment logs dashboard.")}
+            className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-purple-500/20 p-4.5 rounded-2.5xl flex flex-col items-center justify-center text-center cursor-pointer transition shadow-sm h-36 group"
+          >
+            <div className="w-10 h-10 rounded-full bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+              <svg className="w-5 h-5 text-[#7C3AED]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h4 className="text-[11px] font-black text-slate-805 dark:text-white mt-3">Manage Payments</h4>
+            <p className="text-[9px] text-slate-450 mt-1">View payments & subscriptions</p>
+          </div>
+
+          {/* Action 4 */}
+          <div 
+            onClick={() => alert("Redirecting to support conversations.")}
+            className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-purple-500/20 p-4.5 rounded-2.5xl flex flex-col items-center justify-center text-center cursor-pointer transition shadow-sm h-36 group"
+          >
+            <div className="w-10 h-10 rounded-full bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+              <FaComments className="text-sm" />
+            </div>
+            <h4 className="text-[11px] font-black text-slate-805 dark:text-white mt-3">Support Inbox</h4>
+            <p className="text-[9px] text-slate-450 mt-1">View all support conversations</p>
+          </div>
+
+          {/* Action 5 */}
+          <div 
+            onClick={() => alert("Audit dashboard events.")}
+            className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-purple-500/20 p-4.5 rounded-2.5xl flex flex-col items-center justify-center text-center cursor-pointer transition shadow-sm h-36 group"
+          >
+            <div className="w-10 h-10 rounded-full bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+              <svg className="w-5 h-5 text-[#7C3AED]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            </div>
+            <h4 className="text-[11px] font-black text-slate-805 dark:text-white mt-3">Event Audit</h4>
+            <p className="text-[9px] text-slate-455 mt-1">Review events across schools</p>
+          </div>
+
         </div>
       </div>
 
-      {/* Assignment Modal */}
+      {/* Grid of Split Details Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 select-none">
+        
+        {/* Left Column: Recent Activity Feed */}
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recent Activity</span>
+            <button 
+              onClick={() => setShowUserManagement(true)}
+              className="text-[10px] font-black text-[#7C3AED] dark:text-[#38BDF8] hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              View All <FaArrowRight className="text-[9px]" />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {recentActivity.map((act, idx) => (
+              <div key={act._id || idx} className="flex items-center justify-between gap-3 text-xs font-semibold">
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* Avatar bubble based on type */}
+                  <div className={`w-8.5 h-8.5 rounded-full flex items-center justify-center shrink-0 text-sm ${
+                    act.type.includes("registered") ? "bg-emerald-500/10 text-emerald-500" :
+                    act.type.includes("approved") ? "bg-amber-500/10 text-amber-500" :
+                    act.type.includes("school") ? "bg-purple-500/10 text-purple-500" :
+                    act.type.includes("Payment") ? "bg-emerald-500/10 text-emerald-500" :
+                    "bg-blue-500/10 text-blue-500"
+                  }`}>
+                    👤
+                  </div>
+                  <div className="min-w-0">
+                    <h5 className="text-slate-805 dark:text-slate-200 font-black truncate leading-tight">
+                      {act.type}
+                    </h5>
+                    <p className="text-[9px] text-slate-450 dark:text-slate-500 font-bold truncate mt-0.5">
+                      {act.detail}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[9px] text-slate-455 dark:text-slate-500 font-extrabold">{act.time || act.dateText}</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Column: Support summary & System Status */}
+        <div className="space-y-6">
+          
+          {/* Support summary statistics */}
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm space-y-4">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Support Summary</span>
+            
+            <div className="space-y-1">
+              {[
+                { label: "Open Conversations", count: stats.support.openConversations, color: "text-[#7C3AED]", bg: "bg-purple-550/10" },
+                { label: "Open Tickets", count: stats.support.openTickets, color: "text-blue-500", bg: "bg-blue-500/10" },
+                { label: "Pending Calls", count: stats.support.pendingCalls, color: "text-emerald-555", bg: "bg-emerald-500/10" },
+                { label: "Avg. Response Time", count: stats.support.avgResponseTime, color: "text-amber-500", bg: "bg-amber-500/10" }
+              ].map((item, idx) => (
+                <div 
+                  key={idx}
+                  onClick={() => alert(`View support stats detail for ${item.label}`)}
+                  className="flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.01] rounded-2xl transition cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8.5 h-8.5 rounded-full ${item.bg} ${item.color} flex items-center justify-center shrink-0`}>
+                      👤
+                    </div>
+                    <span className="text-xs font-black text-slate-805 dark:text-slate-200 leading-tight">
+                      {item.label}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`text-xs font-black font-mono ${item.color}`}>{item.count}</span>
+                    <span className="text-slate-400 group-hover:translate-x-0.5 transition-transform text-xs leading-none">&gt;</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* System status glow block */}
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm flex items-center gap-4 relative overflow-hidden">
+            
+            {/* Left large shield tick glow icon */}
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-700 text-white flex items-center justify-center shadow-lg shadow-indigo-500/25 shrink-0 select-none">
+              <FaShieldAlt className="text-2xl" />
+            </div>
+
+            <div>
+              <h4 className="text-xs font-black text-slate-900 dark:text-white">System Status</h4>
+              <p className="text-[10px] text-slate-450 dark:text-slate-400 font-semibold leading-relaxed mt-0.5">
+                All systems are running smoothly.
+              </p>
+              
+              {/* Green status indicator tag */}
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 mt-2 select-none">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping" /> All Good
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* Toggled User management Directory table drawer section */}
+      <div className="pt-4 select-none">
+        <button
+          onClick={() => setShowUserManagement(!showUserManagement)}
+          className="w-full bg-[#7C3AED]/5 hover:bg-[#7C3AED]/10 border border-[#7C3AED]/15 py-3 rounded-2xl text-[10px] font-black text-[#7C3AED] dark:text-[#A78BFA] uppercase tracking-widest transition cursor-pointer flex items-center justify-center gap-2"
+        >
+          {showUserManagement ? "Hide Directory Table ✕" : "Show User management Directory Table ↓"}
+        </button>
+      </div>
+
+      {showUserManagement && (
+        <div className="space-y-4 animate-fadeIn border-t border-slate-200 dark:border-white/5 pt-6">
+          
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setUserSection("pending")} 
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                userSection === "pending" 
+                  ? "bg-[#7C3AED] text-white shadow-sm" 
+                  : "bg-white dark:bg-[#0B132A] text-slate-655 dark:text-slate-350 border border-slate-200 dark:border-white/10"
+              }`}
+            >
+              Pending Users ({stats.pendingApprovals})
+            </button>
+            
+            <button 
+              onClick={() => setUserSection("approved")} 
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                userSection === "approved" 
+                  ? "bg-[#7C3AED] text-white shadow-sm" 
+                  : "bg-white dark:bg-[#0B132A] text-slate-655 dark:text-slate-350 border border-slate-200 dark:border-white/10"
+              }`}
+            >
+              Approved Users ({stats.totalUsers - stats.pendingApprovals})
+            </button>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="relative flex-1 max-w-md">
+              <FaSearch className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 text-sm pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search users by name or email..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-11 pr-4 py-3 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-2xl text-xs text-slate-700 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#7C3AED] shadow-sm transition"
+              />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Filter by:</span>
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="px-4 py-2.5 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-350 focus:outline-none focus:border-[#7C3AED] cursor-pointer"
+              >
+                <option value="">All Roles</option>
+                <option value="unassigned">Pending (Unassigned)</option>
+                <option value="admin">Admin</option>
+                <option value="teacher">Teacher</option>
+                <option value="student">Student</option>
+                <option value="superadmin">Super Admin</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Directory log Table */}
+          <div className="bg-white dark:bg-[#0B132A] rounded-2.5xl border border-slate-200/60 dark:border-white/[0.08] shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              {loadingUsers ? (
+                <div className="py-20 text-center flex flex-col items-center justify-center">
+                  <div className="w-8 h-8 border-3 border-[#7C3AED] border-t-transparent rounded-full animate-spin mb-4" />
+                  <p className="text-slate-500 font-bold text-xs">Loading users...</p>
+                </div>
+              ) : (
+                <table className="min-w-full">
+                  <thead>
+                    <tr className="bg-slate-50 dark:bg-white/[0.01] border-b border-slate-100 dark:border-white/[0.04]">
+                      <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">User Info</th>
+                      <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Current Role</th>
+                      <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Assigned School</th>
+                      <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Created</th>
+                      <th className="px-6 py-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider w-28">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/[0.04]">
+                    {filteredUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="py-20 text-center">
+                          <FaUsers className="text-slate-200 dark:text-slate-800 text-5xl mx-auto mb-4" />
+                          <p className="text-slate-500 text-xs font-bold">No users found in directory</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredUsers.map((u) => (
+                        <tr key={u._id} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.01] transition-colors">
+                          <td className="px-6 py-4">
+                            <div>
+                              <p className="text-xs font-black text-slate-805 dark:text-white">{u.name}</p>
+                              <p className="text-[10px] text-slate-450 font-bold mt-0.5">{u.email}</p>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center gap-1 text-[9px] font-black px-2.5 py-1 rounded-full border uppercase tracking-wider ${
+                              u.role === "superadmin" ? "bg-rose-50 border-rose-100 text-rose-700" :
+                              u.role === "admin" ? "bg-emerald-50 border-emerald-100 text-emerald-700" :
+                              u.role === "teacher" ? "bg-indigo-50 border-indigo-100 text-indigo-700" :
+                              u.role === "student" ? "bg-cyan-50 border-cyan-100 text-cyan-700" :
+                              "bg-amber-50 border-amber-100 text-amber-700"
+                            }`}>
+                              {u.role === "unassigned" ? "Pending Approval" : u.role}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <p className="text-xs text-slate-805 dark:text-white font-black">
+                              {u.schoolName || <span className="text-slate-450 font-semibold italic">Not Assigned</span>}
+                            </p>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-wider ${
+                              approvalLabel(u) === "Pending" ? "bg-amber-50 text-amber-700" : 
+                              approvalLabel(u) === "Rejected" ? "bg-rose-50 text-rose-700" : 
+                              "bg-emerald-50 text-emerald-700"
+                            }`}>
+                              {approvalLabel(u)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-xs text-slate-500">
+                            {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            {u.role === "superadmin" ? (
+                              <span className="text-[10px] text-slate-450 font-semibold italic">ReadOnly</span>
+                            ) : (
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  onClick={() => handleOpenAssignModal(u)}
+                                  className="bg-slate-100 hover:bg-[#7C3AED] hover:text-white p-2 rounded-xl text-slate-500 transition duration-150 inline-flex items-center justify-center cursor-pointer"
+                                  title="Edit User"
+                                >
+                                  <FaEdit className="text-xs" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteUser(u._id, u.name)}
+                                  className="bg-rose-50 hover:bg-rose-600 hover:text-white p-2 rounded-xl text-rose-600 transition duration-150 inline-flex items-center justify-center cursor-pointer"
+                                  title="Delete User"
+                                >
+                                  <FaTrash className="text-xs" />
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+
+        </div>
+      )}
+
+      {/* Assignment Modal Drawer */}
       {editUser && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 select-none animate-fadeIn">
-          <div className="bg-white rounded-3xl border border-slate-200/60 shadow-2xl max-w-md w-full overflow-hidden animate-slideUp">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[90] flex items-center justify-center p-4 select-none animate-fadeIn">
+          <div className="bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-2xl max-w-md w-full overflow-hidden text-slate-800 dark:text-white">
             <div className="h-1.5 w-full bg-gradient-to-r from-[#7C3AED] to-[#38BDF8]" />
             <div className="p-6">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-6">
+              
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-3.5 mb-6">
                 <div>
-                  <h3 className="text-base font-bold text-slate-800">Assign Role & School</h3>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{editUser.name}</p>
+                  <h3 className="text-sm sm:text-base font-black">Assign Role & School</h3>
+                  <p className="text-[9px] text-slate-400 font-black uppercase tracking-wider mt-0.5">{editUser.name}</p>
                 </div>
                 <button
                   onClick={() => setEditUser(null)}
-                  className="text-slate-400 hover:text-slate-600 bg-slate-50 p-1.5 rounded-xl transition"
+                  className="text-slate-400 hover:text-slate-600 bg-slate-50 dark:bg-white/5 p-1.5 rounded-xl transition cursor-pointer"
                 >
                   <FaTimes />
                 </button>
               </div>
 
               <form onSubmit={handleSaveAssignment} className="space-y-5">
-                {/* Select Role */}
+                
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
                     System Role
                   </label>
                   <select
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value)}
                     required
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] cursor-pointer"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-extrabold text-slate-700 dark:text-white focus:outline-none focus:border-[#7C3AED] cursor-pointer"
                   >
                     <option value="unassigned">Pending (Unassigned)</option>
                     <option value="admin">Admin</option>
@@ -331,10 +781,9 @@ function SuperAdminDashboard() {
                   </select>
                 </div>
 
-                {/* Select School */}
                 {newRole !== "unassigned" && (
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
                       School Name
                     </label>
                     <input
@@ -344,7 +793,7 @@ function SuperAdminDashboard() {
                       value={newSchool}
                       onChange={(e) => setNewSchool(e.target.value)}
                       required
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED]"
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-700 dark:text-white focus:outline-none focus:border-[#7C3AED]"
                     />
                     <datalist id="school-suggestions">
                       {schools.map((school, idx) => (
@@ -357,7 +806,7 @@ function SuperAdminDashboard() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#7C3AED] to-[#312E81] hover:opacity-90 active:scale-[0.98] text-white py-3.5 rounded-xl text-sm font-bold shadow-md shadow-[#7C3AED]/15 transition-all cursor-pointer disabled:opacity-60"
+                  className="w-full flex items-center justify-center gap-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white py-3.5 rounded-xl text-xs font-black shadow-md transition disabled:opacity-60 cursor-pointer"
                 >
                   {saving ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -370,6 +819,7 @@ function SuperAdminDashboard() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
