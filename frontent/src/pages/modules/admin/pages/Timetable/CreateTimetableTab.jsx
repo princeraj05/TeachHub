@@ -7,7 +7,8 @@ import {
   FaClock,
   FaMapMarkerAlt,
   FaRegListAlt,
-  FaFileAlt
+  FaFileAlt,
+  FaInfoCircle
 } from "react-icons/fa";
 
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
