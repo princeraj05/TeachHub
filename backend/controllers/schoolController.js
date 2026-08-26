@@ -313,6 +313,34 @@ exports.getSchoolDetails = async (req, res) => {
   }
 };
 
+// GET /api/schools/:name/teachers
+exports.getSchoolTeachers = async (req, res) => {
+  try {
+    const searchName = req.params.name;
+    const normalized = normalizeName(searchName);
+    const school = await School.findOne({ normalizedName: normalized });
+    if (!school) {
+      return res.status(404).json({ message: "School not found" });
+    }
+
+    const teachers = await User.find({ role: "teacher", schoolName: school.name })
+      .select("-password")
+      .lean();
+
+    for (let teacher of teachers) {
+      const classes = await Class.find({ teacher: teacher._id, schoolName: school.name }).select("name section");
+      const subjects = await Subject.find({ teacher: teacher._id, schoolName: school.name }).select("name");
+      teacher.classes = classes;
+      teacher.subjects = subjects;
+    }
+
+    res.json(teachers);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 // POST /api/schools/upload
 exports.uploadSchoolPhoto = async (req, res) => {
   try {

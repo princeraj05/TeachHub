@@ -4,7 +4,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { protect, authorize } = require("../middleware/authMiddleware");
-const { getSchools, getSchoolDetails, getMySchool, updateMySchool, uploadSchoolPhoto } = require("../controllers/schoolController");
+const { getSchools, getSchoolDetails, getSchoolTeachers, getMySchool, updateMySchool, uploadSchoolPhoto } = require("../controllers/schoolController");
 
 // Configure Multer storage to reuse the backend/uploads directory
 const storage = multer.diskStorage({
@@ -34,5 +34,7 @@ router.post("/upload", protect, authorize("admin"), upload.single("image"), uplo
 // Register list and parameterized routes last
 router.get("/", protect, getSchools);
 router.get("/:name", protect, getSchoolDetails);
+router.get("/:name/teachers", protect, getSchoolTeachers);
+
 
 module.exports = router;
