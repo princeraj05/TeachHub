@@ -476,14 +476,14 @@ export const CallProvider = ({ children }) => {
 
       {/* Global Toast Notifier */}
       {toastMessage && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-[#0F172A] border border-white/10 text-white font-bold text-xs py-3 px-6 rounded-full shadow-2xl z-9999 animate-bounce">
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-[#0F172A] border border-white/10 text-white font-bold text-xs py-3 px-6 rounded-full shadow-2xl z-[99999] animate-bounce">
           {toastMessage}
         </div>
       )}
 
       {/* Global Call Modals & Overlays */}
       {callState === "ringing" && callPartner && (
-        <div className="fixed inset-0 bg-[#070b13]/85 backdrop-blur-md flex items-center justify-center z-9999 select-none select-none">
+        <div className="fixed inset-0 bg-[#070b13]/85 backdrop-blur-md flex items-center justify-center z-[99999] select-none select-none">
           <div className="bg-[#0f172a] border border-white/10 p-8 rounded-3xl w-80 text-center shadow-2xl relative">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center mx-auto mb-6 text-white text-3xl font-black shadow-lg shadow-[#7C3AED]/20 animate-pulse">
               {callPartner.name.charAt(0).toUpperCase()}
@@ -512,7 +512,7 @@ export const CallProvider = ({ children }) => {
       )}
 
       {callState === "calling" && callPartner && (
-        <div className="fixed inset-0 bg-[#070b13]/85 backdrop-blur-md flex items-center justify-center z-9999 select-none">
+        <div className="fixed inset-0 bg-[#070b13]/85 backdrop-blur-md flex items-center justify-center z-[99999] select-none">
           <div className="bg-[#0f172a] border border-white/10 p-8 rounded-3xl w-80 text-center shadow-2xl relative">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center mx-auto mb-6 text-white text-3xl font-black shadow-lg shadow-[#7C3AED]/20">
               {callPartner.name.charAt(0).toUpperCase()}
@@ -535,7 +535,7 @@ export const CallProvider = ({ children }) => {
       )}
 
       {callState === "active" && callPartner && (
-        <div className="fixed inset-0 bg-[#070b13]/90 backdrop-blur-lg flex items-center justify-center z-9999 select-none">
+        <div className="fixed inset-0 bg-[#070b13]/90 backdrop-blur-lg flex items-center justify-center z-[99999] select-none">
           <div className="bg-[#0f172a] border border-white/10 p-8 rounded-3xl w-100 text-center shadow-2xl relative overflow-hidden flex flex-col justify-between h-[520px]">
             <div>
               <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">
