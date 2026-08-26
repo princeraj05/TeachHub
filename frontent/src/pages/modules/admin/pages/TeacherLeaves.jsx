@@ -144,87 +144,7 @@ export default function TeacherLeaves() {
   };
 
   return (
-    <div style={{ background: C.bg, color: C.text, fontFamily: "Inter, system-ui, sans-serif" }} className="flex h-full min-h-[820px] w-full text-[13px]">
-      {/* ---------------- Sidebar ---------------- */}
-      <aside style={{ background: C.sidebar, borderRight: `1px solid ${C.borderSoft}` }} className="hidden w-56 shrink-0 flex-col py-5 lg:flex">
-        <div className="flex items-center gap-2 px-5 pb-6">
-          <div style={{ background: C.purple }} className="flex h-8 w-8 items-center justify-center rounded-lg">
-            <GraduationCap size={18} color="#fff" />
-          </div>
-          <span className="text-[17px] font-extrabold">
-            Teach<span style={{ color: C.purple }}>Hub</span>
-          </span>
-        </div>
-
-        <nav className="flex-1 space-y-0.5 overflow-y-auto px-3">
-          {NAV.map((item) => (
-            <button
-              key={item.label}
-              style={item.active ? { background: C.purple, color: "#fff" } : { color: C.sub }}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium transition-colors hover:bg-white/5"
-            >
-              <item.icon size={16} />
-              <span className="flex-1 truncate">{item.label}</span>
-              {item.badge && (
-                <span style={{ background: C.red }} className="rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
-                  {item.badge}
-                </span>
-              )}
-            </button>
-          ))}
-        </nav>
-
-        <div className="mt-4 space-y-3 px-3">
-          <div style={{ borderColor: C.borderSoft }} className="flex items-center gap-2 rounded-xl border p-2.5">
-            <div style={{ background: C.purple }} className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white">
-              BT
-              <span style={{ background: C.green, borderColor: C.sidebar }} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[12px] font-semibold">Banny Thapar</p>
-              <p style={{ color: C.faint }} className="text-[10px]">School Admin</p>
-            </div>
-            <ChevronDown size={14} style={{ color: C.faint }} />
-          </div>
-          <button style={{ color: "#F0506E" }} className="flex w-full items-center gap-3 px-3 py-1 text-[13px] font-medium">
-            <LogOut size={16} />
-            Logout
-          </button>
-        </div>
-      </aside>
-
-      {/* ---------------- Main ---------------- */}
-      <div className="flex min-w-0 flex-1 flex-col">
-        {/* Top bar */}
-        <header style={{ borderColor: C.borderSoft }} className="flex items-center gap-4 border-b px-6 py-3.5">
-          <Menu size={20} style={{ color: C.sub }} className="lg:hidden" />
-          <div>
-            <p className="text-[13px] font-bold leading-tight">School: G.D Accedmy</p>
-            <p style={{ color: C.faint }} className="text-[11px] leading-tight">School Admin Panel</p>
-          </div>
-          <div style={{ background: C.card, borderColor: C.border }} className="ml-4 hidden flex-1 max-w-sm items-center gap-2 rounded-xl border px-3 py-2 md:flex">
-            <Search size={14} style={{ color: C.faint }} />
-            <input placeholder="Search anything..." style={{ color: C.text }} className="w-full bg-transparent text-[12px] outline-none placeholder:text-[#5B6478]" />
-          </div>
-          <div className="ml-auto flex items-center gap-4">
-            <div className="relative">
-              <Bell size={18} style={{ color: C.sub }} />
-              <span style={{ background: C.purple }} className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white">8</span>
-            </div>
-            <Calendar size={18} style={{ color: C.sub }} />
-            <div style={{ background: C.card, borderColor: C.border }} className="flex items-center gap-2 rounded-xl border px-3 py-1.5">
-              <div>
-                <p style={{ color: C.faint }} className="text-[9px] leading-none">Academic Year</p>
-                <p className="text-[12px] font-bold leading-tight">2026</p>
-              </div>
-              <ChevronDown size={13} style={{ color: C.faint }} />
-            </div>
-            <div style={{ background: C.purple }} className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white">BT</div>
-          </div>
-        </header>
-
-        {/* Content */}
-        <main className="flex-1 overflow-y-auto px-6 py-6">
+    <div style={{ background: C.bg, color: C.text, fontFamily: "Inter, system-ui, sans-serif" }} className="flex-1 overflow-y-auto px-6 py-6 text-[13px]">
           <p style={{ color: C.purple }} className="text-[11px] font-semibold">
             Teacher Leaves <span style={{ color: C.faint }}>›</span> <span style={{ color: C.faint }}>Leave Requests</span>
           </p>
@@ -527,8 +447,6 @@ export default function TeacherLeaves() {
               </aside>
             )}
           </div>
-        </main>
-      </div>
     </div>
   );
 }
