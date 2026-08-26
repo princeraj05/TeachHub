@@ -60,8 +60,120 @@ exports.createAppointment = async (req, res) => { try { const { schoolName, date
 exports.getAppointments = async (req, res) => { try { const query = req.user.role === "admin" ? { schoolName: req.user.schoolName } : { user: req.user.id }; res.json(await Appointment.find(query).populate("user", "name email").sort({ date: 1, time: 1 })); } catch { res.status(500).json({ message: "Could not load appointments" }); } };
 exports.updateAppointment = async (req, res) => { try { const { status, notes } = req.body; const appointment = await Appointment.findById(req.params.id); if (!appointment) return res.status(404).json({ message: "Appointment not found" }); if (req.user.role === "admin" && appointment.schoolName !== req.user.schoolName) return res.status(403).json({ message: "Forbidden" }); if (req.user.role !== "admin" && appointment.user.toString() !== req.user.id) return res.status(403).json({ message: "Forbidden" }); if (status && !["Pending", "Approved", "Rejected", "Completed", "Cancelled"].includes(status)) return res.status(400).json({ message: "Invalid appointment status" }); if (req.user.role !== "admin" && status && status !== "Cancelled") return res.status(403).json({ message: "You may only cancel your appointment" }); if (status) appointment.status = status; if (notes !== undefined) appointment.notes = notes; await appointment.save(); res.json(appointment); } catch { res.status(400).json({ message: "Could not update appointment" }); } };
 
-exports.createTimetable = async (req, res) => { try { const { classId, subjectId, teacherId, day, startTime, durationMinutes } = req.body; const start = minutes(startTime), duration = Number(durationMinutes); if (!validId(classId) || !validId(subjectId) || !validId(teacherId) || start === null || !Number.isInteger(duration) || duration < 1 || duration > 600) return res.status(400).json({ message: "Provide valid timetable details" }); const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]; if (!days.includes(day)) return res.status(400).json({ message: "Invalid day" }); const [classData, subject, teacher] = await Promise.all([Class.findOne({ _id: classId, schoolName: req.user.schoolName }), Subject.findOne({ _id: subjectId, class: classId, schoolName: req.user.schoolName }), User.findOne({ _id: teacherId, role: "teacher", schoolName: req.user.schoolName })]); if (!classData || !subject || !teacher) return res.status(400).json({ message: "Class, subject and teacher must belong to your school" }); const end = start + duration; if (end > 1440) return res.status(400).json({ message: "Class cannot end after midnight" }); const entries = await Timetable.find({ schoolName: req.user.schoolName, day, $or: [{ class: classId }, { teacher: teacherId }] }); if (entries.some(item => start < minutes(item.endTime) && end > minutes(item.startTime))) return res.status(409).json({ message: "This class or teacher already has an overlapping period" }); const entry = await Timetable.create({ schoolName: req.user.schoolName, class: classId, subject: subjectId, teacher: teacherId, day, startTime: timeOf(start), endTime: timeOf(end), durationMinutes: duration }); res.status(201).json(await entry.populate(["class", "subject", "teacher"])); } catch { res.status(500).json({ message: "Could not create timetable entry" }); } };
-exports.updateTimetable = async (req, res) => { try { const { classId, subjectId, teacherId, day, startTime, durationMinutes } = req.body; const start = minutes(startTime), duration = Number(durationMinutes); if (!validId(req.params.id) || !validId(classId) || !validId(subjectId) || !validId(teacherId) || start === null || !Number.isInteger(duration) || duration < 1 || duration > 600) return res.status(400).json({ message: "Provide valid timetable details" }); const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]; if (!days.includes(day)) return res.status(400).json({ message: "Invalid day" }); const [entry, classData, subject, teacher] = await Promise.all([Timetable.findOne({ _id: req.params.id, schoolName: req.user.schoolName }), Class.findOne({ _id: classId, schoolName: req.user.schoolName }), Subject.findOne({ _id: subjectId, class: classId, schoolName: req.user.schoolName }), User.findOne({ _id: teacherId, role: "teacher", schoolName: req.user.schoolName })]); if (!entry) return res.status(404).json({ message: "Timetable entry not found" }); if (!classData || !subject || !teacher) return res.status(400).json({ message: "Class, subject and teacher must belong to your school" }); const end = start + duration; if (end > 1440) return res.status(400).json({ message: "Class cannot end after midnight" }); const entries = await Timetable.find({ _id: { $ne: entry._id }, schoolName: req.user.schoolName, day, $or: [{ class: classId }, { teacher: teacherId }] }); if (entries.some(item => start < minutes(item.endTime) && end > minutes(item.startTime))) return res.status(409).json({ message: "This class or teacher already has an overlapping period" }); Object.assign(entry, { class: classId, subject: subjectId, teacher: teacherId, day, startTime: timeOf(start), endTime: timeOf(end), durationMinutes: duration }); await entry.save(); res.json(await entry.populate(["class", "subject", "teacher"])); } catch { res.status(500).json({ message: "Could not update timetable entry" }); } };
+exports.createTimetable = async (req, res) => {
+  try {
+    const { classId, subjectId, teacherId, day, days, startTime, durationMinutes, room, classType, notes } = req.body;
+    const start = minutes(startTime), duration = Number(durationMinutes);
+    if (!validId(classId) || !validId(subjectId) || !validId(teacherId) || start === null || !Number.isInteger(duration) || duration < 1 || duration > 600) {
+      return res.status(400).json({ message: "Provide valid timetable details" });
+    }
+
+    const targetDays = Array.isArray(days) ? days : [day].filter(Boolean);
+    if (!targetDays.length) {
+      return res.status(400).json({ message: "Select at least one day for the timetable entry" });
+    }
+
+    const daysEnum = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    for (const d of targetDays) {
+      if (!daysEnum.includes(d)) return res.status(400).json({ message: `Invalid day: ${d}` });
+    }
+
+    const [classData, subject, teacher] = await Promise.all([
+      Class.findOne({ _id: classId, schoolName: req.user.schoolName }),
+      Subject.findOne({ _id: subjectId, class: classId, schoolName: req.user.schoolName }),
+      User.findOne({ _id: teacherId, role: "teacher", schoolName: req.user.schoolName })
+    ]);
+
+    if (!classData || !subject || !teacher) {
+      return res.status(400).json({ message: "Class, subject and teacher must belong to your school" });
+    }
+
+    const end = start + duration;
+    if (end > 1440) return res.status(400).json({ message: "Class cannot end after midnight" });
+
+    // Validate conflicts on all target days
+    for (const d of targetDays) {
+      const entries = await Timetable.find({ schoolName: req.user.schoolName, day: d, $or: [{ class: classId }, { teacher: teacherId }] });
+      if (entries.some(item => start < minutes(item.endTime) && end > minutes(item.startTime))) {
+        return res.status(409).json({ message: `This class or teacher already has an overlapping period on ${d}` });
+      }
+    }
+
+    const createdEntries = [];
+    for (const d of targetDays) {
+      const entry = await Timetable.create({
+        schoolName: req.user.schoolName,
+        class: classId,
+        subject: subjectId,
+        teacher: teacherId,
+        day: d,
+        startTime: timeOf(start),
+        endTime: timeOf(end),
+        durationMinutes: duration,
+        room: room || "",
+        classType: classType || "Regular Class",
+        notes: notes || ""
+      });
+      createdEntries.push(entry);
+    }
+
+    const populated = await Timetable.populate(createdEntries, ["class", "subject", "teacher"]);
+    res.status(201).json(populated);
+  } catch (error) {
+    res.status(500).json({ message: "Could not create timetable entry" });
+  }
+};
+
+exports.updateTimetable = async (req, res) => {
+  try {
+    const { classId, subjectId, teacherId, day, startTime, durationMinutes, room, classType, notes } = req.body;
+    const start = minutes(startTime), duration = Number(durationMinutes);
+    if (!validId(req.params.id) || !validId(classId) || !validId(subjectId) || !validId(teacherId) || start === null || !Number.isInteger(duration) || duration < 1 || duration > 600) {
+      return res.status(400).json({ message: "Provide valid timetable details" });
+    }
+
+    const daysEnum = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    if (!daysEnum.includes(day)) return res.status(400).json({ message: "Invalid day" });
+
+    const [entry, classData, subject, teacher] = await Promise.all([
+      Timetable.findOne({ _id: req.params.id, schoolName: req.user.schoolName }),
+      Class.findOne({ _id: classId, schoolName: req.user.schoolName }),
+      Subject.findOne({ _id: subjectId, class: classId, schoolName: req.user.schoolName }),
+      User.findOne({ _id: teacherId, role: "teacher", schoolName: req.user.schoolName })
+    ]);
+
+    if (!entry) return res.status(404).json({ message: "Timetable entry not found" });
+    if (!classData || !subject || !teacher) {
+      return res.status(400).json({ message: "Class, subject and teacher must belong to your school" });
+    }
+
+    const end = start + duration;
+    if (end > 1440) return res.status(400).json({ message: "Class cannot end after midnight" });
+
+    const entries = await Timetable.find({ _id: { $ne: entry._id }, schoolName: req.user.schoolName, day, $or: [{ class: classId }, { teacher: teacherId }] });
+    if (entries.some(item => start < minutes(item.endTime) && end > minutes(item.startTime))) {
+      return res.status(409).json({ message: "This class or teacher already has an overlapping period" });
+    }
+
+    Object.assign(entry, {
+      class: classId,
+      subject: subjectId,
+      teacher: teacherId,
+      day,
+      startTime: timeOf(start),
+      endTime: timeOf(end),
+      durationMinutes: duration,
+      room: room !== undefined ? room : entry.room,
+      classType: classType !== undefined ? classType : entry.classType,
+      notes: notes !== undefined ? notes : entry.notes
+    });
+
+    await entry.save();
+    res.json(await entry.populate(["class", "subject", "teacher"]));
+  } catch (error) {
+    res.status(500).json({ message: "Could not update timetable entry" });
+  }
+};
 exports.getTimetable = async (req, res) => { try { const day = req.query.day; const query = { schoolName: req.user.schoolName }; if (day) query.day = day; if (req.user.role === "teacher") query.teacher = req.user.id; if (req.user.role === "student") { const user = await schoolUser(req.user.id); if (!user.classId) return res.json([]); query.class = user.classId; } const entries = await Timetable.find(query).populate("class", "name section").populate("subject", "name").populate("teacher", "name email").sort({ startTime: 1 }); const today = new Date(); today.setHours(0,0,0,0); const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1); const attendance = await TeacherAttendance.find({ schoolName: req.user.schoolName, date: { $gte: today, $lt: tomorrow } }).select("teacher status"); const statuses = new Map(attendance.map(item => [String(item.teacher), item.status])); res.json(entries.map(e => ({ ...e.toObject(), teacherAttendance: statuses.get(String(e.teacher?._id || e.teacher)) || "Not Marked" }))); } catch { res.status(500).json({ message: "Could not load timetable" }); } };
 
 exports.markTeacherAttendance = async (req, res) => { try { const { status } = req.body; if (!['Present', 'Absent'].includes(status)) return res.status(400).json({ message: 'Attendance status must be Present or Absent' }); const today = new Date(); today.setHours(0, 0, 0, 0); const attendance = await TeacherAttendance.findOneAndUpdate({ teacher: req.user.id, date: today }, { schoolName: req.user.schoolName, status }, { new: true, upsert: true, setDefaultsOnInsert: true }); res.json(attendance); } catch { res.status(500).json({ message: 'Could not save teacher attendance' }); } };

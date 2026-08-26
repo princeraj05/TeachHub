@@ -7,7 +7,10 @@ const timetableSchema = new mongoose.Schema({
   day: { type: String, enum: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], required: true },
   startTime: { type: String, required: true },
   durationMinutes: { type: Number, required: true, min: 1, max: 600 },
-  endTime: { type: String, required: true }
+  endTime: { type: String, required: true },
+  room: { type: String, default: "" },
+  classType: { type: String, default: "Regular Class" },
+  notes: { type: String, default: "" }
 }, { timestamps: true });
 timetableSchema.index({ schoolName: 1, class: 1, day: 1, startTime: 1 });
 timetableSchema.index({ schoolName: 1, teacher: 1, day: 1, startTime: 1 });
