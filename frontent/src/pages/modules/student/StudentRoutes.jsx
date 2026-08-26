@@ -9,6 +9,8 @@ import StudentExams from "./pages/StudentExams";
 import StudentProfile from "./pages/StudentProfile";
 import StudentSupport from "./pages/StudentSupport";
 import StudentEvents from "./pages/StudentEvents";
+import StudentContact from "./pages/StudentContact";
+import StudentLogout from "./pages/StudentLogout";
 
 import SchoolDirectory from "./pages/SchoolDirectory";
 import SchoolDetails from "./pages/SchoolDetails";
@@ -38,6 +40,8 @@ function StudentRoutes() {
         <Route path="support" element={<StudentSupport />} />
         <Route path="support/groups" element={<GroupChat />} />
         <Route path="events" element={<StudentEvents />} />
+        <Route path="contact" element={<StudentContact />} />
+        <Route path="logout" element={<StudentLogout />} />
         <Route path="schools" element={<SchoolDirectory />} />
         <Route path="schools/:name" element={<SchoolDetails />} />
         <Route path="about" element={<AboutAppPage />} />

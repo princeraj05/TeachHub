@@ -18,7 +18,8 @@ import {
   FaChevronRight,
   FaTimes,
   FaCheck,
-  FaUser
+  FaUser,
+  FaEnvelope
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -57,8 +58,7 @@ function StudentProfile() {
   }, [profile]);
 
   const handleLogout = () => {
-    localStorage.clear();
-    navigate("/");
+    navigate("/student/logout");
   };
 
   return (
@@ -265,6 +265,23 @@ function StudentProfile() {
               <div>
                 <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">About App</h4>
                 <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-0.5">Learn more about TeachHub</p>
+              </div>
+            </div>
+            <FaChevronRight className="text-slate-400 text-xs shrink-0 group-hover:text-slate-655 dark:group-hover:text-white transition-colors" />
+          </div>
+
+          {/* Row 1.5: Contact Us */}
+          <div 
+            onClick={() => navigate("/student/contact")}
+            className="p-4.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/[0.01] cursor-pointer group transition-all"
+          >
+            <div className="flex items-center gap-3.5">
+              <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/20 flex items-center justify-center shrink-0">
+                <FaEnvelope className="text-sm" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Contact Us</h4>
+                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-0.5">Get in touch with support desk</p>
               </div>
             </div>
             <FaChevronRight className="text-slate-400 text-xs shrink-0 group-hover:text-slate-655 dark:group-hover:text-white transition-colors" />

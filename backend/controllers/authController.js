@@ -394,10 +394,7 @@ exports.updateProfile = async (req, res) => {
         avatar: user.avatar
       }
     });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+
 
 // ================= GET SCHOOLS =================
 exports.getSchools = async (req, res) => {
@@ -449,6 +446,15 @@ exports.submitJoinRequest = async (req, res) => {
         requestStatus: user.requestStatus
       }
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ================= LOGOUT ACTION =================
+exports.logout = async (req, res) => {
+  try {
+    res.json({ message: "Logged out successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
