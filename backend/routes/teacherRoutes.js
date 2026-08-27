@@ -17,6 +17,7 @@ getTeacherExams,
 const { protect } = require("../middleware/authMiddleware");
 const teacherSubjectController = require("../controllers/teacherSubjectController");
 const teacherExamController = require("../controllers/teacherExamController");
+const teacherNotificationController = require("../controllers/teacherNotificationController");
 
 router.get("/dashboard", protect, getTeacherDashboard);
 
@@ -39,5 +40,9 @@ router.get("/exams", protect, teacherExamController.getTeacherExams);
 router.get("/exams/:examId/details", protect, teacherExamController.getExamDetails);
 
 router.get("/proctor-sessions", protect, getProctorSessions);
+
+router.get("/notifications/dashboard", protect, teacherNotificationController.getTeacherNotificationsDashboard);
+router.put("/notifications/read-all", protect, teacherNotificationController.markAllNotificationsRead);
+router.put("/notifications/:id/read", protect, teacherNotificationController.markSingleNotificationRead);
 
 module.exports = router;

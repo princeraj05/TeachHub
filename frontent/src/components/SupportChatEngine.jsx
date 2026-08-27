@@ -410,10 +410,10 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50 relative select-none">
+    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-[#111827] relative select-none">
       
       {/* Top Header Contact info */}
-      <div className="p-4 border-b border-slate-200 bg-white z-10 flex items-center justify-between shadow-sm">
+      <div className="p-4 border-b border-slate-200 dark:border-white/[0.05] bg-white dark:bg-[#111827] z-10 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
           {onBack && (
             <button onClick={onBack} className="p-2 -ml-2 text-slate-500 hover:text-[#7C3AED] lg:hidden">
@@ -425,11 +425,11 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
               {activeContact.name.charAt(0)}
             </div>
             {activeContact.isOnline && (
-              <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>
+              <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-[#111827] rounded-full"></span>
             )}
           </div>
           <div>
-            <p className="text-xs font-bold text-slate-800">{activeContact.name}</p>
+            <p className="text-xs font-bold text-slate-800 dark:text-white">{activeContact.name}</p>
             <p className="text-[10px] text-slate-400 font-medium">{getPresenceText()}</p>
           </div>
         </div>
@@ -438,13 +438,13 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
         <div className="flex items-center gap-2">
           <button 
             onClick={() => startCall(activeContact, "voice")}
-            className="p-3 rounded-full hover:bg-slate-100 text-slate-600 transition hover:text-[#7C3AED] cursor-pointer"
+            className="p-3 rounded-full hover:bg-slate-100 dark:hover:bg-white/[0.02] text-slate-600 dark:text-slate-400 transition hover:text-[#7C3AED] cursor-pointer"
           >
             <FaPhone className="text-sm" />
           </button>
           <button 
             onClick={() => startCall(activeContact, "video")}
-            className="p-3 rounded-full hover:bg-slate-100 text-slate-600 transition hover:text-[#7C3AED] cursor-pointer"
+            className="p-3 rounded-full hover:bg-slate-100 dark:hover:bg-white/[0.02] text-slate-600 dark:text-slate-400 transition hover:text-[#7C3AED] cursor-pointer"
           >
             <FaVideo className="text-sm" />
           </button>
@@ -455,7 +455,7 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
       <div 
         ref={chatContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-100/40 relative"
+        className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-100/40 dark:bg-[#0B132A]/20 relative"
       >
         {loading && page === 1 && (
           <div className="py-20 text-center flex flex-col items-center justify-center">
@@ -476,7 +476,7 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
               <div className={`max-w-[70%] rounded-2xl p-3.5 shadow-sm text-xs leading-relaxed relative ${
                 isOwn
                   ? "bg-[#7C3AED] text-white rounded-tr-none"
-                  : "bg-white border border-slate-200/60 text-slate-700 rounded-tl-none"
+                  : "bg-white dark:bg-[#1f2937] border border-slate-200/60 dark:border-white/[0.05] text-slate-700 dark:text-slate-200 rounded-tl-none"
               }`}>
                 
                 {msg.replyTo && (
@@ -488,7 +488,7 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
                     className={`p-2.5 rounded-lg border-l-4 mb-2 cursor-pointer truncate text-[10px] ${
                       isOwn 
                         ? "bg-white/10 border-white/55 text-white/90" 
-                        : "bg-slate-100 border-[#7C3AED] text-slate-500"
+                        : "bg-slate-100 dark:bg-white/[0.02] border-[#7C3AED] text-slate-500 dark:text-slate-400"
                     }`}
                   >
                     <p className="font-bold mb-0.5">Replying to message</p>
@@ -588,7 +588,7 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
                 </div>
 
                 {msg.reactions && msg.reactions.length > 0 && (
-                  <div className="absolute -bottom-2.5 right-2 bg-white border border-slate-200 rounded-full px-1.5 py-0.5 flex items-center gap-0.5 shadow-sm">
+                  <div className="absolute -bottom-2.5 right-2 bg-white dark:bg-[#1f2937] border border-slate-200 dark:border-white/[0.08] rounded-full px-1.5 py-0.5 flex items-center gap-0.5 shadow-sm">
                     {msg.reactions.map((react, k) => (
                       <span key={k} title={`Reacted`} className="text-[10px]">{react.emoji}</span>
                     ))}
@@ -596,7 +596,7 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
                 )}
               </div>
 
-              <div className={`absolute top-0 group-hover:flex hidden items-center gap-1 bg-white border border-slate-200 shadow-lg p-1.5 rounded-xl z-20 ${
+              <div className={`absolute top-0 group-hover:flex hidden items-center gap-1 bg-white dark:bg-[#1f2937] border border-slate-200 dark:border-white/[0.08] shadow-lg p-1.5 rounded-xl z-20 ${
                 isOwn ? "right-[72%]" : "left-[72%]"
               }`}>
                 {["👍", "❤️", "😂", "😮", "😢", "🙏"].map(emoji => (
@@ -631,7 +631,7 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
       </div>
 
       {typingUser && (
-        <div className="px-4 py-1.5 bg-white border-t border-slate-100 text-[10px] text-slate-500 font-bold tracking-wider select-none animate-pulse">
+        <div className="px-4 py-1.5 bg-white dark:bg-[#111827] border-t border-slate-100 dark:border-white/[0.05] text-[10px] text-slate-500 dark:text-slate-400 font-bold tracking-wider select-none animate-pulse">
           {typingUser} is typing...
         </div>
       )}
@@ -646,22 +646,22 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
       )}
 
       {replyingTo && (
-        <div className="p-3 bg-white border-t border-slate-200 flex items-center justify-between select-none">
+        <div className="p-3 bg-white dark:bg-[#111827] border-t border-slate-200 dark:border-white/[0.05] flex items-center justify-between select-none">
           <div className="border-l-4 border-[#7C3AED] pl-3">
             <p className="text-[10px] font-bold text-[#7C3AED]">Replying to {replyingTo.sender.name}</p>
-            <p className="text-[11px] text-slate-500 truncate">{replyingTo.content || "File attachment"}</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{replyingTo.content || "File attachment"}</p>
           </div>
-          <button onClick={() => setReplyingTo(null)} className="text-slate-400 hover:text-slate-600">
+          <button onClick={() => setReplyingTo(null)} className="text-slate-400 hover:text-slate-655">
             <FaTimes />
           </button>
         </div>
       )}
 
       {/* Composer Input toolbar */}
-      <div className="p-4 bg-white border-t border-slate-200">
+      <div className="p-4 bg-white dark:bg-[#111827] border-t border-slate-200 dark:border-white/[0.05]">
         
         {showEmojiPicker && (
-          <div className="border border-slate-200 rounded-2xl bg-white p-3 mb-3 shadow-lg max-h-56 overflow-y-auto">
+          <div className="border border-slate-200 dark:border-white/[0.05] rounded-2xl bg-white dark:bg-[#1f2937] p-3 mb-3 shadow-lg max-h-56 overflow-y-auto">
             {Object.keys(EMOJI_CATEGORIES).map(cat => (
               <div key={cat} className="mb-3">
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">{cat}</p>
@@ -685,8 +685,8 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
         )}
 
         {showAttachmentMenu && (
-          <div className="absolute bottom-20 left-4 bg-white border border-slate-200 rounded-2xl shadow-xl p-3 z-30 flex flex-col gap-2.5">
-            <label className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-slate-50 rounded-xl cursor-pointer text-xs font-bold text-slate-600">
+          <div className="absolute bottom-20 left-4 bg-white dark:bg-[#1f2937] border border-slate-200 dark:border-white/[0.05] rounded-2xl shadow-xl p-3 z-30 flex flex-col gap-2.5">
+            <label className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-slate-50 dark:hover:bg-white/[0.02] rounded-xl cursor-pointer text-xs font-bold text-slate-600 dark:text-slate-400">
               <FaPaperclip className="text-blue-500" />
               <span>Choose Document / Media</span>
               <input type="file" onChange={handleAttachmentUpload} className="hidden" />
@@ -698,7 +698,7 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
           <button 
             type="button"
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            className="p-3 bg-slate-50 border border-slate-250/60 rounded-xl text-slate-500 hover:text-[#7C3AED] hover:bg-slate-100 transition cursor-pointer"
+            className="p-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-250/60 dark:border-white/[0.08] rounded-xl text-slate-500 dark:text-slate-450 hover:text-[#7C3AED] hover:bg-slate-100 dark:hover:bg-white/[0.04] transition cursor-pointer"
           >
             <FaSmile className="text-sm" />
           </button>
@@ -706,7 +706,7 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
           <button 
             type="button"
             onClick={() => setShowAttachmentMenu(!showAttachmentMenu)}
-            className="p-3 bg-slate-50 border border-slate-250/60 rounded-xl text-slate-500 hover:text-[#7C3AED] hover:bg-slate-100 transition cursor-pointer"
+            className="p-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-250/60 dark:border-white/[0.08] rounded-xl text-slate-500 dark:text-slate-450 hover:text-[#7C3AED] hover:bg-slate-100 dark:hover:bg-white/[0.04] transition cursor-pointer"
           >
             <FaPaperclip className="text-sm" />
           </button>
@@ -717,7 +717,7 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
             value={newMessage}
             onChange={handleComposerTyping}
             disabled={isRecording}
-            className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all disabled:opacity-50"
+            className="flex-1 px-4 py-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.08] rounded-xl text-xs text-slate-700 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all disabled:opacity-50"
           />
 
           {isRecording ? (
@@ -768,7 +768,7 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
                 <button 
                   type="button"
                   onClick={startRecording}
-                  className="bg-slate-50 border border-slate-250/60 text-slate-500 p-3.5 rounded-xl flex items-center justify-center hover:bg-slate-100 transition cursor-pointer"
+                  className="bg-slate-50 dark:bg-white/[0.02] border border-slate-250/60 dark:border-white/[0.08] text-slate-500 dark:text-slate-450 p-3.5 rounded-xl flex items-center justify-center hover:bg-slate-100 dark:hover:bg-white/[0.04] transition cursor-pointer"
                 >
                   <FaMicrophone className="text-xs" />
                 </button>

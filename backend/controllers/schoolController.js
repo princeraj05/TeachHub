@@ -12,6 +12,15 @@ const normalizeName = (name) => {
 // GET /api/schools
 exports.getSchools = async (req, res) => {
   try {
+    // Self-cleaning duplicate check: Clean up misspelled G.D Accedmy and migrate to correct G.D Academy
+    await School.deleteOne({ name: { $in: ["G.D Accedmy", "G.D Accedmy ", "G.D Accedmy"] } });
+    await School.deleteOne({ normalizedName: "g.d accedmy" });
+    
+    // Migrate users/classes/subjects referencing the misspelled school
+    await User.updateMany({ schoolName: { $in: ["G.D Accedmy", "G.D Accedmy "] } }, { schoolName: "G.D Academy" });
+    await Class.updateMany({ schoolName: { $in: ["G.D Accedmy", "G.D Accedmy "] } }, { schoolName: "G.D Academy" });
+    await Subject.updateMany({ schoolName: { $in: ["G.D Accedmy", "G.D Accedmy "] } }, { schoolName: "G.D Academy" });
+
     const schools = await School.find({}).sort({ name: 1 });
     res.json(schools);
   } catch (error) {
@@ -120,7 +129,7 @@ exports.getMySchool = async (req, res) => {
       modified = true;
     }
     if (!school.description) {
-      school.description = `<h3><strong>G.D Accedmy</strong></h3><p>G.D Accedmy is a reputed educational institution committed to providing quality education in a safe, supportive, and engaging learning environment.</p><p>Our school focuses on the overall development of students by combining strong academic foundations with discipline, creativity, sports, and extracurricular activities.</p><p>With dedicated and experienced teachers, modern learning facilities, and a student-centered approach, we encourage students to develop confidence, critical thinking, communication skills, and strong moral values.</p><p>Our mission is to prepare students for academic success as well as future challenges by nurturing responsible, knowledgeable, and well-rounded individuals.</p><h4><strong>Our Vision</strong></h4><p>To be a leading institution that inspires students to learn, grow, and succeed in all areas of life.</p><h4><strong>Our Mission</strong></h4><ul><li>Provide quality education with modern teaching methodologies.</li><li>Encourage creativity, innovation, and critical thinking.</li><li>Promote sports, culture, and extracurricular excellence.</li><li>Build strong values and responsible citizens.</li></ul>`;
+      school.description = `<h3><strong>G.D Academy</strong></h3><p>G.D Academy is a reputed educational institution committed to providing quality education in a safe, supportive, and engaging learning environment.</p><p>Our school focuses on the overall development of students by combining strong academic foundations with discipline, creativity, sports, and extracurricular activities.</p><p>With dedicated and experienced teachers, modern learning facilities, and a student-centered approach, we encourage students to develop confidence, critical thinking, communication skills, and strong moral values.</p><p>Our mission is to prepare students for academic success as well as future challenges by nurturing responsible, knowledgeable, and well-rounded individuals.</p><h4><strong>Our Vision</strong></h4><p>To be a leading institution that inspires students to learn, grow, and succeed in all areas of life.</p><h4><strong>Our Mission</strong></h4><ul><li>Provide quality education with modern teaching methodologies.</li><li>Encourage creativity, innovation, and critical thinking.</li><li>Promote sports, culture, and extracurricular excellence.</li><li>Build strong values and responsible citizens.</li></ul>`;
       modified = true;
     }
 

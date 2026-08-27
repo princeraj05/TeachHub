@@ -272,7 +272,7 @@ exports.getAdminDashboard = async (req, res) => {
         {
           schoolName,
           title: "Science Exhibition",
-          subtitle: "G.D Accedmy",
+          subtitle: "G.D Academy",
           description: "Annual school science exhibition.",
           eventDate: new Date(2026, 4, 28), // 28 May 2026
           eventTime: "10:00 AM",
@@ -282,7 +282,7 @@ exports.getAdminDashboard = async (req, res) => {
         {
           schoolName,
           title: "Parent Teacher Meeting",
-          subtitle: "G.D Accedmy",
+          subtitle: "G.D Academy",
           description: "Discuss students performance with teachers.",
           eventDate: new Date(2026, 5, 5), // 5 June 2026
           eventTime: "11:00 AM",
@@ -292,7 +292,7 @@ exports.getAdminDashboard = async (req, res) => {
         {
           schoolName,
           title: "Annual Sports Day",
-          subtitle: "G.D Accedmy",
+          subtitle: "G.D Academy",
           description: "Annual school sports day events.",
           eventDate: new Date(2026, 5, 10), // 10 June 2026
           eventTime: "09:00 AM",
