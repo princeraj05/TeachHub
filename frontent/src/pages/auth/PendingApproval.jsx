@@ -61,6 +61,7 @@ function PendingApproval() {
     if (path.startsWith("/pending/profile")) return "profile";
     if (path.startsWith("/pending/about")) return "about";
     if (path.startsWith("/pending/support")) return "support";
+    if (path.startsWith("/pending/notifications")) return "notifications";
     return "status"; // default
   };
 
@@ -171,6 +172,68 @@ function PendingApproval() {
   // Sidebar link highlight helper
   const isLinkActive = (tabName) => activeTab === tabName;
 
+  const getNotificationsList = () => {
+    const list = [];
+    
+    list.push({
+      id: "not-welcome",
+      title: "Welcome to TeachHub",
+      message: "Welcome to TeachHub! Explore available school centers in your area and submit a request to join.",
+      date: user.createdAt || new Date(),
+      category: "system"
+    });
+
+    if (user.requestedSchool) {
+      list.push({
+        id: "not-apply",
+        title: "School Application Submitted",
+        message: `Your application to join ${user.requestedSchool} has been submitted successfully and is under review.`,
+        date: user.updatedAt || new Date(),
+        category: "application"
+      });
+    }
+
+    if (user.requestStatus === "scheduled" || user.requestStatus === "exam_completed") {
+      list.push({
+        id: "not-accept",
+        title: "School Application Accepted",
+        message: `Congratulations! ${user.requestedSchool} has accepted your application request.`,
+        date: user.updatedAt || new Date(),
+        category: "acceptance"
+      });
+
+      list.push({
+        id: "not-exam",
+        title: "Admission Exam Scheduled",
+        message: `Your admission entrance exam has been scheduled for ${formatExamDate(user.admissionExamDate)} at 10:00 AM.`,
+        date: user.updatedAt || new Date(),
+        category: "exam"
+      });
+    }
+
+    if (user.requestStatus === "exam_completed") {
+      list.push({
+        id: "not-completed",
+        title: "Entrance Exam Completed",
+        message: `Your entrance exam has been submitted. Your score: ${user.admissionExamScore}/${user.admissionExamTotal}. Please wait for class registration.`,
+        date: user.updatedAt || new Date(),
+        category: "result"
+      });
+    }
+
+    if (user.requestStatus === "rejected") {
+      list.push({
+        id: "not-rejected",
+        title: "Application Unsuccessful",
+        message: `Your request to join ${user.requestedSchool} was not approved by the administrator.`,
+        date: user.updatedAt || new Date(),
+        category: "rejection"
+      });
+    }
+
+    return list.reverse(); // Newest first
+  };
+
   // Renders the specific subroute/tab content
   const renderTabContent = () => {
     switch (activeTab) {
@@ -191,6 +254,57 @@ function PendingApproval() {
         return <AboutAppPage />;
       case "support":
         return <StudentSupport />;
+      case "notifications":
+        const notList = getNotificationsList();
+        return (
+          <div className="w-full flex flex-col gap-6 max-w-xl mx-auto py-2 select-none" style={{ fontFamily: SORA }}>
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/[0.08] pb-4 select-none">
+              <div>
+                <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight text-left">Notifications & Updates</h1>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 text-left font-medium">Stay updated on your application status, exams, and registrations</p>
+              </div>
+              <span className="px-3 py-1 bg-purple-500/10 text-purple-650 dark:text-[#38BDF8] border border-purple-550/15 dark:border-[#38BDF8]/20 rounded-full text-xs font-black shrink-0 leading-none">
+                {notList.length} Total
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              {notList.map((not) => {
+                let iconColor = "bg-purple-500/10 text-purple-500 border-purple-500/20";
+                let icon = <FaBell className="text-sm" />;
+
+                if (not.category === "acceptance") {
+                  iconColor = "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+                  icon = <FaCheckCircle className="text-sm" />;
+                } else if (not.category === "exam" || not.category === "result") {
+                  iconColor = "bg-amber-500/10 text-amber-500 border-amber-500/20";
+                  icon = <FaBookOpen className="text-sm" />;
+                } else if (not.category === "rejection") {
+                  iconColor = "bg-rose-500/10 text-rose-500 border-rose-500/20";
+                  icon = <FaExclamationTriangle className="text-sm" />;
+                } else if (not.category === "application") {
+                  iconColor = "bg-blue-500/10 text-blue-500 border-blue-500/20";
+                  icon = <FaSchool className="text-sm" />;
+                }
+
+                return (
+                  <div key={not.id} className="w-full bg-white dark:bg-[#0B132A] rounded-2.5xl border border-slate-200/60 dark:border-white/10 shadow-sm p-5 flex items-start gap-4 text-left hover:scale-[1.01] transition-all duration-200">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${iconColor}`}>
+                      {icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-4">
+                        <h3 className="text-sm font-extrabold text-slate-900 dark:text-white truncate">{not.title}</h3>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold whitespace-nowrap shrink-0">{formatDate(not.date)}</span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 font-semibold leading-relaxed">{not.message}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
       case "status":
       default:
         return (
@@ -409,10 +523,10 @@ function PendingApproval() {
                     <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight text-left">Application Status</h1>
                     <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 text-left font-medium">Track your school application and exam status</p>
                   </div>
-                  <div className="relative p-2.5 bg-slate-100 dark:bg-white/5 rounded-full border border-slate-200/50 dark:border-white/10 text-slate-600 dark:text-slate-400 shrink-0">
+                  <Link to="/pending/notifications" className="relative p-2.5 bg-slate-100 dark:bg-white/5 rounded-full border border-slate-200/50 dark:border-white/10 text-slate-600 dark:text-slate-400 shrink-0 hover:bg-slate-200 dark:hover:bg-white/10 transition-all">
                     <FaBell className="text-lg" />
                     <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#7C3AED] text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-[#090F1C]">3</span>
-                  </div>
+                  </Link>
                 </div>
 
                 {/* Current Application Card */}
@@ -620,6 +734,19 @@ function PendingApproval() {
               <span className="hidden lg:block">Wait Karo</span>
             </Link>
 
+            {/* Notifications */}
+            <Link
+              to="/pending/notifications"
+              className={`w-full flex items-center justify-center lg:justify-start gap-4 px-4 py-3.5 rounded-2xl text-xs font-bold transition duration-200 ${
+                isLinkActive("notifications")
+                  ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:bg-[#38BDF8]/10 dark:text-[#38BDF8]"
+                  : "text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-white/5"
+              }`}
+            >
+              <FaBell className="text-xl shrink-0" />
+              <span className="hidden lg:block">Notifications</span>
+            </Link>
+
             {/* 2. Event */}
             <Link
               to="/pending/events"
@@ -818,6 +945,7 @@ function PendingApproval() {
                 <div className="grid grid-cols-2 gap-2">
                   <Link to="/pending/profile" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">My Profile</Link>
                   <Link to="/pending/about" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">About App</Link>
+                  <Link to="/pending/notifications" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10 col-span-2">Notifications</Link>
                   <Link to="/pending/support" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-3 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10 col-span-2">Help & Support</Link>
                 </div>
               </div>

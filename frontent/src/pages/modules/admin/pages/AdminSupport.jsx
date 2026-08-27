@@ -172,9 +172,9 @@ function AdminSupport() {
   const filteredContacts = getFilteredContacts();
 
   return (
-    <div className="font-sans flex flex-col h-[calc(100vh-140px)] bg-white border border-slate-200/60 rounded-3xl overflow-hidden shadow-sm">
+    <div className="font-sans flex flex-col h-[calc(100vh-140px)] bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl overflow-hidden shadow-sm">
       {/* Tabs Header */}
-      <div className="flex border-b border-slate-100 bg-slate-50/50 p-2 gap-2 select-none">
+      <div className="flex border-b border-slate-100 dark:border-white/[0.05] bg-slate-50/50 dark:bg-[#1f2937]/50 p-2 gap-2 select-none">
         {[
           { key: "superadmin", label: "Super Admin Support" },
           { key: "teachers", label: "Teachers Chat" },
@@ -186,7 +186,7 @@ function AdminSupport() {
             className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
               activeTab === tab.key
                 ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/15"
-                : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-800"
+                : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/[0.02] dark:hover:text-white"
             }`}
           >
             {tab.label}
@@ -198,7 +198,7 @@ function AdminSupport() {
       <div className="flex-1 flex overflow-hidden">
         {/* Super Admin Tab */}
         {activeTab === "superadmin" && (
-          <div className="flex-1 flex h-full bg-white relative">
+          <div className="flex-1 flex h-full bg-white dark:bg-[#111827] relative">
             {activeContact ? (
               <SupportChatEngine 
                 activeContact={activeContact} 
@@ -206,8 +206,8 @@ function AdminSupport() {
                 userRole="admin" 
               />
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/10">
-                <p className="text-xs text-slate-400 font-semibold">Super Admin is currently unavailable.</p>
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/10 dark:bg-transparent">
+                <p className="text-xs text-slate-400 dark:text-slate-550 font-semibold">Super Admin is currently unavailable.</p>
               </div>
             )}
           </div>
@@ -217,16 +217,16 @@ function AdminSupport() {
         {activeTab !== "superadmin" && (
           <div className="flex-1 flex">
             {/* Sidebar Contact list */}
-            <div className={`w-full lg:w-1/3 border-r border-slate-100 flex flex-col h-full bg-slate-50/50 ${
+            <div className={`w-full lg:w-1/3 border-r border-slate-100 dark:border-white/[0.05] flex flex-col h-full bg-slate-50/50 dark:bg-[#111827]/50 ${
               activeContact ? "hidden lg:flex" : "flex"
             }`}>
-              <div className="p-3 border-b border-slate-100 bg-white flex gap-2 select-none">
+              <div className="p-3 border-b border-slate-100 dark:border-white/[0.05] bg-white dark:bg-[#111827] flex gap-2 select-none">
                 <button
                   onClick={() => handleSubTabChange("personal")}
                   className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold text-center border cursor-pointer ${
                     subTab === "personal"
-                      ? "bg-slate-800 text-white border-slate-800"
-                      : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
+                      ? "bg-slate-800 text-white border-slate-800 dark:bg-white/10 dark:text-white dark:border-white/10"
+                      : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 dark:bg-white/[0.02] dark:text-slate-400 dark:border-white/[0.05] dark:hover:bg-white/[0.05]"
                   }`}
                 >
                   Personal
@@ -235,8 +235,8 @@ function AdminSupport() {
                   onClick={() => handleSubTabChange("broadcast")}
                   className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold text-center border cursor-pointer ${
                     subTab === "broadcast"
-                      ? "bg-slate-800 text-white border-slate-800"
-                      : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
+                      ? "bg-slate-800 text-white border-slate-800 dark:bg-white/10 dark:text-white dark:border-white/10"
+                      : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 dark:bg-white/[0.02] dark:text-slate-400 dark:border-white/[0.05] dark:hover:bg-white/[0.05]"
                   }`}
                 >
                   Broadcasts
@@ -245,8 +245,8 @@ function AdminSupport() {
                   onClick={() => handleSubTabChange("calls")}
                   className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold text-center border cursor-pointer ${
                     subTab === "calls"
-                      ? "bg-slate-800 text-white border-slate-800"
-                      : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
+                      ? "bg-slate-800 text-white border-slate-800 dark:bg-white/10 dark:text-white dark:border-white/10"
+                      : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 dark:bg-white/[0.02] dark:text-slate-400 dark:border-white/[0.05] dark:hover:bg-white/[0.05]"
                   }`}
                 >
                   Calls
@@ -254,9 +254,9 @@ function AdminSupport() {
               </div>
 
               {subTab === "personal" && (
-                <div className="flex-1 overflow-y-auto divide-y divide-slate-100/50">
+                <div className="flex-1 overflow-y-auto divide-y divide-slate-100/50 dark:divide-white/[0.05]">
                   {filteredContacts.length === 0 ? (
-                    <div className="p-6 text-center text-slate-400 text-xs font-semibold">
+                    <div className="p-6 text-center text-slate-400 text-xs font-semibold select-none">
                       No {activeTab} found in your school.
                     </div>
                   ) : (
@@ -264,26 +264,28 @@ function AdminSupport() {
                       <button
                         key={contact._id}
                         onClick={() => setActiveContact(contact)}
-                        className={`w-full p-4 text-left hover:bg-slate-100/60 transition flex items-center gap-3 cursor-pointer ${
-                          activeContact?._id === contact._id ? "bg-white border-l-4 border-[#7C3AED]" : ""
+                        className={`w-full p-4 text-left hover:bg-slate-100/60 dark:hover:bg-white/[0.02] transition flex items-center gap-3 cursor-pointer ${
+                          activeContact?._id === contact._id 
+                            ? "bg-white dark:bg-white/[0.04] border-l-4 border-[#7C3AED]" 
+                            : "bg-slate-50/50 dark:bg-transparent"
                         }`}
                       >
                         <div className="w-9 h-9 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black flex-shrink-0 relative">
                           {contact.name.charAt(0).toUpperCase()}
                           {contact.isOnline && (
-                            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></span>
+                            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-[#111827] rounded-full"></span>
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center justify-between">
-                            <p className="text-xs font-bold text-slate-700 truncate">{contact.name}</p>
+                            <p className="text-xs font-bold text-slate-700 dark:text-white truncate">{contact.name}</p>
                             {contact.unreadCount > 0 && (
                               <span className="bg-[#7C3AED] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
                                 {contact.unreadCount}
                               </span>
                             )}
                           </div>
-                          <p className="text-[10px] text-slate-400 font-medium truncate">
+                          <p className="text-[10px] text-slate-400 dark:text-slate-550 font-medium truncate">
                             {contact.lastMessage ? contact.lastMessage.content || "Media Attachment" : contact.email}
                           </p>
                         </div>
@@ -294,8 +296,8 @@ function AdminSupport() {
               )}
 
               {subTab === "broadcast" && (
-                <div className="p-4 flex flex-col h-full bg-white">
-                  <h3 className="text-xs font-bold text-slate-700 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
+                <div className="p-4 flex flex-col h-full bg-white dark:bg-[#111827]">
+                  <h3 className="text-xs font-bold text-slate-700 dark:text-slate-350 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
                     <FaBroadcastTower className="text-teal-500" /> Send Broadcast
                   </h3>
                   <form onSubmit={handleSendBroadcast} className="space-y-3">
@@ -305,7 +307,7 @@ function AdminSupport() {
                       onChange={(e) => setNewBroadcast(e.target.value)}
                       rows={4}
                       required
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.05] rounded-xl text-xs text-slate-700 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none"
                     />
                     <button
                       type="submit"
@@ -319,7 +321,7 @@ function AdminSupport() {
               )}
 
               {subTab === "calls" && (
-                <div className="flex-1 overflow-y-auto divide-y divide-slate-100/50 bg-white">
+                <div className="flex-1 overflow-y-auto divide-y divide-slate-100/50 dark:divide-white/[0.05] bg-white dark:bg-[#111827]">
                   {callsHistory.length === 0 ? (
                     <div className="p-6 text-center text-slate-400 text-xs font-semibold select-none">
                       No call history found.
@@ -337,26 +339,26 @@ function AdminSupport() {
                       return (
                         <div
                           key={call._id}
-                          className="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition border-b border-slate-100/50"
+                          className="w-full p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/[0.02] transition border-b border-slate-100/50 dark:border-white/[0.05] bg-slate-50/50 dark:bg-transparent"
                         >
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black flex-shrink-0">
                               {partner.name.charAt(0).toUpperCase()}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-xs font-bold text-slate-700 truncate">{partner.name}</p>
+                              <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{partner.name}</p>
                               <div className="flex items-center gap-1 mt-0.5 select-none">
                                 <span className={`text-[9px] font-bold uppercase tracking-wider ${
                                   isMissed || isRejected ? "text-rose-500" : isCompleted ? "text-green-500" : "text-amber-500"
                                 }`}>
                                   {isOutgoing ? "Outgoing" : "Incoming"} · {call.status}
                                 </span>
-                                <span className="text-[9px] text-slate-400 font-medium">
+                                <span className="text-[9px] text-slate-400 dark:text-slate-500 font-medium">
                                   · {new Date(call.createdAt).toLocaleDateString()} {new Date(call.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                               </div>
                               {isCompleted && call.duration > 0 && (
-                                <p className="text-[9px] text-slate-400 font-semibold font-mono mt-0.5">
+                                <p className="text-[9px] text-slate-400 dark:text-slate-500 font-semibold font-mono mt-0.5">
                                   Duration: {Math.floor(call.duration / 60)}m {call.duration % 60}s
                                 </p>
                               )}
@@ -374,7 +376,7 @@ function AdminSupport() {
             </div>
 
             {/* Messaging Area / Chat Engine */}
-            <div className={`flex-1 flex-col h-full bg-white relative ${
+            <div className={`flex-1 flex-col h-full bg-white dark:bg-[#111827] relative ${
               activeContact ? "flex" : "hidden lg:flex"
             }`}>
               {subTab === "personal" ? (
@@ -385,42 +387,42 @@ function AdminSupport() {
                     userRole="admin" 
                   />
                 ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/10">
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/10 dark:bg-transparent">
                     <div className="w-16 h-16 rounded-3xl bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center text-2xl mb-4">
                       <FaPhone />
                     </div>
-                    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">No Chat Selected</h3>
-                    <p className="text-xs text-slate-400 mt-1 max-w-xs leading-relaxed">
+                    <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">No Chat Selected</h3>
+                    <p className="text-xs text-slate-400 dark:text-slate-550 mt-1 max-w-xs leading-relaxed">
                       Select a {activeTab === "teachers" ? "teacher" : "student"} from the list on the left to start support messaging.
                     </p>
                   </div>
                 )
               ) : subTab === "broadcast" ? (
                 /* Broadcast messages view */
-                <div className="flex-1 flex flex-col h-full bg-white relative">
-                  <div className="p-4 border-b border-slate-100 bg-white">
-                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <div className="flex-1 flex flex-col h-full bg-white dark:bg-[#111827] relative">
+                  <div className="p-4 border-b border-slate-100 dark:border-white/[0.05] bg-white dark:bg-[#111827]">
+                    <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                       <FaBroadcastTower className="text-teal-500" /> Sent Broadcasts to {activeTab}
                     </h3>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/30">
+                  <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/30 dark:bg-[#1e293b]/10">
                     {broadcastMessages.length === 0 ? (
-                      <div className="py-20 text-center text-slate-400 text-xs font-semibold">
+                      <div className="py-20 text-center text-slate-400 text-xs font-semibold select-none">
                         No broadcasts sent yet.
                       </div>
                     ) : (
                       broadcastMessages.map((msg) => (
-                        <div key={msg._id} className="bg-white border border-slate-200/60 rounded-2xl p-4 shadow-sm relative overflow-hidden">
-                          <div className="flex items-center justify-between border-b border-slate-50 pb-2 mb-2 select-none">
-                            <span className="inline-flex items-center gap-1 text-[8px] font-bold text-teal-600 uppercase bg-teal-50 px-1.5 py-0.5 rounded">
+                        <div key={msg._id} className="bg-white dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/[0.05] rounded-2xl p-4 shadow-sm relative overflow-hidden">
+                          <div className="flex items-center justify-between border-b border-slate-50 dark:border-white/[0.03] pb-2 mb-2 select-none">
+                            <span className="inline-flex items-center gap-1 text-[8px] font-bold text-teal-600 uppercase bg-teal-50 dark:bg-teal-500/10 px-1.5 py-0.5 rounded">
                               Broadcast
                             </span>
-                            <span className="text-[9px] text-slate-400 font-bold">
+                            <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold">
                               {new Date(msg.createdAt).toLocaleDateString()} {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-700 leading-relaxed font-sans">{msg.content}</p>
+                          <p className="text-xs text-slate-700 dark:text-slate-350 leading-relaxed font-sans">{msg.content}</p>
                         </div>
                       ))
                     )}
@@ -428,12 +430,12 @@ function AdminSupport() {
                 </div>
               ) : (
                 /* Call history default display placeholder when on calls tab */
-                <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/10">
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/10 dark:bg-transparent">
                   <div className="w-16 h-16 rounded-3xl bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center text-2xl mb-4 shadow-sm">
                     <FaPhone />
                   </div>
-                  <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Calls History Log</h3>
-                  <p className="text-xs text-slate-400 mt-1 max-w-xs leading-relaxed">
+                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Calls History Log</h3>
+                  <p className="text-xs text-slate-400 dark:text-slate-550 mt-1 max-w-xs leading-relaxed">
                     View call history in the sidebar on the left. Dial voice or video calls inside active conversation windows.
                   </p>
                 </div>
