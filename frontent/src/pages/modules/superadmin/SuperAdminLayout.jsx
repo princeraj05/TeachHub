@@ -50,7 +50,17 @@ function SuperAdminLayout() {
     }
   };
 
-  const name = localStorage.getItem("name") || "Super Admin";
+  const [name, setName] = useState(localStorage.getItem("name") || "Super Admin");
+  const [avatar, setAvatar] = useState(localStorage.getItem("avatar") || "");
+
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      setName(localStorage.getItem("name") || "Super Admin");
+      setAvatar(localStorage.getItem("avatar") || "");
+    };
+    window.addEventListener("profileUpdate", handleProfileUpdate);
+    return () => window.removeEventListener("profileUpdate", handleProfileUpdate);
+  }, []);
 
   const handleLogout = () => {
     performLogout(navigate);
@@ -199,8 +209,12 @@ function SuperAdminLayout() {
                 <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider">System Owner</p>
               </div>
 
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-sm shadow-md border border-white/20">
-                {name.charAt(0).toUpperCase()}
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-sm shadow-md border border-white/20 overflow-hidden">
+                {avatar ? (
+                  <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  name.charAt(0).toUpperCase()
+                )}
               </div>
             </div>
 

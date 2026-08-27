@@ -133,7 +133,7 @@ const VideoPreview = ({ stream }) => {
   );
 };
 
-function StudentExams() {
+function RegisterExam() {
   const API = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
@@ -280,7 +280,7 @@ function StudentExams() {
       .catch((err) => console.log(err));
   }, [API, token]);
   const allExams = useMemo(() => {
-    const list = [...exams];
+    const list = [];
     if (profile && profile.admissionExamDate) {
       list.push({
         _id: "admission-exam-test",
@@ -294,12 +294,8 @@ function StudentExams() {
       });
     }
 
-    if (list.length === 0) {
-      return DUMMY_EXAMS;
-    }
-
     return list.map((e, idx) => {
-      const salt = e._id ? e._id.charCodeAt(e._id.length - 1) : idx;
+      const salt = idx;
       
       const getDaysLeft = (dateStr) => {
         return Math.ceil((new Date(dateStr) - new Date()) / (1000 * 60 * 60 * 24));
@@ -311,25 +307,24 @@ function StudentExams() {
         status = "Completed";
       }
 
-      // Add scores for completed ones
       let score = e.submission?.score;
       let total = e.submission?.total || 100;
-      if (status === "Completed" && score === undefined) {
-        const scores = [85, 78, 92, 64];
-        score = scores[salt % scores.length];
+      if (status === "Completed" && score === undefined && profile) {
+        score = profile.admissionExamScore || 0;
+        total = profile.admissionExamTotal || 100;
       }
 
       return {
         ...e,
         duration: e.duration || 60,
         mode: e.mode || "offline",
-        room: e.room || `Room ${101 + (salt % 5)}`,
+        room: e.room || "Room 101",
         status,
         score,
         total
       };
     });
-  }, [exams, profile]);
+  }, [profile]);
 
   const [activeFilter, setActiveFilter] = useState("All");
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
@@ -531,10 +526,10 @@ function StudentExams() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                Student Workspace
+                Registration Workspace
               </h1>
               <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] dark:text-[#38BDF8] mt-1">
-                LEARNER CONSOLE
+                ADMISSION PORTAL
               </p>
             </div>
             
@@ -558,8 +553,8 @@ function StudentExams() {
           <div className="flex items-center justify-between gap-4 mt-4">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA] mb-1">EXAMS</p>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Exam Dashboard</h2>
-              <p className="text-[11px] text-slate-450 dark:text-slate-500 font-semibold mt-1">Stay prepared and track all your upcoming & completed exams.</p>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Admission Exam</h2>
+              <p className="text-[11px] text-slate-455 dark:text-slate-500 font-semibold mt-1">Stay prepared for your entrance test. Below are the details and active exams for your admission.</p>
             </div>
             
             {/* Year Dropdown */}
@@ -802,61 +797,19 @@ function StudentExams() {
           </div>
 
           {/* Actions Buttons Grid row */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 select-none">
+          <div className="grid grid-cols-1 gap-4 mt-6 select-none max-w-sm">
             
-            {/* Button 1: View Timetable */}
-            <div 
-              onClick={() => navigate("/student/showtimetable")}
-              className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-[#7C3AED]/30 rounded-3xl p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
-            >
-              <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/20 flex items-center justify-center mb-4">
-                <FaCalendarAlt className="text-sm" />
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">View Timetable</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-1.5">See your class schedule</p>
-              </div>
-            </div>
-
-            {/* Button 2: Exam Instructions */}
+            {/* Button: Exam Instructions */}
             <div 
               onClick={() => setShowInstructionsModal(true)}
-              className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-blue-500/30 rounded-3xl p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
+              className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-[#7C3AED]/30 rounded-3xl p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
             >
-              <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/20 flex items-center justify-center mb-4">
+              <div className="w-9 h-9 rounded-xl bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/20 flex items-center justify-center mb-4">
                 <FaBookOpen className="text-sm" />
               </div>
               <div>
                 <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Exam Instructions</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-1.5">Guidelines & rules</p>
-              </div>
-            </div>
-
-            {/* Button 3: Study Materials */}
-            <div 
-              onClick={() => navigate("/student/about")}
-              className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-amber-500/30 rounded-3xl p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
-            >
-              <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center mb-4">
-                <FaBookOpen className="text-sm" />
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Study Materials</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-1.5">Notes & resources</p>
-              </div>
-            </div>
-
-            {/* Button 4: Performance */}
-            <div 
-              onClick={() => navigate("/student/dashboard")}
-              className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-emerald-500/30 rounded-3xl p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
-            >
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center mb-4">
-                <FaChartPie className="text-sm" />
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Performance</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-1.5">Detailed analytics</p>
+                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-1.5">Guidelines & rules for admission entrance test</p>
               </div>
             </div>
 
@@ -1255,4 +1208,4 @@ function StudentExams() {
   );
 }
 
-export default StudentExams;
+export default RegisterExam;

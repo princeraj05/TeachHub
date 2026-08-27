@@ -42,6 +42,7 @@ function Login() {
     localStorage.setItem("role", data.user.role);
     localStorage.setItem("schoolName", data.user.schoolName || "");
     localStorage.setItem("name", data.user.name);
+    localStorage.setItem("avatar", data.user.avatar || "");
 
     const role = data.user.role;
     if (role === "superadmin") navigate("/superadmin/dashboard");

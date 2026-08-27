@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../../../context/ThemeContext";
+import UserProfile from "../../../../components/UserProfile";
 import {
   FaComments,
   FaBullhorn,
@@ -43,13 +44,19 @@ function StudentProfile() {
   const [digestEnabled, setDigestEnabled] = useState(false);
   const [language, setLanguage] = useState("English");
 
-  useEffect(() => {
+  const fetchProfile = () => {
     axios
       .get(`${API}/api/auth/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setProfile(res.data))
       .catch((err) => console.log(err));
+  };
+
+  useEffect(() => {
+    fetchProfile();
+    window.addEventListener("profileUpdate", fetchProfile);
+    return () => window.removeEventListener("profileUpdate", fetchProfile);
   }, [API, token]);
 
   const userInitials = useMemo(() => {
@@ -85,8 +92,12 @@ function StudentProfile() {
             {theme === "dark" ? "☀️" : "🌙"}
           </button>
           
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-800 text-white flex items-center justify-center font-black text-sm shadow-md border-2 border-white dark:border-[#0B132A]">
-            {userInitials}
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-800 text-white flex items-center justify-center font-black text-sm shadow-md border-2 border-white dark:border-[#0B132A] overflow-hidden">
+            {profile?.avatar ? (
+              <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              userInitials
+            )}
           </div>
         </div>
       </div>
@@ -97,8 +108,12 @@ function StudentProfile() {
         className="bg-gradient-to-r from-violet-900 to-indigo-950 border border-violet-850/40 rounded-3xl p-5 text-white flex items-center justify-between shadow-lg shadow-indigo-955/15 cursor-pointer hover:border-violet-600/40 transition-all select-none"
       >
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-cyan-400 to-[#7C3AED] flex items-center justify-center text-white font-black text-xl border-2 border-white/20">
-            {userInitials}
+          <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-cyan-400 to-[#7C3AED] flex items-center justify-center text-white font-black text-xl border-2 border-white/20 overflow-hidden shrink-0">
+            {profile?.avatar ? (
+              <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              userInitials
+            )}
           </div>
           <div>
             <h2 className="text-base sm:text-lg font-black tracking-tight flex items-center gap-1.5">
@@ -397,55 +412,20 @@ function StudentProfile() {
       {/* OVERLAY MODAL 1: Profile Details */}
       {showProfileModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl relative select-none animate-fadeIn text-slate-800 dark:text-white">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-2 sm:p-4 w-full max-w-2xl shadow-2xl relative select-none animate-fadeIn text-slate-800 dark:text-white max-h-[90vh] overflow-y-auto">
             <button
-              onClick={() => setShowProfileModal(false)}
-              className="absolute top-4.5 right-4.5 text-slate-400 hover:text-slate-655 dark:hover:text-white cursor-pointer"
+              onClick={() => {
+                setShowProfileModal(false);
+                fetchProfile();
+              }}
+              className="absolute top-4 right-4 text-slate-450 hover:text-slate-655 dark:hover:text-white cursor-pointer z-50 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/5"
             >
               <FaTimes className="text-sm" />
             </button>
             
-            <div className="mb-6 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/20 flex items-center justify-center">
-                <FaUser className="text-sm" />
-              </div>
-              <div>
-                <h3 className="text-sm sm:text-base font-black">My Profile Details</h3>
-                <p className="text-[9px] text-slate-455 uppercase font-bold tracking-wide">Standard Student Credentials</p>
-              </div>
+            <div className="mt-2">
+              <UserProfile />
             </div>
-            
-            <div className="space-y-3.5 border-t border-slate-100 dark:border-white/5 pt-4 text-xs font-semibold text-slate-655 dark:text-slate-400">
-              <div className="flex items-center justify-between">
-                <span>Student Name:</span>
-                <span className="text-slate-900 dark:text-white font-extrabold">{profile?.name || "—"}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Role Rank:</span>
-                <span className="text-[#7C3AED] dark:text-[#38BDF8] font-black uppercase tracking-wider">Student</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Email Address:</span>
-                <span className="text-slate-900 dark:text-white font-extrabold">{profile?.email || "—"}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Enrollment Status:</span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  Active
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Assigned Campus:</span>
-                <span className="text-slate-900 dark:text-white font-extrabold">{profile?.schoolName || "Global Campus"}</span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowProfileModal(false)}
-              className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white py-3 rounded-xl text-xs font-bold transition cursor-pointer mt-6"
-            >
-              Done
-            </button>
           </div>
         </div>
       )}

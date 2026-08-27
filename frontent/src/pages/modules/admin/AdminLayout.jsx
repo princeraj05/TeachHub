@@ -40,7 +40,17 @@ function AdminLayout() {
   const [requestCount, setRequestCount] = useState(0);
   const [currentSchoolName, setCurrentSchoolName] = useState(localStorage.getItem("schoolName") || "Admin Workspace");
 
-  const name = localStorage.getItem("name") || "Admin";
+  const [name, setName] = useState(localStorage.getItem("name") || "Admin");
+  const [avatar, setAvatar] = useState(localStorage.getItem("avatar") || "");
+
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      setName(localStorage.getItem("name") || "Admin");
+      setAvatar(localStorage.getItem("avatar") || "");
+    };
+    window.addEventListener("profileUpdate", handleProfileUpdate);
+    return () => window.removeEventListener("profileUpdate", handleProfileUpdate);
+  }, []);
 
   const fetchRequestCount = () => {
     const API = import.meta.env.VITE_API_URL;
@@ -596,8 +606,12 @@ function AdminLayout() {
 
               {/* Circular Avatar */}
               <div className="relative">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-sm shadow-md border border-white/20">
-                  {name.charAt(0).toUpperCase()}
+                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-sm shadow-md border border-white/20 overflow-hidden">
+                  {avatar ? (
+                    <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    name.charAt(0).toUpperCase()
+                  )}
                 </div>
                 {/* Active Indicator dot */}
                 <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-450 rounded-full border-2 border-white dark:border-[#0B132A] shadow-sm" />

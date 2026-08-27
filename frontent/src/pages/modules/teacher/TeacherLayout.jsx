@@ -32,7 +32,17 @@ function TeacherLayout() {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
 
-  const name = localStorage.getItem("name") || "Teacher";
+  const [name, setName] = useState(localStorage.getItem("name") || "Teacher");
+  const [avatar, setAvatar] = useState(localStorage.getItem("avatar") || "");
+
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      setName(localStorage.getItem("name") || "Teacher");
+      setAvatar(localStorage.getItem("avatar") || "");
+    };
+    window.addEventListener("profileUpdate", handleProfileUpdate);
+    return () => window.removeEventListener("profileUpdate", handleProfileUpdate);
+  }, []);
 
   const handleLogout = () => {
     performLogout(navigate);
@@ -286,8 +296,12 @@ function TeacherLayout() {
 
               {/* Circular Avatar */}
               <div className="relative">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-sm shadow-md border border-white/20">
-                  {name.charAt(0).toUpperCase()}
+                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-sm shadow-md border border-white/20 overflow-hidden">
+                  {avatar ? (
+                    <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    name.charAt(0).toUpperCase()
+                  )}
                 </div>
                 <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-450 rounded-full border-2 border-white dark:border-[#0B132A] shadow-sm" />
               </div>

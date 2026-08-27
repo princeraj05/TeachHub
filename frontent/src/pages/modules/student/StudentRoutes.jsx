@@ -5,7 +5,7 @@ import StudentLayout from "./StudentLayout";
 import StudentDashboard from "./pages/StudentDashboard";
 import StudentSubjects from "./pages/StudentSubjects";
 import StudentAttendance from "./pages/StudentAttendance";
-import StudentExams from "./pages/StudentExams";
+import Exam from "./pages/Exam";
 import StudentProfile from "./pages/StudentProfile";
 import StudentSupport from "./pages/StudentSupport";
 import StudentEvents from "./pages/StudentEvents";
@@ -35,7 +35,7 @@ function StudentRoutes() {
         <Route path="dashboard" element={<StudentDashboard />} />
         <Route path="subjects" element={<StudentSubjects />} />
         <Route path="attendance" element={<StudentAttendance />} />
-        <Route path="exams" element={<StudentExams />} />
+        <Route path="exams" element={<Exam />} />
         <Route path="profile" element={<StudentProfile />} />
         <Route path="support" element={<StudentSupport />} />
         <Route path="support/groups" element={<GroupChat />} />

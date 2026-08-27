@@ -34,7 +34,7 @@ import UserProfile from "../../components/UserProfile";
 import GlobalEvents from "../modules/student/pages/GlobalEvents";
 import SchoolDirectory from "../modules/student/pages/SchoolDirectory";
 import SchoolDetails from "../modules/student/pages/SchoolDetails";
-import StudentExams from "../modules/student/pages/StudentExams";
+import RegisterExam from "../modules/student/pages/RegisterExam";
 import AboutAppPage from "../modules/student/pages/AboutAppPage";
 import StudentSupport from "../modules/student/pages/StudentSupport";
 import { useTheme } from "../../context/ThemeContext";
@@ -114,6 +114,7 @@ function PendingApproval() {
               localStorage.setItem("token", res.data.token);
               localStorage.setItem("role", res.data.role);
               localStorage.setItem("name", res.data.name);
+              localStorage.setItem("avatar", res.data.avatar || "");
 
               // Redirect automatically without requiring reload/logout
               if (res.data.role === "superadmin") {
@@ -141,6 +142,18 @@ function PendingApproval() {
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      setUser((prev) => ({
+        ...prev,
+        name: localStorage.getItem("name") || prev.name,
+        avatar: localStorage.getItem("avatar") || prev.avatar
+      }));
+    };
+    window.addEventListener("profileUpdate", handleProfileUpdate);
+    return () => window.removeEventListener("profileUpdate", handleProfileUpdate);
+  }, []);
 
   const handleLogout = () => {
     performLogout(navigate);
@@ -171,7 +184,7 @@ function PendingApproval() {
         }
         return <SchoolDirectory />;
       case "exams":
-        return <StudentExams />;
+        return <RegisterExam />;
       case "profile":
         return <UserProfile />;
       case "about":

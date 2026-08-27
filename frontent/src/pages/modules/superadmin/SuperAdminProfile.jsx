@@ -204,6 +204,8 @@ function SuperAdminProfile() {
 
       setProfile(res.data.user);
       localStorage.setItem("name", res.data.user.name);
+      localStorage.setItem("avatar", res.data.user.avatar || "");
+      window.dispatchEvent(new Event("profileUpdate"));
       setEditMode(false);
       setSuccessMsg("Personal profile settings saved successfully!");
       setTimeout(() => setSuccessMsg(""), 3000);

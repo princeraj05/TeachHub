@@ -57,6 +57,27 @@ function SchoolDetails() {
   // Selected teacher for detail modal
   const [selectedTeacher, setSelectedTeacher] = useState(null);
 
+  // Lightbox slider state
+  const [lightboxImages, setLightboxImages] = useState(null);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+
+  const handleOpenSchoolPhotos = (idx) => {
+    setLightboxImages(school?.schoolPhotos || []);
+    setLightboxIndex(idx);
+  };
+
+  const handleOpenPhotosList = (list, idx) => {
+    setLightboxImages(list);
+    setLightboxIndex(idx);
+  };
+
+  const handleOpenTeacherPhotos = (idx) => {
+    if (selectedTeacher && selectedTeacher.galleryPhotos) {
+      setLightboxImages(selectedTeacher.galleryPhotos);
+      setLightboxIndex(idx);
+    }
+  };
+
   useEffect(() => {
     if (name) {
       fetchSchoolDetails();
@@ -167,17 +188,44 @@ function SchoolDetails() {
     if (photos.length === 0) {
       if (school.photo) {
         return (
-          <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 h-[280px]">
+          <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 h-[200px] md:h-[280px] cursor-pointer" onClick={() => handleOpenSchoolPhotos(0)}>
             <img src={school.photo} alt="School front" className="w-full h-full object-cover" />
           </div>
         );
       }
-      return null;
+      // Fallback: If no photos are uploaded at all, we show a nice placeholder gallery!
+      // This ensures no school (like Saraswati Vidya Niketan) has missing images on the UI.
+      const defaultPhotos = [
+        "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80",
+        "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=600&q=80",
+        "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=600&q=80",
+        "https://images.unsplash.com/photo-1568667256549-094345857637?auto=format&fit=crop&w=600&q=80",
+        "https://images.unsplash.com/photo-1557223562-6c77ef16210f?auto=format&fit=crop&w=600&q=80"
+      ];
+      const mainPhoto = defaultPhotos[0];
+      const rightPhotos = defaultPhotos.slice(1);
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3.5 h-auto md:h-[320px] select-none">
+          {/* Large Left Image */}
+          <div className="md:col-span-3 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 h-[200px] md:h-full relative group cursor-pointer" onClick={() => handleOpenPhotosList(defaultPhotos, 0)}>
+            <img src={mainPhoto} alt="Campus" className="w-full h-full object-cover transition duration-300 group-hover:scale-105" />
+          </div>
+          
+          {/* Right Grid */}
+          <div className="md:col-span-2 grid grid-cols-2 gap-3.5 h-[180px] md:h-full">
+            {rightPhotos.map((photoUrl, idx) => (
+              <div key={idx} className="rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 h-full relative group cursor-pointer" onClick={() => handleOpenPhotosList(defaultPhotos, idx + 1)}>
+                <img src={photoUrl} alt="Campus view" className="w-full h-full object-cover transition duration-300 group-hover:scale-105" />
+              </div>
+            ))}
+          </div>
+        </div>
+      );
     }
 
     if (photos.length === 1) {
       return (
-        <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 h-[280px]">
+        <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 h-[200px] md:h-[280px] cursor-pointer" onClick={() => handleOpenSchoolPhotos(0)}>
           <img src={photos[0]} alt="School front" className="w-full h-full object-cover" />
         </div>
       );
@@ -188,19 +236,19 @@ function SchoolDetails() {
     const rightPhotos = displayPhotos.slice(1);
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-3.5 h-[320px] select-none">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-3.5 h-auto md:h-[320px] select-none">
         {/* Large Left Image */}
-        <div className="md:col-span-3 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 h-full relative group">
+        <div className="md:col-span-3 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 h-[200px] md:h-full relative group cursor-pointer" onClick={() => handleOpenSchoolPhotos(0)}>
           <img src={mainPhoto} alt="Campus" className="w-full h-full object-cover transition duration-300 group-hover:scale-105" />
         </div>
         
         {/* Right Grid */}
         {rightPhotos.length > 0 && (
-          <div className="md:col-span-2 grid grid-cols-2 gap-3.5 h-full">
+          <div className="md:col-span-2 grid grid-cols-2 gap-3.5 h-[180px] md:h-full">
             {rightPhotos.map((photoUrl, idx) => {
               const isLast = idx === rightPhotos.length - 1 && photos.length > 5;
               return (
-                <div key={idx} className="rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 h-full relative group">
+                <div key={idx} className="rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 h-full relative group cursor-pointer" onClick={() => handleOpenSchoolPhotos(idx + 1)}>
                   <img src={photoUrl} alt="Campus view" className="w-full h-full object-cover transition duration-300 group-hover:scale-105" />
                   {isLast && (
                     <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center text-white font-extrabold text-sm backdrop-blur-[2px]">
@@ -233,130 +281,145 @@ function SchoolDetails() {
       </div>
 
       {/* ── SCHOOL MAIN HEADER CARD ── */}
-      <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 p-6 rounded-3xl shadow-xl overflow-hidden text-left transition-colors duration-200">
-        <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-[#7C3AED]/10 blur-[60px] pointer-events-none" />
-        
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b border-slate-100 dark:border-white/5">
-          <div className="flex flex-col sm:flex-row items-start gap-5">
-            {/* School Logo */}
-            <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
-              {school.photo ? (
-                <img src={school.photo} alt="Logo" className="w-full h-full object-cover" />
-              ) : (
-                <FaSchool className="text-3xl text-purple-500" />
-              )}
-            </div>
-            {/* School Title & Badges */}
-            <div className="space-y-2.5">
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">{school.name}</h1>
-                <span className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] shadow-sm"><FaCheckCircle /></span>
-              </div>
-              
-              {/* Badges row */}
-              <div className="flex flex-wrap gap-1.5 select-none">
-                {school.affiliation && (
-                  <span className="bg-blue-500/10 text-blue-600 dark:text-blue-450 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md border border-blue-500/15">
-                    {school.affiliation}
-                  </span>
-                )}
-                {school.coEducational && (
-                  <span className="bg-purple-500/10 text-purple-600 dark:text-purple-450 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md border border-purple-500/15">
-                    {school.coEducational}
-                  </span>
-                )}
-                {school.schoolOperationType && (
-                  <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-455 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md border border-emerald-500/15">
-                    {school.schoolOperationType}
-                  </span>
-                )}
-                {school.category && (
-                  <span className="bg-amber-500/10 text-amber-600 dark:text-amber-455 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md border border-amber-500/15">
-                    {school.category}
-                  </span>
-                )}
-              </div>
-
-              {/* Contacts row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium pt-1">
-                {school.address && (
-                  <div className="flex items-center gap-1.5">
-                    <span className="shrink-0 text-slate-400 text-[10px]">📍</span>
-                    <span className="truncate max-w-[280px]" title={school.address}>{school.address}</span>
-                  </div>
-                )}
-                {school.phoneNumber && (
-                  <div className="flex items-center gap-1.5">
-                    <span className="shrink-0 text-slate-400 text-[10px]">📞</span>
-                    <span>{school.phoneNumber}</span>
-                  </div>
-                )}
-                {school.email && (
-                  <div className="flex items-center gap-1.5">
-                    <span className="shrink-0 text-slate-400 text-[10px]">✉️</span>
-                    <span>{school.email}</span>
-                  </div>
-                )}
-                {school.website && (
-                  <div className="flex items-center gap-1.5">
-                    <span className="shrink-0 text-slate-400 text-[10px]">🌐</span>
-                    <a href={`https://${school.website}`} target="_blank" rel="noopener noreferrer" className="hover:underline text-[#7C3AED] dark:text-[#38BDF8]">
-                      {school.website}
-                    </a>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Actions Panel */}
-          <div className="flex flex-row md:flex-col gap-3.5 self-stretch justify-end md:justify-start shrink-0">
-            <button
-              onClick={handleBack}
-              className="flex-1 bg-[#7C3AED] hover:bg-[#6D28D9] text-white py-2.5 px-5 rounded-xl text-xs font-bold transition shadow-md shadow-[#7C3AED]/20 cursor-pointer text-center"
-            >
-              Apply for Admission
-            </button>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(window.location.href);
-                alert("School details link copied to clipboard!");
-              }}
-              className="flex-1 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-355 py-2.5 px-5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
-            >
-              <FaShareAlt className="text-xs text-slate-400" /> Share School
-            </button>
-          </div>
+      <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl shadow-xl overflow-hidden text-left transition-colors duration-200">
+        {/* Cover Banner */}
+        <div className="w-full h-32 sm:h-44 relative bg-slate-100 dark:bg-white/5 overflow-hidden select-none">
+          {school.schoolPhotos && school.schoolPhotos.length > 0 ? (
+            <img src={school.schoolPhotos[0]} alt={`${school.name} Cover`} className="w-full h-full object-cover" />
+          ) : school.photo ? (
+            <img src={school.photo} alt={`${school.name} Cover`} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-r from-violet-600 to-indigo-855" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
         </div>
 
-        {/* ── TAB BAR ── */}
-        <div className="flex items-center gap-6 mt-5 select-none">
-          <button
-            onClick={() => setActiveSubTab("details")}
-            className={`pb-2.5 text-xs font-extrabold tracking-wider uppercase transition-all relative cursor-pointer ${
-              activeSubTab === "details"
-                ? "text-[#7C3AED] dark:text-[#38BDF8]"
-                : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-305"
-            }`}
-          >
-            {school.name || "School"} Details
-            {activeSubTab === "details" && (
-              <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#7C3AED] dark:bg-[#38BDF8] rounded-full" />
-            )}
-          </button>
-          <button
-            onClick={() => setActiveSubTab("teachers")}
-            className={`pb-2.5 text-xs font-extrabold tracking-wider uppercase transition-all relative cursor-pointer ${
-              activeSubTab === "teachers"
-                ? "text-[#7C3AED] dark:text-[#38BDF8]"
-                : "text-slate-400 dark:text-slate-500 hover:text-slate-605 dark:hover:text-slate-305"
-            }`}
-          >
-            Principal & Teachers Info
-            {activeSubTab === "teachers" && (
-              <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#7C3AED] dark:bg-[#38BDF8] rounded-full" />
-            )}
-          </button>
+        {/* Content Container */}
+        <div className="p-6 relative">
+          <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-[#7C3AED]/10 blur-[60px] pointer-events-none" />
+          
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b border-slate-100 dark:border-white/5">
+            <div className="flex flex-col sm:flex-row items-start gap-5">
+              {/* School Logo overlapping banner */}
+              <div className="w-24 h-24 rounded-full bg-white dark:bg-[#0B132A] border-4 border-white dark:border-[#0B132A] flex items-center justify-center overflow-hidden shrink-0 shadow-lg mt-[-64px] relative z-10">
+                {school.photo ? (
+                  <img src={school.photo} alt="Logo" className="w-full h-full object-cover" />
+                ) : (
+                  <FaSchool className="text-3xl text-purple-500" />
+                )}
+              </div>
+              {/* School Title & Badges */}
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">{school.name}</h1>
+                  <span className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] shadow-sm"><FaCheckCircle /></span>
+                </div>
+                
+                {/* Badges row */}
+                <div className="flex flex-wrap gap-1.5 select-none">
+                  {school.affiliation && (
+                    <span className="bg-blue-500/10 text-blue-600 dark:text-blue-455 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md border border-blue-500/15">
+                      {school.affiliation}
+                    </span>
+                  )}
+                  {school.coEducational && (
+                    <span className="bg-purple-500/10 text-purple-605 dark:text-purple-450 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md border border-purple-500/15">
+                      {school.coEducational}
+                    </span>
+                  )}
+                  {school.schoolOperationType && (
+                    <span className="bg-emerald-500/10 text-emerald-606 dark:text-emerald-455 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md border border-emerald-500/15">
+                      {school.schoolOperationType}
+                    </span>
+                  )}
+                  {school.category && (
+                    <span className="bg-amber-500/10 text-amber-606 dark:text-amber-455 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md border border-amber-500/15">
+                      {school.category}
+                    </span>
+                  )}
+                </div>
+
+                {/* Contacts row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium pt-1">
+                  {school.address && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="shrink-0 text-slate-400 text-[10px]">📍</span>
+                      <span className="truncate max-w-[280px]" title={school.address}>{school.address}</span>
+                    </div>
+                  )}
+                  {school.phoneNumber && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="shrink-0 text-slate-400 text-[10px]">📞</span>
+                      <span>{school.phoneNumber}</span>
+                    </div>
+                  )}
+                  {school.email && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="shrink-0 text-slate-400 text-[10px]">✉️</span>
+                      <span>{school.email}</span>
+                    </div>
+                  )}
+                  {school.website && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="shrink-0 text-slate-400 text-[10px]">🌐</span>
+                      <a href={`https://${school.website}`} target="_blank" rel="noopener noreferrer" className="hover:underline text-[#7C3AED] dark:text-[#38BDF8]">
+                        {school.website}
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Actions Panel */}
+            <div className="flex flex-row md:flex-col gap-3.5 self-stretch justify-end md:justify-start shrink-0">
+              <button
+                onClick={handleBack}
+                className="flex-1 bg-[#7C3AED] hover:bg-[#6D28D9] text-white py-2.5 px-5 rounded-xl text-xs font-bold transition shadow-md shadow-[#7C3AED]/20 cursor-pointer text-center"
+              >
+                Apply for Admission
+              </button>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  alert("School details link copied to clipboard!");
+                }}
+                className="flex-1 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-355 py-2.5 px-5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <FaShareAlt className="text-xs text-slate-400" /> Share School
+              </button>
+            </div>
+          </div>
+
+          {/* ── TAB BAR ── */}
+          <div className="flex items-center gap-6 mt-5 select-none">
+            <button
+              onClick={() => setActiveSubTab("details")}
+              className={`pb-2.5 text-xs font-extrabold tracking-wider uppercase transition-all relative cursor-pointer ${
+                activeSubTab === "details"
+                  ? "text-[#7C3AED] dark:text-[#38BDF8]"
+                  : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-305"
+              }`}
+            >
+              {school.name || "School"} Details
+              {activeSubTab === "details" && (
+                <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#7C3AED] dark:bg-[#38BDF8] rounded-full" />
+              )}
+            </button>
+            <button
+              onClick={() => setActiveSubTab("teachers")}
+              className={`pb-2.5 text-xs font-extrabold tracking-wider uppercase transition-all relative cursor-pointer ${
+                activeSubTab === "teachers"
+                  ? "text-[#7C3AED] dark:text-[#38BDF8]"
+                  : "text-slate-400 dark:text-slate-500 hover:text-slate-605 dark:hover:text-slate-305"
+              }`}
+            >
+              Principal & Teachers Info
+              {activeSubTab === "teachers" && (
+                <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#7C3AED] dark:bg-[#38BDF8] rounded-full" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -875,7 +938,7 @@ function SchoolDetails() {
                   <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Activity Photos</h4>
                   <div className="grid grid-cols-5 gap-2 select-none">
                     {selectedTeacher.galleryPhotos.map((photo, idx) => (
-                      <div key={idx} className="aspect-square rounded-lg overflow-hidden border border-slate-200 dark:border-white/10 shadow-sm relative group">
+                      <div key={idx} className="aspect-square rounded-lg overflow-hidden border border-slate-200 dark:border-white/10 shadow-sm relative group cursor-pointer" onClick={() => handleOpenTeacherPhotos(idx)}>
                         <img src={photo.url} alt="Activity" className="w-full h-full object-cover transition duration-300 group-hover:scale-110" />
                       </div>
                     ))}
@@ -894,6 +957,108 @@ function SchoolDetails() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Lightbox Slider Modal */}
+      {lightboxIndex !== null && lightboxImages && (
+        <ImageLightbox
+          images={lightboxImages}
+          startIndex={lightboxIndex}
+          onClose={() => {
+            setLightboxIndex(null);
+            setLightboxImages(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// Lightbox Slider Component
+function ImageLightbox({ images, startIndex, onClose }) {
+  const [currentIndex, setCurrentIndex] = useState(startIndex);
+  
+  const handlePrev = (e) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+  
+  const handleNext = (e) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+      if (e.key === "ArrowRight") setCurrentIndex((prev) => (prev + 1) % images.length);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [images.length, onClose]);
+
+  const activeImage = images[currentIndex];
+  const imageUrl = typeof activeImage === "string" ? activeImage : activeImage?.url;
+
+  return (
+    <div 
+      className="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[150] flex flex-col items-center justify-center select-none"
+      onClick={onClose}
+    >
+      {/* Top Header */}
+      <div className="absolute top-0 inset-x-0 p-4 flex items-center justify-between text-white bg-gradient-to-b from-black/60 to-transparent">
+        <span className="text-xs font-bold tracking-wider">
+          Photo {currentIndex + 1} of {images.length}
+        </span>
+        <button 
+          onClick={onClose}
+          className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition cursor-pointer text-sm"
+        >
+          <FaTimes />
+        </button>
+      </div>
+
+      {/* Main Image and Navigation */}
+      <div className="relative w-full max-w-4xl px-12 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+        {images.length > 1 && (
+          <button 
+            onClick={handlePrev}
+            className="absolute left-4 p-3 rounded-full bg-white/10 hover:bg-white/25 text-white transition cursor-pointer"
+          >
+            <FaChevronLeft className="text-lg" />
+          </button>
+        )}
+        
+        <img 
+          src={imageUrl} 
+          alt="Preview" 
+          className="max-h-[80vh] max-w-full rounded-2xl object-contain shadow-2xl transition-all duration-300 animate-fadeIn"
+        />
+
+        {images.length > 1 && (
+          <button 
+            onClick={handleNext}
+            className="absolute right-4 p-3 rounded-full bg-white/10 hover:bg-white/25 text-white transition cursor-pointer"
+          >
+            <FaChevronRight className="text-lg" />
+          </button>
+        )}
+      </div>
+
+      {/* Bottom dots */}
+      {images.length > 1 && (
+        <div className="absolute bottom-6 flex gap-1.5 z-10" onClick={(e) => e.stopPropagation()}>
+          {images.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentIndex(idx)}
+              className={`w-2 h-2 rounded-full transition-all ${
+                idx === currentIndex ? "bg-white scale-125" : "bg-white/40"
+              }`}
+            />
+          ))}
         </div>
       )}
     </div>

@@ -72,8 +72,10 @@ function UserProfile() {
       });
       setUser(res.data.user);
       setEditMode(false);
-      // Update name in localStorage for Layout header updates
+      // Update name and avatar in localStorage for Layout header updates
       localStorage.setItem("name", res.data.user.name);
+      localStorage.setItem("avatar", res.data.user.avatar || "");
+      window.dispatchEvent(new Event("profileUpdate"));
     } catch (err) {
       alert(err.response?.data?.message || "Failed to update profile");
     } finally {
