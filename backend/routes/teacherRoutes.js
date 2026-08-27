@@ -6,6 +6,7 @@ getTeacherDashboard,
 getMyClasses,
 getClassDetails,
 getMyStudents,
+getStudentDetails,
 getMySubjects,
 getTeacherProfile,
 getTeacherExams,
@@ -22,6 +23,8 @@ router.get("/my-classes", protect, getMyClasses);
 router.get("/my-classes/:classId/details", protect, getClassDetails);
 
 router.get("/my-students", protect, getMyStudents);
+
+router.get("/my-students/:studentId/details", protect, getStudentDetails);
 
 router.get("/my-subjects", protect, getMySubjects);
 
