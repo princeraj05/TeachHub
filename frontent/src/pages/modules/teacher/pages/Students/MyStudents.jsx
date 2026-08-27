@@ -34,6 +34,7 @@ import {
   FaCheckCircle,
   FaChevronLeft,
   FaVideo,
+  FaSchool,
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
