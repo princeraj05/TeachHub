@@ -1125,10 +1125,6 @@ exports.updateTeacherProfile = async (req,res)=>{
   }
 };
 
-}
-
-};
-
 
 
 // ================= GET TEACHER EXAMS =================

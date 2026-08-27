@@ -12,6 +12,7 @@ import {
 } from "react-icons/fa";
 
 function MediaPrincipalTab({
+  coverImage, setCoverImage,
   schoolPhotos, setSchoolPhotos,
   principalPhoto, setPrincipalPhoto,
   principalName, setPrincipalName,
@@ -30,6 +31,29 @@ function MediaPrincipalTab({
     const updated = [...schoolPhotos];
     updated.splice(index, 1);
     setSchoolPhotos(updated);
+  };
+
+  const handleCoverUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append("image", file);
+    
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(`${API}/api/schools/upload`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (res.data?.url) {
+        setCoverImage(res.data.url);
+      }
+    } catch (err) {
+      alert("Failed to upload cover banner image. Please try again.");
+    }
   };
 
   const handleAddPhotoUpload = async (e) => {
@@ -213,6 +237,76 @@ function MediaPrincipalTab({
         <div className="bg-[#0F172A] border border-slate-850 rounded-xl px-4 py-2.5 text-[9px] text-purple-400 mt-4 flex items-center gap-2">
           <FaInfoCircle className="text-[10px]" />
           <span>Drag and drop to reorder photos. The first photo will be shown as the main image.</span>
+        </div>
+      </div>
+
+      {/* SCHOOL COVER BANNER CARD */}
+      <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
+        <div className="flex items-center justify-between border-b border-slate-800/60 pb-3 mb-4">
+          <div className="flex items-center gap-2">
+            <FaCamera className="text-purple-500 text-sm" />
+            <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">School Cover Banner</h3>
+          </div>
+          <div>
+            <input
+              type="file"
+              id="cover-photo-file-input"
+              accept="image/*"
+              onChange={handleCoverUpload}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => document.getElementById("cover-photo-file-input").click()}
+              className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-lg transition cursor-pointer"
+            >
+              <FaSyncAlt /> Change Banner
+            </button>
+          </div>
+        </div>
+
+        <p className="text-[10px] text-slate-450 font-medium mb-4">
+          Upload a high-resolution cover banner that represents your school. Recommended size: <strong className="text-purple-400 font-bold">1200 x 400 pixels (3:1 aspect ratio)</strong> for the best widescreen preview.
+        </p>
+
+        {/* Banner Widescreen Preview Frame */}
+        <div className="relative aspect-[3/1] w-full rounded-2xl overflow-hidden border border-slate-800 bg-[#0F172A] group">
+          {coverImage ? (
+            <>
+              <img
+                src={coverImage}
+                alt="School Widescreen Cover Banner"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
+              />
+              <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActivePhotoPreview(coverImage)}
+                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-extrabold rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                >
+                  <FaEye /> Preview Widescreen
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCoverImage("")}
+                  className="px-3.5 py-2 bg-rose-600/95 hover:bg-rose-500 text-white text-xs font-extrabold rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                >
+                  <FaTrashAlt /> Remove Cover
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500 gap-2 border border-dashed border-slate-800 rounded-2xl">
+              <span className="text-xs font-bold text-slate-400">No cover image uploaded</span>
+              <button
+                type="button"
+                onClick={() => document.getElementById("cover-photo-file-input").click()}
+                className="px-4 py-2 bg-[#0F172A] border border-slate-800 hover:bg-slate-850 rounded-xl text-[10px] text-white font-black transition cursor-pointer"
+              >
+                Upload Cover Banner
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

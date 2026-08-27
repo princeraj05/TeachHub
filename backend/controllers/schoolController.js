@@ -77,7 +77,10 @@ exports.getMySchool = async (req, res) => {
     if (!school.hostelFacility) { school.hostelFacility = "Not Available"; modified = true; }
     if (!school.availableClasses) { school.availableClasses = "Class 1 to 10"; modified = true; }
 
-    // Multi-tab fields
+    if (!school.coverImage) {
+      school.coverImage = "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=1200&q=80";
+      modified = true;
+    }
     if (!school.schoolPhotos || school.schoolPhotos.length === 0) {
       school.schoolPhotos = [
         "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=400&q=80", // school front
@@ -211,6 +214,7 @@ exports.updateMySchool = async (req, res) => {
       hostelFacility,
 
       // Multi-tab fields
+      coverImage,
       schoolPhotos,
       principalPhoto,
       principalDesignation,

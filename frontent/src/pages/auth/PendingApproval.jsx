@@ -51,6 +51,7 @@ function PendingApproval() {
   const [user, setUser] = useState({ name: "Loading...", email: "", role: "", avatar: "" });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
+  const [requestedSchoolData, setRequestedSchoolData] = useState(null);
 
   // Derive active tab from URL path
   const getActiveTab = () => {
@@ -151,6 +152,17 @@ function PendingApproval() {
     const interval = setInterval(checkRoleStatus, 3000);
     return () => clearInterval(interval);
   }, [navigate, API, token]);
+
+  useEffect(() => {
+    if (user.requestedSchool && token) {
+      axios
+        .get(`${API}/api/schools/${encodeURIComponent(user.requestedSchool)}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then((res) => setRequestedSchoolData(res.data))
+        .catch((err) => console.error("Error fetching requested school data:", err));
+    }
+  }, [user.requestedSchool, token, API]);
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -549,7 +561,7 @@ function PendingApproval() {
                 <div className="w-full relative overflow-hidden rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-lg min-h-[12rem] flex flex-col justify-end p-6 select-none bg-slate-950">
                   {/* Background Banner Image */}
                   <img
-                    src={getSchoolBanner(user.requestedSchool)}
+                    src={requestedSchoolData?.coverImage || (requestedSchoolData?.schoolPhotos && requestedSchoolData.schoolPhotos.length > 0 ? requestedSchoolData.schoolPhotos[0] : getSchoolBanner(user.requestedSchool))}
                     alt="School Banner"
                     className="absolute inset-0 w-full h-full object-cover opacity-45 dark:opacity-30"
                   />

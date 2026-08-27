@@ -80,6 +80,7 @@ const schoolSchema = new mongoose.Schema({
   hostelFacility: { type: String, default: "Not Available" },
 
   // New multi-tab fields
+  coverImage: { type: String, default: "" },
   schoolPhotos: { type: [String], default: [] },
   principalPhoto: { type: String, default: "" },
   principalDesignation: { type: String, default: "" },

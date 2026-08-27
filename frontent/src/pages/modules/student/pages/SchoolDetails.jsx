@@ -284,7 +284,9 @@ function SchoolDetails() {
       <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl shadow-xl overflow-hidden text-left transition-colors duration-200">
         {/* Cover Banner */}
         <div className="w-full h-32 sm:h-44 relative bg-slate-100 dark:bg-white/5 overflow-hidden select-none">
-          {school.schoolPhotos && school.schoolPhotos.length > 0 ? (
+          {school.coverImage ? (
+            <img src={school.coverImage} alt={`${school.name} Cover`} className="w-full h-full object-cover" />
+          ) : school.schoolPhotos && school.schoolPhotos.length > 0 ? (
             <img src={school.schoolPhotos[0]} alt={`${school.name} Cover`} className="w-full h-full object-cover" />
           ) : school.photo ? (
             <img src={school.photo} alt={`${school.name} Cover`} className="w-full h-full object-cover" />
