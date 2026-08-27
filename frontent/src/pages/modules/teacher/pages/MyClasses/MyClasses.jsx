@@ -22,6 +22,7 @@ import {
   FaChevronRight,
   FaEllipsisV,
   FaCheckCircle,
+  FaClipboardCheck,
   FaTimesCircle,
   FaExclamationCircle,
   FaUser,
