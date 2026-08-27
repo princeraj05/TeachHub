@@ -67,7 +67,15 @@ mongoose
         { name: "Banny Thapar", role: "admin" },
         { schoolName: "G.D Academy" }
       );
-      console.log("Database Migration: Updated Banny Thapar's school to G.D Academy", result);
+      await User.updateMany(
+        { requestedSchool: { $in: ["G.D Accedmy", "G.D Accedmy "] } },
+        { requestedSchool: "G.D Academy" }
+      );
+      await User.updateMany(
+        { schoolName: { $in: ["G.D Accedmy", "G.D Accedmy "] } },
+        { schoolName: "G.D Academy" }
+      );
+      console.log("Database Migration: Updated Banny Thapar's school to G.D Academy and cleaned requestedSchool records", result);
 
       // Non-destructive startup check: ensure all unique schoolName values in User database have corresponding School records
       const School = require("./models/School");

@@ -18,6 +18,7 @@ exports.getSchools = async (req, res) => {
     
     // Migrate users/classes/subjects referencing the misspelled school
     await User.updateMany({ schoolName: { $in: ["G.D Accedmy", "G.D Accedmy "] } }, { schoolName: "G.D Academy" });
+    await User.updateMany({ requestedSchool: { $in: ["G.D Accedmy", "G.D Accedmy "] } }, { requestedSchool: "G.D Academy" });
     await Class.updateMany({ schoolName: { $in: ["G.D Accedmy", "G.D Accedmy "] } }, { schoolName: "G.D Academy" });
     await Subject.updateMany({ schoolName: { $in: ["G.D Accedmy", "G.D Accedmy "] } }, { schoolName: "G.D Academy" });
 
