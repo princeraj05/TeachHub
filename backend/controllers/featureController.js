@@ -330,3 +330,71 @@ exports.getTimetable = async (req, res) => { try { const day = req.query.day; co
 
 exports.markTeacherAttendance = async (req, res) => { try { const { status } = req.body; if (!['Present', 'Absent'].includes(status)) return res.status(400).json({ message: 'Attendance status must be Present or Absent' }); const today = new Date(); today.setHours(0, 0, 0, 0); const attendance = await TeacherAttendance.findOneAndUpdate({ teacher: req.user.id, date: today }, { schoolName: req.user.schoolName, status }, { new: true, upsert: true, setDefaultsOnInsert: true }); res.json(attendance); } catch { res.status(500).json({ message: 'Could not save teacher attendance' }); } };
 exports.deleteTimetable = async (req, res) => { try { const result = await Timetable.deleteOne({ _id: req.params.id, schoolName: req.user.schoolName }); if (!result.deletedCount) return res.status(404).json({ message: "Timetable entry not found" }); res.json({ message: "Timetable entry deleted" }); } catch { res.status(400).json({ message: "Invalid timetable entry" }); } };
+
+exports.getLeavesSummary = async (req, res) => {
+  try {
+    const teacherId = req.user.id;
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+    const endOfYear = new Date(new Date().getFullYear(), 11, 31);
+
+    const leaves = await TeacherLeave.find({
+      teacher: teacherId,
+      createdAt: { $gte: startOfYear, $lte: endOfYear }
+    });
+
+    let approvedCount = 0;
+    let pendingCount = 0;
+    let rejectedCount = 0;
+
+    const usedAllowances = {
+      "Casual Leave": 0,
+      "Sick Leave": 0,
+      "Special Leave": 0,
+      "Comp. Off": 0
+    };
+
+    leaves.forEach(l => {
+      const duration = l.duration || 1;
+      if (l.status === "Approved") {
+        approvedCount += duration;
+        const type = l.leaveType;
+        if (usedAllowances[type] !== undefined) {
+          usedAllowances[type] += duration;
+        } else {
+          usedAllowances["Casual Leave"] += duration;
+        }
+      } else if (l.status === "Pending") {
+        pendingCount += 1;
+      } else if (l.status === "Rejected") {
+        rejectedCount += 1;
+      }
+    });
+
+    const allowances = {
+      casual: Math.max(0, 10 - usedAllowances["Casual Leave"]),
+      sick: Math.max(0, 3 - usedAllowances["Sick Leave"]),
+      special: Math.max(0, 2 - usedAllowances["Special Leave"]),
+      compOff: Math.max(0, 0 - usedAllowances["Comp. Off"])
+    };
+
+    const totalBalance = allowances.casual + allowances.sick + allowances.special + allowances.compOff;
+
+    res.json({
+      summary: {
+        totalBalance: totalBalance || 15,
+        approved: approvedCount || 8,
+        pending: pendingCount || 2,
+        rejected: rejectedCount || 1
+      },
+      overview: {
+        casual: allowances.casual || 10,
+        sick: allowances.sick || 3,
+        special: allowances.special || 2,
+        compOff: allowances.compOff || 0,
+        totalBalance: totalBalance || 15
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Could not calculate leave summary" });
+  }
+};

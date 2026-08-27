@@ -8,6 +8,7 @@ router.get("/groups/:id", authorize("teacher", "student"), feature.getGroup);
 router.get("/groups/:id/messages", authorize("teacher", "student"), feature.getGroupMessages);
 router.post("/groups/:id/messages", authorize("teacher", "student"), feature.sendGroupMessage);
 router.post("/teacher-leaves", authorize("teacher"), feature.createLeave);
+router.get("/teacher-leaves/summary", authorize("teacher"), feature.getLeavesSummary);
 router.get("/teacher-leaves", authorize("teacher", "admin"), feature.getLeaves);
 router.put("/teacher-leaves/:id", authorize("admin"), feature.reviewLeave);
 router.put("/teacher-leaves/:id/approve", authorize("admin"), (req, res) => { req.body.status = "Approved"; return feature.reviewLeave(req, res); });
