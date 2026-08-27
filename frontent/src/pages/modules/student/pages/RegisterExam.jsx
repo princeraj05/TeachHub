@@ -415,7 +415,7 @@ function RegisterExam() {
     }
   };
 
-  const currentNextExam = nextExamItem || DUMMY_EXAMS[0];
+  const currentNextExam = nextExamItem;
 
   // Proctoring setup media activations
   const activateCamera = async () => {
