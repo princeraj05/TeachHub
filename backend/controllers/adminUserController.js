@@ -273,7 +273,7 @@ exports.assignClass = async (req, res) => {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    if (student.schoolName !== req.user.schoolName) {
+    if (student.schoolName !== req.user.schoolName && student.requestedSchool !== req.user.schoolName) {
       return res.status(403).json({ message: "Forbidden: Student belongs to another school" });
     }
 
@@ -289,6 +289,7 @@ exports.assignClass = async (req, res) => {
     }
 
     student.role = "student";
+    student.schoolName = req.user.schoolName;
     student.requestStatus = "approved";
     student.classId = targetClass._id;
 
