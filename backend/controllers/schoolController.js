@@ -66,7 +66,7 @@ exports.getMySchool = async (req, res) => {
     if (!school.registrationNumber) { school.registrationNumber = "GD/REG/2010/4125"; modified = true; }
     if (!school.category) { school.category = "Secondary"; modified = true; }
     if (!school.motto) { school.motto = "Learn • Grow • Succeed"; modified = true; }
-    if (!school.photo) { school.photo = "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80"; modified = true; }
+    if (!school.photo) { school.photo = "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=200&h=200&q=80"; modified = true; }
     
     // Categories / Facilities
     if (!school.academicLevel) { school.academicLevel = "Secondary"; modified = true; }
@@ -272,6 +272,7 @@ exports.updateMySchool = async (req, res) => {
     if (hostelFacility !== undefined) school.hostelFacility = hostelFacility;
 
     // Multi-tab fields
+    if (coverImage !== undefined) school.coverImage = coverImage;
     if (schoolPhotos !== undefined) school.schoolPhotos = schoolPhotos;
     if (principalPhoto !== undefined) school.principalPhoto = principalPhoto;
     if (principalDesignation !== undefined) school.principalDesignation = principalDesignation;
