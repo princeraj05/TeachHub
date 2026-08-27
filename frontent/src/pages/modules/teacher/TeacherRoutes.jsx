@@ -11,6 +11,7 @@ import AttendanceHistory from "./pages/Attendance/AttendanceHistory";
 import MySubjects from "./pages/Subjects/MySubjects";
 import SubjectDetails from "./pages/Subjects/SubjectDetails";
 import ExamSchedule from "./pages/Exams/ExamSchedule";
+import ExamDetailsAndResults from "./pages/Exams/ExamDetailsAndResults";
 
 import TeacherProfile from "./pages/Profile/TeacherProfile";
 import MyClasses from "./pages/MyClasses/MyClasses";
@@ -46,6 +47,7 @@ function TeacherRoutes() {
         <Route path="my-subjects/:subjectId" element={<SubjectDetails />} />
 
         <Route path="exam-schedule" element={<ExamSchedule />} />
+        <Route path="exam-schedule/:examId" element={<ExamDetailsAndResults />} />
 
         <Route path="proctoring" element={<LiveProctoring />} />
 

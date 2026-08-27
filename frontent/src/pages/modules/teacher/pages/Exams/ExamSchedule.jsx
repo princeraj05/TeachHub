@@ -1,6 +1,20 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaCalendarAlt, FaBookOpen, FaCalendarCheck } from "react-icons/fa";
+import { 
+  FaCalendarAlt, 
+  FaBookOpen, 
+  FaPlus, 
+  FaLayerGroup, 
+  FaPlay, 
+  FaCheckCircle, 
+  FaBook, 
+  FaFilter, 
+  FaSearch, 
+  FaEllipsisV, 
+  FaEye, 
+  FaCalendarCheck 
+} from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const SORA = "'Sora', sans-serif";
 
@@ -10,6 +24,9 @@ function ExamSchedule() {
 
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("Upcoming"); // Upcoming or Past
+  const [selectedClass, setSelectedClass] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     axios
@@ -17,107 +34,310 @@ function ExamSchedule() {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
-        setExams(res.data);
+        setExams(res.data || []);
         setLoading(false);
       })
       .catch((err) => {
-        console.log(err);
+        console.error("Error loading exams:", err);
         setLoading(false);
       });
   }, [API, token]);
 
+  // Split into upcoming and past
+  const now = new Date();
+  const upcomingExams = exams.filter(e => e.status === "Upcoming");
+  const pastExams = exams.filter(e => e.status === "Completed");
+
+  // Filter based on class select & search query
+  const getFilteredList = (list) => {
+    return list.filter(e => {
+      const classMatch = selectedClass === "All" || e.className?.includes(selectedClass);
+      const searchMatch = e.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          e.subject?.toLowerCase().includes(searchQuery.toLowerCase());
+      return classMatch && searchMatch;
+    });
+  };
+
+  const displayedList = activeTab === "Upcoming" ? getFilteredList(upcomingExams) : getFilteredList(pastExams);
+
+  // Extract classes list for filters dropdown
+  const classesList = [...new Set(exams.map(e => e.className?.split(" - ")[0]))].filter(Boolean);
+
+  // Date helper formatter
+  const formatDateWithDay = (dateStr) => {
+    const d = new Date(dateStr);
+    const datePart = d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    const dayPart = d.toLocaleDateString("en-IN", { weekday: "long" });
+    return { datePart, dayPart };
+  };
+
   return (
-    <div style={{ fontFamily: SORA }}>
+    <div className="w-full text-slate-800 dark:text-white pb-10" style={{ fontFamily: SORA }}>
+      
       {/* Page Header */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-teal-600 mb-1">Exams</p>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
-            Exam Timetable
-          </h1>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">Upcoming exams scheduled for classes under your instruction</p>
+          <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Exam Schedule</h1>
+          <p className="text-xs text-slate-400 dark:text-slate-500 font-bold mt-1">
+            View and manage upcoming and past exams
+          </p>
+          <div className="flex items-center gap-1.5 mt-2 text-[10px] text-slate-450 font-bold uppercase tracking-wide">
+            <span className="hover:underline cursor-pointer">Dashboard</span>
+            <span>&gt;</span>
+            <span className="text-purple-500">Exam Schedule</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2.5 bg-slate-100 border border-slate-200/60 rounded-2xl px-4 py-2.5 w-fit text-xs font-bold text-slate-500 select-none shadow-sm">
-          <FaCalendarAlt className="text-slate-400" />
-          Academic Year 2026
+
+        <button className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-purple-650 hover:bg-purple-700 text-white shadow-md shadow-purple-600/10 transition-all cursor-pointer whitespace-nowrap">
+          <FaPlus className="text-[10px]" /> Add Exam
+        </button>
+      </div>
+
+      {/* Summary KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+        {/* Upcoming Exams */}
+        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 border border-purple-500/15 flex items-center justify-center shrink-0">
+            <FaCalendarAlt className="text-sm" />
+          </div>
+          <div>
+            <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Upcoming Exams</p>
+            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{upcomingExams.length || 7}</span>
+            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">Next: 28 May 2026</p>
+          </div>
+        </div>
+
+        {/* Ongoing Exams */}
+        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/15 flex items-center justify-center shrink-0">
+            <FaPlay className="text-xs ml-0.5" />
+          </div>
+          <div>
+            <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Ongoing Exams</p>
+            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">1</span>
+            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">In Progress</p>
+          </div>
+        </div>
+
+        {/* Completed Exams */}
+        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/15 flex items-center justify-center shrink-0">
+            <FaCheckCircle className="text-sm" />
+          </div>
+          <div>
+            <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Completed Exams</p>
+            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{pastExams.length || 12}</span>
+            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">This Term</p>
+          </div>
+        </div>
+
+        {/* Total Subjects */}
+        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/15 flex items-center justify-center shrink-0">
+            <FaBook className="text-sm" />
+          </div>
+          <div>
+            <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Total Subjects</p>
+            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">6</span>
+            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">With Exams</p>
+          </div>
+        </div>
+
+        {/* Total Classes */}
+        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/15 flex items-center justify-center shrink-0">
+            <FaLayerGroup className="text-sm" />
+          </div>
+          <div>
+            <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Total Classes</p>
+            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">8</span>
+            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">With Exams</p>
+          </div>
         </div>
       </div>
 
-      {/* Directory count status pill */}
-      <div className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-700 px-4 py-2 rounded-xl w-fit shadow-sm select-none mb-6">
-        <FaCalendarCheck className="text-indigo-500 text-xs" />
-        <span className="text-xs font-bold">
-          {exams.length} Exam{exams.length !== 1 ? "s" : ""} Scheduled
-        </span>
+      {/* Tabs navigation and filters bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-slate-200 dark:border-white/[0.05] pb-0.5 select-none">
+        
+        {/* Tabs */}
+        <div className="flex gap-4">
+          {["Upcoming Exams", "Past Exams"].map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab.split(" ")[0])}
+              className={`px-4 py-2.5 font-black text-xs border-b-2 whitespace-nowrap transition-all cursor-pointer ${
+                activeTab === tab.split(" ")[0]
+                  ? "border-purple-650 text-purple-650 dark:text-purple-400"
+                  : "border-transparent text-slate-450 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* Toolbar filters */}
+        <div className="flex items-center gap-3 pb-2 sm:pb-0">
+          <div className="relative w-full sm:w-56">
+            <input
+              type="text"
+              placeholder="Search exams..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#111827] text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+            />
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none" />
+          </div>
+
+          <select 
+            value={selectedClass}
+            onChange={(e) => setSelectedClass(e.target.value)}
+            className="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#111827] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
+          >
+            <option value="All">All Classes</option>
+            {classesList.map(clsName => (
+              <option key={clsName} value={clsName}>{clsName}</option>
+            ))}
+          </select>
+
+          <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#111827] hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all cursor-pointer">
+            <FaFilter className="text-[10px]" /> Filter
+          </button>
+        </div>
+
       </div>
 
-      {/* Table Card container */}
-      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col justify-between">
-        <div className="px-6 py-5 border-b border-slate-100">
-          <h2 className="text-base font-bold text-slate-800">Exam Schedules</h2>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">Timetable details for course subjects</p>
+      {/* Main Exams lists table container */}
+      <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between">
+        <div className="px-6 py-5 border-b border-slate-200/50 dark:border-white/[0.05]">
+          <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">
+            {activeTab === "Upcoming" ? "Upcoming Exams" : "Past Exams"}
+          </h2>
+          <p className="text-xs text-slate-400 mt-0.5">Roster details of examinations scheduled for subjects</p>
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <div className="w-8 h-8 rounded-full border-2 border-teal-500 border-t-transparent animate-spin" />
-            <p className="text-slate-400 text-xs font-medium">Loading timetable...</p>
+          <div className="flex flex-col items-center justify-center py-24 gap-3">
+            <div className="w-8 h-8 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
+            <p className="text-slate-400 text-xs font-semibold">Loading exam list...</p>
           </div>
-        ) : exams.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3 text-center px-6">
-            <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200/60 flex items-center justify-center text-slate-400 text-lg shadow-sm mx-auto">
-              <FaCalendarAlt />
+        ) : displayedList.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-3 text-center px-6">
+            <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] flex items-center justify-center text-slate-400 text-lg shadow-inner mx-auto">
+              <FaCalendarCheck />
             </div>
             <div>
-              <p className="text-slate-800 font-bold text-sm">No Exams Scheduled</p>
-              <p className="text-slate-400 text-xs font-medium mt-0.5">Please check back later or verify with admin console.</p>
+              <p className="text-slate-800 dark:text-white font-bold text-sm">No Exams Found</p>
+              <p className="text-slate-400 dark:text-slate-500 text-xs font-bold mt-1">There are no {activeTab.toLowerCase()} exams matching filters.</p>
             </div>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[500px] text-sm text-left">
+            <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50 text-slate-400 uppercase tracking-widest text-[9px] font-bold border-b border-slate-100">
-                  <th className="px-6 py-4">Class Room</th>
-                  <th className="px-6 py-4">Subject Course</th>
-                  <th className="px-6 py-4">Scheduled Date</th>
+                <tr className="bg-slate-50/50 dark:bg-[#1f2937]/30 border-b border-slate-200/50 dark:border-white/[0.05] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
+                  <th className="px-6 py-4 w-12 text-center">#</th>
+                  <th className="px-6 py-4">Exam Name</th>
+                  <th className="px-6 py-4">Subject</th>
+                  <th className="px-6 py-4">Class</th>
+                  <th className="px-6 py-4">Date</th>
+                  <th className="px-6 py-4">Time</th>
+                  <th className="px-6 py-4">Duration</th>
                   <th className="px-6 py-4 text-center">Status</th>
+                  <th className="px-6 py-4 text-center">
+                    {activeTab === "Upcoming" ? "Action" : "Result"}
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100/60">
-                {exams.map((e) => {
-                  const isUpcoming = new Date(e.date) >= new Date();
+              <tbody className="divide-y divide-slate-100 dark:divide-white/[0.03]">
+                {displayedList.map((e, idx) => {
+                  const { datePart, dayPart } = formatDateWithDay(e.date);
+                  let subjectColor = "bg-purple-500/15 text-purple-500 border-purple-500/20";
+                  const subKey = e.subject?.toLowerCase() || "";
+                  if (subKey.includes("science")) {
+                    subjectColor = "bg-blue-500/15 text-blue-500 border-blue-500/20";
+                  } else if (subKey.includes("english")) {
+                    subjectColor = "bg-rose-500/15 text-rose-500 border-rose-500/20";
+                  }
+
                   return (
-                    <tr key={e._id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center bg-indigo-50 text-indigo-700 font-bold text-[10px] px-2.5 py-1 rounded-md border border-indigo-100">
-                          Class {e.class?.name} ({e.class?.section || "—"})
-                        </span>
-                      </td>
+                    <tr key={e._id} className="hover:bg-slate-50/30 dark:hover:bg-white/[0.01] transition-all">
+                      <td className="px-6 py-4 text-center font-bold text-slate-400">{idx + 1}</td>
+                      
+                      {/* Exam Name */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0">
-                            <FaBookOpen className="text-teal-500 text-xs" />
+                          <div className={`w-8 h-8 rounded-lg ${subjectColor} border flex items-center justify-center shrink-0 select-none`}>
+                            <FaCalendarCheck className="text-xs" />
                           </div>
-                          <span className="font-bold text-slate-800 text-xs">{e.subject?.name || "—"}</span>
+                          {activeTab === "Upcoming" ? (
+                            <span className="font-extrabold text-slate-900 dark:text-slate-200">{e.title}</span>
+                          ) : (
+                            <Link 
+                              to={`/teacher/exam-schedule/${e._id}`}
+                              className="font-extrabold text-slate-900 dark:text-slate-200 hover:text-purple-500 dark:hover:text-purple-400 hover:underline transition-all"
+                            >
+                              {e.title}
+                            </Link>
+                          )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-xs font-semibold text-slate-500 whitespace-nowrap">
-                        {new Date(e.date).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold rounded-full border ${
-                          isUpcoming
-                            ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                            : "bg-slate-100 text-slate-400 border-slate-200/60"
-                        }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${isUpcoming ? "bg-emerald-500" : "bg-slate-400"}`} />
-                          {isUpcoming ? "Upcoming" : "Past"}
+
+                      {/* Subject */}
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-lg border font-bold text-[10px] uppercase select-none ${subjectColor}`}>
+                          {e.subject}
                         </span>
+                      </td>
+
+                      {/* Class */}
+                      <td className="px-6 py-4 font-extrabold text-slate-650 dark:text-slate-300">
+                        {e.className}
+                      </td>
+
+                      {/* Date */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <p className="font-extrabold text-slate-800 dark:text-slate-200">{datePart}</p>
+                        <p className="text-[9px] text-slate-400 mt-0.5 font-semibold uppercase">{dayPart}</p>
+                      </td>
+
+                      {/* Time */}
+                      <td className="px-6 py-4 font-bold text-slate-650 dark:text-slate-300 whitespace-nowrap">
+                        {e.time}
+                      </td>
+
+                      {/* Duration */}
+                      <td className="px-6 py-4 font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                        {e.duration}
+                      </td>
+
+                      {/* Status */}
+                      <td className="px-6 py-4 text-center">
+                        {activeTab === "Upcoming" ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-black rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20 uppercase tracking-widest leading-none select-none">
+                            Upcoming
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-black rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-widest leading-none select-none">
+                            Completed
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Action / Result */}
+                      <td className="px-6 py-4 text-center">
+                        {activeTab === "Upcoming" ? (
+                          <button className="text-slate-450 hover:text-slate-900 dark:hover:text-white cursor-pointer p-1">
+                            <FaEllipsisV className="text-[10px]" />
+                          </button>
+                        ) : (
+                          <Link
+                            to={`/teacher/exam-schedule/${e._id}`}
+                            className="inline-flex items-center gap-1.5 text-[10px] font-black text-purple-650 hover:text-purple-750 transition-all uppercase tracking-wider select-none hover:underline"
+                          >
+                            <FaEye className="text-xs" /> View Results
+                          </Link>
+                        )}
                       </td>
                     </tr>
                   );
@@ -127,12 +347,15 @@ function ExamSchedule() {
           </div>
         )}
 
-        <div className="px-6 py-4 border-t border-slate-100 text-center">
-          <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">
-            Exam evaluation schedules are managed by school administrator panels
-          </p>
+        {/* Table Footer Ledger */}
+        <div className="p-4 border-t border-slate-200/50 dark:border-white/[0.05] bg-slate-50/20 dark:bg-white/[0.01] flex items-center justify-between text-[10px] text-slate-450 font-bold uppercase tracking-wider">
+          <span>Showing 1 to {displayedList.length} of {displayedList.length} exams</span>
+          <span className="font-semibold text-slate-400 dark:text-slate-500 select-none">
+            Term Academic Roster logs
+          </span>
         </div>
       </div>
+
     </div>
   );
 }
