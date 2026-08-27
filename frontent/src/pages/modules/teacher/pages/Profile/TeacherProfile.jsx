@@ -17,7 +17,8 @@ import {
   FaLock, 
   FaBell, 
   FaChevronRight, 
-  FaDesktop 
+  FaDesktop,
+  FaClock 
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
