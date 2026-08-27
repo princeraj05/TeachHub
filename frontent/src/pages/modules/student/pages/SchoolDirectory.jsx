@@ -132,7 +132,7 @@ function SchoolDirectory() {
       if (field === "color") return "from-emerald-500 to-teal-700";
     }
     
-    // G.D Accedmy or default fallback
+    // G.D Academy or default fallback
     if (field === "students") return "1,250+";
     if (field === "teachers") return "45+";
     if (field === "classes") return "32+";

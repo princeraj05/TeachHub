@@ -374,7 +374,7 @@ function AboutYourSchool() {
         {activeTab === "description" && (
           <SchoolDescriptionTab
             description={description} setDescription={setDescription}
-            schoolName={school?.name || "G.D Accedmy"}
+            schoolName={school?.name || "G.D Academy"}
           />
         )}
       </div>

@@ -19,7 +19,7 @@ const SORA = "'Sora', sans-serif";
 const DUMMY_EVENTS = [
   {
     _id: "dummy-1",
-    schoolName: "G.D Accedmy School",
+    schoolName: "G.D Academy School",
     title: "Independence Day Celebration 🇮🇳",
     subtitle: "Celebration",
     description: "A proud celebration of India's 78th Independence Day with cultural programs, flag hoisting, and students' performances.",
@@ -135,7 +135,7 @@ function GlobalEvents() {
     const name = (schoolName || "").toLowerCase();
     if (name.includes("prince")) return "Noida, Uttar Pradesh";
     if (name.includes("bright")) return "Patna, Bihar";
-    if (name.includes("gd accedmy") || name.includes("g.d") || name.includes("accedmy")) return "Siwan, Bihar";
+    if (name.includes("gd academy") || name.includes("g.d") || name.includes("academy")) return "Siwan, Bihar";
     return "Siwan, Bihar";
   };
 

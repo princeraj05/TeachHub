@@ -525,7 +525,11 @@ function PendingApproval() {
                   </div>
                   <Link to="/pending/notifications" className="relative p-2.5 bg-slate-100 dark:bg-white/5 rounded-full border border-slate-200/50 dark:border-white/10 text-slate-600 dark:text-slate-400 shrink-0 hover:bg-slate-200 dark:hover:bg-white/10 transition-all">
                     <FaBell className="text-lg" />
-                    <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#7C3AED] text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-[#090F1C]">3</span>
+                    {getNotificationsList().length > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#7C3AED] text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-[#090F1C]">
+                        {getNotificationsList().length}
+                      </span>
+                    )}
                   </Link>
                 </div>
 

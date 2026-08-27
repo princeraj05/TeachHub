@@ -111,7 +111,7 @@ function BasicInfoTab({
               <div>
                 <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Name</span>
                 <p className="text-xs font-bold text-white bg-[#0F172A]/40 border border-slate-850 px-3.5 py-2 rounded-xl text-slate-400">
-                  {school?.name || "G.D Accedmy"}
+                  {school?.name || "G.D Academy"}
                 </p>
               </div>
 
