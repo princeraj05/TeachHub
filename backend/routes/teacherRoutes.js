@@ -4,6 +4,7 @@ const router = express.Router();
 const {
 getTeacherDashboard,
 getMyClasses,
+getClassDetails,
 getMyStudents,
 getMySubjects,
 getTeacherProfile,
@@ -17,6 +18,8 @@ const { protect } = require("../middleware/authMiddleware");
 router.get("/dashboard", protect, getTeacherDashboard);
 
 router.get("/my-classes", protect, getMyClasses);
+
+router.get("/my-classes/:classId/details", protect, getClassDetails);
 
 router.get("/my-students", protect, getMyStudents);
 
