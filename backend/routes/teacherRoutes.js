@@ -15,6 +15,7 @@ getTeacherExams,
 } = require("../controllers/teacherController");
 
 const { protect } = require("../middleware/authMiddleware");
+const teacherSubjectController = require("../controllers/teacherSubjectController");
 
 router.get("/dashboard", protect, getTeacherDashboard);
 
@@ -26,7 +27,8 @@ router.get("/my-students", protect, getMyStudents);
 
 router.get("/my-students/:studentId/details", protect, getStudentDetails);
 
-router.get("/my-subjects", protect, getMySubjects);
+router.get("/my-subjects", protect, teacherSubjectController.getMySubjectsDetailed);
+router.get("/my-subjects/:subjectId/details", protect, teacherSubjectController.getSubjectDetails);
 
 router.get("/profile/:id", protect, getTeacherProfile);
 
