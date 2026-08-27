@@ -24,17 +24,11 @@ function StudentLogout() {
   const handleConfirmLogout = async () => {
     setLoading(true);
     try {
-      // Backend logout request integration
-      await axios.post(
-        `${API}/api/auth/logout`, 
-        {}, 
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await performLogout(navigate);
     } catch (err) {
-      console.error("Backend logout error:", err);
+      console.error("Logout error:", err);
     } finally {
       setLoading(false);
-      await performLogout(navigate);
     }
   };
 

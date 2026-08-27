@@ -2,10 +2,26 @@ import { auth } from "../config/firebase";
 import { signOut } from "firebase/auth";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Capacitor } from "@capacitor/core";
+import axios from "axios";
 
 export const performLogout = async (navigate) => {
   try {
-    // 1. Clear all session and persistent caches
+    // 1. Invalidate backend session if token exists
+    const token = localStorage.getItem("token");
+    const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    if (token) {
+      try {
+        await axios.post(
+          `${API}/api/auth/logout`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } catch (err) {
+        console.error("Backend logout API call failed:", err);
+      }
+    }
+
+    // 2. Clear all session and persistent caches
     localStorage.clear();
     sessionStorage.clear();
 
