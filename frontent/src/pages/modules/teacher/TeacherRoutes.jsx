@@ -6,7 +6,7 @@ import TeacherDashboard from "./pages/Dashboard/TeacherDashboard";
 import MyStudents from "./pages/Students/MyStudents";
 
 import MarkAttendance from "./pages/Attendance/MarkAttendance";
-import AttendanceReport from "./pages/Attendance/AttendanceReport";
+import AttendanceHistory from "./pages/Attendance/AttendanceHistory";
 
 import MySubjects from "./pages/Subjects/MySubjects";
 import ExamSchedule from "./pages/Exams/ExamSchedule";
@@ -39,7 +39,7 @@ function TeacherRoutes() {
 
         <Route path="mark-attendance" element={<MarkAttendance />} />
 
-        <Route path="attendance-report" element={<Navigate to="/teacher/mark-attendance" replace />} />
+        <Route path="attendance-history" element={<AttendanceHistory />} />
 
         <Route path="my-subjects" element={<MySubjects />} />
 

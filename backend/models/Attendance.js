@@ -22,7 +22,7 @@ const attendanceSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    enum: ["Present", "Absent", "On Leave"],
+    enum: ["Present", "Absent", "On Leave", "Late", "Leave"],
     required: true
   },
 
@@ -35,6 +35,17 @@ const attendanceSchema = new mongoose.Schema({
     type: String,
     default: "",
     index: true
+  },
+
+  subject: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Subject",
+    default: null
+  },
+
+  remarks: {
+    type: String,
+    default: ""
   }
 
 }, { timestamps: true });

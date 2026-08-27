@@ -60,6 +60,7 @@ function TeacherLayout() {
     { to: "/teacher/my-classes", icon: <FaSchool className="text-xl" />, label: "My Classes" },
     { to: "/teacher/my-students", icon: <FaUserGraduate className="text-xl" />, label: "My Students" },
     { to: "/teacher/mark-attendance", icon: <FaClipboardCheck className="text-xl" />, label: "Mark Attendance" },
+    { to: "/teacher/attendance-history", icon: <FaCalendarAlt className="text-xl" />, label: "Attendance History" },
     { to: "/teacher/my-subjects", icon: <FaBook className="text-xl" />, label: "My Subjects" },
     { to: "/teacher/exam-schedule", icon: <FaCalendarAlt className="text-xl" />, label: "Exams" },
     { to: "/teacher/proctoring", icon: <FaTv className="text-xl" />, label: "Conduct Exam" },

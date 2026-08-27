@@ -28,4 +28,25 @@ router.get(
   attendanceController.getTodayAttendance
 );
 
+// GET ATTENDANCE BY CLASS & DATE
+router.get(
+  "/by-class",
+  protect,
+  attendanceController.getClassAttendanceForDate
+);
+
+// BULK SAVE ATTENDANCE
+router.post(
+  "/bulk-save",
+  protect,
+  attendanceController.bulkSaveAttendance
+);
+
+// GET ATTENDANCE HISTORY STATS
+router.get(
+  "/history-stats",
+  protect,
+  attendanceController.getAttendanceHistoryStats
+);
+
 module.exports = router;
