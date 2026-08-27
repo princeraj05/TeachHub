@@ -1074,34 +1074,56 @@ error:err.message
 // ================= UPDATE TEACHER PROFILE =================
 
 exports.updateTeacherProfile = async (req,res)=>{
+  try{
+    const teacherId = req.user.id;
+    const {
+      name,
+      email,
+      dob,
+      gender,
+      phoneNumber,
+      alternatePhone,
+      address,
+      pincode,
+      department,
+      designation,
+      bio,
+      avatar
+    } = req.body;
 
-try{
+    const teacher = await User.findByIdAndUpdate(
+      teacherId,
+      {
+        name,
+        email,
+        dob,
+        gender,
+        phoneNumber,
+        alternatePhone,
+        address,
+        pincode,
+        department,
+        designation,
+        bio,
+        avatar
+      },
+      {
+        new:true,
+        runValidators:true
+      }
+    ).select("-password");
 
-const teacherId = req.user.id;
+    res.json({
+      message:"Profile updated",
+      teacher
+    });
 
-const {name,email} = req.body;
-
-const teacher = await User.findByIdAndUpdate(
-
-teacherId,
-{name,email},
-{
-new:true,
-runValidators:true
-}
-
-).select("-password");
-
-res.json({
-message:"Profile updated",
-teacher
-});
-
-}catch(err){
-
-res.status(500).json({
-error:err.message
-});
+  }catch(err){
+    res.status(500).json({
+      error:err.message
+    });
+  }
+};
 
 }
 
