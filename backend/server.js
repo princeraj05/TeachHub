@@ -77,6 +77,67 @@ mongoose
       );
       console.log("Database Migration: Updated Banny Thapar's school to G.D Academy and cleaned requestedSchool records", result);
 
+      // ================= DUMMY / SEEDER DATA CLEANUP =================
+      const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || "princerajmne@gmail.com").toLowerCase();
+      const dummyEmails = [
+        "teacher@gmail.com",
+        "student@gmail.com",
+        "admin@gmail.com",
+        "superadmin@gmail.com",
+        "pending@gmail.com",
+        "test@test.com",
+        "test@gmail.com"
+      ];
+      
+      const School = require("./models/School");
+      const Class = require("./models/Class");
+      const Subject = require("./models/Subject");
+      const Event = require("./models/Event");
+      const Announcement = require("./models/Announcement");
+      const TeacherLeave = require("./models/TeacherLeave");
+      const TeacherNotification = require("./models/TeacherNotification");
+      const Attendance = require("./models/Attendance");
+      const Exam = require("./models/Exam");
+      const ExamSubmission = require("./models/ExamSubmission");
+      const Appointment = require("./models/Appointment");
+
+      const usersToDelete = await User.find({
+        $or: [
+          { email: { $in: dummyEmails } },
+          { email: { $regex: /^(test|dummy|mock)/i } },
+          { name: { $regex: /^(test|dummy|mock)/i } }
+        ],
+        email: { $ne: superAdminEmail }
+      });
+      const userIdsToDelete = usersToDelete.map(u => u._id);
+
+      if (userIdsToDelete.length > 0) {
+        console.log(`Startup Cleanup: Deleting ${userIdsToDelete.length} dummy users...`);
+        await User.deleteMany({ _id: { $in: userIdsToDelete } });
+        await Class.updateMany({ students: { $in: userIdsToDelete } }, { $pull: { students: { $in: userIdsToDelete } } });
+        await Class.updateMany({ teacher: { $in: userIdsToDelete } }, { $unset: { teacher: "" } });
+        await Subject.updateMany({ teacher: { $in: userIdsToDelete } }, { $unset: { teacher: "" } });
+        await Attendance.deleteMany({ student: { $in: userIdsToDelete } });
+        await ExamSubmission.deleteMany({ student: { $in: userIdsToDelete } });
+        await Appointment.deleteMany({ $or: [{ teacher: { $in: userIdsToDelete } }, { student: { $in: userIdsToDelete } }, { requestedBy: { $in: userIdsToDelete } }] });
+        await TeacherLeave.deleteMany({ teacherId: { $in: userIdsToDelete } });
+        await TeacherNotification.deleteMany({ teacher: { $in: userIdsToDelete } });
+      }
+
+      // Delete seeded dummy records
+      await Announcement.deleteMany({
+        title: { $in: ["Independence Day Celebration", "Parent-Teacher Meeting", "Exam Schedule Released"] }
+      });
+      await Event.deleteMany({
+        title: { $in: ["Science Exhibition", "Parent Teacher Meeting", "Annual Sports Day"] }
+      });
+      await TeacherLeave.deleteMany({
+        reason: { $in: ["Family function", "Medical checkup", "Personal work", "Sick leave", "Vacation"] }
+      });
+      await School.deleteMany({ name: "Prince school" });
+
+      console.log("Startup Cleanup: All database dummy/seeder data successfully removed.");
+
       // Non-destructive startup check: ensure all unique schoolName values in User database have corresponding School records
       const School = require("./models/School");
       const userSchools = await User.distinct("schoolName", { schoolName: { $ne: "" } });

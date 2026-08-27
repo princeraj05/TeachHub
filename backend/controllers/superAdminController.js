@@ -154,28 +154,7 @@ exports.getDashboardStats = async (req, res) => {
     const School = require("../models/School");
     let totalSchools = await School.countDocuments();
     if (totalSchools === 0) {
-      const dummySchools = [
-        {
-          name: "G.D Academy",
-          normalizedName: "g.d academy",
-          email: "gdacademy@gmail.com",
-          address: "Patna, Bihar"
-        },
-        {
-          name: "Prince school",
-          normalizedName: "prince school",
-          email: "princeschool@gmail.com",
-          address: "Patna, Bihar"
-        }
-      ];
-
-      for (const ds of dummySchools) {
-        let exists = await School.findOne({ name: ds.name });
-        if (!exists) {
-          await School.create(ds);
-        }
-      }
-      totalSchools = await School.countDocuments();
+      totalSchools = 0;
     }
     
     // 4. Financial overview
@@ -277,28 +256,7 @@ exports.getSchoolsDetail = async (req, res) => {
 
     let schoolDocs = await School.find({}).lean();
     if (schoolDocs.length === 0) {
-      const dummySchools = [
-        {
-          name: "G.D Academy",
-          normalizedName: "g.d academy",
-          email: "gdacademy@gmail.com",
-          address: "Patna, Bihar"
-        },
-        {
-          name: "Prince school",
-          normalizedName: "prince school",
-          email: "princeschool@gmail.com",
-          address: "Patna, Bihar"
-        }
-      ];
-
-      for (const ds of dummySchools) {
-        let exists = await School.findOne({ name: ds.name });
-        if (!exists) {
-          await School.create(ds);
-        }
-      }
-      schoolDocs = await School.find({}).lean();
+      schoolDocs = [];
     }
 
     const schoolsList = [];

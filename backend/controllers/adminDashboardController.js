@@ -97,43 +97,7 @@ exports.getAdminDashboard = async (req, res) => {
     // ── ANNOUNCEMENTS (SEED IF EMPTY) ──
     let announcements = await Announcement.find({ schoolName }).sort({ date: -1 }).limit(5) || [];
     if (announcements.length === 0) {
-      const admin = await User.findOne({ role: "admin", schoolName });
-      const createdById = admin ? admin._id : req.user.id;
-      const defaultAnnouncements = [
-        {
-          schoolName,
-          title: "Independence Day Celebration",
-          content: "School will remain closed on 15th August 2026 on account of Independence Day.",
-          category: "Upcoming",
-          date: new Date(2026, 7, 15, 9, 0),
-          timeString: "09:00 AM",
-          createdBy: createdById
-        },
-        {
-          schoolName,
-          title: "Parent-Teacher Meeting",
-          content: "PTM is scheduled on 5th June 2026. Timings will be shared soon.",
-          category: "General",
-          date: new Date(2026, 5, 5, 16, 30),
-          timeString: "04:30 PM",
-          createdBy: createdById
-        },
-        {
-          schoolName,
-          title: "Exam Schedule Released",
-          content: "Unit Test 1 schedule has been published. Please check exam section.",
-          category: "Academic",
-          date: new Date(2026, 4, 24, 10, 0),
-          timeString: "10:00 AM",
-          createdBy: createdById
-        }
-      ];
-      try {
-        await Announcement.insertMany(defaultAnnouncements);
-        announcements = await Announcement.find({ schoolName }).sort({ date: -1 }).limit(5) || [];
-      } catch (err) {
-        console.error("Error seeding default announcements:", err);
-      }
+      announcements = [];
     }
 
     // ── STUDENTS OVERVIEW (ATTENDANCE THIS MONTH) ──
@@ -266,49 +230,7 @@ exports.getAdminDashboard = async (req, res) => {
     }).sort({ eventDate: 1 }).limit(3) || [];
 
     if (upcomingEventsList.length === 0) {
-      const admin = await User.findOne({ role: "admin", schoolName });
-      const createdById = admin ? admin._id : req.user.id;
-      const defaultEvents = [
-        {
-          schoolName,
-          title: "Science Exhibition",
-          subtitle: "G.D Academy",
-          description: "Annual school science exhibition.",
-          eventDate: new Date(2026, 4, 28), // 28 May 2026
-          eventTime: "10:00 AM",
-          status: "upcoming",
-          createdBy: createdById
-        },
-        {
-          schoolName,
-          title: "Parent Teacher Meeting",
-          subtitle: "G.D Academy",
-          description: "Discuss students performance with teachers.",
-          eventDate: new Date(2026, 5, 5), // 5 June 2026
-          eventTime: "11:00 AM",
-          status: "upcoming",
-          createdBy: createdById
-        },
-        {
-          schoolName,
-          title: "Annual Sports Day",
-          subtitle: "G.D Academy",
-          description: "Annual school sports day events.",
-          eventDate: new Date(2026, 5, 10), // 10 June 2026
-          eventTime: "09:00 AM",
-          status: "upcoming",
-          createdBy: createdById
-        }
-      ];
-      try {
-        await Event.insertMany(defaultEvents);
-        upcomingEventsList = await Event.find({
-          schoolName,
-          eventDate: { $gte: startOfToday }
-        }).sort({ eventDate: 1 }).limit(3) || [];
-      } catch (err) {
-        console.error("Error seeding default events:", err);
-      }
+      upcomingEventsList = [];
     }
 
     // ── RESPONSE DATA ──

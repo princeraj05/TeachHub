@@ -90,70 +90,9 @@ exports.getLeaves = async (req, res) => {
       .populate("reviewedBy", "name")
       .sort({ startDate: -1 });
 
-    // Auto-seed mock examples on first load if empty and user is admin
+    // Auto-seed mock examples on first load if empty and user is admin (Disabled)
     if (leaves.length === 0 && req.user.role === "admin") {
-      const teachers = await User.find({ role: "teacher", schoolName: req.user.schoolName });
-      if (teachers.length > 0) {
-        const defaultLeaves = [
-          {
-            teacher: teachers[0]._id,
-            schoolName: req.user.schoolName,
-            startDate: new Date("2026-05-26"),
-            endDate: new Date("2026-05-28"),
-            reason: "Family function at hometown. Requesting leave for 3 days.",
-            status: "Pending",
-            leaveType: "Casual Leave",
-            duration: 3,
-            attachmentName: "Invitation.pdf",
-            attachmentSize: "245 KB"
-          },
-          {
-            teacher: teachers[1 % teachers.length]._id,
-            schoolName: req.user.schoolName,
-            startDate: new Date("2026-05-19"),
-            endDate: new Date("2026-05-22"),
-            reason: "Medical checkup and rest advised.",
-            status: "Approved",
-            leaveType: "Medical Leave",
-            duration: 4
-          },
-          {
-            teacher: teachers[2 % teachers.length]._id,
-            schoolName: req.user.schoolName,
-            startDate: new Date("2026-06-05"),
-            endDate: new Date("2026-06-05"),
-            reason: "Personal work.",
-            status: "Pending",
-            leaveType: "Personal Leave",
-            duration: 1
-          },
-          {
-            teacher: teachers[3 % teachers.length]._id,
-            schoolName: req.user.schoolName,
-            startDate: new Date("2026-05-15"),
-            endDate: new Date("2026-05-16"),
-            reason: "Outstation travel.",
-            status: "Approved",
-            leaveType: "Casual Leave",
-            duration: 2
-          },
-          {
-            teacher: teachers[4 % teachers.length]._id,
-            schoolName: req.user.schoolName,
-            startDate: new Date("2026-05-12"),
-            endDate: new Date("2026-05-14"),
-            reason: "Fever and health issue.",
-            status: "Rejected",
-            leaveType: "Sick Leave",
-            duration: 3
-          }
-        ];
-        await TeacherLeave.insertMany(defaultLeaves);
-        leaves = await TeacherLeave.find(query)
-          .populate("teacher", "name email phoneNumber avatar requestedSchool")
-          .populate("reviewedBy", "name")
-          .sort({ startDate: -1 });
-      }
+      leaves = [];
     }
 
     // Gather all teacher IDs to query subjects

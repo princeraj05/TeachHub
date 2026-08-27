@@ -15,69 +15,8 @@ exports.getTeacherNotificationsDashboard = async (req, res) => {
     // 1. Fetch teacher notifications
     let notifications = await TeacherNotification.find({ teacher: teacherId }).sort({ createdAt: -1 });
 
-    // Seed mock default notifications if empty on first load so page is highly populated like mockup
     if (notifications.length === 0) {
-      const defaultNotifications = [
-        {
-          teacher: teacherId,
-          title: "New Appointment Request",
-          message: "You have received a new appointment request from Ravi Kumar for meeting on 30 May 2026 at 11:00 AM.",
-          category: "Appointment Requests",
-          isRead: false
-        },
-        {
-          teacher: teacherId,
-          title: "Leave Request Update",
-          message: "Your leave request from 15 May 2026 to 16 May 2026 has been Approved.",
-          category: "Leave Updates",
-          isRead: false
-        },
-        {
-          teacher: teacherId,
-          title: "Exam Schedule Updated",
-          message: "Mathematics Unit Test - 2 rescheduled to 03 Jun 2026 for Class 10 - A.",
-          category: "Exam Updates",
-          isRead: false
-        },
-        {
-          teacher: teacherId,
-          title: "New Announcement",
-          message: '"Sports Day 2026" will be held on 25 May 2026. All teachers are requested to participate.',
-          category: "Announcements",
-          isRead: false
-        },
-        {
-          teacher: teacherId,
-          title: "New Appointment Request",
-          message: "You have received a new appointment request from Priya Singh for meeting on 28 May 2026 at 02:30 PM.",
-          category: "Appointment Requests",
-          isRead: true
-        },
-        {
-          teacher: teacherId,
-          title: "Leave Request Rejected",
-          message: "Your leave request from 20 May 2026 to 21 May 2026 has been Rejected.",
-          category: "Leave Updates",
-          isRead: true
-        },
-        {
-          teacher: teacherId,
-          title: "New Exam Added",
-          message: "Annual Examination 2026 has been added for Class 9 - B.",
-          category: "Exam Updates",
-          isRead: true
-        },
-        {
-          teacher: teacherId,
-          title: "Timetable Updated",
-          message: "Your timetable for Class 10 - A has been updated. Please check your timetable.",
-          category: "System Updates",
-          isRead: true
-        }
-      ];
-      notifications = await TeacherNotification.insertMany(defaultNotifications);
-      // Sort again after insert
-      notifications.sort((a, b) => b.createdAt - a.createdAt);
+      notifications = [];
     }
 
     // 2. Fetch Recent Activities (dynamically or fallback list matching photo)
