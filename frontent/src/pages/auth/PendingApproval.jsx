@@ -98,6 +98,18 @@ function PendingApproval() {
     return "Siwan, Bihar";
   };
 
+  const getSchoolBanner = (schoolName) => {
+    if (!schoolName) return "https://images.unsplash.com/photo-1577896851231-70ef18881754?w=1000&auto=format&fit=crop&q=80";
+    const name = schoolName.toLowerCase();
+    if (name.includes("prince")) {
+      return "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1000&auto=format&fit=crop&q=80";
+    }
+    if (name.includes("bright") || name.includes("future")) {
+      return "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1000&auto=format&fit=crop&q=80";
+    }
+    return "https://images.unsplash.com/photo-1577896851231-70ef18881754?w=1000&auto=format&fit=crop&q=80";
+  };
+
   // Poll for role assignment updates
   useEffect(() => {
     if (!token) return;
@@ -533,21 +545,42 @@ function PendingApproval() {
                   </Link>
                 </div>
 
-                {/* Current Application Card */}
-                <div className="w-full bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm p-5 flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20">
-                    <FaSchool className="text-2xl" />
+                {/* Current Application Banner Card */}
+                <div className="w-full relative overflow-hidden rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-lg min-h-[12rem] flex flex-col justify-end p-6 select-none bg-slate-950">
+                  {/* Background Banner Image */}
+                  <img
+                    src={getSchoolBanner(user.requestedSchool)}
+                    alt="School Banner"
+                    className="absolute inset-0 w-full h-full object-cover opacity-45 dark:opacity-30"
+                  />
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent" />
+                  
+                  {/* Floating School Icon */}
+                  <div className="absolute top-5 right-5 w-11 h-11 rounded-2xl bg-white/10 backdrop-blur-md text-white border border-white/20 flex items-center justify-center shadow-lg">
+                    <FaSchool className="text-xl" />
                   </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <span className="text-[10px] font-extrabold text-emerald-500 uppercase tracking-wider">Current Application</span>
-                    <h2 className="text-base font-extrabold text-slate-900 dark:text-white truncate mt-0.5">{user.requestedSchool}</h2>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1 mt-1 font-medium">
-                      <FaMapMarkerAlt className="text-xs shrink-0" />
+
+                  {/* Content details overlay */}
+                  <div className="relative z-10 text-left space-y-2">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-[#38BDF8] bg-[#38BDF8]/10 px-2.5 py-1 rounded-lg border border-[#38BDF8]/20">
+                      Current Application
+                    </span>
+                    
+                    <h2 className="text-lg sm:text-xl font-black text-white leading-tight tracking-tight pt-1.5 drop-shadow-md">
+                      {user.requestedSchool}
+                    </h2>
+                    
+                    <p className="text-xs text-slate-200 dark:text-slate-350 flex items-center gap-1.5 font-bold drop-shadow">
+                      <FaMapMarkerAlt className="text-xs text-sky-400 shrink-0" />
                       {getSchoolLocation(user.requestedSchool)}
                     </p>
-                    <span className="inline-flex items-center gap-1 px-3 py-1.5 mt-3.5 text-[10px] font-extrabold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                      Under Review
-                    </span>
+                    
+                    <div className="pt-2">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-xl bg-amber-500 text-white shadow-md shadow-amber-500/10">
+                        ⏳ Under Review
+                      </span>
+                    </div>
                   </div>
                 </div>
 
