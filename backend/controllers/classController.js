@@ -91,3 +91,34 @@ exports.deleteClass = async (req, res) => {
   }
 
 };
+
+
+// ================= UPDATE CLASS =================
+
+exports.updateClass = async (req, res) => {
+  try {
+    const { name, section } = req.body;
+    if (!req.user || !req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+    }
+
+    const cls = await Class.findOne({ _id: req.params.id, schoolName: req.user.schoolName });
+    if (!cls) {
+      return res.status(403).json({ message: "Access Denied: Class does not belong to your school" });
+    }
+
+    if (name !== undefined) cls.name = name;
+    if (section !== undefined) cls.section = section;
+
+    await cls.save();
+
+    res.json({
+      message: "Class updated successfully",
+      cls
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};

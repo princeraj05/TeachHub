@@ -55,7 +55,9 @@ function SuperAdminUsers() {
   const [roleModalData, setRoleModalData] = useState({ userId: "", name: "", role: "student", schoolName: "" });
   const [adminNotes, setAdminNotes] = useState("");
   const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // holds { type: 'single'|'bulk', id?: string, name?: string, count?: number }
 
   useEffect(() => {
     fetchUsers();
@@ -71,6 +73,8 @@ function SuperAdminUsers() {
       setUsers(res.data);
     } catch (err) {
       console.error("Error fetching users:", err);
+      setError(err.response?.data?.message || "Failed to fetch users");
+      setTimeout(() => setError(""), 5000);
     } finally {
       setLoading(false);
     }
@@ -91,6 +95,8 @@ function SuperAdminUsers() {
   const handleApproveUser = async (userId, userName) => {
     try {
       setSaving(true);
+      setError("");
+      setSuccess("");
       const targetUser = users.find(u => u._id === userId);
       // Approve defaults to student with G.D Academy if unassigned
       const finalRole = targetUser?.role === "unassigned" ? "student" : targetUser?.role;
@@ -108,27 +114,47 @@ function SuperAdminUsers() {
       }
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to approve user");
+      setError(err.response?.data?.message || "Failed to approve user");
+      setTimeout(() => setError(""), 5000);
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteUser = (id, userName) => {
-    if (window.confirm(`Are you sure you want to permanently delete ${userName}? This will remove all their records from the database.`)) {
-      axios
-        .delete(`${API}/api/superadmin/users/${id}`, {
+    setDeleteConfirm({ type: "single", id, name: userName });
+  };
+
+  const executeDeleteAction = async () => {
+    if (!deleteConfirm) return;
+    setSaving(true);
+    setError("");
+    setSuccess("");
+    try {
+      if (deleteConfirm.type === "single") {
+        await axios.delete(`${API}/api/superadmin/users/${deleteConfirm.id}`, {
           headers: { Authorization: `Bearer ${token}` }
-        })
-        .then(() => {
-          setSuccess(`${userName} has been successfully deleted.`);
-          setSelectedUser(null);
-          fetchUsers();
-          setTimeout(() => setSuccess(""), 3000);
-        })
-        .catch((err) => {
-          alert(err.response?.data?.message || "Failed to delete user");
         });
+        setSuccess(`${deleteConfirm.name} has been successfully deleted.`);
+        setSelectedUser(null);
+      } else if (deleteConfirm.type === "bulk") {
+        for (const id of selectedIds) {
+          await axios.delete(`${API}/api/superadmin/users/${id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        }
+        setSuccess(`Selected users deleted successfully!`);
+        setSelectedIds([]);
+        setSelectedUser(null);
+      }
+      setDeleteConfirm(null);
+      fetchUsers();
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to complete deletion operation");
+      setTimeout(() => setError(""), 5000);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -136,6 +162,8 @@ function SuperAdminUsers() {
     if (selectedIds.length === 0) return;
     try {
       setSaving(true);
+      setError("");
+      setSuccess("");
       for (const id of selectedIds) {
         const u = users.find(user => user._id === id);
         if (u) {
@@ -153,39 +181,24 @@ function SuperAdminUsers() {
       fetchUsers();
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      alert("Failed during bulk approval");
+      setError("Failed during bulk approval");
+      setTimeout(() => setError(""), 5000);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     if (selectedIds.length === 0) return;
-    if (window.confirm(`Are you sure you want to delete ${selectedIds.length} selected users?`)) {
-      try {
-        setSaving(true);
-        for (const id of selectedIds) {
-          await axios.delete(`${API}/api/superadmin/users/${id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-        }
-        setSuccess(`Selected users deleted successfully!`);
-        setSelectedIds([]);
-        fetchUsers();
-        setTimeout(() => setSuccess(""), 3000);
-      } catch (err) {
-        alert("Failed during bulk deletion");
-      } finally {
-        setSaving(false);
-      }
-    }
+    setDeleteConfirm({ type: "bulk", count: selectedIds.length });
   };
 
   const handleCreateUserSubmit = async (e) => {
     e.preventDefault();
     try {
       setSaving(true);
-      // Call register auth controller or custom superadmin creation endpoint
+      setError("");
+      setSuccess("");
       await axios.post(`${API}/api/auth/firebase-sync`, {
         uid: `sa-gen-${Date.now()}`,
         email: newUserData.email,
@@ -198,7 +211,8 @@ function SuperAdminUsers() {
       fetchUsers();
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to add user");
+      setError(err.response?.data?.message || "Failed to add user");
+      setTimeout(() => setError(""), 5000);
     } finally {
       setSaving(false);
     }
@@ -217,6 +231,8 @@ function SuperAdminUsers() {
   const handleSaveRoleAssignment = async (e) => {
     e.preventDefault();
     setSaving(true);
+    setError("");
+    setSuccess("");
     try {
       await axios.post(
         `${API}/api/superadmin/assign-role`,
@@ -235,7 +251,8 @@ function SuperAdminUsers() {
       }
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to save assignment");
+      setError(err.response?.data?.message || "Failed to save assignment");
+      setTimeout(() => setError(""), 5000);
     } finally {
       setSaving(false);
     }
@@ -243,7 +260,8 @@ function SuperAdminUsers() {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    alert("Copied: " + text);
+    setSuccess("Copied to clipboard: " + text);
+    setTimeout(() => setSuccess(""), 3000);
   };
 
   // Stats Calculations
@@ -297,8 +315,16 @@ function SuperAdminUsers() {
       {/* 1. Success message notifications banner */}
       {success && (
         <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-150 text-emerald-700 dark:text-emerald-400 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm animate-fadeIn">
-          <FaCheckCircle className="text-emerald-500 text-lg flex-shrink-0" />
+          <FaCheckCircle className="text-emerald-505 text-lg flex-shrink-0" />
           {success}
+        </div>
+      )}
+
+      {/* Error banner */}
+      {error && (
+        <div className="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/20 border border-rose-155 text-rose-700 dark:text-rose-400 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm animate-fadeIn">
+          <FaTimes className="text-rose-500 text-lg flex-shrink-0" />
+          {error}
         </div>
       )}
 
@@ -1330,6 +1356,61 @@ function SuperAdminUsers() {
                   )}
                 </button>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OVERLAY MODAL: Delete User(s) Confirmation */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[95] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl relative select-none animate-fadeIn text-slate-800 dark:text-white">
+            <button
+              onClick={() => setDeleteConfirm(null)}
+              className="absolute top-4.5 right-4.5 text-slate-400 hover:text-slate-655 dark:hover:text-white cursor-pointer"
+            >
+              <FaTimes className="text-sm" />
+            </button>
+
+            <div className="mb-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 border border-rose-500/20 flex items-center justify-center shrink-0">
+                <FaTrash className="text-sm" />
+              </div>
+              <h3 className="text-sm sm:text-base font-black text-rose-600">Delete User</h3>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold leading-relaxed">
+                {deleteConfirm.type === "single" ? (
+                  <>
+                    Are you sure you want to permanently delete <span className="font-extrabold text-slate-800 dark:text-white">{deleteConfirm.name}</span>?
+                    This will remove all their records from the database and this action cannot be undone.
+                  </>
+                ) : (
+                  <>
+                    Are you sure you want to permanently delete the <span className="font-extrabold text-slate-800 dark:text-white">{deleteConfirm.count}</span> selected users?
+                    This will remove all their records from the database and this action cannot be undone.
+                  </>
+                )}
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirm(null)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-white py-2.5 rounded-xl text-xs font-bold transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={executeDeleteAction}
+                  disabled={saving}
+                  className="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2.5 rounded-xl text-xs font-bold transition cursor-pointer disabled:opacity-50"
+                >
+                  {saving ? "Deleting..." : "Delete"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

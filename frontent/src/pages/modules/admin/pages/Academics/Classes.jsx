@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaSchool, FaLayerGroup, FaTrash, FaPlus, FaSearch, FaGraduationCap } from "react-icons/fa";
+import { FaSchool, FaLayerGroup, FaTrash, FaPlus, FaSearch, FaGraduationCap, FaEdit, FaTimes, FaTimesCircle, FaCheckCircle } from "react-icons/fa";
 
 function Classes() {
   const API = import.meta.env.VITE_API_URL;
@@ -11,6 +11,11 @@ function Classes() {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [deleteId, setDeleteId] = useState(null);
+  
+  const [editingClass, setEditingClass] = useState(null);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const fetchClasses = async () => {
     try {
@@ -20,6 +25,8 @@ function Classes() {
       setClasses(res.data);
     } catch (err) {
       console.log(err);
+      setError(err.response?.data?.message || "Failed to fetch classes");
+      setTimeout(() => setError(""), 5000);
     }
   };
 
@@ -29,28 +36,64 @@ function Classes() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name || !form.section) { alert("Please fill all fields"); return; }
+    if (!form.name || !form.section) {
+      setError("Please fill all fields");
+      setTimeout(() => setError(""), 5000);
+      return;
+    }
     setLoading(true);
+    setError("");
+    setSuccess("");
     try {
-      await axios.post(`${API}/api/admin/classes`, form, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      if (editingClass) {
+        await axios.put(`${API}/api/admin/classes/${editingClass._id}`, form, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSuccess("Class updated successfully!");
+        setEditingClass(null);
+      } else {
+        await axios.post(`${API}/api/admin/classes`, form, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSuccess("Class added successfully!");
+      }
       setForm({ name: "", section: "" });
       fetchClasses();
-    } catch (err) { console.log(err); }
-    finally { setLoading(false); }
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      console.log(err);
+      setError(err.response?.data?.message || "Failed to save class");
+      setTimeout(() => setError(""), 5000);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const deleteClass = async (id) => {
-    if (!window.confirm("Delete this class?")) return;
-    setDeleteId(id);
+  const deleteClass = (id) => {
+    const cls = classes.find(c => c._id === id);
+    setConfirmDelete(cls);
+  };
+
+  const executeDeleteClass = async () => {
+    if (!confirmDelete) return;
+    setDeleteId(confirmDelete._id);
+    setError("");
+    setSuccess("");
     try {
-      await axios.delete(`${API}/api/admin/classes/${id}`, {
+      await axios.delete(`${API}/api/admin/classes/${confirmDelete._id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      setSuccess("Class deleted successfully!");
+      setConfirmDelete(null);
       fetchClasses();
-    } catch (err) { console.log(err); }
-    finally { setDeleteId(null); }
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      console.log(err);
+      setError(err.response?.data?.message || "Failed to delete class");
+      setTimeout(() => setError(""), 5000);
+    } finally {
+      setDeleteId(null);
+    }
   };
 
   const sectionColors = [
@@ -70,6 +113,21 @@ function Classes() {
 
   return (
     <div className="font-sans">
+      {/* ── Banners ── */}
+      {success && (
+        <div className="mb-4 flex items-center gap-3 bg-emerald-50 border border-emerald-155 text-emerald-700 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm animate-fadeIn">
+          <FaCheckCircle className="text-emerald-500 text-lg flex-shrink-0" />
+          {success}
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-4 flex items-center gap-3 bg-rose-50 border border-rose-155 text-rose-700 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm animate-fadeIn">
+          <FaTimesCircle className="text-rose-500 text-lg flex-shrink-0" />
+          {error}
+        </div>
+      )}
+
       {/* ── Page Header ── */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -85,15 +143,19 @@ function Classes() {
         </div>
       </div>
 
-      {/* ── Add Class Card ── */}
+      {/* ── Add/Edit Class Card ── */}
       <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6 sm:p-7 mb-8">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-teal-500/20">
-            <FaPlus className="text-white text-sm" />
+            {editingClass ? <FaEdit className="text-white text-sm" /> : <FaPlus className="text-white text-sm" />}
           </div>
           <div>
-            <h2 className="text-base font-bold text-slate-800">Create New Class</h2>
-            <p className="text-xs text-slate-400 font-medium">Add a standard school level and classroom identifier code</p>
+            <h2 className="text-base font-bold text-slate-800">
+              {editingClass ? "Edit Class Details" : "Create New Class"}
+            </h2>
+            <p className="text-xs text-slate-400 font-medium">
+              {editingClass ? "Modify class level and classroom identifier code" : "Add a standard school level and classroom identifier code"}
+            </p>
           </div>
         </div>
 
@@ -118,20 +180,34 @@ function Classes() {
               className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white shadow-inner transition-all duration-200"
             />
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex items-center justify-center gap-2 bg-gradient-to-r from-teal-600 to-emerald-500 hover:from-teal-500 hover:to-emerald-400 active:scale-[0.98] text-white px-8 py-3 rounded-xl text-sm font-bold shadow-md shadow-teal-600/10 hover:shadow-teal-500/20 transition-all disabled:opacity-60 whitespace-nowrap"
-          >
-            {loading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <>
-                <FaPlus className="text-xs" />
-                Add Class
-              </>
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex items-center justify-center gap-2 bg-gradient-to-r from-teal-600 to-emerald-500 hover:from-teal-500 hover:to-emerald-400 active:scale-[0.98] text-white px-8 py-3 rounded-xl text-sm font-bold shadow-md shadow-teal-600/10 hover:shadow-teal-500/20 transition-all disabled:opacity-60 whitespace-nowrap"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  {editingClass ? <FaEdit className="text-xs" /> : <FaPlus className="text-xs" />}
+                  {editingClass ? "Update Class" : "Add Class"}
+                </>
+              )}
+            </button>
+            {editingClass && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingClass(null);
+                  setForm({ name: "", section: "" });
+                }}
+                className="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-sm font-bold transition-all active:scale-[0.98]"
+              >
+                Cancel
+              </button>
             )}
-          </button>
+          </div>
         </form>
       </div>
 
@@ -175,13 +251,24 @@ function Classes() {
                       <p className="text-xs text-slate-500 font-semibold mt-0.5">Section {c.section}</p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => deleteClass(c._id)}
-                    disabled={deleteId === c._id}
-                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-rose-50 border border-rose-100 hover:bg-rose-500 text-rose-500 hover:text-white hover:border-transparent transition-all active:scale-95 disabled:opacity-50"
-                  >
-                    <FaTrash className="text-xs" />
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setEditingClass(c);
+                        setForm({ name: c.name, section: c.section });
+                      }}
+                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all active:scale-95"
+                    >
+                      <FaEdit className="text-xs" />
+                    </button>
+                    <button
+                      onClick={() => deleteClass(c._id)}
+                      disabled={deleteId === c._id}
+                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-rose-50 border border-rose-100 hover:bg-rose-500 text-rose-500 hover:text-white hover:border-transparent transition-all active:scale-95 disabled:opacity-50"
+                    >
+                      <FaTrash className="text-xs" />
+                    </button>
+                  </div>
                 </div>
               );
             })
@@ -229,14 +316,26 @@ function Classes() {
                         </span>
                       </td>
                       <td className="px-6 py-4.5">
-                        <button
-                          onClick={() => deleteClass(c._id)}
-                          disabled={deleteId === c._id}
-                          className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-100 text-rose-500 hover:bg-rose-500 hover:text-white hover:border-transparent transition-all duration-150 disabled:opacity-50 active:scale-95"
-                        >
-                          <FaTrash className="text-xs" />
-                          {deleteId === c._id ? "Deleting…" : "Delete"}
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setEditingClass(c);
+                              setForm({ name: c.name, section: c.section });
+                            }}
+                            className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all duration-150 active:scale-95"
+                          >
+                            <FaEdit className="text-xs" />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => deleteClass(c._id)}
+                            disabled={deleteId === c._id}
+                            className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-100 text-rose-500 hover:bg-rose-500 hover:text-white hover:border-transparent transition-all duration-150 disabled:opacity-50 active:scale-95"
+                          >
+                            <FaTrash className="text-xs" />
+                            {deleteId === c._id ? "Deleting…" : "Delete"}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -246,6 +345,52 @@ function Classes() {
           </table>
         </div>
       </div>
+
+      {/* ── Delete Confirmation Modal ── */}
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[95] flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-sm shadow-2xl relative select-none animate-fadeIn text-slate-800">
+            <button
+              onClick={() => setConfirmDelete(null)}
+              className="absolute top-4.5 right-4.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+            >
+              <FaTimes className="text-sm" />
+            </button>
+
+            <div className="mb-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 border border-rose-500/20 flex items-center justify-center shrink-0">
+                <FaTrash className="text-sm" />
+              </div>
+              <h3 className="text-sm sm:text-base font-black text-rose-600">Delete Class</h3>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                Are you sure you want to delete class <span className="font-extrabold text-slate-805">{confirmDelete.name} - {confirmDelete.section}</span>?
+                This action will delete all assignments and records related to this class.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(null)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={executeDeleteClass}
+                  disabled={deleteId === confirmDelete._id}
+                  className="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2.5 rounded-xl text-xs font-bold transition cursor-pointer disabled:opacity-50"
+                >
+                  {deleteId === confirmDelete._id ? "Deleting..." : "Delete Class"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

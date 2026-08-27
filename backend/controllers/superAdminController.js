@@ -267,9 +267,14 @@ exports.getSchoolsDetail = async (req, res) => {
       const teacherCount = await User.countDocuments({ schoolName: name, role: "teacher" });
       const studentCount = await User.countDocuments({ schoolName: name, role: "student" });
 
-      const plan = "Pro Plan";
-      const status = "Active";
-      const price = "₹2,999 / Year";
+      const plan = school.plan || "Pro Plan";
+      const status = school.status || "Active";
+      let price = "₹2,999 / Year";
+      if (plan === "Basic Plan") {
+        price = "₹1,499 / Year";
+      } else if (plan === "Free Plan") {
+        price = "Free / Trial";
+      }
       
       const createdAtDate = school.createdAt || new Date();
       const validTillDate = new Date(createdAtDate.getTime() + 365 * 24 * 60 * 60 * 1000);
@@ -289,14 +294,98 @@ exports.getSchoolsDetail = async (req, res) => {
         price,
         validTill,
         stats: {
-          admins: adminCount || 1,
-          teachers: teacherCount || 1,
-          students: studentCount || 1
+          admins: adminCount,
+          teachers: teacherCount,
+          students: studentCount
         }
       });
     }
 
     res.json(schoolsList);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// POST /api/superadmin/schools
+exports.createSchool = async (req, res) => {
+  try {
+    const { name, email, address, plan } = req.body;
+    if (!name) return res.status(400).json({ message: "School name is required" });
+    
+    const School = require("../models/School");
+    const normalizedName = name.toLowerCase().replace(/\s+/g, " ");
+    const exists = await School.findOne({ normalizedName });
+    if (exists) return res.status(400).json({ message: "School already exists" });
+
+    const school = await School.create({
+      name,
+      normalizedName,
+      email,
+      address,
+      plan: plan || "Pro Plan",
+      status: "Active"
+    });
+
+    res.status(201).json({ message: "School created successfully", school });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// PUT /api/superadmin/schools/:id
+exports.updateSchool = async (req, res) => {
+  try {
+    const { name, email, address, plan, status } = req.body;
+    const { id } = req.params;
+    const School = require("../models/School");
+    const school = await School.findById(id);
+    if (!school) return res.status(404).json({ message: "School not found" });
+
+    if (name && name !== school.name) {
+      const normalizedName = name.toLowerCase().replace(/\s+/g, " ");
+      const exists = await School.findOne({ normalizedName, _id: { $ne: id } });
+      if (exists) return res.status(400).json({ message: "School with this name already exists" });
+      
+      const User = require("../models/User");
+      await User.updateMany({ schoolName: school.name }, { schoolName: name });
+      
+      const Class = require("../models/Class");
+      await Class.updateMany({ schoolName: school.name }, { schoolName: name });
+
+      school.name = name;
+      school.normalizedName = normalizedName;
+    }
+
+    if (email !== undefined) school.email = email;
+    if (address !== undefined) school.address = address;
+    if (plan !== undefined) school.plan = plan;
+    if (status !== undefined) school.status = status;
+
+    await school.save();
+    res.json({ message: "School updated successfully", school });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// DELETE /api/superadmin/schools/:id
+exports.deleteSchool = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const School = require("../models/School");
+    const school = await School.findById(id);
+    if (!school) return res.status(404).json({ message: "School not found" });
+
+    const User = require("../models/User");
+    const Class = require("../models/Class");
+    
+    // Cleanup users and classes belonging to this school
+    await User.deleteMany({ schoolName: school.name, role: { $ne: "superadmin" } });
+    await Class.deleteMany({ schoolName: school.name });
+
+    await School.findByIdAndDelete(id);
+    res.json({ message: "School and all associated records deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

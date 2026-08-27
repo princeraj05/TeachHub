@@ -15,7 +15,9 @@ import {
   FaTimes,
   FaMapMarkerAlt,
   FaPlus,
-  FaRedo
+  FaRedo,
+  FaTimesCircle,
+  FaExclamationTriangle
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -77,6 +79,8 @@ function SuperAdminSchools() {
   const [editSchool, setEditSchool] = useState(null);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
+  const [deleteConfirmSchool, setDeleteConfirmSchool] = useState(null);
 
   useEffect(() => {
     fetchSchoolsDetail();
@@ -91,6 +95,8 @@ function SuperAdminSchools() {
       setSchools(res.data);
     } catch (err) {
       console.error("Error fetching schools detail:", err);
+      setError(err.response?.data?.message || "Failed to fetch schools detail");
+      setTimeout(() => setError(""), 5000);
     } finally {
       setLoading(false);
     }
@@ -99,16 +105,15 @@ function SuperAdminSchools() {
   const handleCreateSchoolSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
+    setError("");
     try {
-      // In TeachHub, a school is initialized dynamically when users are assigned to it.
-      // But we can also pre-create the school Document in database!
-      const School = require ? null : ""; // placeholder
       await axios.post(
-        `${API}/api/superadmin/assign-role`,
+        `${API}/api/superadmin/schools`,
         {
-          userId: "dummy", // backend handler creates school model if assignedSchoolName is provided
-          role: "unassigned",
-          schoolName: newSchoolData.name
+          name: newSchoolData.name,
+          email: newSchoolData.email,
+          address: newSchoolData.address,
+          plan: newSchoolData.plan
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -119,12 +124,8 @@ function SuperAdminSchools() {
       fetchSchoolsDetail();
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      // If mock assignment succeeds or fails, we refresh layout
-      setSuccess("New School added successfully!");
-      setShowAddSchoolModal(false);
-      setNewSchoolData({ name: "", email: "", address: "", plan: "Pro Plan" });
-      fetchSchoolsDetail();
-      setTimeout(() => setSuccess(""), 3000);
+      setError(err.response?.data?.message || "Failed to create school");
+      setTimeout(() => setError(""), 5000);
     } finally {
       setSaving(false);
     }
@@ -133,23 +134,52 @@ function SuperAdminSchools() {
   const handleUpdateSchoolSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
+    setError("");
     try {
-      // Mock update school details
+      await axios.put(
+        `${API}/api/superadmin/schools/${editSchool._id}`,
+        {
+          name: newSchoolData.name,
+          email: newSchoolData.email,
+          address: newSchoolData.address,
+          plan: newSchoolData.plan
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setSuccess("School details updated successfully!");
       setEditSchool(null);
+      setNewSchoolData({ name: "", email: "", address: "", plan: "Pro Plan" });
       fetchSchoolsDetail();
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      alert("Failed to update school details");
+      setError(err.response?.data?.message || "Failed to update school details");
+      setTimeout(() => setError(""), 5000);
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteSchool = (schoolId, schoolName) => {
-    if (window.confirm(`Are you sure you want to delete ${schoolName}?`)) {
-      alert(`Deleted ${schoolName}`);
+    setDeleteConfirmSchool({ _id: schoolId, name: schoolName });
+  };
+
+  const executeDeleteSchool = async () => {
+    if (!deleteConfirmSchool) return;
+    setSaving(true);
+    setError("");
+    try {
+      await axios.delete(`${API}/api/superadmin/schools/${deleteConfirmSchool._id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSuccess(`Deleted ${deleteConfirmSchool.name} successfully!`);
+      setDeleteConfirmSchool(null);
       fetchSchoolsDetail();
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to delete school");
+      setTimeout(() => setError(""), 5000);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -181,6 +211,14 @@ function SuperAdminSchools() {
         <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-150 text-emerald-700 dark:text-emerald-400 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm animate-fadeIn">
           <FaCheckCircle className="text-emerald-500 text-lg flex-shrink-0" />
           {success}
+        </div>
+      )}
+
+      {/* Error banner notifications */}
+      {error && (
+        <div className="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/20 border border-rose-150 text-rose-700 dark:text-rose-400 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm animate-fadeIn">
+          <FaTimesCircle className="text-rose-500 text-lg flex-shrink-0" />
+          {error}
         </div>
       )}
 
@@ -431,6 +469,12 @@ function SuperAdminSchools() {
                           >
                             <FaEdit className="text-[9px]" /> Edit School
                           </button>
+                          <button
+                            onClick={() => handleDeleteSchool(school._id, school.name)}
+                            className="w-full bg-transparent hover:bg-rose-50 dark:hover:bg-white/5 border border-rose-500/20 text-rose-600 text-[10px] font-black py-1.5 rounded-xl transition flex items-center justify-center gap-1 cursor-pointer"
+                          >
+                            <FaTrash className="text-[9px]" /> Delete School
+                          </button>
                         </div>
                       </td>
 
@@ -674,6 +718,52 @@ function SuperAdminSchools() {
                 Save Changes
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* OVERLAY MODAL: Delete School Confirmation */}
+      {deleteConfirmSchool && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[95] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl relative select-none animate-fadeIn text-slate-800 dark:text-white">
+            <button
+              onClick={() => setDeleteConfirmSchool(null)}
+              className="absolute top-4.5 right-4.5 text-slate-400 hover:text-slate-655 dark:hover:text-white cursor-pointer"
+            >
+              <FaTimes className="text-sm" />
+            </button>
+
+            <div className="mb-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 border border-rose-500/20 flex items-center justify-center shrink-0">
+                <FaTrash className="text-sm" />
+              </div>
+              <h3 className="text-sm sm:text-base font-black text-rose-600">Delete School</h3>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold leading-relaxed">
+                Are you sure you want to delete <span className="font-extrabold text-slate-800 dark:text-white">{deleteConfirmSchool.name}</span>?
+                This action is permanent and will cascade delete all student, teacher, and class records associated with this school.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirmSchool(null)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-white py-2.5 rounded-xl text-xs font-bold transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={executeDeleteSchool}
+                  disabled={saving}
+                  className="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2.5 rounded-xl text-xs font-bold transition cursor-pointer disabled:opacity-50"
+                >
+                  {saving ? "Deleting..." : "Delete School"}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

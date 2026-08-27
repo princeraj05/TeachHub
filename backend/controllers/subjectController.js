@@ -83,3 +83,28 @@ exports.deleteSubject = async (req, res) => {
     res.json({ message: "Subject deleted" });
   } catch (error) { res.status(500).json({ message: error.message }); }
 };
+
+exports.updateSubject = async (req, res) => {
+  try {
+    if (!req.user?.schoolName) return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+    const { name, classIds } = req.body;
+    const { id } = req.params;
+    const subject = await Subject.findOne({ _id: id, schoolName: req.user.schoolName });
+    if (!subject) return res.status(404).json({ message: "Subject not found" });
+    
+    const cleanedName = cleanName(name);
+    const validatedClassIds = await validateClasses(classIds, req.user.schoolName);
+    if (!cleanedName || !validatedClassIds) {
+      return res.status(400).json({ message: "Subject name and one or more classes from your school are required" });
+    }
+    
+    subject.name = cleanedName;
+    subject.classes = validatedClassIds;
+    subject.class = validatedClassIds;
+    await subject.save();
+    await subject.populate({ path: "classes", select: "name section" });
+    res.json({ message: "Subject updated successfully", subject: serialize(subject) });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

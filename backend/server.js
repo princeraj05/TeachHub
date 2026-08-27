@@ -139,7 +139,6 @@ mongoose
       console.log("Startup Cleanup: All database dummy/seeder data successfully removed.");
 
       // Non-destructive startup check: ensure all unique schoolName values in User database have corresponding School records
-      const School = require("./models/School");
       const userSchools = await User.distinct("schoolName", { schoolName: { $ne: "" } });
       for (const rawName of userSchools) {
         const trimmed = rawName.trim();

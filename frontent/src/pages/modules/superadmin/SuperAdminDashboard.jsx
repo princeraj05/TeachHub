@@ -75,6 +75,8 @@ function SuperAdminDashboard() {
   const [newSchool, setNewSchool] = useState("");
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
+  const [deleteConfirmUser, setDeleteConfirmUser] = useState(null);
 
   const formattedDate = new Date().toLocaleDateString("en-US", {
     month: "short",
@@ -134,19 +136,28 @@ function SuperAdminDashboard() {
   };
 
   const handleDeleteUser = (id, userName) => {
-    if (window.confirm(`Are you sure you want to permanently delete ${userName}? This will remove all their records from the database.`)) {
-      axios
-        .delete(`${API}/api/superadmin/users/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        .then(() => {
-          alert(`${userName} has been successfully deleted.`);
-          fetchUsers();
-          fetchDashboardStats();
-        })
-        .catch((err) => {
-          alert(err.response?.data?.message || "Failed to delete user");
-        });
+    setDeleteConfirmUser({ _id: id, name: userName });
+  };
+
+  const executeDeleteUser = async () => {
+    if (!deleteConfirmUser) return;
+    setSaving(true);
+    setError("");
+    setSuccess("");
+    try {
+      await axios.delete(`${API}/api/superadmin/users/${deleteConfirmUser._id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSuccess(`${deleteConfirmUser.name} has been successfully deleted.`);
+      setDeleteConfirmUser(null);
+      fetchUsers();
+      fetchDashboardStats();
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to delete user");
+      setTimeout(() => setError(""), 5000);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -160,6 +171,8 @@ function SuperAdminDashboard() {
     e.preventDefault();
     if (!editUser) return;
     setSaving(true);
+    setError("");
+    setSuccess("");
     try {
       await axios.post(
         `${API}/api/superadmin/assign-role`,
@@ -177,7 +190,8 @@ function SuperAdminDashboard() {
       fetchDashboardStats();
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to assign role");
+      setError(err.response?.data?.message || "Failed to assign role");
+      setTimeout(() => setError(""), 5000);
     } finally {
       setSaving(false);
     }
@@ -204,6 +218,14 @@ function SuperAdminDashboard() {
         <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-150 text-emerald-700 dark:text-emerald-400 rounded-2xl px-5 py-4 mb-4 text-sm font-bold shadow-sm animate-fadeIn">
           <FaCheckCircle className="text-emerald-500 text-lg flex-shrink-0" />
           {success}
+        </div>
+      )}
+
+      {/* Error banner */}
+      {error && (
+        <div className="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/20 border border-rose-150 text-rose-700 dark:text-rose-455 rounded-2xl px-5 py-4 mb-4 text-sm font-bold shadow-sm animate-fadeIn">
+          <FaTimes className="text-rose-500 text-lg flex-shrink-0" />
+          {error}
         </div>
       )}
 
@@ -817,6 +839,52 @@ function SuperAdminDashboard() {
                   )}
                 </button>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OVERLAY MODAL: Delete User Confirmation */}
+      {deleteConfirmUser && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[95] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl relative select-none animate-fadeIn text-slate-800 dark:text-white">
+            <button
+              onClick={() => setDeleteConfirmUser(null)}
+              className="absolute top-4.5 right-4.5 text-slate-400 hover:text-slate-655 dark:hover:text-white cursor-pointer"
+            >
+              <FaTimes className="text-sm" />
+            </button>
+
+            <div className="mb-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 border border-rose-500/20 flex items-center justify-center shrink-0">
+                <FaTrash className="text-sm" />
+              </div>
+              <h3 className="text-sm sm:text-base font-black text-rose-600">Delete User</h3>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold leading-relaxed">
+                Are you sure you want to permanently delete <span className="font-extrabold text-slate-800 dark:text-white">{deleteConfirmUser.name}</span>?
+                This will remove all their records from the database and this action cannot be undone.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirmUser(null)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-white py-2.5 rounded-xl text-xs font-bold transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={executeDeleteUser}
+                  disabled={saving}
+                  className="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2.5 rounded-xl text-xs font-bold transition cursor-pointer disabled:opacity-50"
+                >
+                  {saving ? "Deleting..." : "Delete User"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
