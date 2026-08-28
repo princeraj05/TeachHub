@@ -31,6 +31,44 @@ function BasicInfoTab({
   availableClasses, setAvailableClasses,
   API
 }) {
+  const [detectingLocation, setDetectingLocation] = React.useState(false);
+
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+    setDetectingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const res = await axios.get(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+            {
+              headers: {
+                "Accept-Language": "en"
+              }
+            }
+          );
+          if (res.data && res.data.display_name) {
+            setAddress(res.data.display_name);
+          } else {
+            setAddress(`${latitude}, ${longitude}`);
+          }
+        } catch (err) {
+          setAddress(`${latitude}, ${longitude}`);
+        } finally {
+          setDetectingLocation(false);
+        }
+      },
+      (error) => {
+        alert("Failed to get location: " + error.message);
+        setDetectingLocation(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const classCountText = school?.totalClasses === 1 ? "1 Class" : `${school?.totalClasses || 0} Classes`;
 
@@ -223,7 +261,19 @@ function BasicInfoTab({
 
               {/* School Address */}
               <div className="sm:col-span-2">
-                <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Address</span>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">School Address</span>
+                  {isEditing && (
+                    <button
+                      type="button"
+                      disabled={detectingLocation}
+                      onClick={handleGetCurrentLocation}
+                      className="text-[9px] font-black text-[#7C3AED] dark:text-[#38BDF8] uppercase tracking-wider flex items-center gap-1.5 cursor-pointer bg-transparent hover:underline"
+                    >
+                      📍 {detectingLocation ? "Detecting location..." : "Choose your current location"}
+                    </button>
+                  )}
+                </div>
                 {isEditing ? (
                   <textarea
                     rows="2"
