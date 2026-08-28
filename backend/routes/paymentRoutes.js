@@ -13,6 +13,7 @@ router.post("/payments/verify-checkout", protect, payment.verifyCheckout);
 router.get("/payments", protect, payment.listPayments);
 router.get("/payments/dashboard", protect, payment.dashboard);
 router.get("/payment-options", protect, payment.getPaymentOptions);
+router.post("/payments/:id/verify-status", protect, payment.verifyPaymentStatusDirectly);
 router.get("/payments/:id/receipt", protect, payment.getReceipt);
 router.put("/payments/:id/approve-offline", protect, authorize("admin"), payment.approveOffline);
 router.put("/payments/:id/reject-offline", protect, authorize("admin"), payment.rejectOffline);
