@@ -36,6 +36,19 @@ function Login() {
     }
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+    if (token && role) {
+      if (role === "superadmin") navigate("/superadmin/dashboard", { replace: true });
+      else if (role === "admin") navigate("/admin/dashboard", { replace: true });
+      else if (role === "teacher") navigate("/teacher/dashboard", { replace: true });
+      else if (role === "student") navigate("/student/dashboard", { replace: true });
+      else navigate("/pending", { replace: true });
+    }
+  }, [navigate]);
+
+
   const saveAuthAndNavigate = (data) => {
     localStorage.setItem("token", data.token);
     localStorage.setItem("userId", data.user._id);
@@ -116,6 +129,17 @@ function Login() {
       setLoading(false);
     }
   };
+
+  // If user is already logged in, show a loading spinner while redirecting
+  const tokenExists = localStorage.getItem("token");
+  const roleExists = localStorage.getItem("role");
+  if (tokenExists && roleExists) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] dark:bg-[#090F1C]">
+        <div className="w-8 h-8 border-4 border-[#7C3AED] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row font-sans bg-[#F8FAFC] dark:bg-[#090F1C] transition-colors duration-200" style={{ fontFamily: SORA }}>

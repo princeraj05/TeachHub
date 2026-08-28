@@ -16,9 +16,17 @@ export default function SessionManager({ children }) {
       if (user?.name) localStorage.setItem("name", user.name);
       if (user?.schoolName !== undefined) localStorage.setItem("schoolName", user.schoolName || "");
       if (user?._id) localStorage.setItem("userId", user._id);
-    }).catch(() => {
+    }).catch((error) => {
       // Do not remove local session data here: offline users should not be
       // redirected merely because this background refresh cannot reach the API.
+      // However, if the server explicitly returns a 401 Unauthorized status,
+      // the token is invalid or expired and we should clear the session to prevent
+      // a redirect loop.
+      if (error.response && error.response.status === 401) {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = "/";
+      }
     });
   }, []);
 
