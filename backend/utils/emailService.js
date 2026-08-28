@@ -74,9 +74,11 @@ const sendOtpEmail = async (email, otp) => {
         } else {
           const errText = await response.text();
           console.error("Resend API error response:", errText);
+          return { success: false, message: `Resend API error: ${errText}` };
         }
       } catch (apiError) {
         console.error("Resend API call failed:", apiError);
+        return { success: false, message: apiError.message };
       }
     } else if (provider === "brevo") {
       // Brevo API
@@ -101,9 +103,11 @@ const sendOtpEmail = async (email, otp) => {
         } else {
           const errText = await response.text();
           console.error("Brevo API error response:", errText);
+          return { success: false, message: `Brevo API error: ${errText}` };
         }
       } catch (apiError) {
         console.error("Brevo API call failed:", apiError);
+        return { success: false, message: apiError.message };
       }
     }
   }
