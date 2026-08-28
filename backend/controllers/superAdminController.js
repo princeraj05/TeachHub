@@ -253,6 +253,7 @@ exports.getSchoolsDetail = async (req, res) => {
   try {
     const School = require("../models/School");
     const User = require("../models/User");
+    const SchoolSubscription = require("../models/SchoolSubscription");
 
     let schoolDocs = await School.find({}).lean();
     if (schoolDocs.length === 0) {
@@ -267,24 +268,26 @@ exports.getSchoolsDetail = async (req, res) => {
       const teacherCount = await User.countDocuments({ schoolName: name, role: "teacher" });
       const studentCount = await User.countDocuments({ schoolName: name, role: "student" });
 
-      const plan = school.plan || "yet not set";
-      const status = school.status || "Active";
-      let price = "yet not set";
-      if (plan === "Free Plan") {
-        price = "Free / Trial";
-      } else if (plan === "Pro Plan") {
-        price = "₹2,999 / Year";
-      } else if (plan === "Basic Plan") {
-        price = "₹1,499 / Year";
-      }
+      const subscription = await SchoolSubscription.findOne({ schoolName: name });
       
-      const createdAtDate = school.createdAt || new Date();
-      const validTillDate = new Date(createdAtDate.getTime() + 365 * 24 * 60 * 60 * 1000);
-      const validTill = validTillDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric"
-      });
+      let plan = "yet not set";
+      let price = "yet not set";
+      let validTill = "yet not set";
+      
+      if (subscription) {
+        plan = "Configured";
+        price = `₹${subscription.monthlyFee} / Month`;
+        const nextDate = subscription.nextBillingDate || subscription.billingStartDate;
+        if (nextDate) {
+          validTill = new Date(nextDate).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric"
+          });
+        }
+      }
+
+      const status = school.status || "Active";
 
       schoolsList.push({
         _id: school._id,

@@ -112,8 +112,7 @@ function SuperAdminSchools() {
         {
           name: newSchoolData.name,
           email: newSchoolData.email,
-          address: newSchoolData.address,
-          plan: newSchoolData.plan
+          address: newSchoolData.address
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -141,8 +140,7 @@ function SuperAdminSchools() {
         {
           name: newSchoolData.name,
           email: newSchoolData.email,
-          address: newSchoolData.address,
-          plan: newSchoolData.plan
+          address: newSchoolData.address
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -623,17 +621,7 @@ function SuperAdminSchools() {
                 />
               </div>
 
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-455 mb-1.5">Subscription Plan</label>
-                <select
-                  value={newSchoolData.plan}
-                  onChange={(e) => setNewSchoolData(prev => ({ ...prev, plan: e.target.value }))}
-                  className="w-full px-4 py-3 text-xs font-extrabold rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E293B] text-slate-700 dark:text-white focus:outline-none focus:border-[#7C3AED] cursor-pointer"
-                >
-                  <option value="yet not set">Yet not set</option>
-                  <option value="Free Plan">Free Plan (Trial)</option>
-                </select>
-              </div>
+
 
               <button
                 type="submit"
@@ -701,20 +689,7 @@ function SuperAdminSchools() {
                 />
               </div>
 
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-455 mb-1.5">Subscription Plan</label>
-                <select
-                  value={newSchoolData.plan}
-                  onChange={(e) => setNewSchoolData(prev => ({ ...prev, plan: e.target.value }))}
-                  className="w-full px-4 py-3 text-xs font-extrabold rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E293B] text-slate-705 dark:text-white focus:outline-none focus:border-[#7C3AED] cursor-pointer"
-                >
-                  <option value="yet not set">Yet not set</option>
-                  <option value="Free Plan">Free Plan (Trial)</option>
-                  {["Pro Plan", "Basic Plan"].includes(newSchoolData.plan) && (
-                    <option value={newSchoolData.plan}>{newSchoolData.plan}</option>
-                  )}
-                </select>
-              </div>
+
 
               <button
                 type="submit"
