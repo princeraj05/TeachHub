@@ -6,16 +6,19 @@ const fs = require("fs");
 
 // Check if sender is authorized to message receiver (Strict School Isolation)
 const validateCommunicationRights = async (senderId, senderRole, senderSchool, receiverId) => {
-  if (senderRole === "superadmin") return true;
-
   const receiver = await User.findById(receiverId);
   if (!receiver) return false;
 
   const receiverRole = receiver.role;
   const receiverSchool = receiver.schoolName || "";
 
-  // Super Admin <-> Admin
-  if (receiverRole === "superadmin" && senderRole === "admin") return true;
+  // Super Admin can ONLY communicate with Admin (school admins)
+  if (senderRole === "superadmin") {
+    return receiverRole === "admin";
+  }
+  if (receiverRole === "superadmin") {
+    return senderRole === "admin";
+  }
 
   // Admin <-> Teacher/Student of same school
   if (senderRole === "admin" && (receiverRole === "teacher" || receiverRole === "student") && senderSchool === receiverSchool) return true;

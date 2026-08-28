@@ -576,74 +576,8 @@ function SuperAdminProfile() {
 
       </div>
 
-      {/* 4. Split columns (Security Info & Login Activity) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Security Information */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-2">
-            <h3 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">Security Information</h3>
-            <button
-              onClick={() => setShowPasswordModal(true)}
-              className="text-[#7C3AED] border border-[#7C3AED]/20 py-1 px-3 rounded-lg text-[10px] font-black transition uppercase cursor-pointer bg-transparent"
-            >
-              Edit
-            </button>
-          </div>
-
-          <div className="space-y-3.5 text-xs font-bold text-slate-655 dark:text-slate-350">
-            <div className="flex items-center justify-between border-b border-slate-50 dark:border-white/[0.02] pb-3">
-              <div>
-                <span className="block text-[9px] font-black text-slate-405 uppercase tracking-widest mb-0.5">Password</span>
-                <p className="text-[10px] text-slate-455">Last changed 28 Apr 2025</p>
-              </div>
-              
-              <button
-                type="button"
-                onClick={() => setShowPasswordModal(true)}
-                className="bg-transparent hover:bg-slate-50 border border-purple-500/20 text-[#7C3AED] py-2 px-4 rounded-xl text-[9px] font-black uppercase tracking-wider transition cursor-pointer"
-              >
-                Change Password
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between border-b border-slate-50 dark:border-white/[0.02] pb-3">
-              <div>
-                <span className="block text-[9px] font-black text-slate-405 uppercase tracking-widest mb-0.5">Two-Factor Authentication</span>
-                <p className="text-[10px] text-slate-455">Secure login checks</p>
-              </div>
-              <span className="text-green-555 flex items-center gap-1 uppercase tracking-wider text-[10px] font-black">
-                <FaCheckCircle className="text-xs" /> Enabled
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between border-b border-slate-50 dark:border-white/[0.02] pb-3">
-              <div>
-                <span className="block text-[9px] font-black text-slate-405 uppercase tracking-widest mb-0.5">Login Email Alerts</span>
-                <p className="text-[10px] text-slate-455">Alert on suspicious attempts</p>
-              </div>
-              <span className="text-green-555 flex items-center gap-1 uppercase tracking-wider text-[10px] font-black">
-                <FaCheckCircle className="text-xs" /> Enabled
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between pb-1">
-              <div>
-                <span className="block text-[9px] font-black text-slate-405 uppercase tracking-widest mb-0.5">Active Sessions</span>
-                <p className="text-[10px] text-slate-455">Tracked logged-in terminals</p>
-              </div>
-              <button
-                onClick={() => {
-                  const element = document.getElementById("connected-devices-section");
-                  if (element) element.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="text-[#38BDF8] hover:underline uppercase text-[9px] font-black tracking-widest cursor-pointer bg-transparent border-0"
-              >
-                {sessions.filter(s => s.status === "Active").length} active sessions &gt;
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* 4. Split columns (Login Activity only) */}
+      <div className="grid grid-cols-1 gap-6">
 
         {/* Login & Activity */}
         <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm space-y-4">

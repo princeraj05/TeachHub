@@ -154,6 +154,8 @@ mongoose
         reason: { $in: ["Family function", "Medical checkup", "Personal work", "Sick leave", "Vacation"] }
       });
       await School.deleteMany({ name: "Prince school" });
+      const Notification = require("./models/Notification");
+      await Notification.deleteMany({});
 
       console.log("Startup Cleanup: All database dummy/seeder data successfully removed.");
 
@@ -316,13 +318,16 @@ const activeSockets = new Map(); // userId -> Set<socket.id>
 
 // Helper to validate school isolation for sockets
 const canCommunicate = async (sender, receiverId) => {
-  if (sender.role === "superadmin") return true;
-
   const receiver = await User.findById(receiverId);
   if (!receiver) return false;
 
-  // Super Admin <-> Admin
-  if (receiver.role === "superadmin" && sender.role === "admin") return true;
+  // Super Admin can ONLY communicate with Admin (school admins)
+  if (sender.role === "superadmin") {
+    return receiver.role === "admin";
+  }
+  if (receiver.role === "superadmin") {
+    return sender.role === "admin";
+  }
 
   // Admin <-> Teacher/Student of same school
   if (sender.role === "admin" && (receiver.role === "teacher" || receiver.role === "student") && sender.schoolName === receiver.schoolName) return true;

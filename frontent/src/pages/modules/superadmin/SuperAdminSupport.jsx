@@ -262,9 +262,9 @@ function SuperAdminSupport() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
   };
 
-  // Build list of conversations incorporating standard fallback mockup items
+  // Build list of conversations
   const conversationsList = useMemo(() => {
-    const list = contacts.map(c => {
+    return contacts.map(c => {
       const isOnline = c.isOnline;
       const statusLabel = c.unreadCount > 0 ? "Open" : "Open";
       
@@ -282,95 +282,6 @@ function SuperAdminSupport() {
         isOnline: isOnline
       };
     });
-
-    const fallbackItems = [
-      {
-        _id: "dummy-1",
-        name: "Gudiya Kumari",
-        schoolName: "Prince school",
-        email: "kumarigudiyaa03@gmail.com",
-        lastMessage: "Sir, we are facing issue in student attendance...",
-        time: "10:45 AM",
-        unreadCount: 2,
-        status: "Open",
-        isOnline: true
-      },
-      {
-        _id: "dummy-2",
-        name: "Banny Thapar",
-        schoolName: "G.D Academy",
-        email: "kannythapar950@gmail.com",
-        lastMessage: "Payment not showing in dashboard",
-        time: "10:20 AM",
-        unreadCount: 1,
-        status: "Open",
-        isOnline: true
-      },
-      {
-        _id: "dummy-3",
-        name: "Rakesh Kumar",
-        schoolName: "Sunrise Public School",
-        email: "rakesh@gmail.com",
-        lastMessage: "Please help to update school information",
-        time: "Yesterday",
-        unreadCount: 0,
-        status: "Waiting",
-        isOnline: false
-      },
-      {
-        _id: "dummy-4",
-        name: "Asha Verma",
-        schoolName: "Bright Future School",
-        email: "asha@gmail.com",
-        lastMessage: "How to add new teacher in the system?",
-        time: "Aug 24",
-        unreadCount: 0,
-        status: "Open",
-        isOnline: true
-      },
-      {
-        _id: "dummy-5",
-        name: "Pooja Singh",
-        schoolName: "G.D Academy",
-        email: "pooja@gmail.com",
-        lastMessage: "Thanks, issue has been resolved",
-        time: "Aug 23",
-        unreadCount: 0,
-        status: "Resolved",
-        isOnline: false
-      },
-      {
-        _id: "dummy-6",
-        name: "Manoj Kumar",
-        schoolName: "Prince school",
-        email: "manoj@gmail.com",
-        lastMessage: "Need help with exam schedule",
-        time: "Aug 22",
-        unreadCount: 0,
-        status: "Open",
-        isOnline: false
-      },
-      {
-        _id: "dummy-7",
-        name: "Neha Jaiswal",
-        schoolName: "Little Angels School",
-        email: "neha@gmail.com",
-        lastMessage: "Attendance report not generating",
-        time: "Aug 21",
-        unreadCount: 0,
-        status: "Open",
-        isOnline: true
-      }
-    ];
-
-    const final = [...list];
-    fallbackItems.forEach(item => {
-      if (!final.some(c => c.name.toLowerCase() === item.name.toLowerCase())) {
-        final.push(item);
-      }
-    });
-
-    return final;
   }, [contacts]);
 
   // Filter conversations list
@@ -392,72 +303,10 @@ function SuperAdminSupport() {
       });
   }, [conversationsList, activeFilter, searchQuery]);
 
-  // Messages log feed containing Gudiya dummy values
+  // Messages log feed
   const displayedMessages = useMemo(() => {
-    if (selectedContact?.name === "Gudiya Kumari" && messages.length === 0) {
-      return [
-        {
-          _id: "m-dummy-1",
-          sender: { _id: "other", name: "Gudiya Kumari" },
-          content: "Sir, we are facing issue in student attendance.",
-          createdAt: new Date().toISOString(),
-          timeLabel: "10:43 AM"
-        },
-        {
-          _id: "m-dummy-2",
-          sender: { _id: currentUserId },
-          content: "Hello Gudiya ji, Please share the exact issue you are facing.",
-          createdAt: new Date().toISOString(),
-          timeLabel: "10:44 AM",
-          status: "read"
-        },
-        {
-          _id: "m-dummy-3",
-          sender: { _id: "other" },
-          content: "When I mark attendance, it is not saving and showing error.",
-          createdAt: new Date().toISOString(),
-          timeLabel: "10:44 AM"
-        },
-        {
-          _id: "m-dummy-4",
-          sender: { _id: currentUserId },
-          content: "Okay, I will check this from my side. Please try again and let me know.",
-          createdAt: new Date().toISOString(),
-          timeLabel: "10:45 AM",
-          status: "read"
-        },
-        {
-          _id: "m-dummy-5",
-          sender: { _id: "other" },
-          content: "",
-          attachments: [{
-            filename: "Error Screenshot.pdf",
-            size: 1.2 * 1024 * 1024,
-            mimeType: "application/pdf"
-          }],
-          createdAt: new Date().toISOString(),
-          timeLabel: "10:45 AM"
-        },
-        {
-          _id: "m-dummy-6",
-          sender: { _id: currentUserId },
-          content: "Thanks, received. I will resolve this issue shortly.",
-          createdAt: new Date().toISOString(),
-          timeLabel: "10:46 AM",
-          status: "read"
-        },
-        {
-          _id: "m-dummy-7",
-          sender: { _id: "other" },
-          content: "Thank you sir!",
-          reactions: [{ user: currentUserId, emoji: "❤️" }],
-          createdAt: new Date().toISOString(),
-          timeLabel: "10:46 AM"
-        }
-      ];
-    }
     return messages;
-  }, [messages, selectedContact, currentUserId]);
+  }, [messages]);
 
   const initials = (name) => {
     return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
@@ -542,7 +391,7 @@ function SuperAdminSupport() {
 
           {/* Category Tabs row */}
           <div className="flex gap-2.5 border-b border-slate-200 dark:border-white/5 pb-1 select-none overflow-x-auto">
-            {["School Admins", "My Group Chats", "Teachers Chats", "All Tickets"].map(tab => (
+            {["School Admins", "All Tickets"].map(tab => (
               <button
                 key={tab}
                 onClick={() => alert(`Showing category: ${tab}`)}
