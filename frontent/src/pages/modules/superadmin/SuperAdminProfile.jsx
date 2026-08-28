@@ -645,77 +645,7 @@ function SuperAdminProfile() {
 
       </div>
 
-      {/* 5. Connected Devices & Sessions Table */}
-      <div id="connected-devices-section" className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm space-y-4">
-        <div>
-          <h3 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">Connected Devices & Sessions</h3>
-          <p className="text-[10px] text-slate-405 font-bold mt-1 leading-relaxed">Manage your active sessions across different devices.</p>
-        </div>
 
-        <div className="overflow-x-auto select-none">
-          <table className="w-full text-left text-xs font-bold text-slate-500 divide-y divide-slate-100 dark:divide-white/5">
-            <thead>
-              <tr className="text-[9px] font-black text-slate-405 uppercase tracking-widest">
-                <th className="pb-3 pr-4">Device</th>
-                <th className="pb-3 px-4">Browser</th>
-                <th className="pb-3 px-4">Location / IP</th>
-                <th className="pb-3 px-4">Last Active</th>
-                <th className="pb-3 px-4 text-center">Status</th>
-                <th className="pb-3 pl-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-slate-805 dark:text-white font-semibold">
-              {sessions.map((session) => (
-                <tr key={session.id || session._id} className="hover:bg-slate-50/[0.02] transition-colors">
-                  <td className="py-4.5 pr-4 flex items-center gap-2.5 font-extrabold text-xs">
-                    {session.device.includes("PC") || session.device.includes("Macintosh") || session.device.includes("Linux") ? <FaLaptop className="text-blue-500 text-sm" /> : <FaMobileAlt className="text-purple-550 text-sm" />}
-                    <span>{session.device}</span>
-                  </td>
-                  <td className="py-4.5 px-4 font-mono text-[10px] text-slate-655 dark:text-slate-350">{session.browser}</td>
-                  <td className="py-4.5 px-4">
-                    <p className="text-xs font-bold text-slate-850 dark:text-white">{session.location}</p>
-                    <span className="text-[9px] font-black font-mono text-slate-400 block mt-0.5">{session.ip}</span>
-                  </td>
-                  <td className="py-4.5 px-4">
-                    <p className="text-xs font-bold text-slate-850 dark:text-white font-mono">{formatDateTime(session.lastActive)}</p>
-                    {session.current && <span className="text-[8px] font-black uppercase text-[#7C3AED] dark:text-[#38BDF8] mt-0.5 block tracking-wider">Current Session</span>}
-                  </td>
-                  <td className="py-4.5 px-4 text-center">
-                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${
-                      session.status === "Active" ? "bg-green-50 text-green-700" : "bg-slate-100 text-slate-600"
-                    }`}>
-                      {session.status}
-                    </span>
-                  </td>
-                  <td className="py-4.5 pl-4 text-right">
-                    {!session.current && session.status === "Active" ? (
-                      <button
-                        onClick={() => handleLogoutSession(session.id)}
-                        className="text-rose-500 hover:text-rose-600 font-black text-[10px] uppercase tracking-widest cursor-pointer bg-transparent border-0"
-                      >
-                        Logout
-                      </button>
-                    ) : (
-                      <span className="text-slate-350">—</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Footer actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-slate-100 dark:border-white/5 pt-4 gap-3 select-none">
-          <p className="text-[9.5px] text-slate-400 font-bold">If you notice any suspicious activity, log out from all other sessions.</p>
-          <button
-            onClick={handleLogoutAllOther}
-            className="bg-transparent hover:bg-rose-500/10 border border-rose-500/20 text-rose-500 font-black text-[10px] py-2.5 px-4 rounded-xl transition cursor-pointer uppercase tracking-wider"
-          >
-            Logout All Other Sessions
-          </button>
-        </div>
-      </div>
 
       {/* CHANGE PASSWORD DIALOG MODAL */}
       {showPasswordModal && (
