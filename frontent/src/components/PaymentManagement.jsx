@@ -11,6 +11,7 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
   const [subscriptions, setSubscriptions] = useState([]);
   const [schoolNames, setSchoolNames] = useState([]);
   const [fee, setFee] = useState("");
+  const [validityDays, setValidityDays] = useState("30");
   const [teachers, setTeachers] = useState([]);
   const [compensations, setCompensations] = useState([]);
   const [notice, setNotice] = useState("");
@@ -34,6 +35,7 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
           axios.get(`${apiBase}/api/admin/teacher-compensations`, { headers: auth() })
         ]);
         setFee(plan.data?.monthlyFee ? String(plan.data.monthlyFee / 100) : "");
+        setValidityDays(plan.data?.validityDays ? String(plan.data.validityDays) : "30");
         setTeachers(staff.data || []); setCompensations(compensation.data || []);
       }
     } catch (error) { setNotice(error.response?.data?.message || "Management data could not be loaded."); }
@@ -43,7 +45,8 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
   const saveFee = async e => {
     e.preventDefault();
     const monthlyFee = Math.round(Number(fee) * 100);
-    try { await axios.put(`${apiBase}/api/admin/fee-plan`, { monthlyFee }, { headers: auth() }); setNotice("Student fee plan saved."); onChange?.(); }
+    const days = Math.round(Number(validityDays));
+    try { await axios.put(`${apiBase}/api/admin/fee-plan`, { monthlyFee, validityDays: days }, { headers: auth() }); setNotice("Student fee plan saved."); onChange?.(); }
     catch (error) { setNotice(error.response?.data?.message || "Fee plan could not be saved."); }
   };
 
@@ -227,7 +230,18 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
                 min="0.01"
                 step="0.01"
                 required
-                className="mt-1 block rounded-lg border p-2 bg-slate-50 dark:bg-[#0F172A] border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white"
+                className="mt-1 block rounded-lg border p-2 bg-slate-50 dark:bg-[#0F172A] border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white w-32"
+              />
+            </label>
+            <label className="text-sm font-semibold">
+              Validity cycle (Days)
+              <input
+                value={validityDays}
+                onChange={(e) => setValidityDays(e.target.value)}
+                type="number"
+                min="1"
+                required
+                className="mt-1 block rounded-lg border p-2 bg-slate-50 dark:bg-[#0F172A] border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white w-24"
               />
             </label>
             <button className="rounded-lg bg-[#7C3AED] px-4 py-2 text-sm font-bold text-white cursor-pointer hover:bg-purple-700">Save fee plan</button>
