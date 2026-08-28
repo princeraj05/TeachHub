@@ -37,7 +37,7 @@ function SuperAdminSupport() {
   const currentUserId = localStorage.getItem("userId");
 
   // View state: "dashboard" or "chat"
-  const [viewMode, setViewMode] = useState("dashboard");
+  const [viewMode, setViewMode] = useState("chat");
 
   // Chat selection and messaging
   const [contacts, setContacts] = useState([]);
@@ -315,377 +315,166 @@ function SuperAdminSupport() {
   return (
     <div style={{ fontFamily: SORA }} className="space-y-6 text-slate-805 dark:text-white select-none">
       
-      {/* ======================================= */}
-      {/* VIEW A: SUPPORT DASHBOARD OVERVIEW VIEW */}
-      {viewMode === "dashboard" && (
-        <div className="space-y-6 animate-fadeIn">
-          
-          {/* Header segment */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none">
+      {/* SUPPORT CHAT DETAILED WORKSPACE */}
+      <div className="space-y-6 animate-fadeIn">
+        
+        {/* Header breadcrumbs support calling actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-white/5 pb-4">
+          <div className="flex items-center gap-3">
             <div>
               <h2 className="text-xl sm:text-2xl font-black flex items-center gap-2">
-                <FaComments className="text-[#7C3AED]" /> Support Dashboard
+                <FaComments className="text-[#7C3AED]" /> Support Chat
               </h2>
-              <p className="text-xs text-slate-450 dark:text-slate-400 font-semibold mt-1">
-                Manage all support conversations, chats and calls from schools, admins and teachers.
+              <p className="text-[10px] text-slate-455 dark:text-slate-400 font-extrabold uppercase mt-1.5">
+                Support &gt; School Admins &gt; Chat
               </p>
             </div>
-
-            <select className="appearance-none bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 text-slate-705 dark:text-white py-2.5 px-4 rounded-xl text-xs font-bold focus:outline-none cursor-pointer self-start sm:self-auto shadow-sm">
-              <option>This Month</option>
-              <option>Last Month</option>
-              <option>All Time</option>
-            </select>
           </div>
 
-          {/* KPI Stats Grid (4 cards) */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 select-none">
-            {/* Total Conversations */}
-            <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4.5 rounded-2.5xl shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-black text-slate-450 uppercase tracking-widest">Total Conversations</span>
-                <div className="w-8.5 h-8.5 rounded-xl bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center">
-                  <FaComments className="text-sm" />
-                </div>
-              </div>
-              <p className="text-xl sm:text-2xl font-black leading-none">18</p>
-              <span className="block text-[9px] font-black text-green-555 mt-2">↑ 25% from last month</span>
-            </div>
-
-            {/* Open Conversations */}
-            <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4.5 rounded-2.5xl shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-black text-slate-455 uppercase tracking-widest">Open Conversations</span>
-                <div className="w-8.5 h-8.5 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
-                  <FaUsers className="text-sm" />
-                </div>
-              </div>
-              <p className="text-xl sm:text-2xl font-black leading-none">12</p>
-              <span className="block text-[9px] font-black text-blue-550 mt-2">↑ 20% from last month</span>
-            </div>
-
-            {/* Resolved */}
-            <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4.5 rounded-2.5xl shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-black text-slate-455 uppercase tracking-widest">Resolved</span>
-                <div className="w-8.5 h-8.5 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
-                  <FaCheckCircle className="text-sm" />
-                </div>
-              </div>
-              <p className="text-xl sm:text-2xl font-black leading-none">6</p>
-              <span className="block text-[9px] font-black text-green-555 mt-2">↑ 15% from last month</span>
-            </div>
-
-            {/* Calls (This Month) */}
-            <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4.5 rounded-2.5xl shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-black text-slate-455 uppercase tracking-widest">Calls (This Month)</span>
-                <div className="w-8.5 h-8.5 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
-                  <FaPhoneAlt className="text-sm" />
-                </div>
-              </div>
-              <p className="text-xl sm:text-2xl font-black leading-none">9</p>
-              <span className="block text-[9px] font-black text-amber-550 mt-2">↑ 30% from last month</span>
-            </div>
-          </div>
-
-          {/* Category Tabs row */}
-          <div className="flex gap-2.5 border-b border-slate-200 dark:border-white/5 pb-1 select-none overflow-x-auto">
-            {["School Admins", "All Tickets"].map(tab => (
+          {selectedContact && (
+            <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-auto select-none">
               <button
-                key={tab}
-                onClick={() => alert(`Showing category: ${tab}`)}
-                className={`pb-3 px-3 text-xs font-black transition cursor-pointer relative shrink-0 ${
-                  tab === "School Admins"
-                    ? "text-[#7C3AED] dark:text-[#38BDF8]"
-                    : "text-slate-500 hover:text-slate-750"
-                }`}
+                onClick={() => startCall(selectedContact, "voice")}
+                className="w-10 h-10 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center transition cursor-pointer"
+                title="Voice Call"
               >
-                {tab}
-                {tab === "School Admins" && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#7C3AED] dark:bg-[#38BDF8]" />
-                )}
+                <FaPhoneAlt className="text-sm" />
               </button>
-            ))}
-          </div>
-
-          {/* Filter, search inputs */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
-              <input
-                type="text"
-                placeholder="Search by name, school or message..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B132A] text-slate-805 dark:text-white placeholder-slate-405 text-xs font-semibold focus:outline-none"
-              />
-            </div>
-
-            <button className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 text-slate-705 dark:text-white py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer hover:border-slate-350">
-              <FaFilter className="text-slate-400" /> All Status
-            </button>
-
-            <button className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 text-slate-705 dark:text-white py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer hover:border-slate-350">
-              <FaSort className="text-slate-400" /> Sort
-            </button>
-                    {/* List of conversations (full width) */}
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm space-y-4">
-            
-            <div className="flex gap-4 border-b border-slate-100 dark:border-white/5 pb-2.5 select-none">
-              {["All (8)", "Open (5)", "Waiting (2)", "Resolved (1)"].map(sub => (
-                <button
-                  key={sub}
-                  onClick={() => alert(`Filter status count: ${sub}`)}
-                  className={`text-xs font-extrabold pb-0.5 border-b-2 transition cursor-pointer ${
-                    sub.startsWith("All") 
-                      ? "border-[#7C3AED] text-[#7C3AED] dark:text-[#38BDF8]" 
-                      : "border-transparent text-slate-455 hover:text-slate-700"
-                  }`}
-                >
-                  {sub}
-                </button>
-              ))}
-            </div>
-
-            {/* Conversations mapping */}
-            <div className="divide-y divide-slate-100 dark:divide-white/5">
-              {filteredConversations.slice(0, 5).map((item) => (
-                <div
-                  key={item._id}
-                  onClick={() => {
-                    const orig = contacts.find(c => c._id === item._id) || {
-                      _id: item._id,
-                      name: item.name,
-                      email: item.email,
-                      schoolName: item.schoolName
-                    };
-                    setSelectedContact(orig);
-                    setViewMode("chat");
-                  }}
-                  className="py-4.5 flex items-center justify-between gap-4 hover:bg-slate-50/50 dark:hover:bg-white/[0.01] transition-colors cursor-pointer rounded-xl px-2"
-                >
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black shrink-0 relative text-xs">
-                      {initials(item.name)}
-                      {item.isOnline && (
-                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-[#0B132A] rounded-full" />
-                      )}
-                    </div>
-
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-xs font-black text-slate-900 dark:text-white truncate">{item.name}</h4>
-                        {item.unreadCount > 0 && (
-                          <span className="px-1.5 py-0.5 rounded bg-purple-555/15 text-[#7C3AED] dark:text-[#A78BFA] text-[7.5px] font-black uppercase tracking-wider">NEW</span>
-                        )}
-                      </div>
-                      <p className="text-[9.5px] text-slate-400 font-extrabold flex items-center gap-1 mt-0.5">
-                        <FaSchool className="text-[8px]" /> {item.schoolName}
-                      </p>
-                      <p className="text-[10px] text-slate-455 dark:text-slate-500 font-bold truncate mt-1">
-                        {item.lastMessage}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="text-right shrink-0 flex flex-col items-end gap-1.5 font-mono select-none">
-                    <span className="text-[9px] text-slate-400 font-extrabold">{item.time}</span>
-                    <div className="flex items-center gap-2">
-                      {item.unreadCount > 0 && (
-                        <span className="w-4.5 h-4.5 rounded-full bg-[#7C3AED] text-white text-[9px] font-black flex items-center justify-center leading-none">
-                          {item.unreadCount}
-                        </span>
-                      )}
-                      <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-blue-50 text-blue-700">
-                        {item.status}
-                      </span>
-                    </div>
-                  </div>
-
-                </div>
-              ))}
-            </div>
-
-            {/* View all conversations trigger link */}
-            <div className="text-center pt-2 select-none border-t border-slate-100 dark:border-white/5">
-              <button
-                onClick={() => setViewMode("chat")}
-                className="text-[10px] font-black text-[#7C3AED] dark:text-[#38BDF8] uppercase tracking-widest hover:underline cursor-pointer"
-              >
-                View all conversations &gt;
-              </button>
-            </div>
-
-          </div>  </div>
-
-        </div>
-      )}
-
-      {/* ======================================= */}
-      {/* VIEW B: SUPPORT CHAT DETAILED WORKSPACE */}
-      {viewMode === "chat" && (
-        <div className="space-y-6 animate-fadeIn">
-          
-          {/* Header breadcrumbs support calling actions */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-white/5 pb-4">
-            <div className="flex items-center gap-3">
-              {/* Back to Dashboard Button */}
-              <button
-                onClick={() => setViewMode("dashboard")}
-                className="bg-slate-100 hover:bg-[#7C3AED] hover:text-white p-2.5 rounded-xl text-slate-505 transition cursor-pointer"
-                title="Back to Dashboard"
-              >
-                <FaArrowLeft className="text-xs" />
-              </button>
-              <div>
-                <h2 className="text-xl sm:text-2xl font-black flex items-center gap-2">
-                  <FaComments className="text-[#7C3AED]" /> Support Chat
-                </h2>
-                <p className="text-[10px] text-slate-455 dark:text-slate-400 font-extrabold uppercase mt-1.5">
-                  Support &gt; School Admins &gt; Chat
-                </p>
-              </div>
-            </div>
-
-            {selectedContact && (
-              <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-auto select-none">
-                <button
-                  onClick={() => startCall(selectedContact, "voice")}
-                  className="w-10 h-10 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center transition cursor-pointer"
-                  title="Voice Call"
-                >
-                  <FaPhoneAlt className="text-sm" />
-                </button>
-                
-                <button
-                  onClick={() => startCall(selectedContact, "video")}
-                  className="w-10 h-10 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center transition cursor-pointer"
-                  title="Video Call"
-                >
-                  <FaVideo className="text-sm" />
-                </button>
-
-                <button
-                  onClick={() => alert("Add user to conversation")}
-                  className="w-10 h-10 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20 flex items-center justify-center transition cursor-pointer"
-                  title="Add users to chat"
-                >
-                  <FaUsers className="text-sm" />
-                </button>
-
-                <button
-                  onClick={() => alert("Show more support tools")}
-                  className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 hover:border-slate-350 text-slate-705 dark:text-slate-300 py-2.5 px-4 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer"
-                >
-                  <FaEllipsisH /> More
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Messaging Viewport split layout */}
-          <div className="flex bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl overflow-hidden shadow-sm h-[calc(100vh-210px)] min-h-0">
-            
-            {/* Left sidebar chats directory */}
-            <div className="hidden lg:flex w-[320px] border-r border-slate-100 dark:border-white/5 flex-col bg-slate-50/10 shrink-0 min-h-0">
               
-              <div className="p-4 space-y-3.5 border-b border-slate-100 dark:border-white/5">
-                <div className="relative">
-                  <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
-                  <input
-                    type="text"
-                    placeholder="Search conversations..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B132A] text-slate-805 dark:text-white placeholder-slate-405 text-xs font-semibold focus:outline-none"
-                  />
-                </div>
+              <button
+                onClick={() => startCall(selectedContact, "video")}
+                className="w-10 h-10 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center transition cursor-pointer"
+                title="Video Call"
+              >
+                <FaVideo className="text-sm" />
+              </button>
 
-                <div className="flex justify-between text-[9px] font-black uppercase">
-                  {["All 18", "Open 12", "Waiting 3", "Resolved 3"].map(tab => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveFilter(tab.split(" ")[0])}
-                      className={`px-2 py-1 rounded transition cursor-pointer ${
-                        activeFilter === tab.split(" ")[0]
-                          ? "bg-[#7C3AED] text-white"
-                          : "bg-transparent text-slate-500"
-                      }`}
-                    >
-                      {tab}
-                    </button>
-                  ))}
-                </div>
+              <button
+                onClick={() => alert("Add user to conversation")}
+                className="w-10 h-10 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20 flex items-center justify-center transition cursor-pointer"
+                title="Add users to chat"
+              >
+                <FaUsers className="text-sm" />
+              </button>
+
+              <button
+                onClick={() => alert("Show more support tools")}
+                className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 hover:border-slate-350 text-slate-705 dark:text-slate-300 py-2.5 px-4 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <FaEllipsisH /> More
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Messaging Viewport split layout */}
+        <div className="flex bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl overflow-hidden shadow-sm h-[calc(100vh-210px)] min-h-0">
+          
+          {/* Left sidebar chats directory */}
+          <div className="hidden lg:flex w-[320px] border-r border-slate-100 dark:border-white/5 flex-col bg-slate-50/10 shrink-0 min-h-0">
+            
+            <div className="p-4 space-y-3.5 border-b border-slate-100 dark:border-white/5">
+              <div className="relative">
+                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+                <input
+                  type="text"
+                  placeholder="Search conversations..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B132A] text-slate-805 dark:text-white placeholder-slate-405 text-xs font-semibold focus:outline-none"
+                />
               </div>
 
-              <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-white/5">
-                {filteredConversations.map((c) => {
-                  const isActive = selectedContact?._id === c._id;
-                  return (
-                    <button
-                      key={c._id}
-                      onClick={() => {
-                        const orig = contacts.find(contact => contact._id === c._id) || {
-                          _id: c._id,
-                          name: c.name,
-                          email: c.email,
-                          schoolName: c.schoolName
-                        };
-                        setSelectedContact(orig);
-                      }}
-                      className={`w-full p-4.5 text-left hover:bg-slate-50 dark:hover:bg-white/[0.01] transition flex items-start gap-3 cursor-pointer ${
-                        isActive ? "bg-slate-50/50 dark:bg-white/[0.02] border-l-4 border-[#7C3AED]" : ""
-                      }`}
-                    >
-                      <div className="w-8 h-8 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black shrink-0 relative text-[10px]">
-                        {initials(c.name)}
-                        {c.isOnline && (
-                          <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 border border-white dark:border-[#0B132A] rounded-full" />
-                        )}
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-[11px] font-black text-slate-850 dark:text-white truncate">{c.name}</h4>
-                          <span className="text-[8px] font-extrabold text-slate-455 font-mono shrink-0">{c.time}</span>
-                        </div>
-                        <p className="text-[9px] text-[#38BDF8] font-bold truncate mt-0.5">{c.schoolName}</p>
-                      </div>
-                    </button>
-                  );
-                })}
+              <div className="flex justify-between text-[9px] font-black uppercase">
+                {[
+                  { id: "All", label: `All (${conversationsList.length})` },
+                  { id: "Open", label: `Open (${conversationsList.filter(c => c.status === "Open").length})` },
+                  { id: "Waiting", label: `Waiting (${conversationsList.filter(c => c.status === "Waiting").length})` },
+                  { id: "Resolved", label: `Resolved (${conversationsList.filter(c => c.status === "Resolved").length})` }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveFilter(tab.id)}
+                    className={`px-2 py-1 rounded transition cursor-pointer ${
+                      activeFilter === tab.id
+                        ? "bg-[#7C3AED] text-white"
+                        : "bg-transparent text-slate-505"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
-
-              {/* Load more timeline */}
-              <div className="p-3 border-t border-slate-100 dark:border-white/5 text-center bg-white dark:bg-transparent">
-                <button className="text-[9px] font-black text-slate-455 dark:text-slate-400 uppercase tracking-widest hover:underline cursor-pointer flex items-center justify-center gap-1 mx-auto select-none">
-                  Load more conversations v
-                </button>
-              </div>
-
             </div>
 
-            {/* Right Messaging Pane */}
-            <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-[#0B132A] relative">
-              {selectedContact ? (
-                <div className="flex-grow flex flex-col min-h-0">
-                  
-                  {/* Active header info */}
-                  <div className="px-5 py-4 border-b border-slate-100 dark:border-white/5 flex items-center gap-3 select-none">
-                    <div className="w-10 h-10 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black relative shrink-0">
+            <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-white/5">
+              {filteredConversations.map((c) => {
+                const isActive = selectedContact?._id === c._id;
+                return (
+                  <button
+                    key={c._id}
+                    onClick={() => {
+                      const orig = contacts.find(contact => contact._id === c._id) || {
+                        _id: c._id,
+                        name: c.name,
+                        email: c.email,
+                        schoolName: c.schoolName
+                      };
+                      setSelectedContact(orig);
+                    }}
+                    className={`w-full p-4.5 text-left hover:bg-slate-50 dark:hover:bg-white/[0.01] transition flex items-start gap-3 cursor-pointer ${
+                      isActive ? "bg-slate-50/50 dark:bg-white/[0.02] border-l-4 border-[#7C3AED]" : ""
+                    }`}
+                  >
+                    <div className="w-8 h-8 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black shrink-0 relative text-[10px]">
+                      {initials(c.name)}
+                      {c.isOnline && (
+                        <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 border border-white dark:border-[#0B132A] rounded-full" />
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-[11px] font-black text-slate-850 dark:text-white truncate">{c.name}</h4>
+                        <span className="text-[8.5px] text-slate-400 font-semibold font-mono">{c.time}</span>
+                      </div>
+                      <p className="text-[9px] text-slate-405 font-bold uppercase tracking-wider mt-0.5">{c.schoolName}</p>
+                      <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold truncate mt-1.5">{c.lastMessage}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right chat message window */}
+          <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-[#0B132A] h-full">
+            {selectedContact ? (
+              <div className="flex-1 flex flex-col min-h-0">
+                {/* Active contact header */}
+                <div className="p-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between select-none">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black relative text-xs">
                       {initials(selectedContact.name)}
-                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-[#0B132A] rounded-full" />
+                      {selectedContact.isOnline && (
+                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-555 border-2 border-white dark:border-[#0B132A] rounded-full" />
+                      )}
                     </div>
                     <div>
-                      <h3 className="text-xs font-black text-slate-900 dark:text-white leading-tight">{selectedContact.name}</h3>
-                      <p className="text-[9.5px] text-slate-400 font-bold mt-0.5">{selectedContact.schoolName || "Prince school"}</p>
-                      <span className="inline-flex items-center gap-1 text-[8.5px] font-black uppercase text-green-555 tracking-wider mt-0.5">● Online</span>
+                      <h3 className="text-xs font-black text-slate-850 dark:text-white leading-tight">{selectedContact.name}</h3>
+                      <p className="text-[9px] text-slate-455 dark:text-slate-400 font-bold mt-0.5">{selectedContact.schoolName || "G.D Academy"}</p>
                     </div>
                   </div>
 
-                  {/* Messaging logs scroll area */}
-                  <div className="flex-grow overflow-y-auto p-5 space-y-5 bg-slate-50/[0.02]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9.5px] text-slate-400 font-semibold">
+                      {selectedContact.isOnline ? "Online" : "Offline"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Messages log */}
+                <div className="flex-grow overflow-y-auto p-5 space-y-5 bg-slate-50/[0.02]">
                     
                     <div className="text-center my-6">
                       <span className="px-3 py-1 rounded bg-slate-100 dark:bg-white/5 text-[9px] font-black text-slate-455 uppercase tracking-widest font-mono">Today</span>
@@ -833,15 +622,14 @@ function SuperAdminSupport() {
                   </p>
                 </div>
               )}
-            </div>
+      </div>
 
-          </div>
-
-        </div>
-      )}
+      </div>
 
     </div>
-  );
+
+  </div>
+);
 }
 
 export default SuperAdminSupport;
