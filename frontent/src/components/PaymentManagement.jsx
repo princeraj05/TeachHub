@@ -193,7 +193,19 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
       schoolName: schoolNames[0] || "",
       fee: "",
       billingStartDate: new Date().toISOString().slice(0, 10),
-      gracePeriodDays: "0"
+      gracePeriodDays: "0",
+      isEditing: false
+    });
+  };
+
+  const editSubscription = (item) => {
+    setActiveModal("configureSubscription");
+    setModalData({
+      schoolName: item.subscription.schoolName,
+      fee: String(item.subscription.monthlyFee / 100),
+      billingStartDate: item.subscription.billingStartDate ? item.subscription.billingStartDate.slice(0, 10) : new Date().toISOString().slice(0, 10),
+      gracePeriodDays: String(item.subscription.gracePeriodDays || 0),
+      isEditing: true
     });
   };
 
@@ -300,6 +312,9 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
                     ))}
                 </div>
                 <div className="flex gap-2">
+                  <button onClick={() => editSubscription(item)} className="rounded-lg border border-slate-200 dark:border-slate-800 px-3 py-1.5 font-bold cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">
+                    Edit
+                  </button>
                   <button onClick={() => grantFree(item)} className="rounded-lg border border-slate-200 dark:border-slate-800 px-3 py-1.5 font-bold cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">
                     Grant free period
                   </button>
@@ -587,7 +602,9 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
       {activeModal === "configureSubscription" && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#0D1326] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 w-full max-w-md shadow-2xl relative text-left">
-            <h3 className="text-base font-black text-slate-800 dark:text-white mb-4">Configure School Subscription</h3>
+            <h3 className="text-base font-black text-slate-800 dark:text-white mb-4">
+              {modalData.isEditing ? "Edit School Subscription" : "Configure School Subscription"}
+            </h3>
             <form onSubmit={handleConfigureSubscriptionSubmit} className="space-y-4">
               <div>
                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
@@ -596,9 +613,10 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
                 {schoolNames.length > 0 ? (
                   <select
                     required
+                    disabled={modalData.isEditing}
                     value={modalData.schoolName}
                     onChange={(e) => setModalData({ ...modalData, schoolName: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold text-slate-800 dark:text-white"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold text-slate-800 dark:text-white disabled:opacity-60"
                   >
                     {schoolNames.map((name) => (
                       <option key={name} value={name}>
@@ -610,6 +628,7 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
                   <input
                     type="text"
                     required
+                    disabled={modalData.isEditing}
                     value={modalData.schoolName}
                     onChange={(e) => setModalData({ ...modalData, schoolName: e.target.value })}
                     placeholder="Enter exact school name..."
@@ -673,7 +692,7 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
                   type="submit"
                   className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer"
                 >
-                  Configure
+                  {modalData.isEditing ? "Save Changes" : "Configure"}
                 </button>
               </div>
             </form>
