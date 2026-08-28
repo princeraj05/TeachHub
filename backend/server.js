@@ -67,15 +67,34 @@ mongoose
         { name: "Banny Thapar", role: "admin" },
         { schoolName: "G.D Academy" }
       );
-      await User.updateMany(
-        { requestedSchool: { $in: ["G.D Accedmy", "G.D Accedmy "] } },
-        { requestedSchool: "G.D Academy" }
-      );
-      await User.updateMany(
-        { schoolName: { $in: ["G.D Accedmy", "G.D Accedmy "] } },
-        { schoolName: "G.D Academy" }
-      );
-      console.log("Database Migration: Updated Banny Thapar's school to G.D Academy and cleaned requestedSchool records", result);
+
+      const modelsToMigrate = [
+        { path: "./models/User", fields: ["schoolName", "requestedSchool"] },
+        { path: "./models/PaymentSettings", fields: ["schoolName"] },
+        { path: "./models/FeePlan", fields: ["schoolName"] },
+        { path: "./models/SchoolSubscription", fields: ["schoolName"] },
+        { path: "./models/FreePeriod", fields: ["schoolName"] },
+        { path: "./models/TeacherCompensation", fields: ["schoolName"] },
+        { path: "./models/Class", fields: ["schoolName"] },
+        { path: "./models/Subject", fields: ["schoolName"] },
+        { path: "./models/Payment", fields: ["schoolName"] },
+        { path: "./models/School", fields: ["name"] }
+      ];
+
+      for (const item of modelsToMigrate) {
+        try {
+          const Model = require(item.path);
+          for (const field of item.fields) {
+            await Model.updateMany(
+              { [field]: { $in: ["G.D Accedmy", "G.D Accedmy "] } },
+              { [field]: "G.D Academy" }
+            );
+          }
+        } catch (err) {
+          console.error(`Failed to migrate ${item.path}:`, err.message);
+        }
+      }
+      console.log("Database Migration: Updated Banny Thapar's school to G.D Academy and cleaned all collections from typo G.D Accedmy", result);
 
       // ================= DUMMY / SEEDER DATA CLEANUP =================
       const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || "princerajmne@gmail.com").toLowerCase();
