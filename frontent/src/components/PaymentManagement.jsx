@@ -9,6 +9,7 @@ const money = value => new Intl.NumberFormat("en-IN", { style: "currency", curre
 // financial values used to create a payment, and enforces roles/school scope.
 export default function PaymentManagement({ role, apiBase, onChange }) {
   const [subscriptions, setSubscriptions] = useState([]);
+  const [schoolNames, setSchoolNames] = useState([]);
   const [fee, setFee] = useState("");
   const [teachers, setTeachers] = useState([]);
   const [compensations, setCompensations] = useState([]);
@@ -19,8 +20,12 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
   const load = async () => {
     try {
       if (role === "superadmin") {
-        const { data } = await axios.get(`${apiBase}/api/superadmin/subscriptions`, { headers: auth() });
-        setSubscriptions(data);
+        const [subRes, schoolRes] = await Promise.all([
+          axios.get(`${apiBase}/api/superadmin/subscriptions`, { headers: auth() }),
+          axios.get(`${apiBase}/api/superadmin/schools`, { headers: auth() })
+        ]);
+        setSubscriptions(subRes.data);
+        setSchoolNames(schoolRes.data || []);
       }
       if (role === "admin") {
         const [plan, staff, compensation] = await Promise.all([
@@ -182,7 +187,7 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
   const configureSubscription = () => {
     setActiveModal("configureSubscription");
     setModalData({
-      schoolName: "",
+      schoolName: schoolNames[0] || "",
       fee: "",
       billingStartDate: new Date().toISOString().slice(0, 10),
       gracePeriodDays: "0"
@@ -572,16 +577,31 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
             <form onSubmit={handleConfigureSubscriptionSubmit} className="space-y-4">
               <div>
                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
-                  Exact School Name
+                  School Name
                 </label>
-                <input
-                  type="text"
-                  required
-                  value={modalData.schoolName}
-                  onChange={(e) => setModalData({ ...modalData, schoolName: e.target.value })}
-                  placeholder="Enter exact school name..."
-                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold text-slate-800 dark:text-white"
-                />
+                {schoolNames.length > 0 ? (
+                  <select
+                    required
+                    value={modalData.schoolName}
+                    onChange={(e) => setModalData({ ...modalData, schoolName: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold text-slate-800 dark:text-white"
+                  >
+                    {schoolNames.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    required
+                    value={modalData.schoolName}
+                    onChange={(e) => setModalData({ ...modalData, schoolName: e.target.value })}
+                    placeholder="Enter exact school name..."
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold text-slate-800 dark:text-white"
+                  />
+                )}
               </div>
 
               <div>
