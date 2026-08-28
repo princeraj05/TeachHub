@@ -13,6 +13,7 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
   const [fee, setFee] = useState("");
   const [validityDays, setValidityDays] = useState("30");
   const [teachers, setTeachers] = useState([]);
+  const [compensations, setCompensations] = useState([]);
   const [students, setStudents] = useState([]);
   const [payments, setPayments] = useState([]);
   const [notice, setNotice] = useState("");
