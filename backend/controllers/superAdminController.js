@@ -267,13 +267,15 @@ exports.getSchoolsDetail = async (req, res) => {
       const teacherCount = await User.countDocuments({ schoolName: name, role: "teacher" });
       const studentCount = await User.countDocuments({ schoolName: name, role: "student" });
 
-      const plan = school.plan || "Pro Plan";
+      const plan = school.plan || "yet not set";
       const status = school.status || "Active";
-      let price = "₹2,999 / Year";
-      if (plan === "Basic Plan") {
-        price = "₹1,499 / Year";
-      } else if (plan === "Free Plan") {
+      let price = "yet not set";
+      if (plan === "Free Plan") {
         price = "Free / Trial";
+      } else if (plan === "Pro Plan") {
+        price = "₹2,999 / Year";
+      } else if (plan === "Basic Plan") {
+        price = "₹1,499 / Year";
       }
       
       const createdAtDate = school.createdAt || new Date();
@@ -323,7 +325,7 @@ exports.createSchool = async (req, res) => {
       normalizedName,
       email,
       address,
-      plan: plan || "Pro Plan",
+      plan: plan || "yet not set",
       status: "Active"
     });
 

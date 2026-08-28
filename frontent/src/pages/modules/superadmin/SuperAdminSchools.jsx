@@ -75,7 +75,7 @@ function SuperAdminSchools() {
 
   // Modals / Adding states
   const [showAddSchoolModal, setShowAddSchoolModal] = useState(false);
-  const [newSchoolData, setNewSchoolData] = useState({ name: "", email: "", address: "", plan: "Pro Plan" });
+  const [newSchoolData, setNewSchoolData] = useState({ name: "", email: "", address: "", plan: "yet not set" });
   const [editSchool, setEditSchool] = useState(null);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
@@ -120,7 +120,7 @@ function SuperAdminSchools() {
 
       setSuccess("New School added successfully!");
       setShowAddSchoolModal(false);
-      setNewSchoolData({ name: "", email: "", address: "", plan: "Pro Plan" });
+      setNewSchoolData({ name: "", email: "", address: "", plan: "yet not set" });
       fetchSchoolsDetail();
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
@@ -148,7 +148,7 @@ function SuperAdminSchools() {
       );
       setSuccess("School details updated successfully!");
       setEditSchool(null);
-      setNewSchoolData({ name: "", email: "", address: "", plan: "Pro Plan" });
+      setNewSchoolData({ name: "", email: "", address: "", plan: "yet not set" });
       fetchSchoolsDetail();
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
@@ -414,8 +414,8 @@ function SuperAdminSchools() {
                       {/* Plan & Status */}
                       <td className="px-6 py-4">
                         <div>
-                          <span className="inline-flex px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border border-green-500/20 bg-green-500/10 text-green-600">
-                            {school.plan}
+                          <span className={`inline-flex px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${school.plan === "yet not set" ? "border-slate-500/20 bg-slate-500/10 text-slate-500" : "border-green-500/20 bg-green-500/10 text-green-600"}`}>
+                            {school.plan === "yet not set" ? "yet not set" : school.plan}
                           </span>
                           <p className="text-[9px] text-green-555 font-black mt-2 flex items-center gap-1 leading-none">
                             <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Active
@@ -440,15 +440,19 @@ function SuperAdminSchools() {
 
                       {/* Subscription price details */}
                       <td className="px-6 py-4">
-                        <div>
-                          <p className="text-xs font-black text-slate-900 dark:text-white">{school.price}</p>
-                          <p className="text-[9px] text-slate-400 font-semibold mt-1">
-                            Valid till <span className="text-green-555 font-extrabold">{school.validTill}</span>
-                          </p>
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase border border-green-500/25 text-green-600 bg-green-500/5 mt-2">
-                            <FaRedo className="text-[7px]" /> Auto Renew
-                          </span>
-                        </div>
+                        {school.plan === "yet not set" ? (
+                          <span className="text-xs font-bold text-slate-400">yet not set</span>
+                        ) : (
+                          <div>
+                            <p className="text-xs font-black text-slate-900 dark:text-white">{school.price}</p>
+                            <p className="text-[9px] text-slate-400 font-semibold mt-1">
+                              Valid till <span className="text-green-555 font-extrabold">{school.validTill}</span>
+                            </p>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase border border-green-500/25 text-green-600 bg-green-500/5 mt-2">
+                              <FaRedo className="text-[7px]" /> Auto Renew
+                            </span>
+                          </div>
+                        )}
                       </td>
 
                       {/* Action buttons */}
@@ -568,7 +572,7 @@ function SuperAdminSchools() {
             <button
               onClick={() => {
                 setShowAddSchoolModal(false);
-                setNewSchoolData({ name: "", email: "", address: "", plan: "Pro Plan" });
+                setNewSchoolData({ name: "", email: "", address: "", plan: "yet not set" });
               }}
               className="absolute top-4.5 right-4.5 text-slate-400 hover:text-slate-655 dark:hover:text-white cursor-pointer"
             >
@@ -626,8 +630,7 @@ function SuperAdminSchools() {
                   onChange={(e) => setNewSchoolData(prev => ({ ...prev, plan: e.target.value }))}
                   className="w-full px-4 py-3 text-xs font-extrabold rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E293B] text-slate-700 dark:text-white focus:outline-none focus:border-[#7C3AED] cursor-pointer"
                 >
-                  <option value="Pro Plan">Pro Plan (₹2,999 / Year)</option>
-                  <option value="Basic Plan">Basic Plan (₹1,499 / Year)</option>
+                  <option value="yet not set">Yet not set</option>
                   <option value="Free Plan">Free Plan (Trial)</option>
                 </select>
               </div>
@@ -705,9 +708,11 @@ function SuperAdminSchools() {
                   onChange={(e) => setNewSchoolData(prev => ({ ...prev, plan: e.target.value }))}
                   className="w-full px-4 py-3 text-xs font-extrabold rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E293B] text-slate-705 dark:text-white focus:outline-none focus:border-[#7C3AED] cursor-pointer"
                 >
-                  <option value="Pro Plan">Pro Plan (₹2,999 / Year)</option>
-                  <option value="Basic Plan">Basic Plan (₹1,499 / Year)</option>
+                  <option value="yet not set">Yet not set</option>
                   <option value="Free Plan">Free Plan (Trial)</option>
+                  {["Pro Plan", "Basic Plan"].includes(newSchoolData.plan) && (
+                    <option value={newSchoolData.plan}>{newSchoolData.plan}</option>
+                  )}
                 </select>
               </div>
 

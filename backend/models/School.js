@@ -66,6 +66,7 @@ const schoolSchema = new mongoose.Schema({
   medium: { type: String, default: "" },
   website: { type: String, default: "" },
   status: { type: String, default: "Active" },
+  plan: { type: String, default: "yet not set" },
   registrationNumber: { type: String, default: "" },
   category: { type: String, default: "" },
   motto: { type: String, default: "" },
