@@ -290,11 +290,13 @@ exports.getSchoolsDetail = async (req, res) => {
       }
 
       const status = school.status || "Active";
+      const adminUser = await User.findOne({ schoolName: name, role: "admin" });
+      const emailToShow = adminUser ? adminUser.email : (school.email || `${name.toLowerCase().replace(/\s+/g, "")}@gmail.com`);
 
       schoolsList.push({
         _id: school._id,
         name,
-        email: school.email || `${name.toLowerCase().replace(/\s+/g, "")}@gmail.com`,
+        email: emailToShow,
         location: school.address || "Patna, Bihar",
         plan,
         status,
@@ -364,7 +366,11 @@ exports.updateSchool = async (req, res) => {
       school.normalizedName = normalizedName;
     }
 
-    if (email !== undefined) school.email = email;
+    if (email !== undefined) {
+      school.email = email;
+      const User = require("../models/User");
+      await User.updateOne({ schoolName: school.name, role: "admin" }, { email });
+    }
     if (address !== undefined) school.address = address;
     if (plan !== undefined) school.plan = plan;
     if (status !== undefined) school.status = status;
