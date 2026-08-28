@@ -3,6 +3,7 @@ const { protect, authorize } = require("../middleware/authMiddleware");
 const payment = require("../controllers/paymentController");
 
 router.post("/student-payments/create-order", protect, authorize("student"), payment.createStudentOrder);
+router.post("/student-payments/cancel-processing", protect, authorize("student"), payment.cancelProcessingPayment);
 router.post("/student-payments/offline-request", protect, authorize("student"), payment.createOfflineStudentRequest);
 router.get("/student-payments/fee-plan", protect, authorize("student"), payment.getStudentFeePlan);
 router.get("/student-payments/summary", protect, authorize("student"), payment.getStudentPaymentSummary);
