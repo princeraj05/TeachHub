@@ -13,7 +13,8 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
   const [fee, setFee] = useState("");
   const [validityDays, setValidityDays] = useState("30");
   const [teachers, setTeachers] = useState([]);
-  const [compensations, setCompensations] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [payments, setPayments] = useState([]);
   const [notice, setNotice] = useState("");
   const [activeModal, setActiveModal] = useState(null);
   const [modalData, setModalData] = useState({});
@@ -29,14 +30,19 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
         setSchoolNames(schoolRes.data || []);
       }
       if (role === "admin") {
-        const [plan, staff, compensation] = await Promise.all([
+        const [plan, staff, compensation, pupils, history] = await Promise.all([
           axios.get(`${apiBase}/api/admin/fee-plan`, { headers: auth() }),
           axios.get(`${apiBase}/api/admin/users/teachers`, { headers: auth() }),
-          axios.get(`${apiBase}/api/admin/teacher-compensations`, { headers: auth() })
+          axios.get(`${apiBase}/api/admin/teacher-compensations`, { headers: auth() }),
+          axios.get(`${apiBase}/api/admin/users/students`, { headers: auth() }),
+          axios.get(`${apiBase}/api/payments`, { headers: auth() })
         ]);
         setFee(plan.data?.monthlyFee ? String(plan.data.monthlyFee / 100) : "");
         setValidityDays(plan.data?.validityDays ? String(plan.data.validityDays) : "30");
-        setTeachers(staff.data || []); setCompensations(compensation.data || []);
+        setTeachers(staff.data || []);
+        setCompensations(compensation.data || []);
+        setStudents(pupils.data || []);
+        setPayments(history.data || []);
       }
     } catch (error) { setNotice(error.response?.data?.message || "Management data could not be loaded."); }
   };
@@ -284,6 +290,52 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
                 </div>
               );
             })}
+          </div>
+          <h3 className="font-bold text-slate-800 dark:text-white mt-8 mb-3">Student Fee Status</h3>
+          <div className="divide-y divide-slate-100 dark:divide-white/10 max-h-96 overflow-y-auto pr-2">
+            {students.map((student) => {
+              const validity = Number(validityDays || 30);
+              const studentPayments = payments.filter(p => String(p.payer?._id || p.payer) === String(student._id) && p.purpose === "STUDENT_SCHOOL_FEE");
+              const lastSuccessful = studentPayments.find(p => p.status === "Successful");
+              
+              let remaining = 0;
+              if (lastSuccessful) {
+                const paidAt = new Date(lastSuccessful.paidAt || lastSuccessful.createdAt);
+                const expiry = new Date(paidAt.getTime() + validity * 24 * 60 * 60 * 1000);
+                remaining = Math.max(0, Math.ceil((expiry.getTime() - Date.now()) / (24 * 60 * 60 * 1000)));
+              }
+              const isPaid = remaining > 0;
+              
+              return (
+                <div key={student._id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+                  <span className="text-slate-800 dark:text-slate-200">
+                    {student.name} {student.classId ? `(${student.classId.name}-${student.classId.section})` : ""}
+                    {isPaid ? ` · Paid (${remaining} days remaining)` : " · Unpaid"}
+                  </span>
+                  {!isPaid && (
+                    <button
+                      onClick={async () => {
+                        if (!window.confirm(`Mark ${student.name} as paid directly?`)) return;
+                        try {
+                          await axios.post(`${apiBase}/api/admin/student-payments/${student._id}/mark-paid`, {}, { headers: auth() });
+                          setNotice(`Recorded payment for ${student.name} successfully.`);
+                          load();
+                          onChange?.();
+                        } catch (err) {
+                          setNotice(err.response?.data?.message || "Failed to record payment.");
+                        }
+                      }}
+                      className="rounded-lg bg-emerald-600 px-3 py-1.5 font-bold text-white cursor-pointer hover:bg-emerald-750 text-xs"
+                    >
+                      Mark Paid (Cash)
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+            {students.length === 0 && (
+              <p className="text-slate-500 text-sm py-4">No students found.</p>
+            )}
           </div>
         </>
       )}

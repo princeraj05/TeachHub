@@ -121,19 +121,21 @@ export default function PaymentCenter({ role }) {
 
   const receipt = async (id, download = false) => {
     try {
-      const response = await axios.get(`${api}/api/payments/${id}/receipt${download ? "?download=1" : ""}`, {
+      const response = await axios.get(`${api}/api/payments/${id}/receipt?download=1`, {
         headers: headers(),
-        responseType: download ? "blob" : "json"
+        responseType: "blob"
       });
-      if (!download) return setMessage(`Receipt ${response.data.receiptNumber}: ${rupees(response.data.amount)} · ${response.data.status}`);
       const url = URL.createObjectURL(response.data);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `receipt-${response.data.receiptNumber || "payment"}.html`;
-      link.click();
-      URL.revokeObjectURL(url);
+      if (!download) {
+        window.open(url, "_blank");
+      } else {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `receipt-${id}.html`;
+        link.click();
+      }
     } catch (error) {
-      setMessage(error.response?.data?.message || "Receipt is not available.");
+      setMessage("Receipt is not available.");
     }
   };
 

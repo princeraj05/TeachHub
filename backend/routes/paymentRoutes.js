@@ -21,6 +21,7 @@ router.get("/payment-settings", protect, authorize("superadmin", "admin", "teach
 router.put("/payment-settings", protect, authorize("superadmin", "admin", "teacher"), payment.updateSettings);
 router.get("/admin/fee-plan", protect, authorize("admin"), payment.getFeePlan);
 router.put("/admin/fee-plan", protect, authorize("admin"), payment.setFeePlan);
+router.post("/admin/student-payments/:studentId/mark-paid", protect, authorize("admin"), payment.markStudentFeePaidDirectly);
 router.get("/admin/teacher-compensations", protect, authorize("admin"), payment.listTeacherCompensations);
 router.put("/admin/teacher-compensations/:teacherId", protect, authorize("admin"), payment.setTeacherCompensation);
 router.post("/admin/teacher-payments/:teacherId/offline-request", protect, authorize("admin"), payment.createOfflineTeacherRequest);
