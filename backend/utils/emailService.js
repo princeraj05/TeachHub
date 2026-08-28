@@ -1,4 +1,10 @@
 const nodemailer = require("nodemailer");
+const dns = require("dns");
+
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder("ipv4first");
+}
+
 
 const sendOtpEmail = async (email, otp) => {
   const apiKey = process.env.EMAIL_API_KEY || process.env.RESEND_API_KEY || process.env.BREVO_API_KEY || process.env.SENDINBLUE_API_KEY;
@@ -105,7 +111,7 @@ const sendOtpEmail = async (email, otp) => {
   // 2. SMTP fallback
   const service = process.env.EMAIL_SERVICE;
   const host = process.env.SMTP_HOST || process.env.EMAIL_HOST;
-  const port = process.env.SMTP_PORT || process.env.EMAIL_PORT || 587;
+  const port = Number(process.env.SMTP_PORT || process.env.EMAIL_PORT || 587);
   const user = process.env.EMAIL_USER || process.env.SMTP_USER;
   const pass = process.env.EMAIL_PASS || process.env.SMTP_PASS;
 
@@ -114,50 +120,86 @@ const sendOtpEmail = async (email, otp) => {
     return { success: false, message: "Missing email credentials" };
   }
 
-  try {
-    let transporterOptions;
-    if (service === "gmail" || (host && host.includes("gmail.com"))) {
-      transporterOptions = {
-        service: "gmail",
-        auth: {
-          user,
-          pass,
+  let activeHost = host;
+  if (!activeHost && service && service.toLowerCase() === "gmail") {
+    activeHost = "smtp.gmail.com";
+  }
+
+  let resolvedHost = activeHost;
+  if (activeHost) {
+    try {
+      const { address } = await dns.promises.lookup(activeHost, { family: 4 });
+      resolvedHost = address;
+      console.log(`DNS lookup: resolved ${activeHost} to IPv4 ${resolvedHost}`);
+    } catch (dnsErr) {
+      console.error(`DNS lookup failed for ${activeHost}, using host string directly:`, dnsErr);
+    }
+  }
+
+  const getTransporterConfig = (targetHost, targetPort, isSecure) => {
+    if (targetHost) {
+      return {
+        host: targetHost,
+        port: targetPort,
+        secure: isSecure,
+        requireTLS: targetPort === 587,
+        auth: { user, pass },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
+        tls: {
+          servername: activeHost,
         }
       };
     } else {
-      transporterOptions = {
-        host,
-        port: parseInt(port),
-        secure: parseInt(port) === 465,
-        auth: {
-          user,
-          pass,
-        },
-        family: 4,
-        connectionTimeout: 5000,
-        greetingTimeout: 5000,
-        socketTimeout: 5000
+      return {
+        service,
+        auth: { user, pass },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
       };
     }
+  };
 
-    const transporter = nodemailer.createTransport(transporterOptions);
-    const mailOptions = {
-      from: `"${fromName}" <${fromEmail || user}>`,
-      to: email,
-      subject: emailSubject,
-      html: emailHtml
-    };
+  const mailOptions = {
+    from: `"${fromName}" <${fromEmail || user}>`,
+    to: email,
+    subject: emailSubject,
+    html: emailHtml
+  };
 
-    if (process.env.ADMIN_REPLY_TO) {
-      mailOptions.replyTo = process.env.ADMIN_REPLY_TO;
-    }
+  if (process.env.ADMIN_REPLY_TO) {
+    mailOptions.replyTo = process.env.ADMIN_REPLY_TO;
+  }
 
+  try {
+    const isSecure = port === 465;
+    const transporterConfig = getTransporterConfig(resolvedHost, port, isSecure);
+    const transporter = nodemailer.createTransport(transporterConfig);
+
+    console.log(`Sending verification mail via SMTP ${resolvedHost || service}:${port}...`);
     await transporter.sendMail(mailOptions);
     console.log("Email sent successfully via SMTP");
     return { success: true };
   } catch (error) {
-    console.error("SMTP delivery failed:", error.message);
-    return { success: false, message: "SMTP delivery failed" };
+    console.warn(`SMTP send failed on ${resolvedHost || service}:${port}:`, error.message);
+
+    // Fallback: if port is 587 try 465, if 465 try 587
+    const fallbackPort = port === 587 ? 465 : 587;
+    const fallbackSecure = fallbackPort === 465;
+    console.log(`Attempting SMTP fallback to port ${fallbackPort} (secure: ${fallbackSecure})...`);
+
+    try {
+      const fallbackConfig = getTransporterConfig(resolvedHost, fallbackPort, fallbackSecure);
+      const fallbackTransporter = nodemailer.createTransport(fallbackConfig);
+      await fallbackTransporter.sendMail(mailOptions);
+      console.log(`Email sent successfully via fallback SMTP port ${fallbackPort}`);
+      return { success: true };
+    } catch (fallbackError) {
+      console.error("SMTP fallback also failed:", fallbackError.message);
+      return { success: false, message: "SMTP delivery failed" };
+    }
   }
 };
 
