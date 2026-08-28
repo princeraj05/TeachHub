@@ -81,9 +81,13 @@ function Login() {
     setLoading(true);
     setDevOtpMessage("");
     try {
-      await axios.post(`${API}/api/auth/send-otp`, { email });
+      const res = await axios.post(`${API}/api/auth/send-otp`, { email });
       setOtpSent(true);
-      setDevOtpMessage("Verification code sent to your email address!");
+      if (res.data.otp) {
+        setDevOtpMessage(`Verification code: ${res.data.otp} (SMTP failed/Dev Mode)`);
+      } else {
+        setDevOtpMessage("Verification code sent to your email address!");
+      }
       setCooldown(60);
     } catch (error) {
       alert(error.response?.data?.message || "Failed to send OTP");
