@@ -270,13 +270,13 @@ exports.getSchoolsDetail = async (req, res) => {
 
       const subscription = await SchoolSubscription.findOne({ schoolName: name });
       
-      let plan = "yet not set";
+      let plan = school.plan || "yet not set";
       let price = "yet not set";
       let validTill = "yet not set";
       
       if (subscription) {
         plan = "Configured";
-        price = `₹${subscription.monthlyFee} / Month`;
+        price = `₹${subscription.monthlyFee / 100} / Month`;
         const nextDate = subscription.nextBillingDate || subscription.billingStartDate;
         if (nextDate) {
           validTill = new Date(nextDate).toLocaleDateString("en-US", {
@@ -285,6 +285,8 @@ exports.getSchoolsDetail = async (req, res) => {
             year: "numeric"
           });
         }
+      } else if (plan === "Free Plan (Trial)") {
+        price = "Free / Trial";
       }
 
       const status = school.status || "Active";
