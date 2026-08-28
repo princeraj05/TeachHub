@@ -429,175 +429,95 @@ function SuperAdminSupport() {
             <button className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 text-slate-705 dark:text-white py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer hover:border-slate-350">
               <FaSort className="text-slate-400" /> Sort
             </button>
-          </div>
-
-          {/* Split lists Dashboard */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* List of conversations (full width) */}
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm space-y-4">
             
-            {/* Left list of conversations */}
-            <div className="lg:col-span-2 bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm space-y-4">
-              
-              <div className="flex gap-4 border-b border-slate-100 dark:border-white/5 pb-2.5 select-none">
-                {["All (8)", "Open (5)", "Waiting (2)", "Resolved (1)"].map(sub => (
-                  <button
-                    key={sub}
-                    onClick={() => alert(`Filter status count: ${sub}`)}
-                    className={`text-xs font-extrabold pb-0.5 border-b-2 transition cursor-pointer ${
-                      sub.startsWith("All") 
-                        ? "border-[#7C3AED] text-[#7C3AED] dark:text-[#38BDF8]" 
-                        : "border-transparent text-slate-455 hover:text-slate-700"
-                    }`}
-                  >
-                    {sub}
-                  </button>
-                ))}
-              </div>
-
-              {/* Conversations mapping */}
-              <div className="divide-y divide-slate-100 dark:divide-white/5">
-                {filteredConversations.slice(0, 5).map((item) => (
-                  <div
-                    key={item._id}
-                    onClick={() => {
-                      const orig = contacts.find(c => c._id === item._id) || {
-                        _id: item._id,
-                        name: item.name,
-                        email: item.email,
-                        schoolName: item.schoolName
-                      };
-                      setSelectedContact(orig);
-                      setViewMode("chat");
-                    }}
-                    className="py-4.5 flex items-center justify-between gap-4 hover:bg-slate-50/50 dark:hover:bg-white/[0.01] transition-colors cursor-pointer rounded-xl px-2"
-                  >
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black shrink-0 relative text-xs">
-                        {initials(item.name)}
-                        {item.isOnline && (
-                          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-[#0B132A] rounded-full" />
-                        )}
-                      </div>
-
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-xs font-black text-slate-900 dark:text-white truncate">{item.name}</h4>
-                          {item.unreadCount > 0 && (
-                            <span className="px-1.5 py-0.5 rounded bg-purple-550/15 text-[#7C3AED] dark:text-[#A78BFA] text-[7.5px] font-black uppercase tracking-wider">NEW</span>
-                          )}
-                        </div>
-                        <p className="text-[9.5px] text-slate-400 font-extrabold flex items-center gap-1 mt-0.5">
-                          <FaSchool className="text-[8px]" /> {item.schoolName}
-                        </p>
-                        <p className="text-[10px] text-slate-455 dark:text-slate-500 font-bold truncate mt-1">
-                          {item.lastMessage}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="text-right shrink-0 flex flex-col items-end gap-1.5 font-mono select-none">
-                      <span className="text-[9px] text-slate-400 font-extrabold">{item.time}</span>
-                      <div className="flex items-center gap-2">
-                        {item.unreadCount > 0 && (
-                          <span className="w-4.5 h-4.5 rounded-full bg-[#7C3AED] text-white text-[9px] font-black flex items-center justify-center leading-none">
-                            {item.unreadCount}
-                          </span>
-                        )}
-                        <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-blue-50 text-blue-700">
-                          {item.status}
-                        </span>
-                      </div>
-                    </div>
-
-                  </div>
-                ))}
-              </div>
-
-              {/* View all conversations trigger link */}
-              <div className="text-center pt-2 select-none border-t border-slate-100 dark:border-white/5">
+            <div className="flex gap-4 border-b border-slate-100 dark:border-white/5 pb-2.5 select-none">
+              {["All (8)", "Open (5)", "Waiting (2)", "Resolved (1)"].map(sub => (
                 <button
-                  onClick={() => setViewMode("chat")}
-                  className="text-[10px] font-black text-[#7C3AED] dark:text-[#38BDF8] uppercase tracking-widest hover:underline cursor-pointer"
+                  key={sub}
+                  onClick={() => alert(`Filter status count: ${sub}`)}
+                  className={`text-xs font-extrabold pb-0.5 border-b-2 transition cursor-pointer ${
+                    sub.startsWith("All") 
+                      ? "border-[#7C3AED] text-[#7C3AED] dark:text-[#38BDF8]" 
+                      : "border-transparent text-slate-455 hover:text-slate-700"
+                  }`}
                 >
-                  View all conversations &gt;
+                  {sub}
                 </button>
-              </div>
-
+              ))}
             </div>
 
-            {/* Right support summary metrics */}
-            <div className="space-y-6 select-none">
-              
-              <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm space-y-4">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Support Summary</span>
-                
-                <div className="space-y-3.5 text-xs font-bold text-slate-655 dark:text-slate-350">
-                  <div className="flex items-center justify-between p-1">
-                    <span className="flex items-center gap-2.5">
-                      <FaRegClock className="text-blue-500 text-sm" /> Avg. Response Time
-                    </span>
-                    <span className="text-[#38BDF8] font-black font-mono">1h 24m</span>
-                  </div>
-
-                  <div className="flex items-center justify-between p-1">
-                    <span className="flex items-center gap-2.5">
-                      <FaCheckCircle className="text-green-555 text-sm" /> Resolution Rate
-                    </span>
-                    <span className="text-green-555 font-black font-mono">92%</span>
-                  </div>
-
-                  <div className="flex items-center justify-between p-1">
-                    <span className="flex items-center gap-2.5">
-                      <FaStar className="text-amber-500 text-sm" /> User Satisfaction
-                    </span>
-                    <span className="text-amber-500 font-black font-mono">4.6 / 5</span>
-                  </div>
-                </div>
-
-                <button 
-                  onClick={() => setViewMode("chat")}
-                  className="w-full bg-transparent hover:bg-slate-50 dark:hover:bg-white/5 border border-purple-500/20 text-[#7C3AED] dark:text-[#A78BFA] py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition flex items-center justify-center gap-1.5 cursor-pointer"
+            {/* Conversations mapping */}
+            <div className="divide-y divide-slate-100 dark:divide-white/5">
+              {filteredConversations.slice(0, 5).map((item) => (
+                <div
+                  key={item._id}
+                  onClick={() => {
+                    const orig = contacts.find(c => c._id === item._id) || {
+                      _id: item._id,
+                      name: item.name,
+                      email: item.email,
+                      schoolName: item.schoolName
+                    };
+                    setSelectedContact(orig);
+                    setViewMode("chat");
+                  }}
+                  className="py-4.5 flex items-center justify-between gap-4 hover:bg-slate-50/50 dark:hover:bg-white/[0.01] transition-colors cursor-pointer rounded-xl px-2"
                 >
-                  View Analytics
-                </button>
-              </div>
-
-              {/* Quick Filters */}
-              <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm space-y-4">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Quick Filters</span>
-                
-                <div className="space-y-1">
-                  {[
-                    { label: "High Priority", count: 3, icon: <FaFlag className="text-rose-500 text-xs shrink-0" /> },
-                    { label: "Unassigned", count: 2, icon: <FaUser className="text-blue-500 text-xs shrink-0" /> },
-                    { label: "My Conversations", count: 4, icon: <FaUsers className="text-blue-500 text-xs shrink-0" /> },
-                    { label: "Mentions", count: 1, icon: <FaAt className="text-[#7C3AED] text-xs shrink-0" /> }
-                  ].map((filter, index) => (
-                    <div 
-                      key={index}
-                      onClick={() => { setViewMode("chat"); }}
-                      className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-white/[0.01] rounded-xl transition cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-750 dark:text-slate-350">
-                        {filter.icon}
-                        <span>{filter.label}</span>
-                      </div>
-                      <span className="text-xs font-black font-mono text-slate-500">{filter.count}</span>
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black shrink-0 relative text-xs">
+                      {initials(item.name)}
+                      {item.isOnline && (
+                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-[#0B132A] rounded-full" />
+                      )}
                     </div>
-                  ))}
+
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-xs font-black text-slate-900 dark:text-white truncate">{item.name}</h4>
+                        {item.unreadCount > 0 && (
+                          <span className="px-1.5 py-0.5 rounded bg-purple-555/15 text-[#7C3AED] dark:text-[#A78BFA] text-[7.5px] font-black uppercase tracking-wider">NEW</span>
+                        )}
+                      </div>
+                      <p className="text-[9.5px] text-slate-400 font-extrabold flex items-center gap-1 mt-0.5">
+                        <FaSchool className="text-[8px]" /> {item.schoolName}
+                      </p>
+                      <p className="text-[10px] text-slate-455 dark:text-slate-500 font-bold truncate mt-1">
+                        {item.lastMessage}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0 flex flex-col items-end gap-1.5 font-mono select-none">
+                    <span className="text-[9px] text-slate-400 font-extrabold">{item.time}</span>
+                    <div className="flex items-center gap-2">
+                      {item.unreadCount > 0 && (
+                        <span className="w-4.5 h-4.5 rounded-full bg-[#7C3AED] text-white text-[9px] font-black flex items-center justify-center leading-none">
+                          {item.unreadCount}
+                        </span>
+                      )}
+                      <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-blue-50 text-blue-700">
+                        {item.status}
+                      </span>
+                    </div>
+                  </div>
+
                 </div>
-              </div>
-
-              {/* Support Announcement */}
-              <button 
-                onClick={() => alert("Write announcement notification details...")}
-                className="w-full bg-transparent hover:bg-blue-500/10 border border-blue-500/20 text-blue-600 py-3.5 rounded-2.5xl text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <FaBullhorn /> Create Support Announcement
-              </button>
-
+              ))}
             </div>
 
-          </div>
+            {/* View all conversations trigger link */}
+            <div className="text-center pt-2 select-none border-t border-slate-100 dark:border-white/5">
+              <button
+                onClick={() => setViewMode("chat")}
+                className="text-[10px] font-black text-[#7C3AED] dark:text-[#38BDF8] uppercase tracking-widest hover:underline cursor-pointer"
+              >
+                View all conversations &gt;
+              </button>
+            </div>
+
+          </div>  </div>
 
         </div>
       )}
