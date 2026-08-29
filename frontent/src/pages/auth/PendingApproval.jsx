@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
 import { performLogout } from "../../utils/logout";
+import { usePlatform } from "../../context/PlatformContext";
 import {
   FaGraduationCap,
   FaClock,
@@ -48,6 +49,7 @@ function PendingApproval() {
   const token = localStorage.getItem("token");
 
   const { theme, toggleTheme } = useTheme();
+  const { confirmLogout } = usePlatform();
   const [user, setUser] = useState({ name: "Loading...", email: "", role: "", avatar: "" });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
@@ -181,7 +183,7 @@ function PendingApproval() {
   }, []);
 
   const handleLogout = () => {
-    performLogout(navigate);
+    confirmLogout(navigate);
   };
 
   const initials = user.name

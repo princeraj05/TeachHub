@@ -32,7 +32,7 @@ function StudentLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const { platformName, logoUrl } = usePlatform();
+  const { platformName, logoUrl, confirmLogout } = usePlatform();
 
   const [name, setName] = useState(localStorage.getItem("name") || "Student");
   const [avatar, setAvatar] = useState(localStorage.getItem("avatar") || "");
@@ -47,7 +47,7 @@ function StudentLayout() {
   }, []);
 
   const handleLogout = () => {
-    performLogout(navigate);
+    confirmLogout(navigate);
   };
 
   useEffect(() => {

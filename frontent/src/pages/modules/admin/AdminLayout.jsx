@@ -37,7 +37,7 @@ function AdminLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const { platformName, logoUrl } = usePlatform();
+  const { platformName, logoUrl, confirmLogout } = usePlatform();
   const [requestCount, setRequestCount] = useState(0);
   const [currentSchoolName, setCurrentSchoolName] = useState(localStorage.getItem("schoolName") || "Admin Workspace");
 
@@ -101,7 +101,7 @@ function AdminLayout() {
   }, []);
 
   const handleLogout = () => {
-    performLogout(navigate);
+    confirmLogout(navigate);
   };
 
   // Close menus when route changes

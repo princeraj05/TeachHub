@@ -29,7 +29,7 @@ function SuperAdminLayout() {
 
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const { platformName, logoUrl } = usePlatform();
+  const { platformName, logoUrl, confirmLogout } = usePlatform();
 
   const [unreadCount, setUnreadCount] = useState(12);
 
@@ -65,7 +65,7 @@ function SuperAdminLayout() {
   }, []);
 
   const handleLogout = () => {
-    performLogout(navigate);
+    confirmLogout(navigate);
   };
 
   const isActive = (path) => location.pathname === path;
