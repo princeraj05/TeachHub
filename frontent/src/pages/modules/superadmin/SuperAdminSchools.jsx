@@ -510,58 +510,7 @@ function SuperAdminSchools() {
 
       </div>
 
-      {/* Bottom Donut Charts row (2 columns) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 select-none">
-        
-        {/* Chart 1: Subscription Overview */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm space-y-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="space-y-4 flex-1">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Subscription Overview</span>
-            
-            <div className="space-y-2.5 text-[11px] font-bold">
-              <div className="flex justify-between items-center gap-6">
-                <span className="flex items-center gap-2 text-slate-655"><span className="w-2 h-2 rounded-full bg-green-500" /> Active Schools</span>
-                <span className="font-extrabold">{activeSchoolsCount} (100%)</span>
-              </div>
-              <div className="flex justify-between items-center gap-6">
-                <span className="flex items-center gap-2 text-slate-655"><span className="w-2 h-2 rounded-full bg-red-500" /> Expired Schools</span>
-                <span className="font-extrabold">0 (0%)</span>
-              </div>
-              <div className="flex justify-between items-center gap-6">
-                <span className="flex items-center gap-2 text-slate-655"><span className="w-2 h-2 rounded-full bg-yellow-500" /> Trial Schools</span>
-                <span className="font-extrabold">0 (0%)</span>
-              </div>
-            </div>
-          </div>
 
-          <DonutChart value={activeSchoolsCount} total={totalSchoolsCount} color="#10B981" label="Total Schools" />
-        </div>
-
-        {/* Chart 2: Plan Distribution */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm space-y-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="space-y-4 flex-1">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Plan Distribution</span>
-            
-            <div className="space-y-2.5 text-[11px] font-bold">
-              <div className="flex justify-between items-center gap-6">
-                <span className="flex items-center gap-2 text-slate-655"><span className="w-2 h-2 rounded-full bg-purple-500" /> Pro Plan</span>
-                <span className="font-extrabold">{onPaidPlanCount} (100%)</span>
-              </div>
-              <div className="flex justify-between items-center gap-6">
-                <span className="flex items-center gap-2 text-slate-655"><span className="w-2 h-2 rounded-full bg-blue-500" /> Basic Plan</span>
-                <span className="font-extrabold">0 (0%)</span>
-              </div>
-              <div className="flex justify-between items-center gap-6">
-                <span className="flex items-center gap-2 text-slate-655"><span className="w-2 h-2 rounded-full bg-yellow-500" /> Free Plan</span>
-                <span className="font-extrabold">0 (0%)</span>
-              </div>
-            </div>
-          </div>
-
-          <DonutChart value={onPaidPlanCount} total={totalSchoolsCount} color="#8B5CF6" label="Schools" />
-        </div>
-
-      </div>
 
       {/* OVERLAY MODAL: Add New School Form */}
       {showAddSchoolModal && (
