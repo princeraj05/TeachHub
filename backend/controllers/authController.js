@@ -338,7 +338,8 @@ exports.verifyOTP = async (req, res) => {
           monthlyFee: 10000, // ₹100.00
           currency: "INR",
           validityDays: 30,
-          active: true
+          active: true,
+          updatedBy: demoAdmin._id
         });
       }
 
