@@ -99,10 +99,10 @@ function BasicInfoTab({
     <div className="space-y-6 animate-fadeIn">
       
       {/* CARD 1: BASIC INFORMATION */}
-      <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
-        <div className="flex items-center gap-2 border-b border-slate-800/60 pb-3 mb-5">
+      <div className="bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl">
+        <div className="flex items-center gap-2 border-b border-slate-200/60 dark:border-slate-800/60 pb-3 mb-5">
           <FaSchool className="text-purple-500 text-sm" />
-          <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">Basic Information</h3>
+          <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">Basic Information</h3>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -418,10 +418,10 @@ function BasicInfoTab({
       </div>
 
       {/* CARD 2: OVERVIEW STATISTICS */}
-      <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
-        <div className="flex items-center gap-2 border-b border-slate-800/60 pb-3 mb-5">
+      <div className="bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl">
+        <div className="flex items-center gap-2 border-b border-slate-200/60 dark:border-slate-800/60 pb-3 mb-5">
           <FaSchool className="text-purple-500 text-sm" />
-          <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">Overview Statistics</h3>
+          <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">Overview Statistics</h3>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">

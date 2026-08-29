@@ -234,7 +234,7 @@ function AboutYourSchool() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] text-slate-450 bg-[#080D1A] -m-4 md:-m-6 p-6">
+      <div className="flex flex-col items-center justify-center min-h-[70vh] text-slate-500 dark:text-slate-400 bg-transparent p-6">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500 mb-4"></div>
         <p className="text-sm font-semibold tracking-wide">Loading School Profile...</p>
       </div>
@@ -245,7 +245,7 @@ function AboutYourSchool() {
   const currentTabObj = TABS.find(t => t.id === activeTab) || TABS[0];
 
   return (
-    <div className="bg-[#080D1A] min-h-screen text-slate-100 p-6 -m-4 md:-m-6" style={{ fontFamily: SORA }}>
+    <div className="min-h-screen text-slate-900 dark:text-slate-100 p-6 -m-4 md:-m-6 transition-colors duration-200" style={{ fontFamily: SORA }}>
       
       {/* ── TOP HEADER & BREADCRUMBS ── */}
       <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 select-none">
@@ -255,10 +255,10 @@ function AboutYourSchool() {
             <span>&gt;</span>
             <span className="text-purple-500">{currentTabObj.breadcrumb}</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             About Your School
           </h1>
-          <p className="text-xs text-slate-400 font-medium mt-0.5 animate-fadeIn">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 animate-fadeIn">
             Manage your school's details, media, admissions policies, and profile settings.
           </p>
         </div>
@@ -283,7 +283,7 @@ function AboutYourSchool() {
       </div>
 
       {/* ── TABS NAVIGATION BAR ── */}
-      <div className="flex flex-wrap items-center gap-2 mb-6 border-b border-slate-800/80 pb-3 select-none">
+      <div className="flex flex-wrap items-center gap-2 mb-6 border-b border-slate-200 dark:border-slate-800/80 pb-3 select-none">
         {TABS.map(tab => {
           const isActive = activeTab === tab.id;
           return (
@@ -292,8 +292,8 @@ function AboutYourSchool() {
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2 text-xs font-bold rounded-xl transition cursor-pointer select-none ${
                 isActive
-                  ? "bg-[#7C3AED]/10 text-purple-400 border border-[#7C3AED]/30"
-                  : "text-slate-450 hover:bg-slate-850 hover:text-white"
+                  ? "bg-[#7C3AED]/10 text-purple-600 dark:text-purple-400 border border-[#7C3AED]/30"
+                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               {tab.label}
@@ -304,13 +304,13 @@ function AboutYourSchool() {
 
       {/* ── STATUS MESSAGES ── */}
       {success && (
-        <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm mb-6 animate-fadeIn">
+        <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm mb-6 animate-fadeIn">
           <FaCheckCircle className="text-emerald-500 text-lg shrink-0" />
           {success}
         </div>
       )}
       {error && (
-        <div className="flex items-center gap-3 bg-rose-500/10 border border-rose-500/20 text-rose-455 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm mb-6 animate-fadeIn">
+        <div className="flex items-center gap-3 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-455 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm mb-6 animate-fadeIn">
           <FaInfoCircle className="text-rose-500 text-lg shrink-0" />
           {error}
         </div>
@@ -385,10 +385,10 @@ function AboutYourSchool() {
 
       {/* ── FOOTER ACTIONS (FOR NON-BASIC TABS OR EDIT MODE BASIC TAB) ── */}
       {(activeTab !== "basic" || isEditing) && (
-        <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl select-none animate-fadeIn">
-          <div className="flex items-center gap-3 text-blue-400">
+        <div className="bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm dark:shadow-xl select-none animate-fadeIn">
+          <div className="flex items-center gap-3 text-blue-500 dark:text-blue-400">
             <FaInfoCircle className="text-lg shrink-0" />
-            <p className="text-xs font-bold text-slate-350">
+            <p className="text-xs font-bold text-slate-600 dark:text-slate-350">
               Keep your school information updated. This information is visible to parents and students.
             </p>
           </div>

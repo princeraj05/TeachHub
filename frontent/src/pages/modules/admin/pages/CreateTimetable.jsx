@@ -144,7 +144,7 @@ export default function CreateTimetable() {
   const currentTabObj = TABS.find(t => t.id === activeTab) || TABS[0];
 
   return (
-    <div className="bg-[#080D1A] min-h-screen text-slate-100 p-6 -m-4 md:-m-6" style={{ fontFamily: SORA }}>
+    <div className="min-h-screen text-slate-900 dark:text-slate-100 p-6 -m-4 md:-m-6 transition-colors duration-200" style={{ fontFamily: SORA }}>
       
       {/* ── HEADER & BREADCRUMBS ── */}
       <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 select-none">
@@ -154,10 +154,10 @@ export default function CreateTimetable() {
             <span>&gt;</span>
             <span className="text-purple-500">{currentTabObj.breadcrumb}</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             {currentTabObj.breadcrumb}
           </h1>
-          <p className="text-xs text-slate-450 font-medium mt-0.5 animate-fadeIn">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 animate-fadeIn">
             Select class, subject, teacher, day and time to create or organize class schedules.
           </p>
         </div>

@@ -217,36 +217,36 @@ function AdminSupport() {
         {activeTab !== "superadmin" && (
           <div className="flex-1 flex">
             {/* Sidebar Contact list */}
-            <div className={`w-full lg:w-1/3 border-r border-slate-100 dark:border-white/[0.05] flex flex-col h-full bg-slate-50/50 dark:bg-[#111827]/50 ${
+            <div className={`w-full lg:w-1/3 border-r border-slate-200/80 dark:border-white/[0.05] flex flex-col h-full bg-slate-50/50 dark:bg-[#111827]/50 ${
               activeContact ? "hidden lg:flex" : "flex"
             }`}>
-              <div className="p-3 border-b border-slate-100 dark:border-white/[0.05] bg-white dark:bg-[#111827] flex gap-2 select-none">
+              <div className="p-3 border-b border-slate-200/80 dark:border-white/[0.05] bg-white dark:bg-[#111827] flex gap-2 select-none">
                 <button
                   onClick={() => handleSubTabChange("personal")}
-                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold text-center border cursor-pointer ${
+                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-extrabold text-center border transition cursor-pointer ${
                     subTab === "personal"
-                      ? "bg-slate-800 text-white border-slate-800 dark:bg-white/10 dark:text-white dark:border-white/10"
-                      : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 dark:bg-white/[0.02] dark:text-slate-400 dark:border-white/[0.05] dark:hover:bg-white/[0.05]"
+                      ? "bg-[#7C3AED] text-white border-[#7C3AED]"
+                      : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 dark:bg-white/[0.02] dark:text-slate-400 dark:border-white/[0.05] dark:hover:bg-white/[0.05]"
                   }`}
                 >
                   Personal
                 </button>
                 <button
                   onClick={() => handleSubTabChange("broadcast")}
-                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold text-center border cursor-pointer ${
+                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-extrabold text-center border transition cursor-pointer ${
                     subTab === "broadcast"
-                      ? "bg-slate-800 text-white border-slate-800 dark:bg-white/10 dark:text-white dark:border-white/10"
-                      : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 dark:bg-white/[0.02] dark:text-slate-400 dark:border-white/[0.05] dark:hover:bg-white/[0.05]"
+                      ? "bg-[#7C3AED] text-white border-[#7C3AED]"
+                      : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 dark:bg-white/[0.02] dark:text-slate-400 dark:border-white/[0.05] dark:hover:bg-white/[0.05]"
                   }`}
                 >
                   Broadcasts
                 </button>
                 <button
                   onClick={() => handleSubTabChange("calls")}
-                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold text-center border cursor-pointer ${
+                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-extrabold text-center border transition cursor-pointer ${
                     subTab === "calls"
-                      ? "bg-slate-800 text-white border-slate-800 dark:bg-white/10 dark:text-white dark:border-white/10"
-                      : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 dark:bg-white/[0.02] dark:text-slate-400 dark:border-white/[0.05] dark:hover:bg-white/[0.05]"
+                      ? "bg-[#7C3AED] text-white border-[#7C3AED]"
+                      : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 dark:bg-white/[0.02] dark:text-slate-400 dark:border-white/[0.05] dark:hover:bg-white/[0.05]"
                   }`}
                 >
                   Calls

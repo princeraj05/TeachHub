@@ -181,25 +181,25 @@ function AdminDashboard() {
   }
 
   return (
-    <div className="bg-[#080D1A] min-h-screen text-slate-100 p-6 -m-4 md:-m-6" style={{ fontFamily: SORA }}>
+    <div className="min-h-screen text-slate-900 dark:text-slate-100 p-6 -m-4 md:-m-6 transition-colors duration-200" style={{ fontFamily: SORA }}>
       
       {/* ── GREETING & CLOCK HEADER ── */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             Welcome back, {data?.adminName || "Admin"} <span className="animate-bounce">👋</span>
           </h1>
-          <p className="text-sm text-slate-400 font-medium mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">
             Here's what's happening at {data?.schoolName || "your school"} today.
           </p>
         </div>
         
         {/* Dynamic Real-Time Clock */}
-        <div className="flex items-center gap-3 bg-[#0F172A] border border-slate-800/80 rounded-2xl px-4 py-3 shadow-md w-fit self-start md:self-auto">
+        <div className="flex items-center gap-3 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800/80 rounded-2xl px-4 py-3 shadow-sm w-fit self-start md:self-auto">
           <FaCalendarAlt className="text-purple-500 text-lg" />
           <div className="text-left">
-            <p className="text-xs font-bold text-slate-200">{formatLocalDate(currentTime)}</p>
-            <p className="text-[10px] font-semibold text-slate-400 mt-0.5">{formatLocalTime(currentTime)}</p>
+            <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{formatLocalDate(currentTime)}</p>
+            <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">{formatLocalTime(currentTime)}</p>
           </div>
         </div>
       </div>
@@ -208,16 +208,16 @@ function AdminDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
         
         {/* Card 1: Students */}
-        <div className="bg-[#0F1631]/80 backdrop-blur border border-[#8B5CF6]/15 hover:border-[#8B5CF6]/30 transition-all rounded-2xl p-4 flex flex-col justify-between h-36 relative overflow-hidden shadow-lg group">
+        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#8B5CF6]/15 hover:border-[#8B5CF6]/30 transition-all rounded-2xl p-4 flex flex-col justify-between h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
           <div className="flex items-center justify-between">
             <div className="w-8 h-8 rounded-lg bg-[#8B5CF6]/10 flex items-center justify-center text-[#8B5CF6] text-sm font-bold">
               <FaUserGraduate />
             </div>
-            <p className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">Total Students</p>
+            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Total Students</p>
           </div>
           <div className="mt-2 z-10">
-            <h2 className="text-2xl font-black text-white">{stats.students.total}</h2>
-            <p className="text-[10px] font-bold text-emerald-400 mt-0.5">{stats.students.growth}</p>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white">{stats.students.total}</h2>
+            <p className="text-[10px] font-bold text-emerald-500 dark:text-emerald-400 mt-0.5">{stats.students.growth}</p>
           </div>
           {/* Sparkline */}
           <div className="absolute bottom-0 left-0 right-0 h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
@@ -230,16 +230,16 @@ function AdminDashboard() {
         </div>
 
         {/* Card 2: Teachers */}
-        <div className="bg-[#0F1631]/80 backdrop-blur border border-[#3B82F6]/15 hover:border-[#3B82F6]/30 transition-all rounded-2xl p-4 flex flex-col justify-between h-36 relative overflow-hidden shadow-lg group">
+        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#3B82F6]/15 hover:border-[#3B82F6]/30 transition-all rounded-2xl p-4 flex flex-col justify-between h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
           <div className="flex items-center justify-between">
             <div className="w-8 h-8 rounded-lg bg-[#3B82F6]/10 flex items-center justify-center text-[#3B82F6] text-sm font-bold">
               <FaChalkboardTeacher />
             </div>
-            <p className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">Total Teachers</p>
+            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Total Teachers</p>
           </div>
           <div className="mt-2 z-10">
-            <h2 className="text-2xl font-black text-white">{stats.teachers.total}</h2>
-            <p className="text-[10px] font-bold text-emerald-400 mt-0.5">{stats.teachers.growth}</p>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white">{stats.teachers.total}</h2>
+            <p className="text-[10px] font-bold text-emerald-500 dark:text-emerald-400 mt-0.5">{stats.teachers.growth}</p>
           </div>
           {/* Sparkline */}
           <div className="absolute bottom-0 left-0 right-0 h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
@@ -252,16 +252,16 @@ function AdminDashboard() {
         </div>
 
         {/* Card 3: Classes */}
-        <div className="bg-[#0F1631]/80 backdrop-blur border border-[#10B981]/15 hover:border-[#10B981]/30 transition-all rounded-2xl p-4 flex flex-col justify-between h-36 relative overflow-hidden shadow-lg group">
+        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#10B981]/15 hover:border-[#10B981]/30 transition-all rounded-2xl p-4 flex flex-col justify-between h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
           <div className="flex items-center justify-between">
             <div className="w-8 h-8 rounded-lg bg-[#10B981]/10 flex items-center justify-center text-[#10B981] text-sm font-bold">
               <FaSchool />
             </div>
-            <p className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">Total Classes</p>
+            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Total Classes</p>
           </div>
           <div className="mt-2 z-10">
-            <h2 className="text-2xl font-black text-white">{stats.classes.total}</h2>
-            <p className="text-[10px] font-bold text-slate-400 mt-0.5">{stats.classes.growth}</p>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white">{stats.classes.total}</h2>
+            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{stats.classes.growth}</p>
           </div>
           {/* Sparkline */}
           <div className="absolute bottom-0 left-0 right-0 h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
@@ -274,16 +274,16 @@ function AdminDashboard() {
         </div>
 
         {/* Card 4: Subjects */}
-        <div className="bg-[#0F1631]/80 backdrop-blur border border-[#F59E0B]/15 hover:border-[#F59E0B]/30 transition-all rounded-2xl p-4 flex flex-col justify-between h-36 relative overflow-hidden shadow-lg group">
+        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#F59E0B]/15 hover:border-[#F59E0B]/30 transition-all rounded-2xl p-4 flex flex-col justify-between h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
           <div className="flex items-center justify-between">
             <div className="w-8 h-8 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center text-[#F59E0B] text-sm font-bold">
               <FaBook />
             </div>
-            <p className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">Total Subjects</p>
+            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Total Subjects</p>
           </div>
           <div className="mt-2 z-10">
-            <h2 className="text-2xl font-black text-white">{stats.subjects.total}</h2>
-            <p className="text-[10px] font-bold text-emerald-400 mt-0.5">{stats.subjects.growth}</p>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white">{stats.subjects.total}</h2>
+            <p className="text-[10px] font-bold text-emerald-500 dark:text-emerald-400 mt-0.5">{stats.subjects.growth}</p>
           </div>
           {/* Sparkline */}
           <div className="absolute bottom-0 left-0 right-0 h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
@@ -296,16 +296,16 @@ function AdminDashboard() {
         </div>
 
         {/* Card 5: Events */}
-        <div className="bg-[#0F1631]/80 backdrop-blur border border-[#14B8A6]/15 hover:border-[#14B8A6]/30 transition-all rounded-2xl p-4 flex flex-col justify-between h-36 relative overflow-hidden shadow-lg group">
+        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#14B8A6]/15 hover:border-[#14B8A6]/30 transition-all rounded-2xl p-4 flex flex-col justify-between h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
           <div className="flex items-center justify-between">
             <div className="w-8 h-8 rounded-lg bg-[#14B8A6]/10 flex items-center justify-center text-[#14B8A6] text-sm font-bold">
               <FaCalendarAlt />
             </div>
-            <p className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">Events This Month</p>
+            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Events This Month</p>
           </div>
           <div className="mt-2 z-10">
-            <h2 className="text-2xl font-black text-white">{stats.events.total}</h2>
-            <p className="text-[10px] font-bold text-teal-400 mt-0.5">{stats.events.growth}</p>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white">{stats.events.total}</h2>
+            <p className="text-[10px] font-bold text-teal-600 dark:text-teal-400 mt-0.5">{stats.events.growth}</p>
           </div>
           {/* Sparkline */}
           <div className="absolute bottom-0 left-0 right-0 h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
@@ -318,15 +318,15 @@ function AdminDashboard() {
         </div>
 
         {/* Card 6: Payments */}
-        <div className="bg-[#0F1631]/80 backdrop-blur border border-[#EF4444]/15 hover:border-[#EF4444]/30 transition-all rounded-2xl p-4 flex flex-col justify-between h-36 relative overflow-hidden shadow-lg group">
+        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#EF4444]/15 hover:border-[#EF4444]/30 transition-all rounded-2xl p-4 flex flex-col justify-between h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
           <div className="flex items-center justify-between">
             <div className="w-8 h-8 rounded-lg bg-[#EF4444]/10 flex items-center justify-center text-[#EF4444] text-sm font-bold">
               <FaRupeeSign />
             </div>
-            <p className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">Pending Payments</p>
+            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Pending Payments</p>
           </div>
           <div className="mt-2 z-10 pb-2">
-            <h2 className="text-2xl font-black text-white">
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white">
               ₹{Number(stats.payments.total).toLocaleString("en-IN")}
             </h2>
             <p className="text-[10px] font-bold text-rose-500 mt-1">{stats.payments.growth}</p>
@@ -339,78 +339,78 @@ function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
         
         {/* Quick Actions (7 Cols) */}
-        <div className="lg:col-span-7 bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
+        <div className="lg:col-span-7 bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between shadow-sm dark:shadow-xl">
           <div>
-            <h2 className="text-base font-bold text-white mb-4">Quick Actions</h2>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white mb-4">Quick Actions</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               
               {/* Add Student */}
-              <Link to="/admin/students" className="flex flex-col items-center justify-center bg-[#131B35] hover:bg-[#1A254C] transition p-4 rounded-xl border border-white/5 group text-center cursor-pointer">
+              <Link to="/admin/students" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
                 <div className="w-10 h-10 rounded-full bg-[#8B5CF6]/10 flex items-center justify-center text-[#8B5CF6] text-base mb-2.5 group-hover:scale-110 transition duration-300">
                   <FaUserPlus />
                 </div>
-                <span className="text-xs font-semibold text-slate-200">Add Student</span>
+                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Add Student</span>
               </Link>
 
               {/* Add Teacher */}
-              <Link to="/admin/teachers" className="flex flex-col items-center justify-center bg-[#131B35] hover:bg-[#1A254C] transition p-4 rounded-xl border border-white/5 group text-center cursor-pointer">
+              <Link to="/admin/teachers" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
                 <div className="w-10 h-10 rounded-full bg-[#3B82F6]/10 flex items-center justify-center text-[#3B82F6] text-base mb-2.5 group-hover:scale-110 transition duration-300">
                   <FaUserPlus />
                 </div>
-                <span className="text-xs font-semibold text-slate-200">Add Teacher</span>
+                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Add Teacher</span>
               </Link>
 
               {/* Create Timetable */}
-              <Link to="/admin/create-timetable" className="flex flex-col items-center justify-center bg-[#131B35] hover:bg-[#1A254C] transition p-4 rounded-xl border border-white/5 group text-center cursor-pointer">
+              <Link to="/admin/create-timetable" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
                 <div className="w-10 h-10 rounded-full bg-[#10B981]/10 flex items-center justify-center text-[#10B981] text-base mb-2.5 group-hover:scale-110 transition duration-300">
                   <FaCalendarPlus />
                 </div>
-                <span className="text-xs font-semibold text-slate-200">Create Timetable</span>
+                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Create Timetable</span>
               </Link>
 
               {/* Schedule Exam */}
-              <Link to="/admin/exam-schedule" className="flex flex-col items-center justify-center bg-[#131B35] hover:bg-[#1A254C] transition p-4 rounded-xl border border-white/5 group text-center cursor-pointer">
+              <Link to="/admin/exam-schedule" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
                 <div className="w-10 h-10 rounded-full bg-[#F59E0B]/10 flex items-center justify-center text-[#F59E0B] text-base mb-2.5 group-hover:scale-110 transition duration-300">
                   <FaClipboardList />
                 </div>
-                <span className="text-xs font-semibold text-slate-200">Schedule Exam</span>
+                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Schedule Exam</span>
               </Link>
 
               {/* Create Assignment */}
-              <Link to="/admin/assign-student-class" className="flex flex-col items-center justify-center bg-[#131B35] hover:bg-[#1A254C] transition p-4 rounded-xl border border-white/5 group text-center cursor-pointer">
+              <Link to="/admin/assign-student-class" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
                 <div className="w-10 h-10 rounded-full bg-[#6366F1]/10 flex items-center justify-center text-[#6366F1] text-base mb-2.5 group-hover:scale-110 transition duration-300">
                   <FaFileSignature />
                 </div>
-                <span className="text-xs font-semibold text-slate-200">Assign Student</span>
+                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Assign Student</span>
               </Link>
 
               {/* Manage Leaves */}
-              <Link to="/admin/teacher-leaves" className="flex flex-col items-center justify-center bg-[#131B35] hover:bg-[#1A254C] transition p-4 rounded-xl border border-white/5 group text-center cursor-pointer">
+              <Link to="/admin/teacher-leaves" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
                 <div className="w-10 h-10 rounded-full bg-[#EF4444]/10 flex items-center justify-center text-[#EF4444] text-base mb-2.5 group-hover:scale-110 transition duration-300">
                   <FaFileAlt />
                 </div>
-                <span className="text-xs font-semibold text-slate-200">Manage Leaves</span>
+                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Manage Leaves</span>
               </Link>
 
               {/* Join Requests */}
-              <Link to="/admin/requests" className="relative flex flex-col items-center justify-center bg-[#131B35] hover:bg-[#1A254C] transition p-4 rounded-xl border border-white/5 group text-center cursor-pointer">
+              <Link to="/admin/requests" className="relative flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
                 <div className="w-10 h-10 rounded-full bg-[#EC4899]/10 flex items-center justify-center text-[#EC4899] text-base mb-2.5 group-hover:scale-110 transition duration-300">
                   <FaUserCheck />
                 </div>
                 {joinRequestsCount > 0 && (
-                  <span className="absolute top-2.5 right-6 bg-rose-500 text-white text-[9px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center border border-[#0D1326] animate-bounce">
+                  <span className="absolute top-2.5 right-6 bg-rose-500 text-white text-[9px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center border border-white dark:border-[#0D1326] animate-bounce">
                     {joinRequestsCount}
                   </span>
                 )}
-                <span className="text-xs font-semibold text-slate-200">Join Requests</span>
+                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Join Requests</span>
               </Link>
 
               {/* Support Chat */}
-              <Link to="/admin/support" className="flex flex-col items-center justify-center bg-[#131B35] hover:bg-[#1A254C] transition p-4 rounded-xl border border-white/5 group text-center cursor-pointer">
+              <Link to="/admin/support" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
                 <div className="w-10 h-10 rounded-full bg-[#14B8A6]/10 flex items-center justify-center text-[#14B8A6] text-base mb-2.5 group-hover:scale-110 transition duration-300">
                   <FaComments />
                 </div>
-                <span className="text-xs font-semibold text-slate-200">Support Chat</span>
+                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Support Chat</span>
               </Link>
 
             </div>
@@ -418,11 +418,11 @@ function AdminDashboard() {
         </div>
 
         {/* Announcements (5 Cols) */}
-        <div className="lg:col-span-5 bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+        <div className="lg:col-span-5 bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 mb-4">
               <FaBullhorn className="text-purple-500 text-lg" />
-              <h2 className="text-base font-bold text-white">Announcements</h2>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">Announcements</h2>
             </div>
             
             <div className="space-y-4">
@@ -492,11 +492,11 @@ function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Students Overview (Donut Chart) (4 Cols) */}
-        <div className="lg:col-span-4 bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+        <div className="lg:col-span-4 bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-bold text-white">Students Overview</h2>
-              <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 bg-[#131B35] px-2.5 py-1 rounded-lg border border-white/5">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">Students Overview</h2>
+              <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-[#131B35] px-2.5 py-1 rounded-lg border border-slate-200/60 dark:border-white/5">
                 This Month <FaChevronDown className="text-[8px]" />
               </div>
             </div>
@@ -523,8 +523,8 @@ function AdminDashboard() {
                 
                 {/* Text centered inside donut */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-                  <span className="text-2xl font-black text-white tracking-tight">{attendance.totalStudents}</span>
-                  <span className="text-[8px] font-bold text-slate-450 uppercase tracking-widest mt-0.5">Total Students</span>
+                  <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{attendance.totalStudents}</span>
+                  <span className="text-[8px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-widest mt-0.5">Total Students</span>
                 </div>
               </div>
               
@@ -533,28 +533,28 @@ function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
-                    <span className="text-xs font-semibold text-slate-350">Present</span>
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-350">Present</span>
                   </div>
-                  <span className="text-xs font-bold text-slate-200">
-                    {attendance.present} <span className="text-[10px] font-semibold text-slate-450">({presentPercent}%)</span>
+                  <span className="text-xs font-bold text-slate-900 dark:text-slate-200">
+                    {attendance.present} <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-450">({presentPercent}%)</span>
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#F43F5E]" />
-                    <span className="text-xs font-semibold text-slate-350">Absent</span>
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-350">Absent</span>
                   </div>
-                  <span className="text-xs font-bold text-slate-200">
-                    {attendance.absent} <span className="text-[10px] font-semibold text-slate-450">({absentPercent}%)</span>
+                  <span className="text-xs font-bold text-slate-900 dark:text-slate-200">
+                    {attendance.absent} <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-450">({absentPercent}%)</span>
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
-                    <span className="text-xs font-semibold text-slate-350">On Leave</span>
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-350">On Leave</span>
                   </div>
-                  <span className="text-xs font-bold text-slate-200">
-                    {attendance.onLeave} <span className="text-[10px] font-semibold text-slate-450">({onLeavePercent}%)</span>
+                  <span className="text-xs font-bold text-slate-900 dark:text-slate-200">
+                    {attendance.onLeave} <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-450">({onLeavePercent}%)</span>
                   </span>
                 </div>
               </div>
@@ -562,17 +562,17 @@ function AdminDashboard() {
             </div>
           </div>
 
-          <Link to="/admin/attendance-report" className="text-xs font-bold text-purple-500 hover:text-purple-400 transition mt-4 inline-block w-fit">
+          <Link to="/admin/attendance-report" className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline transition mt-4 inline-block w-fit">
             View attendance report &rarr;
           </Link>
         </div>
 
         {/* Activity Overview (Area Chart) (5 Cols) */}
-        <div className="lg:col-span-5 bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+        <div className="lg:col-span-5 bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-bold text-white">Activity Overview</h2>
-              <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 bg-[#131B35] px-2.5 py-1 rounded-lg border border-white/5">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">Activity Overview</h2>
+              <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-[#131B35] px-2.5 py-1 rounded-lg border border-slate-200/60 dark:border-white/5">
                 This Month <FaChevronDown className="text-[8px]" />
               </div>
             </div>
@@ -581,7 +581,7 @@ function AdminDashboard() {
             <div className="h-36 w-full opacity-90">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={finalActivityChartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1E293B" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#CBD5E1" />
                   <XAxis
                     dataKey="name"
                     axisLine={false}
@@ -605,26 +605,26 @@ function AdminDashboard() {
             </div>
 
             {/* Combined Metrics grid */}
-            <div className="grid grid-cols-4 gap-2 pt-4 border-t border-slate-800/80 mt-2">
+            <div className="grid grid-cols-4 gap-2 pt-4 border-t border-slate-200/80 dark:border-slate-800/80 mt-2">
               <div className="text-center">
-                <span className="block text-[8px] font-extrabold text-slate-450 uppercase tracking-wider">Join Reqs</span>
-                <span className="block text-sm font-black text-slate-200 mt-1">{activityOverview.stats.joinRequests.value}</span>
-                <span className="block text-[8px] font-bold text-emerald-400 mt-0.5">{activityOverview.stats.joinRequests.growth}</span>
+                <span className="block text-[8px] font-extrabold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Join Reqs</span>
+                <span className="block text-sm font-black text-slate-900 dark:text-slate-200 mt-1">{activityOverview.stats.joinRequests.value}</span>
+                <span className="block text-[8px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{activityOverview.stats.joinRequests.growth}</span>
               </div>
               <div className="text-center">
-                <span className="block text-[8px] font-extrabold text-slate-450 uppercase tracking-wider">Exams</span>
-                <span className="block text-sm font-black text-slate-200 mt-1">{activityOverview.stats.examsConducted.value}</span>
-                <span className="block text-[8px] font-bold text-emerald-400 mt-0.5">{activityOverview.stats.examsConducted.growth}</span>
+                <span className="block text-[8px] font-extrabold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Exams</span>
+                <span className="block text-sm font-black text-slate-900 dark:text-slate-200 mt-1">{activityOverview.stats.examsConducted.value}</span>
+                <span className="block text-[8px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{activityOverview.stats.examsConducted.growth}</span>
               </div>
               <div className="text-center">
-                <span className="block text-[8px] font-extrabold text-slate-450 uppercase tracking-wider">Assigns</span>
-                <span className="block text-sm font-black text-slate-200 mt-1">{activityOverview.stats.assignments.value}</span>
-                <span className="block text-[8px] font-bold text-emerald-400 mt-0.5">{activityOverview.stats.assignments.growth}</span>
+                <span className="block text-[8px] font-extrabold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Assigns</span>
+                <span className="block text-sm font-black text-slate-900 dark:text-slate-200 mt-1">{activityOverview.stats.assignments.value}</span>
+                <span className="block text-[8px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{activityOverview.stats.assignments.growth}</span>
               </div>
               <div className="text-center">
-                <span className="block text-[8px] font-extrabold text-slate-450 uppercase tracking-wider">Events</span>
-                <span className="block text-sm font-black text-slate-200 mt-1">{activityOverview.stats.events.value}</span>
-                <span className="block text-[8px] font-bold text-emerald-400 mt-0.5">{activityOverview.stats.events.growth}</span>
+                <span className="block text-[8px] font-extrabold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Events</span>
+                <span className="block text-sm font-black text-slate-900 dark:text-slate-200 mt-1">{activityOverview.stats.events.value}</span>
+                <span className="block text-[8px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{activityOverview.stats.events.growth}</span>
               </div>
             </div>
 
@@ -632,29 +632,29 @@ function AdminDashboard() {
         </div>
 
         {/* Upcoming Events (3 Cols) */}
-        <div className="lg:col-span-3 bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+        <div className="lg:col-span-3 bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-bold text-white">Upcoming Events</h2>
-              <Link to="/admin/events" className="text-[10px] font-bold text-[#8B5CF6] hover:underline flex items-center gap-0.5">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">Upcoming Events</h2>
+              <Link to="/admin/events" className="text-[10px] font-bold text-purple-600 dark:text-[#8B5CF6] hover:underline flex items-center gap-0.5">
                 View Calendar
               </Link>
             </div>
             
             <div className="space-y-3">
               {upcomingEvents.map((ev, idx) => (
-                <div key={ev._id || idx} className="flex items-center gap-3 bg-[#131B35]/45 hover:bg-[#131B35]/80 border border-white/5 rounded-xl p-2.5 transition">
+                <div key={ev._id || idx} className="flex items-center gap-3 bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35]/45 dark:hover:bg-[#131B35]/80 border border-slate-200/60 dark:border-white/5 rounded-xl p-2.5 transition">
                   {/* Date square */}
-                  <div className="w-11 h-11 shrink-0 rounded-lg bg-[#0F172A] border border-slate-800/80 flex flex-col items-center justify-center p-1.5 select-none">
-                    <span className="text-[10px] font-bold text-slate-400 leading-none">{ev.dateMonth}</span>
-                    <span className="text-sm font-black text-slate-100 leading-none mt-1">{ev.dateDay}</span>
+                  <div className="w-11 h-11 shrink-0 rounded-lg bg-slate-100 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800/80 flex flex-col items-center justify-center p-1.5 select-none">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-none">{ev.dateMonth}</span>
+                    <span className="text-sm font-black text-slate-900 dark:text-slate-100 leading-none mt-1">{ev.dateDay}</span>
                   </div>
                   
                   {/* Event Details */}
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-xs font-bold text-slate-200 truncate">{ev.title}</h4>
-                    <p className="text-[9px] text-slate-450 font-bold truncate mt-0.5">{ev.subtitle}</p>
-                    <div className="flex items-center gap-1.5 mt-1.5 text-[8px] font-semibold text-slate-400">
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{ev.title}</h4>
+                    <p className="text-[9px] text-slate-500 dark:text-slate-450 font-bold truncate mt-0.5">{ev.subtitle}</p>
+                    <div className="flex items-center gap-1.5 mt-1.5 text-[8px] font-semibold text-slate-500 dark:text-slate-400">
                       <FaClock className="text-purple-500" />
                       <span>{ev.time}</span>
                     </div>
@@ -674,7 +674,7 @@ function AdminDashboard() {
             </div>
           </div>
           
-          <Link to="/admin/events" className="text-xs font-bold text-[#8B5CF6] hover:text-purple-400 transition mt-4 inline-block w-fit">
+          <Link to="/admin/events" className="text-xs font-bold text-purple-600 dark:text-[#8B5CF6] hover:underline transition mt-4 inline-block w-fit">
             View all events &rarr;
           </Link>
         </div>
@@ -682,7 +682,7 @@ function AdminDashboard() {
       </div>
 
       {/* ── FOOTER BAR ── */}
-      <footer className="mt-8 pt-4 border-t border-slate-850 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] font-bold text-slate-500 select-none">
+      <footer className="mt-8 pt-4 border-t border-slate-200 dark:border-slate-850 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] font-bold text-slate-500 select-none">
         <p>&copy; {new Date().getFullYear()} TeachHub. All rights reserved.</p>
         <p>Version 1.0.0</p>
       </footer>
