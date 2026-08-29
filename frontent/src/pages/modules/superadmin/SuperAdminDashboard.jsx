@@ -490,83 +490,49 @@ function SuperAdminDashboard() {
         </div>
       </div>
 
-      {/* Grid of Split Details Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 select-none">
-        
-        {/* Left Column: Recent Activity Feed */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recent Activity</span>
-            <button 
-              onClick={() => setShowUserManagement(true)}
-              className="text-[10px] font-black text-[#7C3AED] dark:text-[#38BDF8] hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              View All <FaArrowRight className="text-[9px]" />
-            </button>
-          </div>
+      {/* Recent Activity Feed */}
+      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm space-y-4 select-none">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recent Activity</span>
+          <button 
+            onClick={() => setShowUserManagement(true)}
+            className="text-[10px] font-black text-[#7C3AED] dark:text-[#38BDF8] hover:underline flex items-center gap-1 cursor-pointer"
+          >
+            View All <FaArrowRight className="text-[9px]" />
+          </button>
+        </div>
 
-          <div className="space-y-4">
-            {recentActivity.map((act, idx) => (
-              <div key={act._id || idx} className="flex items-center justify-between gap-3 text-xs font-semibold">
-                <div className="flex items-center gap-3 min-w-0">
-                  {/* Avatar bubble based on type */}
-                  <div className={`w-8.5 h-8.5 rounded-full flex items-center justify-center shrink-0 text-sm ${
-                    act.type.includes("registered") ? "bg-emerald-500/10 text-emerald-500" :
-                    act.type.includes("approved") ? "bg-amber-500/10 text-amber-500" :
-                    act.type.includes("school") ? "bg-purple-500/10 text-purple-500" :
-                    act.type.includes("Payment") ? "bg-emerald-500/10 text-emerald-500" :
-                    "bg-blue-500/10 text-blue-500"
-                  }`}>
-                    👤
-                  </div>
-                  <div className="min-w-0">
-                    <h5 className="text-slate-805 dark:text-slate-200 font-black truncate leading-tight">
-                      {act.type}
-                    </h5>
-                    <p className="text-[9px] text-slate-450 dark:text-slate-500 font-bold truncate mt-0.5">
-                      {act.detail}
-                    </p>
-                  </div>
+        <div className="space-y-4">
+          {recentActivity.map((act, idx) => (
+            <div key={act._id || idx} className="flex items-center justify-between gap-3 text-xs font-semibold">
+              <div className="flex items-center gap-3 min-w-0">
+                {/* Avatar bubble based on type */}
+                <div className={`w-8.5 h-8.5 rounded-full flex items-center justify-center shrink-0 text-sm ${
+                  act.type.includes("registered") ? "bg-emerald-500/10 text-emerald-500" :
+                  act.type.includes("approved") ? "bg-amber-500/10 text-amber-500" :
+                  act.type.includes("school") ? "bg-purple-500/10 text-purple-500" :
+                  act.type.includes("Payment") ? "bg-emerald-500/10 text-emerald-500" :
+                  "bg-blue-500/10 text-blue-500"
+                }`}>
+                  👤
                 </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-[9px] text-slate-455 dark:text-slate-500 font-extrabold">{act.time || act.dateText}</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                <div className="min-w-0">
+                  <h5 className="text-slate-805 dark:text-slate-200 font-black truncate leading-tight">
+                    {act.type}
+                  </h5>
+                  <p className="text-[9px] text-slate-450 dark:text-slate-500 font-bold truncate mt-0.5">
+                    {act.detail}
+                  </p>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Right Column: Support summary & System Status */}
-        <div className="space-y-6">
-          
-
-
-          {/* System status glow block */}
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm flex items-center gap-4 relative overflow-hidden">
-            
-            {/* Left large shield tick glow icon */}
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-700 text-white flex items-center justify-center shadow-lg shadow-indigo-500/25 shrink-0 select-none">
-              <FaShieldAlt className="text-2xl" />
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[9px] text-slate-455 dark:text-slate-500 font-extrabold">{act.time || act.dateText}</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+              </div>
             </div>
-
-            <div>
-              <h4 className="text-xs font-black text-slate-900 dark:text-white">System Status</h4>
-              <p className="text-[10px] text-slate-450 dark:text-slate-400 font-semibold leading-relaxed mt-0.5">
-                All systems are running smoothly.
-              </p>
-              
-              {/* Green status indicator tag */}
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 mt-2 select-none">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping" /> All Good
-              </span>
-            </div>
-
-          </div>
-
+          ))}
         </div>
-
       </div>
 
       {/* Toggled User management Directory table drawer section */}

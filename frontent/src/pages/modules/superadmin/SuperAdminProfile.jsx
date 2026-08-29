@@ -576,74 +576,7 @@ function SuperAdminProfile() {
 
       </div>
 
-      {/* 4. Split columns (Login Activity only) */}
-      <div className="grid grid-cols-1 gap-6">
 
-        {/* Login & Activity */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm space-y-4">
-          <h3 className="text-sm font-black tracking-tight border-b border-slate-100 dark:border-white/5 pb-2 text-slate-900 dark:text-white">Login & Activity</h3>
-          
-          <div className="space-y-3.5 text-xs font-bold text-slate-655 dark:text-slate-350 select-none">
-            
-            <div className="flex items-center justify-between border-b border-slate-50 dark:border-white/[0.02] pb-3">
-              <span className="flex items-center gap-2">
-                <FaRegClock className="text-blue-500 text-sm" /> Last Login
-              </span>
-              <div className="text-right">
-                <p className="text-slate-805 dark:text-white font-extrabold font-mono">
-                  {profile?.loginActivity?.lastLogin ? formatDateTime(profile.loginActivity.lastLogin.time) : "N/A"}
-                </p>
-                <span className="text-[9px] text-slate-400 font-bold block mt-0.5">
-                  {profile?.loginActivity?.lastLogin?.deviceBrowser || "N/A"}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between border-b border-slate-50 dark:border-white/[0.02] pb-3">
-              <span className="flex items-center gap-2">
-                <FaRegClock className="text-slate-400 text-sm" /> Previous Login
-              </span>
-              <div className="text-right">
-                <p className="text-slate-805 dark:text-white font-extrabold font-mono">
-                  {profile?.loginActivity?.previousLogin ? formatDateTime(profile.loginActivity.previousLogin.time) : "N/A"}
-                </p>
-                <span className="text-[9px] text-slate-400 font-bold block mt-0.5">
-                  {profile?.loginActivity?.previousLogin?.deviceBrowser || "N/A"}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between border-b border-slate-50 dark:border-white/[0.02] pb-3">
-              <span className="flex items-center gap-2">
-                <FaMapMarkerAlt className="text-blue-500 text-sm" /> Login Location
-              </span>
-              <div className="text-right">
-                <p className="text-slate-850 dark:text-white font-extrabold">{profile?.loginActivity?.loginLocation || "Unknown Location"}</p>
-                <span className="text-[9px] text-[#38BDF8] font-black block mt-0.5 font-mono">IP: {profile?.loginActivity?.loginIp || "Unknown"}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between border-b border-slate-50 dark:border-white/[0.02] pb-3">
-              <span className="flex items-center gap-2">
-                <FaUserShield className="text-slate-400 text-sm" /> Total Logins
-              </span>
-              <span className="text-slate-850 dark:text-white font-black font-mono">{profile?.loginActivity?.totalLogins || 0} logins</span>
-            </div>
-
-            <div className="flex items-center justify-between pb-1">
-              <span className="flex items-center gap-2">
-                <FaCheckCircle className="text-green-555 text-sm" /> Account Status
-              </span>
-              <div className="text-right">
-                <span className="text-green-555 font-black uppercase text-[10px] tracking-wider block">Active</span>
-                <span className="text-[8.5px] text-slate-400 font-bold block mt-0.5">Your account is in good standing.</span>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-      </div>
 
 
 
