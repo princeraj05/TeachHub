@@ -7,6 +7,7 @@ router.post("/student-payments/cancel-processing", protect, authorize("student")
 router.post("/student-payments/offline-request", protect, authorize("student"), payment.createOfflineStudentRequest);
 router.get("/student-payments/fee-plan", protect, authorize("student"), payment.getStudentFeePlan);
 router.get("/student-payments/summary", protect, authorize("student"), payment.getStudentPaymentSummary);
+router.get("/student-payments/dashboard", protect, authorize("student"), payment.getStudentDashboard);
 router.post("/school-subscription/create-order", protect, authorize("admin"), payment.createSubscriptionOrder);
 router.post("/teacher-payments/:teacherId/create-order", protect, authorize("admin"), payment.createTeacherSalaryOrder);
 router.post("/payments/verify-checkout", protect, payment.verifyCheckout);

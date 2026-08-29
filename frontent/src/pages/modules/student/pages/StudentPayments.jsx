@@ -13,23 +13,34 @@ export default function StudentPayments() {
   const [summary, setSummary] = useState(null);
   const [options, setOptions] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const headers = { Authorization: `Bearer ${token}` };
 
   const load = useCallback(async () => {
     try {
-      const [history, fee, modes, paymentSummary] = await Promise.all([
-        axios.get(`${api}/api/payments`, { headers }),
-        axios.get(`${api}/api/student-payments/fee-plan`, { headers }),
-        axios.get(`${api}/api/payment-options`, { headers }),
-        axios.get(`${api}/api/student-payments/summary`, { headers })
-      ]);
-      setPayments(history.data);
-      setPlan(fee.data);
-      setOptions(modes.data);
-      setSummary(paymentSummary.data);
+      const res = await axios.get(`${api}/api/student-payments/dashboard`, { headers });
+      setPayments(res.data.payments || []);
+      setPlan(res.data.plan || null);
+      setOptions(res.data.options || null);
+      setSummary(res.data.summary || null);
     } catch {
-      setMessage("Payment information is currently unavailable.");
+      try {
+        const [history, fee, modes, paymentSummary] = await Promise.all([
+          axios.get(`${api}/api/payments`, { headers }),
+          axios.get(`${api}/api/student-payments/fee-plan`, { headers }),
+          axios.get(`${api}/api/payment-options`, { headers }),
+          axios.get(`${api}/api/student-payments/summary`, { headers })
+        ]);
+        setPayments(history.data || []);
+        setPlan(fee.data || null);
+        setOptions(modes.data || null);
+        setSummary(paymentSummary.data || null);
+      } catch {
+        setMessage("Payment information is currently unavailable.");
+      }
+    } finally {
+      setLoading(false);
     }
   }, [api, token]);
 
@@ -84,6 +95,21 @@ export default function StudentPayments() {
   const totalPaid = summary?.totalPaid ?? successfulPayments.reduce((sum, p) => sum + p.amount, 0);
   const lastPayment = summary?.lastPayment || successfulPayments[0] || null;
   const isPlanConfigured = Boolean(plan && plan.active);
+
+  if (loading) {
+    return (
+      <div className="max-w-5xl mx-auto space-y-6 animate-pulse">
+        <div className="h-10 bg-slate-200 dark:bg-slate-800 rounded-xl w-1/3"></div>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          {[1, 2, 3, 4, 5].map(n => (
+            <div key={n} className="h-20 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+          ))}
+        </div>
+        <div className="h-44 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
+        <div className="h-60 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">

@@ -41,8 +41,11 @@ exports.protect = async (req, res, next) => {
     } else if (session.status === "Logged out") {
       return res.status(401).json({ message: "Session has been logged out" });
     } else {
-      session.lastActive = new Date();
-      await session.save();
+      const now = Date.now();
+      if (!session.lastActive || now - new Date(session.lastActive).getTime() > 60000) {
+        session.lastActive = new Date();
+        session.save().catch(() => {});
+      }
     }
 
     req.user = { ...decoded, role: user.role, schoolName: user.schoolName || "" };
