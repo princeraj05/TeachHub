@@ -366,44 +366,45 @@ exports.verifyOTP = async (req, res) => {
         return res.status(400).json({ message: "Invalid or expired OTP" });
       }
 
-    // Double check expiry
-    if (otpRecord.expiresAt < new Date()) {
-      await Otp.deleteOne({ _id: otpRecord._id });
-      return res.status(400).json({ message: "OTP has expired" });
-    }
-
-    // Verify hashed OTP
-    const isMatch = await bcrypt.compare(otp, otpRecord.otp);
-    if (!isMatch) {
-      otpRecord.attempts += 1;
-      if (otpRecord.attempts >= 5) {
+      // Double check expiry
+      if (otpRecord.expiresAt < new Date()) {
         await Otp.deleteOne({ _id: otpRecord._id });
-        return res.status(400).json({ message: "Too many invalid verification attempts. Please request a new code." });
+        return res.status(400).json({ message: "OTP has expired" });
       }
-      await otpRecord.save();
-      return res.status(400).json({ message: "Invalid or expired OTP" });
-    }
 
-    // Delete OTP so it cannot be reused
-    await Otp.deleteOne({ _id: otpRecord._id });
+      // Verify hashed OTP
+      const isMatch = await bcrypt.compare(otp, otpRecord.otp);
+      if (!isMatch) {
+        otpRecord.attempts += 1;
+        if (otpRecord.attempts >= 5) {
+          await Otp.deleteOne({ _id: otpRecord._id });
+          return res.status(400).json({ message: "Too many invalid verification attempts. Please request a new code." });
+        }
+        await otpRecord.save();
+        return res.status(400).json({ message: "Invalid or expired OTP" });
+      }
 
-    // Check if user exists in MongoDB
-    let user = await User.findOne({ email });
-    const isSuperAdmin = email.toLowerCase() === (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase();
+      // Delete OTP so it cannot be reused
+      await Otp.deleteOne({ _id: otpRecord._id });
 
-    if (!user) {
-      // Create user as unassigned by default
-      user = await User.create({
-        name: email.split("@")[0],
-        email,
-        role: isSuperAdmin ? "superadmin" : "unassigned",
-        schoolName: ""
-      });
-    } else {
-      // Force superadmin role if email matches SUPER_ADMIN_EMAIL
-      if (isSuperAdmin && user.role !== "superadmin") {
-        user.role = "superadmin";
-        await user.save();
+      // Check if user exists in MongoDB
+      user = await User.findOne({ email });
+      const isSuperAdmin = email.toLowerCase() === (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase();
+
+      if (!user) {
+        // Create user as unassigned by default
+        user = await User.create({
+          name: email.split("@")[0],
+          email,
+          role: isSuperAdmin ? "superadmin" : "unassigned",
+          schoolName: ""
+        });
+      } else {
+        // Force superadmin role if email matches SUPER_ADMIN_EMAIL
+        if (isSuperAdmin && user.role !== "superadmin") {
+          user.role = "superadmin";
+          await user.save();
+        }
       }
     }
 
