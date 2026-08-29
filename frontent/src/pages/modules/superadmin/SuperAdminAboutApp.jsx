@@ -191,6 +191,7 @@ function SuperAdminAboutApp() {
         }
       });
       setLogoUrl(res.data.url);
+      window.dispatchEvent(new CustomEvent("platformConfigUpdate"));
       setSuccessMsg("Logo uploaded successfully!");
       setTimeout(() => setSuccessMsg(""), 3000);
     } catch (err) {
@@ -242,6 +243,7 @@ function SuperAdminAboutApp() {
       });
 
       setOriginalData(res.data.info);
+      window.dispatchEvent(new CustomEvent("platformConfigUpdate"));
       setSuccessMsg("Platform settings updated successfully!");
       setTimeout(() => setSuccessMsg(""), 3000);
     } catch (err) {

@@ -7,12 +7,14 @@ import { signInWithPopup, signInWithCredential, GoogleAuthProvider } from "fireb
 import { Capacitor } from "@capacitor/core";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { useTheme } from "../../context/ThemeContext";
+import { usePlatform } from "../../context/PlatformContext";
 
 const SORA = "'Sora', sans-serif";
 
 function Login() {
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
+  const { platformName, logoUrl } = usePlatform();
 
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -176,11 +178,15 @@ function Login() {
         <div className="relative z-10 px-16 max-w-xl text-center">
           {/* Logo Badge */}
           <div className="inline-flex items-center gap-3 bg-white/5 backdrop-blur-md border border-white/10 px-5 py-2.5 rounded-2xl mb-10 shadow-xl shadow-black/10">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center shadow-lg shadow-[#7C3AED]/20">
-              <FaGraduationCap className="text-xl text-white" />
-            </div>
+            {logoUrl ? (
+              <img src={logoUrl} alt={platformName} className="w-10 h-10 object-contain rounded-xl shrink-0" />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center shadow-lg shadow-[#7C3AED]/20 shrink-0">
+                <FaGraduationCap className="text-xl text-white" />
+              </div>
+            )}
             <span className="text-2xl font-extrabold tracking-tight text-white">
-              TeachHub
+              {platformName}
             </span>
           </div>
 
@@ -221,11 +227,15 @@ function Login() {
         
         {/* Mobile Header Logo */}
         <div className="flex lg:hidden items-center gap-2.5 mb-10 bg-slate-100 border border-slate-200/50 px-4 py-2 rounded-xl shadow-sm">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center shadow-md">
-            <FaGraduationCap className="text-white text-base" />
-          </div>
+          {logoUrl ? (
+            <img src={logoUrl} alt={platformName} className="w-8 h-8 object-contain rounded-lg shrink-0" />
+          ) : (
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center shadow-md shrink-0">
+              <FaGraduationCap className="text-white text-base" />
+            </div>
+          )}
           <span className="text-lg font-black text-slate-800 tracking-tight">
-            TeachHub
+            {platformName}
           </span>
         </div>
 

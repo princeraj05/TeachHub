@@ -21,6 +21,8 @@ import {
   FaTimes
 } from "react-icons/fa";
 
+import { usePlatform } from "../../../context/PlatformContext";
+
 const SORA = "'Sora', sans-serif";
 
 function StudentLayout() {
@@ -30,6 +32,7 @@ function StudentLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { platformName, logoUrl } = usePlatform();
 
   const [name, setName] = useState(localStorage.getItem("name") || "Student");
   const [avatar, setAvatar] = useState(localStorage.getItem("avatar") || "");
@@ -81,11 +84,15 @@ function StudentLayout() {
         <div className="flex flex-col gap-8">
           {/* Logo / Branding */}
           <div className="flex items-center gap-3 px-2.5">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center shadow-lg shadow-[#7C3AED]/20 transform hover:rotate-6 transition-all duration-300">
-              <FaGraduationCap className="text-xl text-white" />
-            </div>
-            <span className="hidden lg:block text-xl font-black bg-gradient-to-r from-[#7C3AED] to-[#38BDF8] bg-clip-text text-transparent tracking-tight">
-              TeachHub
+            {logoUrl ? (
+              <img src={logoUrl} alt={platformName} className="w-10 h-10 object-contain rounded-xl shrink-0" />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center shadow-lg shadow-[#7C3AED]/20 transform hover:rotate-6 transition-all duration-300 shrink-0">
+                <FaGraduationCap className="text-xl text-white" />
+              </div>
+            )}
+            <span className="hidden lg:block text-lg font-black bg-gradient-to-r from-[#7C3AED] to-[#38BDF8] bg-clip-text text-transparent tracking-tight truncate max-w-[140px]">
+              {platformName}
             </span>
           </div>
 
