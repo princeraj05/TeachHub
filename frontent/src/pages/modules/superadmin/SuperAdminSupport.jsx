@@ -7,8 +7,6 @@ import {
   FaUsers,
   FaEllipsisH,
   FaSearch,
-  FaFilter,
-  FaSchool,
   FaPaperclip,
   FaRegSmile,
   FaMicrophone,
@@ -16,16 +14,7 @@ import {
   FaFilePdf,
   FaPaperPlane,
   FaCheckDouble,
-  FaArrowLeft,
-  FaCheckCircle,
-  FaHourglassHalf,
-  FaStar,
-  FaFlag,
-  FaUser,
-  FaAt,
-  FaBullhorn,
-  FaRegClock,
-  FaSort
+  FaCircle
 } from "react-icons/fa";
 import { useCall } from "../../../context/CallContext";
 
@@ -35,9 +24,6 @@ function SuperAdminSupport() {
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const token = localStorage.getItem("token");
   const currentUserId = localStorage.getItem("userId");
-
-  // View state: "dashboard" or "chat"
-  const [viewMode, setViewMode] = useState("chat");
 
   // Chat selection and messaging
   const [contacts, setContacts] = useState([]);
@@ -64,7 +50,7 @@ function SuperAdminSupport() {
   // Sync scroll to bottom in chat messaging
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, viewMode]);
+  }, [messages]);
 
   // Load chat history when selected contact changes
   useEffect(() => {
@@ -128,7 +114,6 @@ function SuperAdminSupport() {
       });
       setContacts(res.data);
       
-      // Default select Gudiya Kumari (first user) as baseline active chat
       if (!selectedContact && res.data.length > 0) {
         setSelectedContact(res.data[0]);
       }
@@ -255,7 +240,7 @@ function SuperAdminSupport() {
   };
 
   const formatBytes = (bytes) => {
-    if (bytes === 0) return "0 Bytes";
+    if (!bytes || bytes === 0) return "0 Bytes";
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -273,10 +258,10 @@ function SuperAdminSupport() {
         name: c.name,
         schoolName: c.schoolName || "G.D Academy",
         email: c.email,
-        lastMessage: c.lastMessage?.content || (c.lastMessage?.attachments?.length > 0 ? "Attachment File" : "No messages yet"),
+        lastMessage: c.lastMessage?.content || (c.lastMessage?.attachments?.length > 0 ? "📎 Attachment File" : "No messages yet"),
         time: c.lastMessage?.createdAt 
           ? new Date(c.lastMessage.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) 
-          : "10:20 AM",
+          : "",
         unreadCount: c.unreadCount || 0,
         status: statusLabel,
         isOnline: isOnline
@@ -303,112 +288,116 @@ function SuperAdminSupport() {
       });
   }, [conversationsList, activeFilter, searchQuery]);
 
-  // Messages log feed
-  const displayedMessages = useMemo(() => {
-    return messages;
-  }, [messages]);
-
   const initials = (name) => {
+    if (!name) return "U";
     return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
   };
 
   return (
-    <div style={{ fontFamily: SORA }} className="space-y-6 text-slate-805 dark:text-white select-none">
+    <div style={{ fontFamily: SORA }} className="space-y-5 text-slate-800 dark:text-white select-none">
       
-      {/* SUPPORT CHAT DETAILED WORKSPACE */}
-      <div className="space-y-6 animate-fadeIn">
+      {/* HEADER BAR */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#0B132A] p-4.5 rounded-2.5xl border border-slate-200/60 dark:border-white/[0.08] shadow-sm">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white text-lg shadow-md shadow-[#7C3AED]/20 shrink-0">
+            <FaComments />
+          </div>
+          <div>
+            <h2 className="text-xl font-black tracking-tight flex items-center gap-2">
+              Support Workspace
+            </h2>
+            <p className="text-[11px] text-slate-400 font-semibold mt-0.5">
+              Real-time communication & support center for school administrators.
+            </p>
+          </div>
+        </div>
+
+        {selectedContact && (
+          <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+            <button
+              onClick={() => startCall(selectedContact, "voice")}
+              className="px-3.5 py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
+              title="Voice Call"
+            >
+              <FaPhoneAlt className="text-xs" /> Voice Call
+            </button>
+            
+            <button
+              onClick={() => startCall(selectedContact, "video")}
+              className="px-3.5 py-2.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
+              title="Video Call"
+            >
+              <FaVideo className="text-xs" /> Video Call
+            </button>
+
+            <button
+              onClick={() => alert("Add user to conversation")}
+              className="p-2.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20 transition cursor-pointer"
+              title="Add users to chat"
+            >
+              <FaUsers className="text-sm" />
+            </button>
+
+            <button
+              onClick={() => alert("Show more support tools")}
+              className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 transition cursor-pointer"
+            >
+              <FaEllipsisH className="text-sm" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* MESSAGING CONTAINER */}
+      <div className="flex bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl overflow-hidden shadow-sm h-[calc(100vh-210px)] min-h-[500px]">
         
-        {/* Header breadcrumbs support calling actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-white/5 pb-4">
-          <div className="flex items-center gap-3">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-black flex items-center gap-2">
-                <FaComments className="text-[#7C3AED]" /> Support Chat
-              </h2>
-              <p className="text-[10px] text-slate-455 dark:text-slate-400 font-extrabold uppercase mt-1.5">
-                Support &gt; School Admins &gt; Chat
-              </p>
+        {/* LEFT SIDEBAR: Conversations List */}
+        <div className="w-full lg:w-[340px] border-r border-slate-100 dark:border-white/[0.06] flex flex-col bg-slate-50/40 dark:bg-[#090F1C]/40 shrink-0 min-h-0">
+          
+          {/* Search & Filter Header */}
+          <div className="p-4 space-y-3 border-b border-slate-100 dark:border-white/[0.06]">
+            <div className="relative">
+              <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+              <input
+                type="text"
+                placeholder="Search conversations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0B132A] text-slate-800 dark:text-white placeholder-slate-400 text-xs font-semibold focus:outline-none focus:border-[#7C3AED]"
+              />
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex gap-1 bg-slate-200/50 dark:bg-white/5 p-1 rounded-xl">
+              {[
+                { id: "All", label: "All", count: conversationsList.length },
+                { id: "Open", label: "Open", count: conversationsList.filter(c => c.status === "Open").length },
+                { id: "Waiting", label: "Waiting", count: conversationsList.filter(c => c.status === "Waiting").length },
+                { id: "Resolved", label: "Resolved", count: conversationsList.filter(c => c.status === "Resolved").length }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveFilter(tab.id)}
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black transition cursor-pointer text-center ${
+                    activeFilter === tab.id
+                      ? "bg-[#7C3AED] text-white shadow-sm"
+                      : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                  }`}
+                >
+                  {tab.label} ({tab.count})
+                </button>
+              ))}
             </div>
           </div>
 
-          {selectedContact && (
-            <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-auto select-none">
-              <button
-                onClick={() => startCall(selectedContact, "voice")}
-                className="w-10 h-10 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center transition cursor-pointer"
-                title="Voice Call"
-              >
-                <FaPhoneAlt className="text-sm" />
-              </button>
-              
-              <button
-                onClick={() => startCall(selectedContact, "video")}
-                className="w-10 h-10 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center transition cursor-pointer"
-                title="Video Call"
-              >
-                <FaVideo className="text-sm" />
-              </button>
-
-              <button
-                onClick={() => alert("Add user to conversation")}
-                className="w-10 h-10 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20 flex items-center justify-center transition cursor-pointer"
-                title="Add users to chat"
-              >
-                <FaUsers className="text-sm" />
-              </button>
-
-              <button
-                onClick={() => alert("Show more support tools")}
-                className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 hover:border-slate-350 text-slate-705 dark:text-slate-300 py-2.5 px-4 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer"
-              >
-                <FaEllipsisH /> More
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Messaging Viewport split layout */}
-        <div className="flex bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl overflow-hidden shadow-sm h-[calc(100vh-210px)] min-h-0">
-          
-          {/* Left sidebar chats directory */}
-          <div className="hidden lg:flex w-[320px] border-r border-slate-100 dark:border-white/5 flex-col bg-slate-50/10 shrink-0 min-h-0">
-            
-            <div className="p-4 space-y-3.5 border-b border-slate-100 dark:border-white/5">
-              <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
-                <input
-                  type="text"
-                  placeholder="Search conversations..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B132A] text-slate-805 dark:text-white placeholder-slate-405 text-xs font-semibold focus:outline-none"
-                />
-              </div>
-
-              <div className="flex justify-between text-[9px] font-black uppercase">
-                {[
-                  { id: "All", label: `All (${conversationsList.length})` },
-                  { id: "Open", label: `Open (${conversationsList.filter(c => c.status === "Open").length})` },
-                  { id: "Waiting", label: `Waiting (${conversationsList.filter(c => c.status === "Waiting").length})` },
-                  { id: "Resolved", label: `Resolved (${conversationsList.filter(c => c.status === "Resolved").length})` }
-                ].map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveFilter(tab.id)}
-                    className={`px-2 py-1 rounded transition cursor-pointer ${
-                      activeFilter === tab.id
-                        ? "bg-[#7C3AED] text-white"
-                        : "bg-transparent text-slate-505"
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-white/5">
-              {filteredConversations.map((c) => {
+          {/* Conversations Directory List */}
+          <div className="flex-1 overflow-y-auto divide-y divide-slate-100/60 dark:divide-white/[0.04]">
+            {loadingContacts ? (
+              <div className="py-12 text-center text-xs font-bold text-slate-400">Loading contacts...</div>
+            ) : filteredConversations.length === 0 ? (
+              <div className="py-12 text-center text-xs font-bold text-slate-400">No conversations found</div>
+            ) : (
+              filteredConversations.map((c) => {
                 const isActive = selectedContact?._id === c._id;
                 return (
                   <button
@@ -422,214 +411,226 @@ function SuperAdminSupport() {
                       };
                       setSelectedContact(orig);
                     }}
-                    className={`w-full p-4.5 text-left hover:bg-slate-50 dark:hover:bg-white/[0.01] transition flex items-start gap-3 cursor-pointer ${
-                      isActive ? "bg-slate-50/50 dark:bg-white/[0.02] border-l-4 border-[#7C3AED]" : ""
+                    className={`w-full p-4 text-left transition flex items-start gap-3.5 cursor-pointer relative ${
+                      isActive 
+                        ? "bg-[#7C3AED]/10 dark:bg-[#7C3AED]/15 border-l-4 border-[#7C3AED]" 
+                        : "hover:bg-slate-100/60 dark:hover:bg-white/[0.02]"
                     }`}
                   >
-                    <div className="w-8 h-8 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black shrink-0 relative text-[10px]">
+                    {/* Avatar */}
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] text-white flex items-center justify-center font-black shrink-0 relative text-xs shadow-sm">
                       {initials(c.name)}
-                      {c.isOnline && (
-                        <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 border border-white dark:border-[#0B132A] rounded-full" />
-                      )}
+                      <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-[#0B132A] ${c.isOnline ? "bg-emerald-500" : "bg-slate-400"}`} />
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-[11px] font-black text-slate-850 dark:text-white truncate">{c.name}</h4>
-                        <span className="text-[8.5px] text-slate-400 font-semibold font-mono">{c.time}</span>
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="text-xs font-black text-slate-800 dark:text-white truncate">{c.name}</h4>
+                        {c.time && (
+                          <span className="text-[10px] text-slate-400 font-medium shrink-0">{c.time}</span>
+                        )}
                       </div>
-                      <p className="text-[9px] text-slate-405 font-bold uppercase tracking-wider mt-0.5">{c.schoolName}</p>
-                      <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold truncate mt-1.5">{c.lastMessage}</p>
+                      <p className="text-[10px] text-[#7C3AED] dark:text-[#38BDF8] font-bold truncate mt-0.5">{c.schoolName}</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate mt-1">{c.lastMessage}</p>
                     </div>
                   </button>
                 );
-              })}
-            </div>
+              })
+            )}
           </div>
+        </div>
 
-          {/* Right chat message window */}
-          <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-[#0B132A] h-full">
-            {selectedContact ? (
-              <div className="flex-1 flex flex-col min-h-0">
-                {/* Active contact header */}
-                <div className="p-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between select-none">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black relative text-xs">
-                      {initials(selectedContact.name)}
-                      {selectedContact.isOnline && (
-                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-555 border-2 border-white dark:border-[#0B132A] rounded-full" />
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="text-xs font-black text-slate-850 dark:text-white leading-tight">{selectedContact.name}</h3>
-                      <p className="text-[9px] text-slate-455 dark:text-slate-400 font-bold mt-0.5">{selectedContact.schoolName || "G.D Academy"}</p>
-                    </div>
+        {/* RIGHT PANEL: Main Chat Messaging Window */}
+        <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-[#0B132A] h-full">
+          {selectedContact ? (
+            <div className="flex-1 flex flex-col min-h-0">
+              
+              {/* Active Chat Header */}
+              <div className="px-6 py-4 border-b border-slate-100 dark:border-white/[0.06] flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.01]">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] text-white flex items-center justify-center font-black relative text-xs shadow-sm">
+                    {initials(selectedContact.name)}
+                    <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-[#0B132A] ${selectedContact.isOnline ? "bg-emerald-500" : "bg-slate-400"}`} />
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-[9.5px] text-slate-400 font-semibold">
-                      {selectedContact.isOnline ? "Online" : "Offline"}
-                    </span>
+                  <div>
+                    <h3 className="text-sm font-black text-slate-800 dark:text-white leading-tight">{selectedContact.name}</h3>
+                    <p className="text-[11px] text-[#7C3AED] dark:text-[#38BDF8] font-bold mt-0.5">{selectedContact.schoolName || "G.D Academy"}</p>
                   </div>
                 </div>
 
-                {/* Messages log */}
-                <div className="flex-grow overflow-y-auto p-5 space-y-5 bg-slate-50/[0.02]">
-                    
-                    <div className="text-center my-6">
-                      <span className="px-3 py-1 rounded bg-slate-100 dark:bg-white/5 text-[9px] font-black text-slate-455 uppercase tracking-widest font-mono">Today</span>
-                    </div>
+                <div className="flex items-center gap-2">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold ${
+                    selectedContact.isOnline 
+                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" 
+                      : "bg-slate-100 dark:bg-white/5 text-slate-400 border border-slate-200 dark:border-white/10"
+                  }`}>
+                    <FaCircle className={`text-[6px] ${selectedContact.isOnline ? "animate-pulse text-emerald-500" : "text-slate-400"}`} />
+                    {selectedContact.isOnline ? "Online" : "Offline"}
+                  </span>
+                </div>
+              </div>
 
-                    {displayedMessages.map((msg, index) => {
-                      const isSenderMe = msg.sender._id === currentUserId;
-                      const hasReaction = msg.reactions && msg.reactions.length > 0;
-                      
-                      return (
-                        <div 
-                          key={msg._id || index}
-                          className={`flex flex-col max-w-[70%] ${isSenderMe ? "ml-auto items-end" : "mr-auto items-start"}`}
-                        >
-                          {msg.content && (
-                            <div className={`p-4 rounded-2.5xl text-xs font-semibold leading-relaxed shadow-sm relative ${
-                              isSenderMe 
-                                ? "bg-[#7C3AED] text-white rounded-tr-none" 
-                                : "bg-slate-100 dark:bg-white/5 text-slate-800 dark:text-slate-200 rounded-tl-none"
-                            }`}>
-                              <p>{msg.content}</p>
+              {/* Chat Feed */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/20 dark:bg-black/10">
+                
+                <div className="text-center my-4">
+                  <span className="px-3.5 py-1 rounded-full bg-slate-200/60 dark:bg-white/5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Today</span>
+                </div>
+
+                {loadingMessages ? (
+                  <div className="py-12 text-center text-xs font-bold text-slate-400">Loading chat history...</div>
+                ) : (
+                  messages.map((msg, index) => {
+                    const isSenderMe = msg.sender?._id === currentUserId || msg.sender === currentUserId;
+                    const hasReaction = msg.reactions && msg.reactions.length > 0;
+                    
+                    return (
+                      <div 
+                        key={msg._id || index}
+                        className={`flex flex-col max-w-[75%] sm:max-w-[65%] ${isSenderMe ? "ml-auto items-end" : "mr-auto items-start"}`}
+                      >
+                        {msg.content && (
+                          <div className={`px-4.5 py-3 rounded-2xl text-xs font-semibold leading-relaxed shadow-sm ${
+                            isSenderMe 
+                              ? "bg-gradient-to-r from-[#7C3AED] to-[#6366F1] text-white rounded-tr-xs" 
+                              : "bg-slate-100 dark:bg-[#1E293B] text-slate-800 dark:text-slate-100 border border-slate-200/60 dark:border-white/10 rounded-tl-xs"
+                          }`}>
+                            <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                          </div>
+                        )}
+
+                        {msg.attachments && msg.attachments.map((file, fileIdx) => (
+                          <div 
+                            key={fileIdx}
+                            className="bg-slate-100 dark:bg-[#1E293B] border border-slate-200/60 dark:border-white/10 rounded-2xl p-3.5 flex items-center gap-3 max-w-xs shadow-sm"
+                          >
+                            <div className="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0">
+                              <FaFilePdf className="text-base" />
                             </div>
+                            <div className="min-w-0 flex-1 text-xs">
+                              <h5 className="font-bold text-slate-800 dark:text-white truncate">{file.filename || "Attachment.pdf"}</h5>
+                              <p className="text-[10px] text-slate-400 mt-0.5">{formatBytes(file.size)}</p>
+                            </div>
+                            <a 
+                              href={file.url || "#"} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="w-8 h-8 rounded-lg bg-white dark:bg-white/10 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200 dark:border-white/10 transition shrink-0 hover:border-[#7C3AED]"
+                            >
+                              <FaDownload className="text-xs" />
+                            </a>
+                          </div>
+                        ))}
+
+                        <div className="flex items-center gap-1.5 mt-1 select-none px-1">
+                          <span className="text-[9px] text-slate-400 font-medium">
+                            {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                          </span>
+                          
+                          {isSenderMe && (
+                            <FaCheckDouble className={`text-[10px] ${msg.status === "read" ? "text-blue-500" : "text-slate-400"}`} />
                           )}
 
-                          {msg.attachments && msg.attachments.map((file, fileIdx) => (
-                            <div 
-                              key={fileIdx}
-                              className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 rounded-2.5xl p-4 flex items-center gap-3.5 max-w-sm shadow-sm hover:border-[#7C3AED]/20 transition"
-                            >
-                              <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0">
-                                <FaFilePdf className="text-lg" />
-                              </div>
-                              <div className="min-w-0 flex-1 text-xs">
-                                <h5 className="font-black text-slate-805 dark:text-white truncate">{file.filename || "Attachment.pdf"}</h5>
-                                <p className="text-[9px] text-slate-455 font-bold uppercase tracking-wider mt-0.5">{formatBytes(file.size || 1.2 * 1024 * 1024)} • PDF</p>
-                              </div>
-                              <a 
-                                href={file.url || "#"} 
-                                target="_blank" 
-                                rel="noreferrer"
-                                className="w-8 h-8 rounded-lg bg-white dark:bg-white/5 hover:bg-slate-50 text-slate-500 flex items-center justify-center border border-slate-200 dark:border-white/10 transition shrink-0 cursor-pointer"
-                              >
-                                <FaDownload className="text-[10px]" />
-                              </a>
+                          {hasReaction && (
+                            <div className="ml-1 flex items-center gap-1 bg-slate-100 dark:bg-white/10 border border-slate-200/60 dark:border-white/10 rounded-full px-2 py-0.5 text-[10px]">
+                              <span>{msg.reactions[0].emoji}</span>
+                              <span className="text-[9px] font-bold">{msg.reactions.length}</span>
                             </div>
-                          ))}
-
-                          <div className="flex items-center gap-2 mt-1.5 select-none font-mono">
-                            <span className="text-[8.5px] text-slate-400 font-extrabold">
-                              {msg.timeLabel || new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                            </span>
-                            
-                            {isSenderMe && (
-                              <FaCheckDouble className={`text-[9px] ${msg.status === "read" ? "text-blue-500" : "text-slate-350"}`} />
-                            )}
-
-                            {hasReaction && (
-                              <div className="ml-1 flex items-center gap-1 bg-slate-100 dark:bg-white/5 border border-slate-200/40 dark:border-white/10 rounded-full px-1.5 py-0.5 text-[9px] font-black text-slate-655 cursor-pointer">
-                                <span>{msg.reactions[0].emoji}</span>
-                                <span className="text-[8px]">{msg.reactions.length}</span>
-                              </div>
-                            )}
-                            
-                            {!isSenderMe && !hasReaction && (
-                              <button
-                                onClick={() => handleReactToMessage(msg._id, "❤️")}
-                                className="text-[10px] text-slate-400 hover:text-[#7C3AED] cursor-pointer ml-1"
-                              >
-                                ❤️
-                              </button>
-                            )}
-                          </div>
-
+                          )}
+                          
+                          {!isSenderMe && !hasReaction && (
+                            <button
+                              onClick={() => handleReactToMessage(msg._id, "❤️")}
+                              className="text-[11px] opacity-40 hover:opacity-100 transition cursor-pointer ml-1"
+                            >
+                              ❤️
+                            </button>
+                          )}
                         </div>
-                      );
-                    })}
 
-                    <div ref={messagesEndRef} />
-                  </div>
+                      </div>
+                    );
+                  })
+                )}
 
-                  {/* Input form */}
-                  <form onSubmit={handleSendMessage} className="p-4.5 border-t border-slate-100 dark:border-white/5 flex items-center gap-3">
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileUpload}
-                      className="hidden"
-                      accept=".pdf,image/*,video/*"
-                    />
+                <div ref={messagesEndRef} />
+              </div>
 
-                    <button
-                      type="button"
-                      disabled={uploading}
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-9.5 h-9.5 bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-805 flex items-center justify-center transition cursor-pointer shrink-0"
-                    >
-                      <FaPaperclip className="text-xs" />
-                    </button>
+              {/* Message Input Bar */}
+              <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-100 dark:border-white/[0.06] flex items-center gap-3 bg-white dark:bg-[#0B132A]">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  accept=".pdf,image/*,video/*"
+                />
 
-                    <button
-                      type="button"
-                      onClick={() => setInputText(prev => prev + " ji")}
-                      className="w-9.5 h-9.5 bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-805 flex items-center justify-center transition cursor-pointer shrink-0"
-                    >
-                      <FaRegSmile className="text-xs" />
-                    </button>
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-10 h-10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl text-slate-500 dark:text-slate-400 flex items-center justify-center transition cursor-pointer shrink-0 border border-slate-200/60 dark:border-white/10"
+                  title="Attach File"
+                >
+                  <FaPaperclip className="text-sm" />
+                </button>
 
-                    <div className="relative flex-1">
-                      <input
-                        type="text"
-                        placeholder="Type your message..."
-                        value={inputText}
-                        onChange={(e) => setInputText(e.target.value)}
-                        className="w-full px-4.5 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#1E293B] text-slate-850 dark:text-white placeholder-slate-405 text-xs font-semibold focus:outline-none"
-                      />
-                    </div>
+                <button
+                  type="button"
+                  onClick={() => setInputText(prev => prev + " 😊")}
+                  className="w-10 h-10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl text-slate-500 dark:text-slate-400 flex items-center justify-center transition cursor-pointer shrink-0 border border-slate-200/60 dark:border-white/10"
+                  title="Emoji"
+                >
+                  <FaRegSmile className="text-sm" />
+                </button>
 
-                    {inputText.trim() ? (
-                      <button
-                        type="submit"
-                        className="w-9.5 h-9.5 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl flex items-center justify-center transition cursor-pointer shrink-0"
-                      >
-                        <FaPaperPlane className="text-xs" />
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => alert("Voice transcription started...")}
-                        className="w-9.5 h-9.5 bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20 rounded-xl flex items-center justify-center transition cursor-pointer shrink-0"
-                      >
-                        <FaMicrophone className="text-xs" />
-                      </button>
-                    )}
-                  </form>
-
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="Type your message..."
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-[#1E293B] text-slate-800 dark:text-white placeholder-slate-400 text-xs font-semibold focus:outline-none focus:border-[#7C3AED]"
+                  />
                 </div>
-              ) : (
-                <div className="flex-grow flex flex-col items-center justify-center text-center p-8 bg-slate-50/10">
-                  <div className="w-16 h-16 rounded-3xl bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center text-2xl mb-4 shadow-sm">
-                    <FaComments />
-                  </div>
-                  <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">No Active Chat Selected</h3>
-                  <p className="text-xs text-slate-450 mt-1 max-w-xs leading-relaxed">
-                    Select an Admin from the contact list on the left to start real-time messaging support.
-                  </p>
-                </div>
-              )}
-      </div>
+
+                {inputText.trim() ? (
+                  <button
+                    type="submit"
+                    className="w-10 h-10 bg-gradient-to-r from-[#7C3AED] to-[#6366F1] hover:from-[#6D28D9] hover:to-[#4F46E5] text-white rounded-xl flex items-center justify-center transition shadow-md shadow-[#7C3AED]/20 cursor-pointer shrink-0"
+                  >
+                    <FaPaperPlane className="text-xs" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => alert("Voice transcription started...")}
+                    className="w-10 h-10 bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20 rounded-xl flex items-center justify-center transition cursor-pointer shrink-0"
+                  >
+                    <FaMicrophone className="text-xs" />
+                  </button>
+                )}
+              </form>
+
+            </div>
+          ) : (
+            <div className="flex-grow flex flex-col items-center justify-center text-center p-8">
+              <div className="w-16 h-16 rounded-3xl bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center text-2xl mb-4 shadow-sm">
+                <FaComments />
+              </div>
+              <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">No Active Chat Selected</h3>
+              <p className="text-xs text-slate-400 mt-1 max-w-xs leading-relaxed">
+                Select an Admin from the contact list on the left to start real-time messaging support.
+              </p>
+            </div>
+          )}
+        </div>
 
       </div>
 
     </div>
-
-  </div>
-);
+  );
 }
 
 export default SuperAdminSupport;
