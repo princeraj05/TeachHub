@@ -70,7 +70,8 @@ function SuperAdminUsers() {
       const res = await axios.get(`${API}/api/superadmin/users`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setUsers(res.data);
+      const data = Array.isArray(res.data) ? res.data : (res.data?.users || res.data?.data || []);
+      setUsers(data);
     } catch (err) {
       console.error("Error fetching users:", err);
       setError(err.response?.data?.message || "Failed to fetch users");
@@ -85,7 +86,7 @@ function SuperAdminUsers() {
       const res = await axios.get(`${API}/api/superadmin/schools`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setSchools(res.data);
+      setSchools(Array.isArray(res.data) ? res.data : (res.data?.schools || res.data?.data || []));
     } catch (err) {
       console.error("Error fetching schools:", err);
     }
@@ -97,7 +98,8 @@ function SuperAdminUsers() {
       setSaving(true);
       setError("");
       setSuccess("");
-      const targetUser = users.find(u => u._id === userId);
+      const userList = Array.isArray(users) ? users : [];
+      const targetUser = userList.find(u => u._id === userId);
       // Approve defaults to student with G.D Academy if unassigned
       const finalRole = targetUser?.role === "unassigned" ? "student" : targetUser?.role;
       const finalSchool = targetUser?.schoolName || "G.D Academy";
@@ -164,8 +166,9 @@ function SuperAdminUsers() {
       setSaving(true);
       setError("");
       setSuccess("");
+      const userList = Array.isArray(users) ? users : [];
       for (const id of selectedIds) {
-        const u = users.find(user => user._id === id);
+        const u = userList.find(user => user._id === id);
         if (u) {
           const finalRole = u.role === "unassigned" ? "student" : u.role;
           const finalSchool = u.schoolName || "G.D Academy";
@@ -264,18 +267,21 @@ function SuperAdminUsers() {
     setTimeout(() => setSuccess(""), 3000);
   };
 
+  // Safe user array reference
+  const userList = useMemo(() => (Array.isArray(users) ? users : []), [users]);
+
   // Stats Calculations
-  const totalUsersCount = users.filter(u => u.role !== "superadmin").length;
+  const totalUsersCount = userList.filter(u => u.role !== "superadmin").length;
   
-  const isPending = (u) => u.role === "unassigned" && u.requestStatus !== "rejected" || ["pending", "scheduled", "exam_completed"].includes(u.requestStatus);
-  const pendingUsersCount = users.filter(u => u.role !== "superadmin" && isPending(u)).length;
+  const isPending = (u) => (u.role === "unassigned" && u.requestStatus !== "rejected") || ["pending", "scheduled", "exam_completed"].includes(u.requestStatus);
+  const pendingUsersCount = userList.filter(u => u.role !== "superadmin" && isPending(u)).length;
   
-  const approvedUsersCount = users.filter(u => u.role !== "superadmin" && !isPending(u) && u.requestStatus !== "rejected").length;
+  const approvedUsersCount = userList.filter(u => u.role !== "superadmin" && !isPending(u) && u.requestStatus !== "rejected").length;
   const deactivatedUsersCount = 0; // mockup deactivations count
 
   // Filtered Users List
   const displayedUsers = useMemo(() => {
-    return users
+    return userList
       .filter(u => u.role !== "superadmin")
       .filter(u => {
         // Tab Filters
@@ -302,7 +308,7 @@ function SuperAdminUsers() {
         const dateB = new Date(b.createdAt || 0);
         return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
       });
-  }, [users, activeTab, search, roleFilter, schoolFilter, sortOrder]);
+  }, [userList, activeTab, search, roleFilter, schoolFilter, sortOrder]);
 
   const initials = (nameText) => {
     if (!nameText) return "U";

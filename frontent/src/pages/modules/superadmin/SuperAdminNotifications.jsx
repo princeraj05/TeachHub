@@ -10,16 +10,7 @@ import {
   FaShieldAlt,
   FaSearch,
   FaFilter,
-  FaRegClock,
-  FaCog,
-  FaFolderOpen,
-  FaRupeeSign as FaMoney,
-  FaWrench,
-  FaPlusCircle,
-  FaServer,
-  FaChevronRight,
-  FaCheckCircle,
-  FaTimesCircle
+  FaCheckCircle
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -36,55 +27,16 @@ function SuperAdminNotifications() {
   const [searchQuery, setSearchQuery] = useState("");
   const [timeFilter, setTimeFilter] = useState("All Time");
 
-  // Notification settings status mockup
-  const [emailAlerts, setEmailAlerts] = useState(true);
-  const [smsAlerts, setSmsAlerts] = useState(true);
-  const [pushAlerts, setPushAlerts] = useState(true);
-  const [dndStatus, setDndStatus] = useState(false);
-
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+  const itemsPerPage = 10;
 
   // Feedback notifications
   const [successMsg, setSuccessMsg] = useState("");
 
   useEffect(() => {
     fetchNotifications();
-    fetchSettings();
   }, []);
-
-  const fetchSettings = async () => {
-    try {
-      const res = await axios.get(`${API}/api/auth/profile`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.data) {
-        setEmailAlerts(res.data.emailNotifications !== undefined ? res.data.emailNotifications : true);
-        setSmsAlerts(res.data.smsNotifications !== undefined ? res.data.smsNotifications : true);
-        setPushAlerts(res.data.pushNotifications !== undefined ? res.data.pushNotifications : true);
-        setDndStatus(res.data.dndMode !== undefined ? res.data.dndMode : false);
-      }
-    } catch (err) {
-      console.error("Error loading notification settings:", err);
-    }
-  };
-
-  const handleToggleSetting = async (key, currentValue, setter) => {
-    try {
-      const newValue = !currentValue;
-      await axios.put(`${API}/api/auth/profile`, {
-        [key]: newValue
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setter(newValue);
-      setSuccessMsg("Notification preferences updated successfully!");
-      setTimeout(() => setSuccessMsg(""), 3000);
-    } catch (err) {
-      console.error("Error updating setting:", err);
-    }
-  };
 
   const fetchNotifications = async () => {
     try {
@@ -138,34 +90,6 @@ function SuperAdminNotifications() {
 
     return { approvals, payments, support, schools, system, total, unread };
   }, [notifications]);
-
-  // Donut chart calculations
-  const chartSegments = useMemo(() => {
-    const data = [
-      { key: "approval", value: stats.approvals, color: "#7C3AED" }, // purple
-      { key: "payment", value: stats.payments, color: "#10B981" }, // green
-      { key: "support", value: stats.support, color: "#F59E0B" }, // orange
-      { key: "school", value: stats.schools, color: "#3B82F6" }, // blue
-      { key: "system", value: stats.system, color: "#EF4444" } // red
-    ];
-
-    const totalVal = stats.total || 1;
-    let accumulatedAngle = 0;
-
-    return data.map(seg => {
-      const percentage = (seg.value / totalVal) * 100;
-      const angle = (seg.value / totalVal) * 360;
-      const currentAccumulated = accumulatedAngle;
-      accumulatedAngle += angle;
-
-      return {
-        ...seg,
-        percentage: percentage.toFixed(1),
-        strokeDasharray: `${angle} ${360 - angle}`,
-        strokeDashoffset: -currentAccumulated
-      };
-    });
-  }, [stats]);
 
   // Filtered Notifications list
   const filteredList = useMemo(() => {
@@ -290,7 +214,7 @@ function SuperAdminNotifications() {
   }
 
   return (
-    <div style={{ fontFamily: SORA }} className="space-y-6 text-slate-805 dark:text-white text-left max-w-5xl mx-auto pb-12 select-none animate-fadeIn">
+    <div style={{ fontFamily: SORA }} className="space-y-6 text-slate-805 dark:text-white text-left max-w-6xl mx-auto pb-12 select-none animate-fadeIn">
       
       {/* 1. Page Header breadcrumbs and mark all triggers */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none">
@@ -318,7 +242,7 @@ function SuperAdminNotifications() {
         </div>
       )}
 
-      {/* 2. KPI Stats Cards Grid (5 cards with count and click filter link) */}
+      {/* 2. KPI Stats Cards Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 select-none">
         {[
           { id: "approval", label: "Pending Approvals", count: stats.approvals, color: "bg-purple-500/10 text-purple-650", icon: <FaFileAlt className="text-sm" /> },
@@ -337,7 +261,7 @@ function SuperAdminNotifications() {
             <p className="text-xl font-black leading-none">{card.count}</p>
             <button 
               onClick={() => { setFilterCategory(card.id); setCurrentPage(1); }}
-              className="text-[9px] font-black text-[#7C3AED] dark:text-[#38BDF8] mt-2 block hover:underline cursor-pointer uppercase tracking-wider bg-transparent"
+              className="text-[9px] font-black text-[#7C3AED] dark:text-[#38BDF8] mt-2 block hover:underline cursor-pointer uppercase tracking-wider bg-transparent border-0"
             >
               View all →
             </button>
@@ -358,7 +282,7 @@ function SuperAdminNotifications() {
           <button
             key={tab.id}
             onClick={() => { setFilterCategory(tab.id); setCurrentPage(1); }}
-            className={`pb-3 px-3 text-xs font-black transition cursor-pointer relative shrink-0 ${
+            className={`pb-3 px-3 text-xs font-black transition cursor-pointer relative shrink-0 border-0 ${
               filterCategory === tab.id
                 ? "text-[#7C3AED] dark:text-[#38BDF8]"
                 : "text-slate-500 hover:text-slate-750"
@@ -400,268 +324,107 @@ function SuperAdminNotifications() {
         </select>
       </div>
 
-      {/* 5. Main split layout: Timelines List & Side Summary Panel */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Left Column (2/3 width) - Timeline Logs list */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm space-y-6">
-            
-            {filteredList.length === 0 ? (
-              <div className="py-20 text-center text-slate-405 font-bold">
-                No notifications found matching your search.
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {Object.keys(groupedNotifications).map((dateHeader) => (
-                  <div key={dateHeader} className="space-y-3">
-                    {/* Timeline Date header title */}
-                    <h4 className="text-[10px] font-black text-slate-405 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 pb-1 select-none">
-                      {dateHeader}
-                    </h4>
+      {/* 5. Main Notifications Timeline List (Full Width) */}
+      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm space-y-6">
+        {filteredList.length === 0 ? (
+          <div className="py-20 text-center text-slate-405 font-bold">
+            No notifications found matching your search.
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {Object.keys(groupedNotifications).map((dateHeader) => (
+              <div key={dateHeader} className="space-y-3">
+                {/* Timeline Date header title */}
+                <h4 className="text-[10px] font-black text-slate-405 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 pb-1 select-none">
+                  {dateHeader}
+                </h4>
 
-                    {/* Timeline Rows */}
-                    <div className="space-y-3">
-                      {groupedNotifications[dateHeader].map((item) => (
-                        <div 
-                          key={item._id}
-                          onClick={() => markSingleAsRead(item._id)}
-                          className={`p-3.5 rounded-2.5xl flex items-center justify-between gap-4 border transition-colors cursor-pointer ${
-                            item.isRead 
-                              ? "bg-transparent border-slate-100 dark:border-white/5 opacity-70" 
-                              : "bg-slate-50/50 dark:bg-white/[0.01] border-slate-200/50 dark:border-white/10 hover:bg-slate-50"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3.5 min-w-0">
-                            {/* Icon circle */}
-                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${getCategoryBgColor(item.category)}`}>
-                              {getCategoryIcon(item.category)}
-                            </div>
-
-                            <div className="min-w-0">
-                              <h5 className="text-xs font-black text-slate-900 dark:text-white leading-snug">{item.title}</h5>
-                              <p className="text-[10px] text-slate-455 dark:text-slate-400 font-semibold mt-0.5">{item.message}</p>
-                            </div>
-                          </div>
-
-                          {/* Time & status badge */}
-                          <div className="text-right shrink-0 flex items-center gap-3 select-none">
-                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${getCategoryTagClass(item.category)}`}>
-                              {getCategoryLabel(item.category)}
-                            </span>
-                            
-                            <span className="text-[9px] text-slate-400 font-extrabold font-mono shrink-0">
-                              {new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                            </span>
-
-                            {/* Blue unread dot */}
-                            {!item.isRead && (
-                              <span className="w-2 h-2 rounded-full bg-[#7C3AED] shrink-0 block" />
-                            )}
-                          </div>
-
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Pagination controls footer */}
-            {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-slate-100 dark:border-white/5 pt-4 gap-3 select-none text-[10px] font-bold text-slate-455">
-                <span>
-                  Showing {Math.min(filteredList.length, (currentPage - 1) * itemsPerPage + 1)} to {Math.min(filteredList.length, currentPage * itemsPerPage)} of {filteredList.length} notifications
-                </span>
-                
-                <div className="flex items-center gap-2 self-end sm:self-auto font-mono">
-                  <button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(p => p - 1)}
-                    className="w-8 h-8 rounded-lg bg-white dark:bg-white/5 hover:bg-slate-50 border border-slate-200 dark:border-white/10 flex items-center justify-center disabled:opacity-40 cursor-pointer"
-                  >
-                    &lt;
-                  </button>
-                  {[...Array(totalPages)].map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setCurrentPage(i + 1)}
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition ${
-                        currentPage === i + 1
-                          ? "bg-[#7C3AED] text-white"
-                          : "bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700"
+                {/* Timeline Rows */}
+                <div className="space-y-3">
+                  {groupedNotifications[dateHeader].map((item) => (
+                    <div 
+                      key={item._id}
+                      onClick={() => markSingleAsRead(item._id)}
+                      className={`p-4 rounded-2.5xl flex items-center justify-between gap-4 border transition-colors cursor-pointer ${
+                        item.isRead 
+                          ? "bg-transparent border-slate-100 dark:border-white/5 opacity-70" 
+                          : "bg-slate-50/50 dark:bg-white/[0.01] border-slate-200/50 dark:border-white/10 hover:bg-slate-50"
                       }`}
                     >
-                      {i + 1}
-                    </button>
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        {/* Icon circle */}
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${getCategoryBgColor(item.category)}`}>
+                          {getCategoryIcon(item.category)}
+                        </div>
+
+                        <div className="min-w-0">
+                          <h5 className="text-xs font-black text-slate-900 dark:text-white leading-snug">{item.title}</h5>
+                          <p className="text-[10px] text-slate-455 dark:text-slate-400 font-semibold mt-0.5">{item.message}</p>
+                        </div>
+                      </div>
+
+                      {/* Time & status badge */}
+                      <div className="text-right shrink-0 flex items-center gap-3 select-none">
+                        <span className={`px-2.5 py-1 rounded text-[8.5px] font-black uppercase tracking-wider ${getCategoryTagClass(item.category)}`}>
+                          {getCategoryLabel(item.category)}
+                        </span>
+                        
+                        <span className="text-[9px] text-slate-400 font-extrabold font-mono shrink-0">
+                          {new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+
+                        {/* Blue unread dot */}
+                        {!item.isRead && (
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#7C3AED] shrink-0 block" />
+                        )}
+                      </div>
+
+                    </div>
                   ))}
-                  <button
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage(p => p + 1)}
-                    className="w-8 h-8 rounded-lg bg-white dark:bg-white/5 hover:bg-slate-50 border border-slate-200 dark:border-white/10 flex items-center justify-center disabled:opacity-40 cursor-pointer"
-                  >
-                    &gt;
-                  </button>
                 </div>
               </div>
-            )}
-
+            ))}
           </div>
-        </div>
+        )}
 
-        {/* Right Column (1/3 width) - Summary & Settings Panels */}
-        <div className="space-y-6 select-none text-left">
-          
-          {/* Notification Donut Chart summary */}
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm space-y-4">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Notification Summary</span>
+        {/* Pagination controls footer */}
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-slate-100 dark:border-white/5 pt-4 gap-3 select-none text-[10px] font-bold text-slate-455">
+            <span>
+              Showing {Math.min(filteredList.length, (currentPage - 1) * itemsPerPage + 1)} to {Math.min(filteredList.length, currentPage * itemsPerPage)} of {filteredList.length} notifications
+            </span>
             
-            <div className="flex items-center justify-center p-3 relative h-40">
-              {/* SVG Donut Circle */}
-              <svg className="w-36 h-36 transform -rotate-90" viewBox="0 0 120 120">
-                <circle cx="60" cy="60" r="50" fill="transparent" stroke="#E2E8F0" strokeWidth="12" />
-                {stats.total > 0 && chartSegments.map((seg, idx) => {
-                  const radius = 50;
-                  const circumference = 2 * Math.PI * radius; // ~314.16
-                  const strokeLength = (seg.value / stats.total) * circumference;
-                  const offsetLength = circumference - strokeLength;
-                  
-                  // Calculate accumulated stroke offset
-                  let previousTotal = 0;
-                  for (let i = 0; i < idx; i++) {
-                    previousTotal += chartSegments[i].value;
-                  }
-                  const strokeOffset = (previousTotal / stats.total) * circumference;
-
-                  return (
-                    <circle
-                      key={idx}
-                      cx="60"
-                      cy="60"
-                      r="50"
-                      fill="transparent"
-                      stroke={seg.color}
-                      strokeWidth="12"
-                      strokeDasharray={`${strokeLength} ${offsetLength}`}
-                      strokeDashoffset={-strokeOffset}
-                    />
-                  );
-                })}
-              </svg>
-              {/* Inner absolute text */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <p className="text-xl font-black font-mono leading-none">{stats.total}</p>
-                <span className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5 tracking-wider">Total</span>
-              </div>
-            </div>
-
-            {/* Donut Legend */}
-            <div className="space-y-2 text-[10px] font-bold text-slate-500">
-              {chartSegments.map((seg, idx) => (
-                <div key={idx} className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full shrink-0 block" style={{ backgroundColor: seg.color }} />
-                    {getCategoryLabel(seg.key)}
-                  </span>
-                  <span className="font-mono text-slate-700 dark:text-slate-300">
-                    {seg.value} ({seg.percentage}%)
-                  </span>
-                </div>
-              ))}
-            </div>
-
-          </div>
-
-          {/* Recent Unread preview panel */}
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm space-y-4">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Recent Unread</span>
-            
-            <div className="space-y-3">
-              {notifications.filter(n => !n.isRead).slice(0, 5).map((item) => (
-                <div key={item._id} className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#7C3AED] mt-1 shrink-0 block" />
-                  <div className="min-w-0">
-                    <h6 className="text-[11px] font-black text-slate-805 dark:text-white leading-snug truncate">{item.title}</h6>
-                    <span className="text-[8.5px] font-extrabold text-slate-400 font-mono block mt-0.5">
-                      {new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <button 
-              onClick={() => { setFilterCategory("All"); setSearchQuery(""); }}
-              className="text-[9px] font-black text-[#7C3AED] dark:text-[#38BDF8] uppercase tracking-widest hover:underline cursor-pointer block bg-transparent border-0"
-            >
-              View all unread →
-            </button>
-          </div>
-
-          {/* Quick Actions Shortcuts */}
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm space-y-4">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Quick Actions</span>
-            
-            <div className="space-y-2">
-              <button onClick={() => navigate("/superadmin/schools")} className="w-full text-left bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 p-2.5 rounded-xl text-slate-705 dark:text-slate-200 text-xs font-bold transition flex items-center gap-2 cursor-pointer border-0">
-                <FaFolderOpen className="text-purple-500 shrink-0" /> View Pending Approvals
+            <div className="flex items-center gap-2 self-end sm:self-auto font-mono">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => p - 1)}
+                className="w-8 h-8 rounded-lg bg-white dark:bg-white/5 hover:bg-slate-50 border border-slate-200 dark:border-white/10 flex items-center justify-center disabled:opacity-40 cursor-pointer"
+              >
+                &lt;
               </button>
-
-              <button onClick={() => navigate("/superadmin/payments")} className="w-full text-left bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 p-2.5 rounded-xl text-slate-705 dark:text-slate-200 text-xs font-bold transition flex items-center gap-2 cursor-pointer border-0">
-                <FaMoney className="text-emerald-500 shrink-0" /> View Payments
-              </button>
-
-              <button onClick={() => navigate("/superadmin/support")} className="w-full text-left bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 p-2.5 rounded-xl text-slate-705 dark:text-slate-200 text-xs font-bold transition flex items-center gap-2 cursor-pointer border-0">
-                <FaComments className="text-amber-500 shrink-0" /> Open Support Center
-              </button>
-
-              <button onClick={() => navigate("/superadmin/schools")} className="w-full text-left bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 p-2.5 rounded-xl text-slate-705 dark:text-slate-200 text-xs font-bold transition flex items-center gap-2 cursor-pointer border-0">
-                <FaPlusCircle className="text-blue-500 shrink-0" /> Add New School
-              </button>
-
-              <button onClick={() => navigate("/superadmin/about")} className="w-full text-left bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 p-2.5 rounded-xl text-slate-705 dark:text-slate-200 text-xs font-bold transition flex items-center gap-2 cursor-pointer border-0">
-                <FaServer className="text-rose-500 shrink-0" /> System Status
-              </button>
-            </div>
-          </div>
-
-          {/* Notification Settings checkboxes */}
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm space-y-4">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Notification Settings</span>
-            
-            <div className="space-y-1.5">
-              {[
-                { key: "emailNotifications", label: "Email Notifications", value: emailAlerts, setter: setEmailAlerts },
-                { key: "smsNotifications", label: "SMS Notifications", value: smsAlerts, setter: setSmsAlerts },
-                { key: "pushNotifications", label: "Push Notifications", value: pushAlerts, setter: setPushAlerts },
-                { key: "dndMode", label: "Do Not Disturb", value: dndStatus, setter: setDndStatus }
-              ].map((setting, idx) => (
-                <div 
-                  key={idx}
-                  onClick={() => handleToggleSetting(setting.key, setting.value, setting.setter)}
-                  className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-white/[0.01] rounded-xl transition cursor-pointer"
+              {[...Array(totalPages)].map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition ${
+                    currentPage === i + 1
+                      ? "bg-[#7C3AED] text-white"
+                      : "bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700"
+                  }`}
                 >
-                  <div className="flex flex-col text-left">
-                    <span className="text-xs font-semibold text-slate-750 dark:text-slate-350">{setting.label}</span>
-                    <span className="text-[8.5px] text-slate-400 font-bold block mt-0.5">
-                      {setting.value ? "Enabled" : "Disabled"}
-                    </span>
-                  </div>
-                  <FaChevronRight className="text-slate-400 text-[10px]" />
-                </div>
+                  {i + 1}
+                </button>
               ))}
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(p => p + 1)}
+                className="w-8 h-8 rounded-lg bg-white dark:bg-white/5 hover:bg-slate-50 border border-slate-200 dark:border-white/10 flex items-center justify-center disabled:opacity-40 cursor-pointer"
+              >
+                &gt;
+              </button>
             </div>
-
-            <button 
-              onClick={() => navigate("/superadmin/profile")}
-              className="text-[9px] font-black text-[#7C3AED] dark:text-[#38BDF8] uppercase tracking-widest hover:underline cursor-pointer block bg-transparent border-0"
-            >
-              Manage Preferences →
-            </button>
           </div>
-
-        </div>
+        )}
 
       </div>
 
