@@ -1,3 +1,21 @@
+const fs = require("fs");
+const path = require("path");
+
+// Auto-create physical .env file at runtime if missing (for Hostinger deployment checks)
+const envPath = path.join(__dirname, ".env");
+if (!fs.existsSync(envPath)) {
+  try {
+    let envContent = "";
+    for (const [key, val] of Object.entries(process.env)) {
+      if (val) envContent += `${key}=${val}\n`;
+    }
+    fs.writeFileSync(envPath, envContent);
+    console.log("Runtime .env file created successfully from environment variables.");
+  } catch (e) {
+    console.error("Could not write runtime .env file:", e.message);
+  }
+}
+
 require("dotenv").config();
 
 const express = require("express");
