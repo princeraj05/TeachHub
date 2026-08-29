@@ -1,6 +1,7 @@
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useTheme } from "../../../context/ThemeContext";
+import { usePlatform } from "../../../context/PlatformContext";
 import axios from "axios";
 import { performLogout } from "../../../utils/logout";
 import {

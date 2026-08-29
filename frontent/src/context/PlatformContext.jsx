@@ -31,7 +31,9 @@ export const PlatformProvider = ({ children }) => {
   const fetchPlatformConfig = useCallback(async () => {
     try {
       const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await axios.get(`${API}/api/about-app`);
+      const token = localStorage.getItem("token");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await axios.get(`${API}/api/about-app`, { headers });
       if (res.data) {
         setPlatformConfig(res.data);
         if (res.data.platformName) setPlatformName(res.data.platformName);

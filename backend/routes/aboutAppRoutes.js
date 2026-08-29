@@ -22,7 +22,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-router.get("/", protect, getAboutInfo);
+router.get("/", getAboutInfo);
 router.put("/", protect, authorize("superadmin"), updateAboutInfo);
 router.post("/logo", protect, authorize("superadmin"), upload.single("logo"), uploadLogo);
 
