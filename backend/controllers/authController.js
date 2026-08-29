@@ -211,6 +211,13 @@ exports.sendOTP = async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
     }
 
+    // Bypass OTP sending for static test accounts
+    if (email === "razorpay@gmail.com" || email === "razorpay@teachhub.com") {
+      return res.status(200).json({
+        message: "OTP sent successfully (static OTP active)"
+      });
+    }
+
     // Cooldown check: prevent requesting more than once every 60 seconds
     const existingOtp = await Otp.findOne({ email });
     if (existingOtp) {
@@ -271,11 +278,93 @@ exports.verifyOTP = async (req, res) => {
       return res.status(400).json({ message: "Email and OTP are required" });
     }
 
-    // Find OTP record
-    const otpRecord = await Otp.findOne({ email });
-    if (!otpRecord) {
-      return res.status(400).json({ message: "Invalid or expired OTP" });
-    }
+    const isStaticTest = (email === "razorpay@gmail.com" || email === "razorpay@teachhub.com") && otp === "123456";
+
+    let user;
+    if (isStaticTest) {
+      const School = require("../models/School");
+      const FeePlan = require("../models/FeePlan");
+      const PaymentSettings = require("../models/PaymentSettings");
+
+      // 1. Ensure the demo school exists
+      const demoSchoolName = "TeachHub Demo School";
+      let demoSchool = await School.findOne({ normalizedName: demoSchoolName.toLowerCase() });
+      if (!demoSchool) {
+        demoSchool = await School.create({
+          name: demoSchoolName,
+          normalizedName: demoSchoolName.toLowerCase(),
+          photo: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80",
+          schoolPhotos: [
+            "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80"
+          ],
+          principalName: "Demo Principal",
+          description: "Demo school for verification."
+        });
+      }
+
+      // 2. Ensure the admin user exists for the demo school
+      let demoAdmin = await User.findOne({ role: "admin", schoolName: demoSchoolName });
+      if (!demoAdmin) {
+        demoAdmin = await User.create({
+          name: "Demo Admin",
+          email: "demo-admin@teachhub.com",
+          role: "admin",
+          schoolName: demoSchoolName
+        });
+      }
+
+      // 3. Ensure PaymentSettings exists for the admin of the demo school
+      let demoSettings = await PaymentSettings.findOne({ role: "admin", schoolName: demoSchoolName });
+      if (!demoSettings) {
+        const keyId = process.env.RAZORPAY_KEY_ID || process.env.RAZORPAY_TEST_KEY_ID || process.env.RAZORPAY_LIVE_KEY_ID || "";
+        const keySecret = process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_TEST_KEY_SECRET || process.env.RAZORPAY_LIVE_KEY_SECRET || "";
+        demoSettings = await PaymentSettings.create({
+          userId: demoAdmin._id,
+          role: "admin",
+          schoolName: demoSchoolName,
+          environment: "test",
+          onlineEnabled: true,
+          offlineEnabled: true,
+          razorpayKeyId: keyId,
+          razorpayKeySecret: keySecret
+        });
+      }
+
+      // 4. Ensure FeePlan exists for the demo school
+      let demoPlan = await FeePlan.findOne({ schoolName: demoSchoolName, active: true });
+      if (!demoPlan) {
+        demoPlan = await FeePlan.create({
+          schoolName: demoSchoolName,
+          monthlyFee: 10000, // ₹100.00
+          currency: "INR",
+          validityDays: 30,
+          active: true
+        });
+      }
+
+      // 5. Find or create the student user
+      user = await User.findOne({ email });
+      if (!user) {
+        user = await User.create({
+          name: "Razorpay Test Student",
+          email,
+          role: "student",
+          schoolName: demoSchoolName,
+          requestStatus: "approved"
+        });
+      } else {
+        // Ensure student has correct role and schoolName
+        user.role = "student";
+        user.schoolName = demoSchoolName;
+        user.requestStatus = "approved";
+        await user.save();
+      }
+    } else {
+      // Find OTP record
+      const otpRecord = await Otp.findOne({ email });
+      if (!otpRecord) {
+        return res.status(400).json({ message: "Invalid or expired OTP" });
+      }
 
     // Double check expiry
     if (otpRecord.expiresAt < new Date()) {
