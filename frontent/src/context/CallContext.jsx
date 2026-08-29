@@ -32,41 +32,32 @@ export const CallProvider = ({ children }) => {
   const soundIntervalRef = useRef(null);
   const timerRef = useRef(null);
 
-  // Refs for tracking dynamic calling state inside socket listeners to prevent socket reconnects
+  // Refs for tracking dynamic calling state inside socket listeners
   const callStateRef = useRef(callState);
   const callPartnerRef = useRef(callPartner);
   const callTypeRef = useRef(callType);
   const currentCallIdRef = useRef(currentCallId);
   const callDurationRef = useRef(callDuration);
 
-  useEffect(() => {
-    callStateRef.current = callState;
-  }, [callState]);
+  useEffect(() => { callStateRef.current = callState; }, [callState]);
+  useEffect(() => { callPartnerRef.current = callPartner; }, [callPartner]);
+  useEffect(() => { callTypeRef.current = callType; }, [callType]);
+  useEffect(() => { currentCallIdRef.current = currentCallId; }, [currentCallId]);
+  useEffect(() => { callDurationRef.current = callDuration; }, [callDuration]);
 
-  useEffect(() => {
-    callPartnerRef.current = callPartner;
-  }, [callPartner]);
-
-  useEffect(() => {
-    callTypeRef.current = callType;
-  }, [callType]);
-
-  useEffect(() => {
-    currentCallIdRef.current = currentCallId;
-  }, [currentCallId]);
-
-  useEffect(() => {
-    callDurationRef.current = callDuration;
-  }, [callDuration]);
-
+  // Robust multi-STUN server config for Mobile LTE/5G and NAT traversal
   const ICE_SERVERS = {
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
-      { urls: "stun:stun1.l.google.com:19302" }
+      { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:19302" },
+      { urls: "stun:stun3.l.google.com:19302" },
+      { urls: "stun:stun4.l.google.com:19302" },
+      { urls: "stun:global.stun.twilio.com:3478" }
     ]
   };
 
-  // Helper for Sound Synthesis using Web Audio API (prevents 404 audio assets)
+  // Helper for Sound Synthesis using Web Audio API
   const startSoundEffect = (type) => {
     stopSoundEffect();
     try {
@@ -75,7 +66,6 @@ export const CallProvider = ({ children }) => {
       audioContextRef.current = ctx;
 
       if (type === "calling") {
-        // Dial tone: repeating dual-frequency sound (440Hz + 480Hz)
         soundIntervalRef.current = setInterval(() => {
           if (ctx.state === "suspended") ctx.resume();
           const osc1 = ctx.createOscillator();
@@ -98,7 +88,6 @@ export const CallProvider = ({ children }) => {
           osc2.stop(ctx.currentTime + 1.2);
         }, 2000);
       } else if (type === "ringing") {
-        // Ringing tone: sweet double pulse
         soundIntervalRef.current = setInterval(() => {
           if (ctx.state === "suspended") ctx.resume();
           const osc = ctx.createOscillator();
@@ -131,7 +120,6 @@ export const CallProvider = ({ children }) => {
     }
   };
 
-  // Toast notifier helper
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
@@ -141,15 +129,12 @@ export const CallProvider = ({ children }) => {
   useEffect(() => {
     if (!token) return;
 
-    // Connect global socket
     socket.auth = { token };
     if (!socket.connected) {
       socket.connect();
     }
 
-    // Call signaling listeners
     socket.on("call:incoming", ({ callId, callerId, callerName, callerAvatar, type }) => {
-      // If we are already in a call, notify caller we are busy
       if (callStateRef.current !== "idle") {
         socket.emit("call:busy", { callId });
         return;
@@ -167,13 +152,11 @@ export const CallProvider = ({ children }) => {
       setCallState("active");
       stopSoundEffect();
       
-      // Start duration timer
       setCallDuration(0);
       timerRef.current = setInterval(() => {
         setCallDuration((prev) => prev + 1);
       }, 1000);
 
-      // Caller side initiates WebRTC connection
       await setupWebRTC(true);
     });
 
@@ -214,7 +197,6 @@ export const CallProvider = ({ children }) => {
     });
 
     socket.on("call:offer", async ({ senderId, offer }) => {
-      // Receive offer on receiver side
       await setupWebRTC(false, offer);
     });
 
@@ -243,11 +225,9 @@ export const CallProvider = ({ children }) => {
       socket.off("call:offer");
       socket.off("call:answer");
       socket.off("call:ice-candidate");
-      socket.disconnect();
     };
   }, [token]);
 
-  // Clean up streams & peer connection
   const cleanupMedia = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -269,36 +249,41 @@ export const CallProvider = ({ children }) => {
     stopSoundEffect();
   };
 
-  // Setup WebRTC peer connection
   const setupWebRTC = async (isCaller, remoteOffer = null) => {
     try {
-      // 1. Get media stream
       const constraints = {
-        audio: true,
-        video: callTypeRef.current === "video"
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        },
+        video: callTypeRef.current === "video" ? {
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: "user"
+        } : false
       };
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       localStreamRef.current = stream;
       setLocalStream(stream);
 
-      // 2. Create peer connection
       const pc = new RTCPeerConnection(ICE_SERVERS);
       peerConnectionRef.current = pc;
 
-      // Add local tracks to peer connection
       stream.getTracks().forEach((track) => {
         pc.addTrack(track, stream);
       });
 
-      // Handle remote track stream
       pc.ontrack = (event) => {
         if (event.streams && event.streams[0]) {
           setRemoteStream(event.streams[0]);
+        } else if (event.track) {
+          const inboundStream = new MediaStream([event.track]);
+          setRemoteStream(inboundStream);
         }
       };
 
-      // Handle candidate collection
       pc.onicecandidate = (event) => {
         if (event.candidate && callPartnerRef.current) {
           socket.emit("call:ice-candidate", {
@@ -308,9 +293,7 @@ export const CallProvider = ({ children }) => {
         }
       };
 
-      // 3. Signaling exchange
       if (isCaller) {
-        // Create WebRTC Offer
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
         if (callPartnerRef.current) {
@@ -320,7 +303,6 @@ export const CallProvider = ({ children }) => {
           });
         }
       } else {
-        // Handle incoming WebRTC Offer
         await pc.setRemoteDescription(new RTCSessionDescription(remoteOffer));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
@@ -342,7 +324,6 @@ export const CallProvider = ({ children }) => {
     }
   };
 
-  // Action methods
   const startCall = (receiver, type) => {
     if (callState !== "idle") return;
 
@@ -351,7 +332,6 @@ export const CallProvider = ({ children }) => {
     setCallState("calling");
     startSoundEffect("calling");
 
-    // Emit initiate event to server
     socket.emit("call:initiate", {
       receiverId: receiver._id,
       type
@@ -364,7 +344,6 @@ export const CallProvider = ({ children }) => {
     stopSoundEffect();
     setCallState("active");
 
-    // Start timer
     setCallDuration(0);
     timerRef.current = setInterval(() => {
       setCallDuration((prev) => prev + 1);
@@ -401,7 +380,9 @@ export const CallProvider = ({ children }) => {
 
   const endCall = () => {
     stopSoundEffect();
-    socket.emit("call:end", { callId: currentCallIdRef.current, duration: callDurationRef.current });
+    if (currentCallIdRef.current) {
+      socket.emit("call:end", { callId: currentCallIdRef.current, duration: callDurationRef.current });
+    }
     cleanupMedia();
     setCallState("idle");
     setCurrentCallId(null);
@@ -435,19 +416,21 @@ export const CallProvider = ({ children }) => {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Video Ref mounts
+  // Video Ref mounts & Playback execution
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
       localVideoRef.current.srcObject = localStream;
+      localVideoRef.current.play().catch(() => {});
     }
   }, [localStream, callState]);
 
   useEffect(() => {
     if (remoteVideoRef.current && remoteStream) {
       remoteVideoRef.current.srcObject = remoteStream;
+      remoteVideoRef.current.play().catch(() => {});
     }
   }, [remoteStream, callState]);
 
@@ -481,9 +464,9 @@ export const CallProvider = ({ children }) => {
         </div>
       )}
 
-      {/* Global Call Modals & Overlays */}
+      {/* Incoming Call Modal */}
       {callState === "ringing" && callPartner && (
-        <div className="fixed inset-0 bg-[#070b13]/85 backdrop-blur-md flex items-center justify-center z-[99999] select-none select-none">
+        <div className="fixed inset-0 bg-[#070b13]/85 backdrop-blur-md flex items-center justify-center z-[99999] select-none">
           <div className="bg-[#0f172a] border border-white/10 p-8 rounded-3xl w-80 text-center shadow-2xl relative">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center mx-auto mb-6 text-white text-3xl font-black shadow-lg shadow-[#7C3AED]/20 animate-pulse">
               {callPartner.name.charAt(0).toUpperCase()}
@@ -511,6 +494,7 @@ export const CallProvider = ({ children }) => {
         </div>
       )}
 
+      {/* Outgoing Calling Modal */}
       {callState === "calling" && callPartner && (
         <div className="fixed inset-0 bg-[#070b13]/85 backdrop-blur-md flex items-center justify-center z-[99999] select-none">
           <div className="bg-[#0f172a] border border-white/10 p-8 rounded-3xl w-80 text-center shadow-2xl relative">
@@ -534,9 +518,10 @@ export const CallProvider = ({ children }) => {
         </div>
       )}
 
+      {/* Active Call Interface */}
       {callState === "active" && callPartner && (
         <div className="fixed inset-0 bg-[#070b13]/90 backdrop-blur-lg flex items-center justify-center z-[99999] select-none">
-          <div className="bg-[#0f172a] border border-white/10 p-8 rounded-3xl w-100 text-center shadow-2xl relative overflow-hidden flex flex-col justify-between h-[520px]">
+          <div className="bg-[#0f172a] border border-white/10 p-6 md:p-8 rounded-3xl w-full max-w-md mx-4 text-center shadow-2xl relative overflow-hidden flex flex-col justify-between h-[520px]">
             <div>
               <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">
                 Ongoing {callType === "video" ? "Video Call" : "Voice Call"}
@@ -548,8 +533,8 @@ export const CallProvider = ({ children }) => {
             </div>
 
             {callType === "video" ? (
-              <div className="relative flex-1 bg-black/60 my-6 rounded-2xl overflow-hidden border border-white/5 flex items-center justify-center">
-                {/* Remote video */}
+              <div className="relative flex-1 bg-slate-950 my-4 rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center">
+                {/* Remote Video Stream */}
                 <video
                   ref={remoteVideoRef}
                   autoPlay
@@ -557,10 +542,10 @@ export const CallProvider = ({ children }) => {
                   className="w-full h-full object-cover"
                 />
 
-                {/* Local video (Picture-in-Picture) */}
-                <div className="absolute bottom-3 right-3 w-28 h-36 bg-black border border-white/15 rounded-xl overflow-hidden shadow-lg">
+                {/* Local Video Preview (Picture-in-Picture) */}
+                <div className="absolute bottom-3 right-3 w-28 h-36 bg-slate-900 border border-white/20 rounded-xl overflow-hidden shadow-2xl">
                   {isCamOff ? (
-                    <div className="w-full h-full bg-slate-900 text-[9px] font-bold text-slate-400 flex items-center justify-center">
+                    <div className="w-full h-full bg-slate-900 text-[10px] font-extrabold text-slate-400 flex items-center justify-center uppercase">
                       Cam Off
                     </div>
                   ) : (
@@ -569,7 +554,7 @@ export const CallProvider = ({ children }) => {
                       autoPlay
                       playsInline
                       muted
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transform scale-x-[-1]"
                     />
                   )}
                 </div>
@@ -582,36 +567,37 @@ export const CallProvider = ({ children }) => {
               </div>
             )}
 
-            <div className="flex justify-center gap-4 mt-2">
+            {/* Action Buttons */}
+            <div className="flex justify-center items-center gap-4 mt-2">
               <button
                 onClick={toggleMute}
-                className={`p-4 rounded-2xl transition cursor-pointer border ${
+                className={`px-4 py-3 rounded-2xl text-xs font-extrabold transition cursor-pointer border flex items-center gap-2 ${
                   isMuted
-                    ? "bg-amber-600/20 border-amber-500/30 text-amber-500"
-                    : "bg-white/5 border-white/10 text-white hover:bg-white/10"
+                    ? "bg-amber-600/20 border-amber-500/40 text-amber-400"
+                    : "bg-white/10 border-white/15 text-white hover:bg-white/20"
                 }`}
                 title={isMuted ? "Unmute Mic" : "Mute Mic"}
               >
-                {isMuted ? "🎤 Muted" : "🎤 Mic"}
+                <span>🎤</span> {isMuted ? "Muted" : "Mic"}
               </button>
 
               {callType === "video" && (
                 <button
                   onClick={toggleCamera}
-                  className={`p-4 rounded-2xl transition cursor-pointer border ${
+                  className={`px-4 py-3 rounded-2xl text-xs font-extrabold transition cursor-pointer border flex items-center gap-2 ${
                     isCamOff
-                      ? "bg-amber-600/20 border-amber-500/30 text-amber-500"
-                      : "bg-white/5 border-white/10 text-white hover:bg-white/10"
+                      ? "bg-amber-600/20 border-amber-500/40 text-amber-400"
+                      : "bg-white/10 border-white/15 text-white hover:bg-white/20"
                   }`}
                   title={isCamOff ? "Turn Cam On" : "Turn Cam Off"}
                 >
-                  {isCamOff ? "📷 Cam Off" : "📷 Cam"}
+                  <span>📷</span> {isCamOff ? "Cam Off" : "Cam"}
                 </button>
               )}
 
               <button
                 onClick={endCall}
-                className="bg-rose-600 hover:bg-rose-500 text-white font-black px-6 py-4 rounded-2xl text-xs tracking-wider transition hover:scale-105 cursor-pointer shadow-md shadow-rose-600/20"
+                className="bg-rose-600 hover:bg-rose-500 text-white font-black px-6 py-3.5 rounded-2xl text-xs tracking-wider transition hover:scale-105 cursor-pointer shadow-md shadow-rose-600/20"
               >
                 End Call
               </button>
