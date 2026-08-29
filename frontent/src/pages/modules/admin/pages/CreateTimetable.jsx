@@ -19,8 +19,7 @@ const belongsToClass = (subject, classId) => {
 };
 
 export default function CreateTimetable() {
-  const api = import.meta.env.VITE_API_URL;
-  const headers = { Authorization: "Bearer " + localStorage.getItem("token") };
+  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   // Navigation tab state
   const [activeTab, setActiveTab] = useState("basic");
@@ -50,20 +49,48 @@ export default function CreateTimetable() {
     notes: ""
   });
 
+  const getHeaders = () => {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
   const load = async () => {
     setLoading(true);
+    setErrorMsg("");
     try {
-      const [classResult, subjectResult, teacherResult, entryResult] = await Promise.all([
-        axios.get(api + "/api/admin/classes", { headers }),
-        axios.get(api + "/api/admin/subjects", { headers }),
-        axios.get(api + "/api/admin/users/teachers", { headers }),
-        axios.get(api + "/api/timetable", { headers })
+      const reqHeaders = getHeaders();
+      const [classRes, subjectRes, teacherRes, entryRes] = await Promise.allSettled([
+        axios.get(`${API}/api/admin/classes`, { headers: reqHeaders }),
+        axios.get(`${API}/api/admin/subjects`, { headers: reqHeaders }),
+        axios.get(`${API}/api/admin/users/teachers`, { headers: reqHeaders }),
+        axios.get(`${API}/api/timetable`, { headers: reqHeaders })
       ]);
-      setClasses(classResult.data);
-      setSubjects(subjectResult.data);
-      setTeachers(teacherResult.data);
-      setEntries(entryResult.data);
+
+      if (classRes.status === "fulfilled" && Array.isArray(classRes.value.data)) {
+        setClasses(classRes.value.data);
+      } else {
+        setClasses([]);
+      }
+
+      if (subjectRes.status === "fulfilled" && Array.isArray(subjectRes.value.data)) {
+        setSubjects(subjectRes.value.data);
+      } else {
+        setSubjects([]);
+      }
+
+      if (teacherRes.status === "fulfilled" && Array.isArray(teacherRes.value.data)) {
+        setTeachers(teacherRes.value.data);
+      } else {
+        setTeachers([]);
+      }
+
+      if (entryRes.status === "fulfilled" && Array.isArray(entryRes.value.data)) {
+        setEntries(entryRes.value.data);
+      } else {
+        setEntries([]);
+      }
     } catch (e) {
+      console.error("Error loading timetable setup data:", e);
       setErrorMsg("Could not load timetable setup data.");
     } finally {
       setLoading(false);
@@ -72,7 +99,7 @@ export default function CreateTimetable() {
 
   useEffect(() => {
     load();
-  }, [api]);
+  }, []);
 
   // Form Reset
   const resetForm = () => {
@@ -98,7 +125,7 @@ export default function CreateTimetable() {
 
     try {
       await axios.post(
-        api + "/api/timetable",
+        `${API}/api/timetable`,
         {
           classId: form.classId,
           subjectId: form.subjectId,
@@ -111,7 +138,7 @@ export default function CreateTimetable() {
           classType: form.classType,
           notes: form.notes
         },
-        { headers }
+        { headers: getHeaders() }
       );
       
       setMessage("Timetable entry created successfully.");
@@ -133,7 +160,7 @@ export default function CreateTimetable() {
     setMessage("");
     setErrorMsg("");
     try {
-      await axios.delete(api + "/api/timetable/" + id, { headers });
+      await axios.delete(`${API}/api/timetable/${id}`, { headers: getHeaders() });
       setMessage("Timetable entry deleted.");
       await load();
     } catch (e) {
