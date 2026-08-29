@@ -1,7 +1,8 @@
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import StudentLayout from "./StudentLayout";
 import { CallProvider } from "../../../context/CallContext";
+import { lazyWithRetry as lazy } from "../../../utils/lazyWithRetry";
 
 const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
 const StudentSubjects = lazy(() => import("./pages/StudentSubjects"));

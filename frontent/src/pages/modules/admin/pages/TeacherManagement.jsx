@@ -212,6 +212,15 @@ export default function TeacherManagement() {
     );
   }
 
+  const resolveImageUrl = (url, fallback) => {
+    if (!url) return fallback;
+    if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
+      return url;
+    }
+    const api = import.meta.env.VITE_API_URL || "";
+    return `${api.replace(/\/$/, "")}/${url.replace(/^\//, "")}`;
+  };
+
   const nameInitials = (n = "") =>
     n
       .split(" ")
@@ -278,7 +287,7 @@ export default function TeacherManagement() {
               <div className="relative w-28 h-28 rounded-full overflow-hidden border border-slate-800 bg-slate-900 mb-4 flex items-center justify-center">
                 {teacherData?.avatar ? (
                   <img
-                    src={teacherData.avatar}
+                    src={resolveImageUrl(teacherData.avatar)}
                     alt="Teacher"
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -404,11 +413,11 @@ export default function TeacherManagement() {
                 <div key={photo._id || idx} className="flex flex-col gap-2 bg-slate-900/40 border border-slate-800 rounded-2xl p-2.5 relative group">
                   <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-800 bg-[#0F172A]">
                     <img
-                      src={photo.url}
+                      src={resolveImageUrl(photo.url)}
                       alt={`Gallery ${idx + 1}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.src = "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=400&q=80";
+                        e.target.src = "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=400&q=80";
                       }}
                     />
                     

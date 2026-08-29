@@ -1,7 +1,8 @@
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import SuperAdminLayout from "./SuperAdminLayout";
 import { CallProvider } from "../../../context/CallContext";
+import { lazyWithRetry as lazy } from "../../../utils/lazyWithRetry";
 
 const SuperAdminDashboard = lazy(() => import("./SuperAdminDashboard"));
 const SuperAdminUsers = lazy(() => import("./SuperAdminUsers"));

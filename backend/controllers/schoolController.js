@@ -362,20 +362,27 @@ exports.uploadSchoolPhoto = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
-    const cloudinary = require("../config/cloudinary");
     const fs = require("fs");
 
-    // Upload file to Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "teachhub_schools",
-    });
-
-    // Clean up local temp file
-    if (fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+      try {
+        const cloudinary = require("../config/cloudinary");
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: "teachhub_schools",
+        });
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+        return res.json({ url: result.secure_url });
+      } catch (cErr) {
+        console.error("Cloudinary upload failed, falling back to local static URL:", cErr.message);
+      }
     }
 
-    res.json({ url: result.secure_url });
+    const host = req.get("host");
+    const protocol = req.protocol;
+    const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
+    res.json({ url: fileUrl });
   } catch (error) {
     const fs = require("fs");
     if (req.file && fs.existsSync(req.file.path)) {

@@ -1,7 +1,8 @@
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import AdminLayout from "./AdminLayout";
 import { CallProvider } from "../../../context/CallContext";
+import { lazyWithRetry as lazy } from "../../../utils/lazyWithRetry";
 
 const AdminDashboard = lazy(() => import("./pages/Dashboard/AdminDashboard"));
 const Teachers = lazy(() => import("./pages/Users/Teachers"));

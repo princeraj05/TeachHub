@@ -1,5 +1,6 @@
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { lazyWithRetry as lazy } from "../utils/lazyWithRetry";
 
 import Login from "../pages/auth/Login";
 
