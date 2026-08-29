@@ -1,73 +1,62 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-
 import TeacherLayout from "./TeacherLayout";
-
-import TeacherDashboard from "./pages/Dashboard/TeacherDashboard";
-import MyStudents from "./pages/Students/MyStudents";
-
-import MarkAttendance from "./pages/Attendance/MarkAttendance";
-import AttendanceHistory from "./pages/Attendance/AttendanceHistory";
-
-import MySubjects from "./pages/Subjects/MySubjects";
-import SubjectDetails from "./pages/Subjects/SubjectDetails";
-import ExamSchedule from "./pages/Exams/ExamSchedule";
-import ExamDetailsAndResults from "./pages/Exams/ExamDetailsAndResults";
-
-import TeacherProfile from "./pages/Profile/TeacherProfile";
-import MyClasses from "./pages/MyClasses/MyClasses";
-import TeacherSupport from "./pages/TeacherSupport";
-import LiveProctoring from "./pages/LiveProctoring/LiveProctoring";
-import TeacherEvents from "./pages/TeacherEvents";
-import TeacherLeave from "./pages/TeacherLeave";
-import ShowTimetable from "./pages/Timetable/ShowTimetable";
-import GroupChat from "./pages/GroupChat";
-import NotificationsAndActivity from "./pages/Notifications/NotificationsAndActivity";
-import PaymentCenter from "../../../components/PaymentCenter";
-
 import { CallProvider } from "../../../context/CallContext";
 
+const TeacherDashboard = lazy(() => import("./pages/Dashboard/TeacherDashboard"));
+const MyStudents = lazy(() => import("./pages/Students/MyStudents"));
+const MarkAttendance = lazy(() => import("./pages/Attendance/MarkAttendance"));
+const AttendanceHistory = lazy(() => import("./pages/Attendance/AttendanceHistory"));
+const MySubjects = lazy(() => import("./pages/Subjects/MySubjects"));
+const SubjectDetails = lazy(() => import("./pages/Subjects/SubjectDetails"));
+const ExamSchedule = lazy(() => import("./pages/Exams/ExamSchedule"));
+const ExamDetailsAndResults = lazy(() => import("./pages/Exams/ExamDetailsAndResults"));
+const TeacherProfile = lazy(() => import("./pages/Profile/TeacherProfile"));
+const MyClasses = lazy(() => import("./pages/MyClasses/MyClasses"));
+const TeacherSupport = lazy(() => import("./pages/TeacherSupport"));
+const LiveProctoring = lazy(() => import("./pages/LiveProctoring/LiveProctoring"));
+const TeacherEvents = lazy(() => import("./pages/TeacherEvents"));
+const TeacherLeave = lazy(() => import("./pages/TeacherLeave"));
+const ShowTimetable = lazy(() => import("./pages/Timetable/ShowTimetable"));
+const GroupChat = lazy(() => import("./pages/GroupChat"));
+const NotificationsAndActivity = lazy(() => import("./pages/Notifications/NotificationsAndActivity"));
+const PaymentCenter = lazy(() => import("../../../components/PaymentCenter"));
+
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-[400px] w-full">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-10 h-10 border-4 border-[#7C3AED]/20 border-t-[#7C3AED] rounded-full animate-spin" />
+      <span className="text-xs font-semibold text-slate-400 animate-pulse">Loading module...</span>
+    </div>
+  </div>
+);
+
 function TeacherRoutes() {
-
   return (
-
     <Routes>
-
       <Route path="/" element={<CallProvider><TeacherLayout /></CallProvider>}>
-
         <Route index element={<Navigate to="dashboard" replace />} />
-
-        <Route path="dashboard" element={<TeacherDashboard />} />
-
-        <Route path="my-students" element={<MyStudents />} />
-
-        <Route path="mark-attendance" element={<MarkAttendance />} />
-
-        <Route path="attendance-history" element={<AttendanceHistory />} />
-
-        <Route path="my-subjects" element={<MySubjects />} />
-        <Route path="my-subjects/:subjectId" element={<SubjectDetails />} />
-
-        <Route path="exam-schedule" element={<ExamSchedule />} />
-        <Route path="exam-schedule/:examId" element={<ExamDetailsAndResults />} />
-
-        <Route path="proctoring" element={<LiveProctoring />} />
-
-        <Route path="profile" element={<TeacherProfile />} />
-        <Route path="my-classes" element={<MyClasses/>}/>
-        <Route path="support" element={<TeacherSupport />} />
-        <Route path="events" element={<TeacherEvents />} />
-        <Route path="on-leave" element={<TeacherLeave />} />
-        <Route path="showtimetable" element={<ShowTimetable />} />
-        <Route path="support/groups" element={<GroupChat />} />
-        <Route path="payments" element={<PaymentCenter role="teacher" />} />
-        <Route path="notifications" element={<NotificationsAndActivity />} />
-
+        <Route path="dashboard" element={<Suspense fallback={<PageLoader />}><TeacherDashboard /></Suspense>} />
+        <Route path="my-students" element={<Suspense fallback={<PageLoader />}><MyStudents /></Suspense>} />
+        <Route path="mark-attendance" element={<Suspense fallback={<PageLoader />}><MarkAttendance /></Suspense>} />
+        <Route path="attendance-history" element={<Suspense fallback={<PageLoader />}><AttendanceHistory /></Suspense>} />
+        <Route path="my-subjects" element={<Suspense fallback={<PageLoader />}><MySubjects /></Suspense>} />
+        <Route path="my-subjects/:subjectId" element={<Suspense fallback={<PageLoader />}><SubjectDetails /></Suspense>} />
+        <Route path="exam-schedule" element={<Suspense fallback={<PageLoader />}><ExamSchedule /></Suspense>} />
+        <Route path="exam-schedule/:examId" element={<Suspense fallback={<PageLoader />}><ExamDetailsAndResults /></Suspense>} />
+        <Route path="proctoring" element={<Suspense fallback={<PageLoader />}><LiveProctoring /></Suspense>} />
+        <Route path="profile" element={<Suspense fallback={<PageLoader />}><TeacherProfile /></Suspense>} />
+        <Route path="my-classes" element={<Suspense fallback={<PageLoader />}><MyClasses /></Suspense>} />
+        <Route path="support" element={<Suspense fallback={<PageLoader />}><TeacherSupport /></Suspense>} />
+        <Route path="events" element={<Suspense fallback={<PageLoader />}><TeacherEvents /></Suspense>} />
+        <Route path="on-leave" element={<Suspense fallback={<PageLoader />}><TeacherLeave /></Suspense>} />
+        <Route path="showtimetable" element={<Suspense fallback={<PageLoader />}><ShowTimetable /></Suspense>} />
+        <Route path="support/groups" element={<Suspense fallback={<PageLoader />}><GroupChat /></Suspense>} />
+        <Route path="payments" element={<Suspense fallback={<PageLoader />}><PaymentCenter role="teacher" /></Suspense>} />
+        <Route path="notifications" element={<Suspense fallback={<PageLoader />}><NotificationsAndActivity /></Suspense>} />
       </Route>
-
     </Routes>
-
   );
-
 }
 
 export default TeacherRoutes;

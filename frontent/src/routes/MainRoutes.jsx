@@ -1,12 +1,24 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "../pages/auth/Login";
-import PendingApproval from "../pages/auth/PendingApproval";
 
-import AdminRoutes from "../pages/modules/admin/AdminRoutes";
-import StudentRoutes from "../pages/modules/student/StudentRoutes";
-import TeacherRoutes from "../pages/modules/teacher/TeacherRoutes";
-import SuperAdminRoutes from "../pages/modules/superadmin/SuperAdminRoutes";
+const PendingApproval = lazy(() => import("../pages/auth/PendingApproval"));
+const AdminRoutes = lazy(() => import("../pages/modules/admin/AdminRoutes"));
+const StudentRoutes = lazy(() => import("../pages/modules/student/StudentRoutes"));
+const TeacherRoutes = lazy(() => import("../pages/modules/teacher/TeacherRoutes"));
+const SuperAdminRoutes = lazy(() => import("../pages/modules/superadmin/SuperAdminRoutes"));
+
+const ModuleLoader = () => (
+  <div className="flex items-center justify-center h-screen w-screen bg-[#F8FAFC] dark:bg-[#090F1C]">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-12 h-12 border-4 border-[#7C3AED]/20 border-t-[#7C3AED] rounded-full animate-spin" />
+      <span className="text-xs font-extrabold text-[#7C3AED] dark:text-[#38BDF8] tracking-wider uppercase animate-pulse">
+        TeachHub
+      </span>
+    </div>
+  </div>
+);
 
 // Route guard wrapper
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -29,71 +41,67 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 };
 
 function MainRoutes() {
-
   return (
+    <Suspense fallback={<ModuleLoader />}>
+      <Routes>
+        {/* Auth */}
+        <Route path="/" element={<Login />} />
+        
+        {/* Pending Approval */}
+        <Route
+          path="/pending/*"
+          element={
+            <ProtectedRoute allowedRoles={["unassigned"]}>
+              <PendingApproval />
+            </ProtectedRoute>
+          }
+        />
 
-    <Routes>
+        {/* Super Admin */}
+        <Route
+          path="/superadmin/*"
+          element={
+            <ProtectedRoute allowedRoles={["superadmin"]}>
+              <SuperAdminRoutes />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Auth */}
-      <Route path="/" element={<Login />} />
-      
-      {/* Pending Approval */}
-      <Route
-        path="/pending/*"
-        element={
-          <ProtectedRoute allowedRoles={["unassigned"]}>
-            <PendingApproval />
-          </ProtectedRoute>
-        }
-      />
+        {/* Admin */}
+        <Route
+          path="/admin/*"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminRoutes />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Super Admin */}
-      <Route
-        path="/superadmin/*"
-        element={
-          <ProtectedRoute allowedRoles={["superadmin"]}>
-            <SuperAdminRoutes />
-          </ProtectedRoute>
-        }
-      />
+        {/* Teacher */}
+        <Route
+          path="/teacher/*"
+          element={
+            <ProtectedRoute allowedRoles={["teacher"]}>
+              <TeacherRoutes />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Admin */}
-      <Route
-        path="/admin/*"
-        element={
-          <ProtectedRoute allowedRoles={["admin"]}>
-            <AdminRoutes />
-          </ProtectedRoute>
-        }
-      />
+        {/* Student */}
+        <Route
+          path="/student/*"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <StudentRoutes />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Teacher */}
-      <Route
-        path="/teacher/*"
-        element={
-          <ProtectedRoute allowedRoles={["teacher"]}>
-            <TeacherRoutes />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Student */}
-      <Route
-        path="/student/*"
-        element={
-          <ProtectedRoute allowedRoles={["student"]}>
-            <StudentRoutes />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* 404 */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-
-    </Routes>
-
+        {/* 404 */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
   );
-
 }
 
 export default MainRoutes;

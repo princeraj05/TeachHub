@@ -33,7 +33,7 @@ function SuperAdminLayout() {
 
   useEffect(() => {
     fetchUnreadCount();
-  }, [location.pathname]);
+  }, []);
 
   const fetchUnreadCount = async () => {
     try {
