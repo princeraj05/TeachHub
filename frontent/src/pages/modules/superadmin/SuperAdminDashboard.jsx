@@ -541,39 +541,7 @@ function SuperAdminDashboard() {
         {/* Right Column: Support summary & System Status */}
         <div className="space-y-6">
           
-          {/* Support summary statistics */}
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm space-y-4">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Support Summary</span>
-            
-            <div className="space-y-1">
-              {[
-                { label: "Open Conversations", count: stats.support.openConversations, color: "text-[#7C3AED]", bg: "bg-purple-550/10" },
-                { label: "Open Tickets", count: stats.support.openTickets, color: "text-blue-500", bg: "bg-blue-500/10" },
-                { label: "Pending Calls", count: stats.support.pendingCalls, color: "text-emerald-555", bg: "bg-emerald-500/10" },
-                { label: "Avg. Response Time", count: stats.support.avgResponseTime, color: "text-amber-500", bg: "bg-amber-500/10" }
-              ].map((item, idx) => (
-                <div 
-                  key={idx}
-                  onClick={() => alert(`View support stats detail for ${item.label}`)}
-                  className="flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.01] rounded-2xl transition cursor-pointer group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8.5 h-8.5 rounded-full ${item.bg} ${item.color} flex items-center justify-center shrink-0`}>
-                      👤
-                    </div>
-                    <span className="text-xs font-black text-slate-805 dark:text-slate-200 leading-tight">
-                      {item.label}
-                    </span>
-                  </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className={`text-xs font-black font-mono ${item.color}`}>{item.count}</span>
-                    <span className="text-slate-400 group-hover:translate-x-0.5 transition-transform text-xs leading-none">&gt;</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
 
           {/* System status glow block */}
           <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm flex items-center gap-4 relative overflow-hidden">
