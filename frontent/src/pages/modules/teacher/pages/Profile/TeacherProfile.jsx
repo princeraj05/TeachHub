@@ -37,16 +37,46 @@ function TeacherProfile() {
   const [dob, setDob] = useState("");
   const [gender, setGender] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [alternatePhone, setAlternatePhone] = useState("");
   const [address, setAddress] = useState("");
-  const [pincode, setPincode] = useState("");
   const [department, setDepartment] = useState("");
-  const [designation, setDesignation] = useState("");
   const [bio, setBio] = useState("");
   const [avatar, setAvatar] = useState("");
+  const [gettingLocation, setGettingLocation] = useState(false);
 
   const [saveMessage, setSaveMessage] = useState("");
   const [saveError, setSaveError] = useState("");
+
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+    setGettingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          );
+          const data = await res.json();
+          if (data && data.display_name) {
+            setAddress(data.display_name);
+          } else {
+            setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          }
+        } catch (err) {
+          setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+        } finally {
+          setGettingLocation(false);
+        }
+      },
+      (error) => {
+        alert("Could not detect location: " + error.message);
+        setGettingLocation(false);
+      }
+    );
+  };
 
   useEffect(() => {
     // Load standard authentication profile which fetches login sessions
@@ -63,9 +93,7 @@ function TeacherProfile() {
         setPhoneNumber(u.phoneNumber || "");
         setAlternatePhone(u.alternatePhone || "");
         setAddress(u.address || "");
-        setPincode(u.pincode || "");
         setDepartment(u.department || "Mathematics");
-        setDesignation(u.designation || "Course Instructor");
         setBio(u.bio || "Passionate educator with 6+ years of experience in teaching Mathematics. Dedicated to helping students achieve their academic goals.");
         setAvatar(u.avatar || "");
         
@@ -91,9 +119,7 @@ function TeacherProfile() {
         phoneNumber,
         alternatePhone,
         address,
-        pincode,
         department,
-        designation,
         bio,
         avatar
       }, { headers });
@@ -309,9 +335,20 @@ function TeacherProfile() {
                 />
               </div>
 
-              {/* Address */}
-              <div>
-                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Address</label>
+              {/* Address with Use Current Location option */}
+              <div className="sm:col-span-2">
+                <div className="flex items-center justify-between mb-1 select-none">
+                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Address</label>
+                  <button
+                    type="button"
+                    onClick={handleGetCurrentLocation}
+                    disabled={gettingLocation}
+                    className="text-[9px] font-black text-purple-650 hover:text-purple-750 dark:text-purple-400 flex items-center gap-1 cursor-pointer bg-purple-500/10 px-2.5 py-1 rounded-lg border border-purple-500/20 hover:bg-purple-500/20 transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    <FaMapMarkerAlt className="text-[10px]" />
+                    {gettingLocation ? "Detecting Location..." : "Use Current Location"}
+                  </button>
+                </div>
                 <input
                   type="text"
                   placeholder="123, Green Avenue, Indore"
@@ -321,20 +358,8 @@ function TeacherProfile() {
                 />
               </div>
 
-              {/* Pincode */}
-              <div>
-                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Pincode</label>
-                <input
-                  type="text"
-                  placeholder="452001"
-                  value={pincode}
-                  onChange={(e) => setPincode(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
-                />
-              </div>
-
               {/* Department */}
-              <div>
+              <div className="sm:col-span-2">
                 <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Department</label>
                 <input
                   type="text"
@@ -342,21 +367,6 @@ function TeacherProfile() {
                   onChange={(e) => setDepartment(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
                 />
-              </div>
-
-              {/* Designation */}
-              <div>
-                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Designation</label>
-                <select
-                  value={designation}
-                  onChange={(e) => setDesignation(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
-                >
-                  <option value="Course Instructor">Course Instructor</option>
-                  <option value="Head of Department">Head of Department</option>
-                  <option value="Senior Lecturer">Senior Lecturer</option>
-                  <option value="Assistant Professor">Assistant Professor</option>
-                </select>
               </div>
 
               {/* Bio description */}
