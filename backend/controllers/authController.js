@@ -98,7 +98,7 @@ id:user._id,
 role:user.role
 },
 process.env.JWT_SECRET,
-{expiresIn:"7d"}
+{expiresIn:"365d"}
 );
 
 
@@ -179,7 +179,7 @@ exports.firebaseSync = async (req, res) => {
         schoolName: user.schoolName
       },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "365d" }
     );
 
     // Create login session
@@ -417,7 +417,7 @@ exports.verifyOTP = async (req, res) => {
         schoolName: user.schoolName
       },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "365d" }
     );
 
     // Create login session
