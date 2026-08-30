@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import {
   FaCalendarAlt, FaClock, FaPlus, FaTrash, FaEdit, 
-  FaCheckCircle, FaTimes, FaImage, FaVideo, FaEye, FaExpand 
+  FaCheckCircle, FaTimes, FaImage, FaVideo, FaEye, FaExpand, FaSearch 
 } from "react-icons/fa";
 import { compressImage, compressVideo, videoDuration } from "../../../../utils/mediaCompression";
 import EventGallery from "../../../../components/EventGallery";
