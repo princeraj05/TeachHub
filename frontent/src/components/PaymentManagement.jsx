@@ -38,7 +38,7 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
           axios.get(`${apiBase}/api/admin/users/students`, { headers: auth() }),
           axios.get(`${apiBase}/api/payments`, { headers: auth() })
         ]);
-        setFee(plan.data?.monthlyFee ? String(plan.data.monthlyFee / 100) : "");
+        setFee(plan.data?.monthlyFee != null && plan.data?.monthlyFee > 0 ? String(plan.data.monthlyFee / 100) : "");
         setValidityDays(plan.data?.validityDays ? String(plan.data.validityDays) : "30");
         setTeachers(staff.data || []);
         setCompensations(compensation.data || []);
@@ -240,7 +240,7 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
       {role === "admin" && (
         <>
           <form onSubmit={saveFee} className="mt-4 flex flex-wrap items-end gap-3">
-            <label className="text-sm font-semibold">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">
               Monthly student fee (₹)
               <input
                 value={fee}
@@ -249,10 +249,11 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
                 min="0.01"
                 step="0.01"
                 required
-                className="mt-1 block rounded-lg border p-2 bg-slate-50 dark:bg-[#0F172A] border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white w-32"
+                placeholder="0.00"
+                className="mt-1 block rounded-lg border p-2 bg-slate-50 dark:bg-[#0F172A] border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 w-36"
               />
             </label>
-            <label className="text-sm font-semibold">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">
               Validity cycle (Days)
               <input
                 value={validityDays}
@@ -260,7 +261,8 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
                 type="number"
                 min="1"
                 required
-                className="mt-1 block rounded-lg border p-2 bg-slate-50 dark:bg-[#0F172A] border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white w-24"
+                placeholder="30"
+                className="mt-1 block rounded-lg border p-2 bg-slate-50 dark:bg-[#0F172A] border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 w-28"
               />
             </label>
             <button className="rounded-lg bg-[#7C3AED] px-4 py-2 text-sm font-bold text-white cursor-pointer hover:bg-purple-700">Save fee plan</button>
