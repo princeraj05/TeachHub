@@ -1,5 +1,14 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from "react";
 import socket from "../socket";
+import {
+  FaPhoneAlt,
+  FaPhoneSlash,
+  FaVideo,
+  FaVideoSlash,
+  FaMicrophone,
+  FaMicrophoneSlash,
+  FaVolumeUp
+} from "react-icons/fa";
 
 const CallContext = createContext(null);
 
@@ -466,29 +475,53 @@ export const CallProvider = ({ children }) => {
 
       {/* Incoming Call Modal */}
       {callState === "ringing" && callPartner && (
-        <div className="fixed inset-0 bg-[#070b13]/85 backdrop-blur-md flex items-center justify-center z-[99999] select-none">
-          <div className="bg-[#0f172a] border border-white/10 p-8 rounded-3xl w-80 text-center shadow-2xl relative">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center mx-auto mb-6 text-white text-3xl font-black shadow-lg shadow-[#7C3AED]/20 animate-pulse">
-              {callPartner.name.charAt(0).toUpperCase()}
-            </div>
-            <h3 className="text-white font-extrabold text-lg">{callPartner.name}</h3>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-              Incoming {callType === "video" ? "Video Call" : "Voice Call"}
-            </p>
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-xl flex items-center justify-center z-[99999] select-none p-4 animate-fadeIn">
+          <div className="relative bg-slate-900/90 border border-white/10 p-8 rounded-3xl w-full max-w-sm text-center shadow-2xl overflow-hidden">
+            {/* Ambient Background Glow */}
+            <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="flex justify-center gap-6 mt-8">
-              <button
-                onClick={rejectCall}
-                className="bg-rose-600 hover:bg-rose-500 text-white font-black px-6 py-3 rounded-2xl text-xs tracking-wider transition hover:scale-105 cursor-pointer shadow-md shadow-rose-600/20"
-              >
-                Reject
-              </button>
-              <button
-                onClick={acceptCall}
-                className="bg-green-600 hover:bg-green-500 text-white font-black px-6 py-3 rounded-2xl text-xs tracking-wider transition hover:scale-105 cursor-pointer shadow-md shadow-green-600/20"
-              >
-                Accept
-              </button>
+            {/* Ripple Avatar Container */}
+            <div className="relative w-28 h-28 mx-auto mb-6 flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping" />
+              <div className="absolute -inset-3 rounded-full border border-emerald-500/40 animate-pulse" />
+              <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#7C3AED] via-[#6366F1] to-[#38BDF8] flex items-center justify-center text-white text-3xl font-black shadow-xl shadow-emerald-500/20 z-10 overflow-hidden border-2 border-white/20">
+                {callPartner.avatar ? (
+                  <img src={callPartner.avatar} alt={callPartner.name} className="w-full h-full object-cover" />
+                ) : (
+                  callPartner.name?.charAt(0).toUpperCase()
+                )}
+              </div>
+            </div>
+
+            <h3 className="text-white font-extrabold text-xl tracking-tight">{callPartner.name}</h3>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold mt-2">
+              {callType === "video" ? <FaVideo className="text-xs" /> : <FaPhoneAlt className="text-xs" />}
+              <span>Incoming {callType === "video" ? "Video Call" : "Voice Call"}</span>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-center items-center gap-10 mt-8">
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  onClick={rejectCall}
+                  className="w-14 h-14 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg shadow-rose-600/30 transition hover:scale-110 active:scale-95 cursor-pointer"
+                  title="Decline Call"
+                >
+                  <FaPhoneSlash className="text-xl" />
+                </button>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Decline</span>
+              </div>
+
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  onClick={acceptCall}
+                  className="w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30 transition hover:scale-110 active:scale-95 cursor-pointer animate-bounce"
+                  title="Accept Call"
+                >
+                  <FaPhoneAlt className="text-xl" />
+                </button>
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Accept</span>
+              </div>
             </div>
           </div>
         </div>
@@ -496,23 +529,48 @@ export const CallProvider = ({ children }) => {
 
       {/* Outgoing Calling Modal */}
       {callState === "calling" && callPartner && (
-        <div className="fixed inset-0 bg-[#070b13]/85 backdrop-blur-md flex items-center justify-center z-[99999] select-none">
-          <div className="bg-[#0f172a] border border-white/10 p-8 rounded-3xl w-80 text-center shadow-2xl relative">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center mx-auto mb-6 text-white text-3xl font-black shadow-lg shadow-[#7C3AED]/20">
-              {callPartner.name.charAt(0).toUpperCase()}
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-xl flex items-center justify-center z-[99999] select-none p-4 animate-fadeIn">
+          <div className="relative bg-slate-900/90 border border-white/10 p-8 rounded-3xl w-full max-w-sm text-center shadow-2xl overflow-hidden">
+            {/* Ambient Background Glow */}
+            <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Ripple Avatar Container */}
+            <div className="relative w-28 h-28 mx-auto mb-6 flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full bg-purple-500/20 animate-ping" />
+              <div className="absolute -inset-3 rounded-full border border-purple-500/40 animate-pulse" />
+              <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#7C3AED] via-[#6366F1] to-[#38BDF8] flex items-center justify-center text-white text-3xl font-black shadow-xl shadow-purple-500/30 z-10 overflow-hidden border-2 border-white/20">
+                {callPartner.avatar ? (
+                  <img src={callPartner.avatar} alt={callPartner.name} className="w-full h-full object-cover" />
+                ) : (
+                  callPartner.name?.charAt(0).toUpperCase()
+                )}
+              </div>
             </div>
-            <h3 className="text-white font-extrabold text-lg">{callPartner.name}</h3>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1 animate-pulse">
-              Calling... ({callType === "video" ? "Video Call" : "Voice Call"})
+
+            <h3 className="text-white font-extrabold text-xl tracking-tight">{callPartner.name}</h3>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-bold mt-2">
+              {callType === "video" ? <FaVideo className="text-xs" /> : <FaPhoneAlt className="text-xs" />}
+              <span>{callType === "video" ? "Outgoing Video Call" : "Outgoing Voice Call"}</span>
+            </div>
+
+            <p className="text-slate-400 text-xs font-semibold tracking-wider mt-4 flex items-center justify-center gap-1.5">
+              <span>Calling</span>
+              <span className="inline-flex gap-1 items-center">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+              </span>
             </p>
 
-            <div className="mt-8">
+            <div className="mt-8 flex flex-col items-center gap-2">
               <button
                 onClick={cancelCall}
-                className="bg-rose-600 hover:bg-rose-500 text-white font-black px-6 py-3 rounded-2xl text-xs tracking-wider transition hover:scale-105 cursor-pointer shadow-md shadow-rose-600/20"
+                className="w-14 h-14 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg shadow-rose-600/30 transition hover:scale-110 active:scale-95 cursor-pointer"
+                title="Cancel Call"
               >
-                Cancel Call
+                <FaPhoneSlash className="text-xl" />
               </button>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cancel Call</span>
             </div>
           </div>
         </div>
@@ -520,88 +578,125 @@ export const CallProvider = ({ children }) => {
 
       {/* Active Call Interface */}
       {callState === "active" && callPartner && (
-        <div className="fixed inset-0 bg-[#070b13]/90 backdrop-blur-lg flex items-center justify-center z-[99999] select-none">
-          <div className="bg-[#0f172a] border border-white/10 p-6 md:p-8 rounded-3xl w-full max-w-md mx-4 text-center shadow-2xl relative overflow-hidden flex flex-col justify-between h-[520px]">
-            <div>
-              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">
-                Ongoing {callType === "video" ? "Video Call" : "Voice Call"}
-              </p>
-              <h3 className="text-white font-extrabold text-lg mt-2">{callPartner.name}</h3>
-              <p className="text-[#38BDF8] text-xs font-bold font-mono tracking-wider mt-1">
-                {formatDuration(callDuration)}
-              </p>
+        <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-2xl flex flex-col justify-between p-4 md:p-6 z-[99999] select-none animate-fadeIn">
+          {/* Call Header */}
+          <div className="flex items-center justify-between bg-slate-900/80 border border-white/10 rounded-2xl px-5 py-3 max-w-xl mx-auto w-full backdrop-blur-md shadow-xl">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-bold text-sm overflow-hidden border border-white/20">
+                {callPartner.avatar ? (
+                  <img src={callPartner.avatar} alt={callPartner.name} className="w-full h-full object-cover" />
+                ) : (
+                  callPartner.name?.charAt(0).toUpperCase()
+                )}
+              </div>
+              <div>
+                <h4 className="text-white font-bold text-sm leading-tight">{callPartner.name}</h4>
+                <p className="text-slate-400 text-[10px] font-semibold flex items-center gap-1.5 mt-0.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>{callType === "video" ? "Video Call" : "Voice Call"}</span>
+                </p>
+              </div>
             </div>
 
-            {callType === "video" ? (
-              <div className="relative flex-1 bg-slate-950 my-4 rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center">
-                {/* Remote Video Stream */}
-                <video
-                  ref={remoteVideoRef}
-                  autoPlay
-                  playsInline
-                  className="w-full h-full object-cover"
-                />
+            <div className="px-3.5 py-1.5 rounded-full bg-slate-800/80 border border-white/10 text-cyan-400 text-xs font-mono font-bold tracking-widest shadow-inner">
+              {formatDuration(callDuration)}
+            </div>
+          </div>
 
-                {/* Local Video Preview (Picture-in-Picture) */}
-                <div className="absolute bottom-3 right-3 w-28 h-36 bg-slate-900 border border-white/20 rounded-xl overflow-hidden shadow-2xl">
-                  {isCamOff ? (
-                    <div className="w-full h-full bg-slate-900 text-[10px] font-extrabold text-slate-400 flex items-center justify-center uppercase">
-                      Cam Off
-                    </div>
+          {/* Call Body Stream / Visualization */}
+          {callType === "video" ? (
+            <div className="relative flex-1 bg-slate-900/60 border border-white/10 my-4 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center max-w-4xl mx-auto w-full">
+              {/* Remote Video Stream */}
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                className="w-full h-full object-cover"
+              />
+
+              {/* Local Video PIP (Picture in Picture) */}
+              <div className="absolute bottom-4 right-4 w-32 sm:w-44 h-44 sm:h-56 bg-slate-950 border-2 border-white/20 rounded-2xl overflow-hidden shadow-2xl group transition-transform hover:scale-105">
+                {isCamOff ? (
+                  <div className="w-full h-full bg-slate-900 text-[10px] font-extrabold text-slate-400 flex flex-col items-center justify-center gap-1.5 uppercase">
+                    <FaVideoSlash className="text-base text-slate-500" />
+                    <span>Camera Off</span>
+                  </div>
+                ) : (
+                  <video
+                    ref={localVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover transform scale-x-[-1]"
+                  />
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center my-6">
+              <div className="relative w-36 h-36 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full bg-purple-500/20 animate-ping" />
+                <div className="absolute -inset-4 rounded-full border border-purple-500/30 animate-pulse" />
+                <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-[#7C3AED] via-[#6366F1] to-[#38BDF8] flex items-center justify-center text-white text-5xl font-black shadow-2xl shadow-purple-500/30 z-10 overflow-hidden border-4 border-white/20">
+                  {callPartner.avatar ? (
+                    <img src={callPartner.avatar} alt={callPartner.name} className="w-full h-full object-cover" />
                   ) : (
-                    <video
-                      ref={localVideoRef}
-                      autoPlay
-                      playsInline
-                      muted
-                      className="w-full h-full object-cover transform scale-x-[-1]"
-                    />
+                    callPartner.name?.charAt(0).toUpperCase()
                   )}
                 </div>
               </div>
-            ) : (
-              <div className="flex-1 flex items-center justify-center my-6">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white text-4xl font-black shadow-lg shadow-[#7C3AED]/15 animate-pulse">
-                  {callPartner.name.charAt(0).toUpperCase()}
-                </div>
-              </div>
-            )}
 
-            {/* Action Buttons */}
-            <div className="flex justify-center items-center gap-4 mt-2">
+              {/* Animated Sound Wave Visualizer */}
+              <div className="flex items-end gap-1.5 h-8 mt-8">
+                {[40, 70, 30, 90, 50, 80, 40, 60, 100, 40].map((h, i) => (
+                  <span
+                    key={i}
+                    className="w-1.5 bg-gradient-to-t from-purple-500 to-cyan-400 rounded-full animate-pulse"
+                    style={{
+                      height: `${h}%`,
+                      animationDuration: `${0.6 + (i % 4) * 0.2}s`
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Floating Pill Control Bar */}
+          <div className="flex items-center justify-center gap-5 bg-slate-900/90 border border-white/15 backdrop-blur-xl px-6 py-3.5 rounded-full shadow-2xl max-w-fit mx-auto mb-2">
+            <button
+              onClick={toggleMute}
+              className={`w-12 h-12 rounded-full flex items-center justify-center transition cursor-pointer border ${
+                isMuted
+                  ? "bg-amber-500/20 border-amber-500/50 text-amber-400"
+                  : "bg-white/10 border-white/15 text-white hover:bg-white/20"
+              }`}
+              title={isMuted ? "Unmute Mic" : "Mute Mic"}
+            >
+              {isMuted ? <FaMicrophoneSlash className="text-lg" /> : <FaMicrophone className="text-lg" />}
+            </button>
+
+            {callType === "video" && (
               <button
-                onClick={toggleMute}
-                className={`px-4 py-3 rounded-2xl text-xs font-extrabold transition cursor-pointer border flex items-center gap-2 ${
-                  isMuted
-                    ? "bg-amber-600/20 border-amber-500/40 text-amber-400"
+                onClick={toggleCamera}
+                className={`w-12 h-12 rounded-full flex items-center justify-center transition cursor-pointer border ${
+                  isCamOff
+                    ? "bg-amber-500/20 border-amber-500/50 text-amber-400"
                     : "bg-white/10 border-white/15 text-white hover:bg-white/20"
                 }`}
-                title={isMuted ? "Unmute Mic" : "Mute Mic"}
+                title={isCamOff ? "Turn Camera On" : "Turn Camera Off"}
               >
-                <span>🎤</span> {isMuted ? "Muted" : "Mic"}
+                {isCamOff ? <FaVideoSlash className="text-lg" /> : <FaVideo className="text-lg" />}
               </button>
+            )}
 
-              {callType === "video" && (
-                <button
-                  onClick={toggleCamera}
-                  className={`px-4 py-3 rounded-2xl text-xs font-extrabold transition cursor-pointer border flex items-center gap-2 ${
-                    isCamOff
-                      ? "bg-amber-600/20 border-amber-500/40 text-amber-400"
-                      : "bg-white/10 border-white/15 text-white hover:bg-white/20"
-                  }`}
-                  title={isCamOff ? "Turn Cam On" : "Turn Cam Off"}
-                >
-                  <span>📷</span> {isCamOff ? "Cam Off" : "Cam"}
-                </button>
-              )}
-
-              <button
-                onClick={endCall}
-                className="bg-rose-600 hover:bg-rose-500 text-white font-black px-6 py-3.5 rounded-2xl text-xs tracking-wider transition hover:scale-105 cursor-pointer shadow-md shadow-rose-600/20"
-              >
-                End Call
-              </button>
-            </div>
+            <button
+              onClick={endCall}
+              className="w-13 h-13 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg shadow-rose-600/30 transition hover:scale-110 active:scale-95 cursor-pointer"
+              title="End Call"
+            >
+              <FaPhoneSlash className="text-xl" />
+            </button>
           </div>
         </div>
       )}
