@@ -117,6 +117,19 @@ export default function CreateTimetable() {
     });
   };
 
+  // Silent background refresh for timetable entries
+  const fetchEntriesOnly = async () => {
+    try {
+      const reqHeaders = getHeaders();
+      const res = await axios.get(`${API}/api/timetable`, { headers: reqHeaders });
+      if (Array.isArray(res.data)) {
+        setEntries(res.data);
+      }
+    } catch (e) {
+      console.error("Error refreshing entries:", e);
+    }
+  };
+
   // Submit new period slot
   const submit = async (event) => {
     event.preventDefault();
@@ -143,12 +156,12 @@ export default function CreateTimetable() {
       
       setMessage("Timetable entry created successfully.");
       resetForm();
-      await load();
       
-      // Auto toggle to weekly management view so they see the result!
-      setTimeout(() => {
-        setActiveTab("management");
-      }, 1000);
+      // Update entries in background instantly without blanking the screen
+      fetchEntriesOnly();
+      
+      // Switch immediately to management tab so user sees their new entry without delay!
+      setActiveTab("management");
       
     } catch (error) {
       setErrorMsg(error.response?.data?.message || "Could not create timetable entry.");
@@ -162,7 +175,7 @@ export default function CreateTimetable() {
     try {
       await axios.delete(`${API}/api/timetable/${id}`, { headers: getHeaders() });
       setMessage("Timetable entry deleted.");
-      await load();
+      fetchEntriesOnly();
     } catch (e) {
       setErrorMsg("Could not delete timetable entry.");
     }
