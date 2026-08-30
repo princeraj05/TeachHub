@@ -173,7 +173,7 @@ function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] text-slate-400 bg-[#080D1A] -m-4 md:-m-6 p-6">
+      <div className="flex flex-col items-center justify-center min-h-[70vh] text-slate-500 dark:text-slate-400 bg-transparent p-6">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500 mb-4"></div>
         <p className="text-sm font-semibold tracking-wide">Loading TeachHub Control Center...</p>
       </div>
@@ -181,7 +181,7 @@ function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen text-slate-900 dark:text-slate-100 p-6 -m-4 md:-m-6 transition-colors duration-200" style={{ fontFamily: SORA }}>
+    <div className="text-slate-900 dark:text-slate-100 transition-colors duration-200" style={{ fontFamily: SORA }}>
       
       {/* ── GREETING & CLOCK HEADER ── */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -204,23 +204,23 @@ function AdminDashboard() {
         </div>
       </div>
 
-      {/* ── SIX GLOWING STATS CARDS ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
+      {/* ── SIX GLOWING STATS CARDS (2 COLUMNS ON MOBILE) ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4 mb-6">
         
         {/* Card 1: Students */}
-        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#8B5CF6]/15 hover:border-[#8B5CF6]/30 transition-all rounded-2xl p-4 flex flex-col justify-between h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
-          <div className="flex items-center justify-between">
-            <div className="w-8 h-8 rounded-lg bg-[#8B5CF6]/10 flex items-center justify-center text-[#8B5CF6] text-sm font-bold">
+        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#8B5CF6]/15 hover:border-[#8B5CF6]/30 transition-all rounded-2xl p-3 sm:p-4 flex flex-col justify-between h-32 sm:h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
+          <div className="flex items-center justify-between gap-1">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#8B5CF6]/10 flex items-center justify-center text-[#8B5CF6] text-xs sm:text-sm font-bold shrink-0">
               <FaUserGraduate />
             </div>
-            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Total Students</p>
+            <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider truncate">Total Students</p>
           </div>
-          <div className="mt-2 z-10">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white">{stats.students.total}</h2>
-            <p className="text-[10px] font-bold text-emerald-500 dark:text-emerald-400 mt-0.5">{stats.students.growth}</p>
+          <div className="mt-1.5 sm:mt-2 z-10">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{stats.students.total}</h2>
+            <p className="text-[9px] sm:text-[10px] font-bold text-emerald-500 dark:text-emerald-400 mt-0.5 truncate">{stats.students.growth}</p>
           </div>
           {/* Sparkline */}
-          <div className="absolute bottom-0 left-0 right-0 h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-0 left-0 right-0 h-8 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={sparklines.students} margin={{ top: 0, bottom: 0, left: 0, right: 0 }}>
                 <Area type="monotone" dataKey="value" stroke="#8B5CF6" fill="rgba(139, 92, 246, 0.08)" strokeWidth={1.5} dot={false} />
@@ -230,19 +230,19 @@ function AdminDashboard() {
         </div>
 
         {/* Card 2: Teachers */}
-        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#3B82F6]/15 hover:border-[#3B82F6]/30 transition-all rounded-2xl p-4 flex flex-col justify-between h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
-          <div className="flex items-center justify-between">
-            <div className="w-8 h-8 rounded-lg bg-[#3B82F6]/10 flex items-center justify-center text-[#3B82F6] text-sm font-bold">
+        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#3B82F6]/15 hover:border-[#3B82F6]/30 transition-all rounded-2xl p-3 sm:p-4 flex flex-col justify-between h-32 sm:h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
+          <div className="flex items-center justify-between gap-1">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#3B82F6]/10 flex items-center justify-center text-[#3B82F6] text-xs sm:text-sm font-bold shrink-0">
               <FaChalkboardTeacher />
             </div>
-            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Total Teachers</p>
+            <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider truncate">Total Teachers</p>
           </div>
-          <div className="mt-2 z-10">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white">{stats.teachers.total}</h2>
-            <p className="text-[10px] font-bold text-emerald-500 dark:text-emerald-400 mt-0.5">{stats.teachers.growth}</p>
+          <div className="mt-1.5 sm:mt-2 z-10">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{stats.teachers.total}</h2>
+            <p className="text-[9px] sm:text-[10px] font-bold text-emerald-500 dark:text-emerald-400 mt-0.5 truncate">{stats.teachers.growth}</p>
           </div>
           {/* Sparkline */}
-          <div className="absolute bottom-0 left-0 right-0 h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-0 left-0 right-0 h-8 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={sparklines.teachers} margin={{ top: 0, bottom: 0, left: 0, right: 0 }}>
                 <Area type="monotone" dataKey="value" stroke="#3B82F6" fill="rgba(59, 130, 246, 0.08)" strokeWidth={1.5} dot={false} />
@@ -252,19 +252,19 @@ function AdminDashboard() {
         </div>
 
         {/* Card 3: Classes */}
-        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#10B981]/15 hover:border-[#10B981]/30 transition-all rounded-2xl p-4 flex flex-col justify-between h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
-          <div className="flex items-center justify-between">
-            <div className="w-8 h-8 rounded-lg bg-[#10B981]/10 flex items-center justify-center text-[#10B981] text-sm font-bold">
+        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#10B981]/15 hover:border-[#10B981]/30 transition-all rounded-2xl p-3 sm:p-4 flex flex-col justify-between h-32 sm:h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
+          <div className="flex items-center justify-between gap-1">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#10B981]/10 flex items-center justify-center text-[#10B981] text-xs sm:text-sm font-bold shrink-0">
               <FaSchool />
             </div>
-            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Total Classes</p>
+            <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider truncate">Total Classes</p>
           </div>
-          <div className="mt-2 z-10">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white">{stats.classes.total}</h2>
-            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{stats.classes.growth}</p>
+          <div className="mt-1.5 sm:mt-2 z-10">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{stats.classes.total}</h2>
+            <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 truncate">{stats.classes.growth}</p>
           </div>
           {/* Sparkline */}
-          <div className="absolute bottom-0 left-0 right-0 h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-0 left-0 right-0 h-8 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={sparklines.classes} margin={{ top: 0, bottom: 0, left: 0, right: 0 }}>
                 <Area type="monotone" dataKey="value" stroke="#10B981" fill="rgba(16, 185, 129, 0.08)" strokeWidth={1.5} dot={false} />
@@ -274,19 +274,19 @@ function AdminDashboard() {
         </div>
 
         {/* Card 4: Subjects */}
-        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#F59E0B]/15 hover:border-[#F59E0B]/30 transition-all rounded-2xl p-4 flex flex-col justify-between h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
-          <div className="flex items-center justify-between">
-            <div className="w-8 h-8 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center text-[#F59E0B] text-sm font-bold">
+        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#F59E0B]/15 hover:border-[#F59E0B]/30 transition-all rounded-2xl p-3 sm:p-4 flex flex-col justify-between h-32 sm:h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
+          <div className="flex items-center justify-between gap-1">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center text-[#F59E0B] text-xs sm:text-sm font-bold shrink-0">
               <FaBook />
             </div>
-            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Total Subjects</p>
+            <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider truncate">Total Subjects</p>
           </div>
-          <div className="mt-2 z-10">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white">{stats.subjects.total}</h2>
-            <p className="text-[10px] font-bold text-emerald-500 dark:text-emerald-400 mt-0.5">{stats.subjects.growth}</p>
+          <div className="mt-1.5 sm:mt-2 z-10">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{stats.subjects.total}</h2>
+            <p className="text-[9px] sm:text-[10px] font-bold text-emerald-500 dark:text-emerald-400 mt-0.5 truncate">{stats.subjects.growth}</p>
           </div>
           {/* Sparkline */}
-          <div className="absolute bottom-0 left-0 right-0 h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-0 left-0 right-0 h-8 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={sparklines.subjects} margin={{ top: 0, bottom: 0, left: 0, right: 0 }}>
                 <Area type="monotone" dataKey="value" stroke="#F59E0B" fill="rgba(245, 158, 11, 0.08)" strokeWidth={1.5} dot={false} />
@@ -296,19 +296,19 @@ function AdminDashboard() {
         </div>
 
         {/* Card 5: Events */}
-        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#14B8A6]/15 hover:border-[#14B8A6]/30 transition-all rounded-2xl p-4 flex flex-col justify-between h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
-          <div className="flex items-center justify-between">
-            <div className="w-8 h-8 rounded-lg bg-[#14B8A6]/10 flex items-center justify-center text-[#14B8A6] text-sm font-bold">
+        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#14B8A6]/15 hover:border-[#14B8A6]/30 transition-all rounded-2xl p-3 sm:p-4 flex flex-col justify-between h-32 sm:h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
+          <div className="flex items-center justify-between gap-1">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#14B8A6]/10 flex items-center justify-center text-[#14B8A6] text-xs sm:text-sm font-bold shrink-0">
               <FaCalendarAlt />
             </div>
-            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Events This Month</p>
+            <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider truncate">Events Month</p>
           </div>
-          <div className="mt-2 z-10">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white">{stats.events.total}</h2>
-            <p className="text-[10px] font-bold text-teal-600 dark:text-teal-400 mt-0.5">{stats.events.growth}</p>
+          <div className="mt-1.5 sm:mt-2 z-10">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{stats.events.total}</h2>
+            <p className="text-[9px] sm:text-[10px] font-bold text-teal-600 dark:text-teal-400 mt-0.5 truncate">{stats.events.growth}</p>
           </div>
           {/* Sparkline */}
-          <div className="absolute bottom-0 left-0 right-0 h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-0 left-0 right-0 h-8 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={sparklines.events} margin={{ top: 0, bottom: 0, left: 0, right: 0 }}>
                 <Area type="monotone" dataKey="value" stroke="#14B8A6" fill="rgba(20, 184, 166, 0.08)" strokeWidth={1.5} dot={false} />
@@ -318,18 +318,18 @@ function AdminDashboard() {
         </div>
 
         {/* Card 6: Payments */}
-        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#EF4444]/15 hover:border-[#EF4444]/30 transition-all rounded-2xl p-4 flex flex-col justify-between h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
-          <div className="flex items-center justify-between">
-            <div className="w-8 h-8 rounded-lg bg-[#EF4444]/10 flex items-center justify-center text-[#EF4444] text-sm font-bold">
+        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#EF4444]/15 hover:border-[#EF4444]/30 transition-all rounded-2xl p-3 sm:p-4 flex flex-col justify-between h-32 sm:h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
+          <div className="flex items-center justify-between gap-1">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#EF4444]/10 flex items-center justify-center text-[#EF4444] text-xs sm:text-sm font-bold shrink-0">
               <FaRupeeSign />
             </div>
-            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Pending Payments</p>
+            <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider truncate">Pending Pay</p>
           </div>
-          <div className="mt-2 z-10 pb-2">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white">
+          <div className="mt-1 sm:mt-2 z-10 pb-1">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight truncate">
               ₹{Number(stats.payments.total).toLocaleString("en-IN")}
             </h2>
-            <p className="text-[10px] font-bold text-rose-500 mt-1">{stats.payments.growth}</p>
+            <p className="text-[9px] sm:text-[10px] font-bold text-rose-500 mt-0.5 truncate">{stats.payments.growth}</p>
           </div>
         </div>
 

@@ -258,27 +258,27 @@ function TeacherDashboard() {
         </div>
       </div>
 
-      {/* Top Cards grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
+      {/* Top Cards grid (2 COLUMNS ON MOBILE) */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-5">
         
         {/* Core Stats */}
         {stats.map((s, i) => (
           <div
             key={i}
-            className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-5 relative overflow-hidden flex flex-col justify-between group shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+            className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 relative overflow-hidden flex flex-col justify-between group shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
           >
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between gap-1">
               <div>
-                <p className="text-[9px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{s.label}</p>
-                <p className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white mt-1 tracking-tight">{s.value}</p>
+                <p className="text-[8px] sm:text-[9px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider truncate">{s.label}</p>
+                <p className="text-xl sm:text-3xl font-black text-slate-800 dark:text-white mt-1 tracking-tight">{s.value}</p>
               </div>
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${s.color}`}>
+              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 ${s.color}`}>
                 {s.icon}
               </div>
             </div>
 
-            <div className="mt-4">
-              <p className="text-[10px] font-bold text-slate-550 dark:text-slate-400">{s.desc}</p>
+            <div className="mt-3 sm:mt-4">
+              <p className="text-[9px] sm:text-[10px] font-bold text-slate-550 dark:text-slate-400 truncate">{s.desc}</p>
               {s.progress !== undefined ? (
                 <div className="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full mt-2 overflow-hidden">
                   <div className={`h-full ${s.barColor}`} style={{ width: `${s.progress}%` }} />
@@ -291,23 +291,23 @@ function TeacherDashboard() {
         ))}
 
         {/* Upcoming Exams (5th Card matching Academic Year select in mockup style) */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-5 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:shadow-md transition-all duration-300">
-          <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-2.5 mb-2.5">
-            <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1.5 select-none">
+        <div className="col-span-2 sm:col-span-1 bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:shadow-md transition-all duration-300">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-2 mb-2">
+            <span className="text-[8px] sm:text-[9px] font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1 select-none">
               <FaCalendarAlt />
               Academic Year 2026
             </span>
             <FaChevronRight className="text-[8px] text-slate-350" />
           </div>
 
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-1">
             <div>
-              <p className="text-[9px] font-extrabold text-slate-450 dark:text-slate-400 uppercase tracking-wider">Upcoming Exams</p>
-              <p className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white mt-1 tracking-tight">{dashboardData.upcomingExamsCount}</p>
-              <p className="text-[10px] font-bold text-[#7C3AED] dark:text-[#38BDF8] mt-1.5">This Week</p>
+              <p className="text-[8px] sm:text-[9px] font-extrabold text-slate-450 dark:text-slate-400 uppercase tracking-wider">Upcoming Exams</p>
+              <p className="text-xl sm:text-3xl font-black text-slate-800 dark:text-white mt-1 tracking-tight">{dashboardData.upcomingExamsCount}</p>
+              <p className="text-[9px] sm:text-[10px] font-bold text-[#7C3AED] dark:text-[#38BDF8] mt-1">This Week</p>
             </div>
-            <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 text-cyan-500 border border-cyan-500/20 flex items-center justify-center shrink-0">
-              <FaRegCalendarAlt className="text-lg" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-cyan-500/10 text-cyan-500 border border-cyan-500/20 flex items-center justify-center shrink-0">
+              <FaRegCalendarAlt className="text-base sm:text-lg" />
             </div>
           </div>
         </div>

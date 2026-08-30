@@ -221,12 +221,12 @@ function Login() {
       </div>
 
       {/* ── Right Panel (Form Container) ── */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 sm:px-12 lg:px-16 xl:px-24 relative">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 sm:px-12 lg:px-16 xl:px-24 relative">
         {/* Mobile ambient glow */}
         <div className="fixed lg:hidden top-10 right-10 w-64 h-64 rounded-full bg-[#7C3AED]/5 blur-[80px] pointer-events-none" />
         
         {/* Mobile Header Logo */}
-        <div className="flex lg:hidden items-center gap-2.5 mb-10 bg-slate-100 border border-slate-200/50 px-4 py-2 rounded-xl shadow-sm">
+        <div className="flex lg:hidden items-center gap-2.5 mb-8 sm:mb-10 bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 px-4 py-2 rounded-xl shadow-sm">
           {logoUrl ? (
             <img src={logoUrl} alt={platformName} className="w-8 h-8 object-contain rounded-lg shrink-0" />
           ) : (
@@ -234,12 +234,12 @@ function Login() {
               <FaGraduationCap className="text-white text-base" />
             </div>
           )}
-          <span className="text-lg font-black text-slate-800 tracking-tight">
+          <span className="text-lg font-black text-slate-800 dark:text-white tracking-tight">
             {platformName}
           </span>
         </div>
 
-        <div className="w-full max-w-[420px] bg-white dark:bg-[#0F172A] lg:bg-transparent dark:lg:bg-transparent p-8 sm:p-10 lg:p-0 rounded-3xl border border-slate-200/60 dark:border-white/10 lg:border-none shadow-xl shadow-slate-100/40 lg:shadow-none">
+        <div className="w-full max-w-[420px] bg-white dark:bg-[#0F172A] lg:bg-transparent dark:lg:bg-transparent p-6 sm:p-10 lg:p-0 rounded-3xl border border-slate-200/60 dark:border-white/10 lg:border-none shadow-xl shadow-slate-100/40 lg:shadow-none">
           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
             Welcome back
           </h2>

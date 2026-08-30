@@ -256,28 +256,28 @@ function SuperAdminDashboard() {
         </div>
       </div>
 
-      {/* Stat Cards Grid (6 items) */}
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 select-none">
+      {/* Stat Cards Grid (6 items - 2 COLUMNS ON MOBILE) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4 select-none">
         
         {/* Stat 1: Total Users */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Users</span>
-            <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center text-xs">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-3 sm:p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2 gap-1">
+            <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">Total Users</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center text-xs shrink-0">
               <FaUsers />
             </div>
           </div>
           <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             {stats.totalUsers}
           </p>
-          <span className="block text-[9px] font-black text-green-555 mt-2">↗ 12% from last week</span>
+          <span className="block text-[8px] sm:text-[9px] font-black text-green-555 mt-1.5 sm:mt-2 truncate">↗ 12% from last week</span>
         </div>
 
         {/* Stat 2: Pending Approvals */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pending Approvals</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-555 flex items-center justify-center text-xs">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-3 sm:p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2 gap-1">
+            <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">Pending Appr.</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 text-amber-555 flex items-center justify-center text-xs shrink-0">
               <FaHourglassHalf />
             </div>
           </div>
@@ -286,66 +286,66 @@ function SuperAdminDashboard() {
           </p>
           <button 
             onClick={() => navigate("/superadmin/users")}
-            className="block text-[9px] font-black text-amber-600 dark:text-amber-400 hover:underline text-left mt-2 cursor-pointer"
+            className="block text-[8px] sm:text-[9px] font-black text-amber-600 dark:text-amber-400 hover:underline text-left mt-1.5 sm:mt-2 cursor-pointer truncate"
           >
             View pending →
           </button>
         </div>
 
         {/* Stat 3: Total Schools */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Schools</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-3 sm:p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2 gap-1">
+            <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">Total Schools</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs shrink-0">
               <FaSchool />
             </div>
           </div>
           <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             {stats.totalSchools}
           </p>
-          <span className="block text-[9px] font-black text-green-555 mt-2">↗ 0 this month</span>
+          <span className="block text-[8px] sm:text-[9px] font-black text-green-555 mt-1.5 sm:mt-2 truncate">↗ 0 this month</span>
         </div>
 
         {/* Stat 4: Admins */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Admins</span>
-            <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center text-xs">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-3 sm:p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2 gap-1">
+            <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">Admins</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center text-xs shrink-0">
               <FaUserShield />
             </div>
           </div>
           <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             {stats.admins}
           </p>
-          <span className="block text-[9px] font-bold text-slate-450 mt-2">Active administrators</span>
+          <span className="block text-[8px] sm:text-[9px] font-bold text-slate-450 mt-1.5 sm:mt-2 truncate">Active admins</span>
         </div>
 
         {/* Stat 5: Teachers */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Teachers</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center text-xs">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-3 sm:p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2 gap-1">
+            <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">Teachers</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center text-xs shrink-0">
               <FaChalkboardTeacher />
             </div>
           </div>
           <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             {stats.teachers}
           </p>
-          <span className="block text-[9px] font-bold text-slate-455 mt-2">Active teachers</span>
+          <span className="block text-[8px] sm:text-[9px] font-bold text-slate-455 mt-1.5 sm:mt-2 truncate">Active teachers</span>
         </div>
 
         {/* Stat 6: Students */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Students</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-3 sm:p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2 gap-1">
+            <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">Students</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs shrink-0">
               <FaUserGraduate />
             </div>
           </div>
           <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             {stats.students}
           </p>
-          <span className="block text-[9px] font-bold text-slate-450 mt-2">Active students</span>
+          <span className="block text-[8px] sm:text-[9px] font-bold text-slate-450 mt-1.5 sm:mt-2 truncate">Active students</span>
         </div>
 
       </div>
@@ -703,7 +703,7 @@ function SuperAdminDashboard() {
       {/* Assignment Modal Drawer */}
       {editUser && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[90] flex items-center justify-center p-4 select-none animate-fadeIn">
-          <div className="bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-2xl max-w-md w-full overflow-hidden text-slate-800 dark:text-white">
+          <div className="bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto text-slate-800 dark:text-white">
             <div className="h-1.5 w-full bg-gradient-to-r from-[#7C3AED] to-[#38BDF8]" />
             <div className="p-6">
               
@@ -781,7 +781,7 @@ function SuperAdminDashboard() {
       {/* OVERLAY MODAL: Delete User Confirmation */}
       {deleteConfirmUser && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[95] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl relative select-none animate-fadeIn text-slate-800 dark:text-white">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-sm max-h-[90vh] overflow-y-auto shadow-2xl relative select-none animate-fadeIn text-slate-800 dark:text-white">
             <button
               onClick={() => setDeleteConfirmUser(null)}
               className="absolute top-4.5 right-4.5 text-slate-400 hover:text-slate-655 dark:hover:text-white cursor-pointer"

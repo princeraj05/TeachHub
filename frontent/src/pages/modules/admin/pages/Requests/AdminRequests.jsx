@@ -464,7 +464,7 @@ function AdminRequests() {
             }}
           />
 
-          <div className="bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/60 dark:border-white/10 w-full max-w-md p-6 relative z-10 shadow-2xl transition-all duration-200">
+          <div className="bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/60 dark:border-white/10 w-full max-w-md max-h-[90vh] overflow-y-auto p-5 sm:p-6 relative z-10 shadow-2xl transition-all duration-200">
             <div className="mb-6">
               <div className="w-12 h-12 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400 mb-4">
                 <FaClipboardList className="text-2xl" />
@@ -637,7 +637,7 @@ function AdminRequests() {
             }}
           />
 
-          <div className="bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/60 dark:border-white/10 w-full max-w-md p-6 relative z-10 shadow-2xl transition-all duration-200 text-left">
+          <div className="bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/60 dark:border-white/10 w-full max-w-md max-h-[90vh] overflow-y-auto p-5 sm:p-6 relative z-10 shadow-2xl transition-all duration-200 text-left">
             <div className="mb-6">
               <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-4">
                 <FaSchool className="text-2xl" />

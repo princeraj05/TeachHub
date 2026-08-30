@@ -383,60 +383,60 @@ function StudentDashboard() {
         </div>
       </div>
 
-      {/* Today's Overview grid layout */}
+      {/* Today's Overview grid layout (2 COLUMNS ON MOBILE) */}
       <div>
         <h2 className="text-base font-black text-slate-900 dark:text-white tracking-tight mb-4 px-1">Today's Overview</h2>
         
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
           
           {/* Card 1: Subjects Enrolled */}
-          <div className="bg-white dark:bg-[#0B132A]/80 border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
-            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-[#7C3AED] border border-[#7C3AED]/25 flex items-center justify-center mb-4">
-              <FaBookOpen className="text-sm" />
+          <div className="bg-white dark:bg-[#0B132A]/80 border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-indigo-500/10 text-[#7C3AED] border border-[#7C3AED]/25 flex items-center justify-center mb-3 sm:mb-4">
+              <FaBookOpen className="text-xs sm:text-sm" />
             </div>
-            <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
+            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
               {data.subjects}
             </p>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">
+            <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide truncate">
               Subjects Enrolled
             </p>
           </div>
 
           {/* Card 2: Attendance Rate */}
-          <div className="bg-white dark:bg-[#0B132A]/80 border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/25 flex items-center justify-center mb-4">
-              <FaClipboardCheck className="text-sm" />
+          <div className="bg-white dark:bg-[#0B132A]/80 border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/25 flex items-center justify-center mb-3 sm:mb-4">
+              <FaClipboardCheck className="text-xs sm:text-sm" />
             </div>
-            <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
+            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
               {data.attendance}%
             </p>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">
+            <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide truncate">
               Attendance Rate
             </p>
           </div>
 
           {/* Card 3: Upcoming Exams */}
-          <div className="bg-white dark:bg-[#0B132A]/80 border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
-            <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/25 flex items-center justify-center mb-4">
-              <FaFileAlt className="text-sm" />
+          <div className="bg-white dark:bg-[#0B132A]/80 border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/25 flex items-center justify-center mb-3 sm:mb-4">
+              <FaFileAlt className="text-xs sm:text-sm" />
             </div>
-            <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
+            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
               {data.exams}
             </p>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">
+            <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide truncate">
               Upcoming Exams
             </p>
           </div>
 
           {/* Card 4: Achievements Earned */}
-          <div className="bg-white dark:bg-[#0B132A]/80 border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/25 flex items-center justify-center mb-4">
-              <FaTrophy className="text-sm" />
+          <div className="bg-white dark:bg-[#0B132A]/80 border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 text-amber-555 border border-amber-500/25 flex items-center justify-center mb-3 sm:mb-4">
+              <FaTrophy className="text-xs sm:text-sm" />
             </div>
-            <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
+            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
               {data.achievements}
             </p>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">
+            <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide truncate">
               Achievements Earned
             </p>
           </div>
