@@ -149,7 +149,7 @@ function BasicInfoTab({
               {/* School Name */}
               <div>
                 <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Name</span>
-                <p className="text-xs font-bold text-white bg-[#0F172A]/40 border border-slate-850 px-3.5 py-2 rounded-xl text-slate-400">
+                <p className="text-xs font-bold text-slate-800 dark:text-white bg-slate-100/60 dark:bg-[#0F172A]/40 border border-slate-200 dark:border-slate-800 px-3.5 py-2 rounded-xl">
                   {school?.name || "G.D Academy"}
                 </p>
               </div>
@@ -162,10 +162,10 @@ function BasicInfoTab({
                     type="text"
                     value={affiliation}
                     onChange={(e) => setAffiliation(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-white px-1 py-1">{affiliation || "CBSE"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{affiliation || "CBSE"}</p>
                 )}
               </div>
 
@@ -177,10 +177,10 @@ function BasicInfoTab({
                     type="text"
                     value={principalName}
                     onChange={(e) => setPrincipalName(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-white px-1 py-1">{principalName || "Banny Thapar"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{principalName || "Banny Thapar"}</p>
                 )}
               </div>
 
@@ -192,10 +192,10 @@ function BasicInfoTab({
                     type="text"
                     value={academicYear}
                     onChange={(e) => setAcademicYear(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-white px-1 py-1">{academicYear || "2026 - 2027"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{academicYear || "2026 - 2027"}</p>
                 )}
               </div>
 
@@ -207,10 +207,10 @@ function BasicInfoTab({
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-white px-1 py-1">{email || "gdaccedmy@gmail.com"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{email || "gdaccedmy@gmail.com"}</p>
                 )}
               </div>
 
@@ -222,10 +222,10 @@ function BasicInfoTab({
                     type="text"
                     value={medium}
                     onChange={(e) => setMedium(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-white px-1 py-1">{medium || "English"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{medium || "English"}</p>
                 )}
               </div>
 
@@ -237,10 +237,10 @@ function BasicInfoTab({
                     type="text"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-white px-1 py-1">{phoneNumber || "+91 98765 43210"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{phoneNumber || "+91 98765 43210"}</p>
                 )}
               </div>
 
@@ -252,10 +252,10 @@ function BasicInfoTab({
                     type="text"
                     value={website}
                     onChange={(e) => setWebsite(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-white px-1 py-1">{website || "www.gdaccedmy.edu.in"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{website || "www.gdaccedmy.edu.in"}</p>
                 )}
               </div>
 
@@ -279,10 +279,10 @@ function BasicInfoTab({
                     rows="2"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-white px-1 py-1 leading-relaxed">
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1 leading-relaxed">
                     {address || "Near Sadar Hospital, Siwan, Bihar - 841226, India"}
                   </p>
                 )}
@@ -296,10 +296,10 @@ function BasicInfoTab({
                     type="text"
                     value={established}
                     onChange={(e) => setEstablished(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-white px-1 py-1">{established || "2010"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{established || "2010"}</p>
                 )}
               </div>
 
@@ -310,14 +310,14 @@ function BasicInfoTab({
                   <select
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
                   >
                     <option>Active</option>
                     <option>Inactive</option>
                   </select>
                 ) : (
                   <div className="px-1 py-1">
-                    <span className="inline-block text-[8px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded uppercase tracking-wider">
+                    <span className="inline-block text-[8px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded uppercase tracking-wider">
                       {status || "Active"}
                     </span>
                   </div>
@@ -331,14 +331,14 @@ function BasicInfoTab({
                   <select
                     value={schoolType}
                     onChange={(e) => setSchoolType(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
                   >
                     <option>Private</option>
                     <option>Government</option>
                   </select>
                 ) : (
                   <div className="px-1 py-1">
-                    <span className="inline-block text-[8px] font-black text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded uppercase tracking-wider">
+                    <span className="inline-block text-[8px] font-black text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded uppercase tracking-wider">
                       {schoolType || "Private"}
                     </span>
                   </div>
@@ -353,10 +353,10 @@ function BasicInfoTab({
                     type="text"
                     value={registrationNumber}
                     onChange={(e) => setRegistrationNumber(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-white px-1 py-1">{registrationNumber || "GD/REG/2010/4125"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{registrationNumber || "GD/REG/2010/4125"}</p>
                 )}
               </div>
 
@@ -368,10 +368,10 @@ function BasicInfoTab({
                     type="text"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-white px-1 py-1">{code || "GDAC2026"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{code || "GDAC2026"}</p>
                 )}
               </div>
 
@@ -383,11 +383,11 @@ function BasicInfoTab({
                     type="text"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
                   <div className="px-1 py-1">
-                    <span className="inline-block text-[8px] font-black text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded uppercase tracking-wider">
+                    <span className="inline-block text-[8px] font-black text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded uppercase tracking-wider">
                       {category || "Secondary"}
                     </span>
                   </div>
@@ -402,10 +402,10 @@ function BasicInfoTab({
                     type="text"
                     value={motto}
                     onChange={(e) => setMotto(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-slate-200 px-1 py-1 italic">
+                  <p className="text-xs font-bold text-slate-700 dark:text-slate-200 px-1 py-1 italic">
                     &ldquo;{motto || "Learn • Grow • Succeed"}&rdquo;
                   </p>
                 )}
@@ -427,74 +427,74 @@ function BasicInfoTab({
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           
           {/* Total Students */}
-          <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
+          <div className="bg-slate-50 dark:bg-[#131B35]/50 border border-slate-200 dark:border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
             <div className="flex items-center justify-between">
               <div className="w-7 h-7 rounded-lg bg-[#8B5CF6]/10 flex items-center justify-center text-[#8B5CF6] text-xs">
                 <FaUsers />
               </div>
-              <span className="text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Total Students</span>
+              <span className="text-[9px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Students</span>
             </div>
             <div className="mt-1">
-              <h4 className="text-lg font-black text-white">{school?.totalStudents ?? 0}</h4>
-              <p className="text-[8px] font-bold text-emerald-400 flex items-center gap-0.5 mt-0.5">
+              <h4 className="text-lg font-black text-slate-900 dark:text-white">{school?.totalStudents ?? 0}</h4>
+              <p className="text-[8px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5 mt-0.5">
                 <FaArrowUp className="text-[7px]" /> 12 this month
               </p>
             </div>
           </div>
 
           {/* Total Teachers */}
-          <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
+          <div className="bg-slate-50 dark:bg-[#131B35]/50 border border-slate-200 dark:border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
             <div className="flex items-center justify-between">
               <div className="w-7 h-7 rounded-lg bg-[#3B82F6]/10 flex items-center justify-center text-[#3B82F6] text-xs">
                 <FaChalkboardTeacher />
               </div>
-              <span className="text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Total Teachers</span>
+              <span className="text-[9px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Teachers</span>
             </div>
             <div className="mt-1">
-              <h4 className="text-lg font-black text-white">{school?.totalTeachers ?? 0}</h4>
-              <p className="text-[8px] font-bold text-emerald-400 flex items-center gap-0.5 mt-0.5">
+              <h4 className="text-lg font-black text-slate-900 dark:text-white">{school?.totalTeachers ?? 0}</h4>
+              <p className="text-[8px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5 mt-0.5">
                 <FaArrowUp className="text-[7px]" /> 2 this month
               </p>
             </div>
           </div>
 
           {/* Total Classes */}
-          <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
+          <div className="bg-slate-50 dark:bg-[#131B35]/50 border border-slate-200 dark:border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
             <div className="flex items-center justify-between">
               <div className="w-7 h-7 rounded-lg bg-[#10B981]/10 flex items-center justify-center text-[#10B981] text-xs">
                 <FaSchool />
               </div>
-              <span className="text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Total Classes</span>
+              <span className="text-[9px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Classes</span>
             </div>
             <div className="mt-1">
-              <h4 className="text-lg font-black text-white">{school?.totalClasses ?? 0}</h4>
+              <h4 className="text-lg font-black text-slate-900 dark:text-white">{school?.totalClasses ?? 0}</h4>
               <p className="text-[8px] font-bold text-slate-400 mt-0.5">No change</p>
             </div>
           </div>
 
           {/* Total Subjects */}
-          <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
+          <div className="bg-slate-50 dark:bg-[#131B35]/50 border border-slate-200 dark:border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
             <div className="flex items-center justify-between">
               <div className="w-7 h-7 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center text-[#F59E0B] text-xs">
                 <FaBook />
               </div>
-              <span className="text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Total Subjects</span>
+              <span className="text-[9px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Subjects</span>
             </div>
             <div className="mt-1">
-              <h4 className="text-lg font-black text-white">{school?.totalSubjects ?? 0}</h4>
-              <p className="text-[8px] font-bold text-emerald-400 flex items-center gap-0.5 mt-0.5">
+              <h4 className="text-lg font-black text-slate-900 dark:text-white">{school?.totalSubjects ?? 0}</h4>
+              <p className="text-[8px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5 mt-0.5">
                 <FaArrowUp className="text-[7px]" /> 3 this month
               </p>
             </div>
           </div>
 
           {/* Available Classes */}
-          <div className="bg-[#131B35]/50 border border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
+          <div className="bg-slate-50 dark:bg-[#131B35]/50 border border-slate-200 dark:border-slate-800/60 rounded-xl p-4 flex flex-col justify-between h-24">
             <div className="flex items-center justify-between">
               <div className="w-7 h-7 rounded-lg bg-[#14B8A6]/10 flex items-center justify-center text-[#14B8A6] text-xs">
                 <FaCalendarAlt />
               </div>
-              <span className="text-[9px] font-extrabold text-slate-450 uppercase tracking-wider">Available Classes</span>
+              <span className="text-[9px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Available Classes</span>
             </div>
             <div className="mt-1">
               {isEditing ? (
@@ -502,12 +502,12 @@ function BasicInfoTab({
                   type="text"
                   value={availableClasses}
                   onChange={(e) => setAvailableClasses(e.target.value)}
-                  className="w-full px-2 py-1 bg-[#0F172A] border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                  className="w-full px-2 py-1 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                 />
               ) : (
-                <h4 className="text-xs sm:text-sm font-black text-white truncate">{availableClasses || "Class 1 to 10"}</h4>
+                <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate">{availableClasses || "Class 1 to 10"}</h4>
               )}
-              <p className="text-[8px] font-bold text-teal-400 mt-0.5">{classCountText}</p>
+              <p className="text-[8px] font-bold text-teal-600 dark:text-teal-400 mt-0.5">{classCountText}</p>
             </div>
           </div>
 

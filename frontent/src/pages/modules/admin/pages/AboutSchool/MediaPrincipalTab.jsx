@@ -135,14 +135,14 @@ function MediaPrincipalTab({
     <div className="space-y-6 animate-fadeIn">
       
       {/* SCHOOL PHOTOS CARD */}
-      <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-800/60 pb-3 mb-4">
+      <div className="bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl">
+        <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-slate-800/60 pb-3 mb-4">
           <div className="flex items-center gap-2">
             <FaCamera className="text-purple-500 text-sm" />
-            <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">School Photos</h3>
+            <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">School Photos</h3>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-[10px] font-bold text-slate-400">{schoolPhotos.length} / 5 Photos</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{schoolPhotos.length} / 5 Photos</span>
             {schoolPhotos.length < 5 && (
               <>
                 <input
@@ -164,7 +164,7 @@ function MediaPrincipalTab({
           </div>
         </div>
 
-        <p className="text-[10px] text-slate-450 font-medium mb-4">
+        <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium mb-4">
           Upload up to 5 photos that represent your school. These photos will be visible to students and parents.
         </p>
 
@@ -172,7 +172,7 @@ function MediaPrincipalTab({
         <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
           {schoolPhotos.map((url, idx) => (
             <div key={idx} className="flex flex-col gap-2">
-              <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-800 bg-[#0F172A] group">
+              <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-[#0F172A] group">
                 <img
                   src={url}
                   alt={`School Photo ${idx + 1}`}
@@ -228,24 +228,24 @@ function MediaPrincipalTab({
 
           {/* Empty slot placeholder */}
           {schoolPhotos.length === 0 && (
-            <div className="col-span-5 py-6 text-center border border-dashed border-slate-800 rounded-2xl text-slate-500 text-xs">
+            <div className="col-span-5 py-6 text-center border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl text-slate-500 dark:text-slate-400 text-xs">
               No photos uploaded. Click "+ Add Photo" to start.
             </div>
           )}
         </div>
 
-        <div className="bg-[#0F172A] border border-slate-850 rounded-xl px-4 py-2.5 text-[9px] text-purple-400 mt-4 flex items-center gap-2">
+        <div className="bg-purple-50 dark:bg-[#0F172A] border border-purple-200 dark:border-slate-850 rounded-xl px-4 py-2.5 text-[9px] text-purple-600 dark:text-purple-400 mt-4 flex items-center gap-2">
           <FaInfoCircle className="text-[10px]" />
           <span>Drag and drop to reorder photos. The first photo will be shown as the main image.</span>
         </div>
       </div>
 
       {/* SCHOOL COVER BANNER CARD */}
-      <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-800/60 pb-3 mb-4">
+      <div className="bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl">
+        <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-slate-800/60 pb-3 mb-4">
           <div className="flex items-center gap-2">
             <FaCamera className="text-purple-500 text-sm" />
-            <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">School Cover Banner</h3>
+            <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">School Cover Banner</h3>
           </div>
           <div>
             <input
@@ -265,12 +265,12 @@ function MediaPrincipalTab({
           </div>
         </div>
 
-        <p className="text-[10px] text-slate-450 font-medium mb-4">
-          Upload a high-resolution cover banner that represents your school. Recommended size: <strong className="text-purple-400 font-bold">1200 x 400 pixels (3:1 aspect ratio)</strong> for the best widescreen preview.
+        <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium mb-4">
+          Upload a high-resolution cover banner that represents your school. Recommended size: <strong className="text-purple-600 dark:text-purple-400 font-bold">1200 x 400 pixels (3:1 aspect ratio)</strong> for the best widescreen preview.
         </p>
 
         {/* Banner Widescreen Preview Frame */}
-        <div className="relative aspect-[3/1] w-full rounded-2xl overflow-hidden border border-slate-800 bg-[#0F172A] group">
+        <div className="relative aspect-[3/1] w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-[#0F172A] group">
           {coverImage ? (
             <>
               <img
@@ -296,12 +296,12 @@ function MediaPrincipalTab({
               </div>
             </>
           ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500 gap-2 border border-dashed border-slate-800 rounded-2xl">
-              <span className="text-xs font-bold text-slate-400">No cover image uploaded</span>
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500 gap-2 border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">No cover image uploaded</span>
               <button
                 type="button"
                 onClick={() => document.getElementById("cover-photo-file-input").click()}
-                className="px-4 py-2 bg-[#0F172A] border border-slate-800 hover:bg-slate-850 rounded-xl text-[10px] text-white font-black transition cursor-pointer"
+                className="px-4 py-2 bg-slate-100 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-850 rounded-xl text-[10px] text-slate-800 dark:text-white font-black transition cursor-pointer"
               >
                 Upload Cover Banner
               </button>
@@ -314,20 +314,20 @@ function MediaPrincipalTab({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Principal Leadership Photo Card (5 Cols) */}
-        <div className="lg:col-span-5 bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+        <div className="lg:col-span-5 bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between">
           <div>
-            <div className="flex items-center gap-2 border-b border-slate-800/60 pb-3 mb-4">
+            <div className="flex items-center gap-2 border-b border-slate-200/60 dark:border-slate-800/60 pb-3 mb-4">
               <FaUserTie className="text-purple-500 text-sm" />
-              <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">Principal Leadership</h3>
+              <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">Principal Leadership</h3>
             </div>
-            <p className="text-[10px] text-slate-450 font-medium mb-5">
+            <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium mb-5">
               Upload principal photo and manage leadership information.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-5">
               
               {/* Photo Box with overlay camera */}
-              <div className="relative w-28 h-28 rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 group">
+              <div className="relative w-28 h-28 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 group">
                 <img
                   src={principalPhoto || "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=300&h=300&q=80"}
                   alt="Principal"
@@ -359,7 +359,7 @@ function MediaPrincipalTab({
                 <button
                   type="button"
                   onClick={() => document.getElementById("principal-photo-file-input").click()}
-                  className="px-4 py-2 bg-[#0F172A] border border-slate-800 hover:bg-slate-850 rounded-xl text-xs text-white font-bold transition cursor-pointer select-none"
+                  className="px-4 py-2 bg-slate-100 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-850 rounded-xl text-xs text-slate-800 dark:text-white font-bold transition cursor-pointer select-none"
                 >
                   Choose Image File
                 </button>
@@ -374,9 +374,9 @@ function MediaPrincipalTab({
         </div>
 
         {/* Principal Details Inputs Card (7 Cols) */}
-        <div className="lg:col-span-7 bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
-          <div className="flex items-center justify-between border-b border-[#1E293B]/60 pb-3 mb-4">
-            <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">Principal Details</h3>
+        <div className="lg:col-span-7 bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl">
+          <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-[#1E293B]/60 pb-3 mb-4">
+            <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">Principal Details</h3>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -388,7 +388,7 @@ function MediaPrincipalTab({
                 type="text"
                 value={principalName}
                 onChange={(e) => setPrincipalName(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
               />
             </div>
 
@@ -399,7 +399,7 @@ function MediaPrincipalTab({
                 type="text"
                 value={principalDesignation}
                 onChange={(e) => setPrincipalDesignation(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
               />
             </div>
 
@@ -410,7 +410,7 @@ function MediaPrincipalTab({
                 type="email"
                 value={principalEmail}
                 onChange={(e) => setPrincipalEmail(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
               />
             </div>
 
@@ -421,7 +421,7 @@ function MediaPrincipalTab({
                 type="text"
                 value={principalPhone}
                 onChange={(e) => setPrincipalPhone(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
               />
             </div>
 
@@ -432,7 +432,7 @@ function MediaPrincipalTab({
                 type="date"
                 value={principalLeadershipSince}
                 onChange={(e) => setPrincipalLeadershipSince(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
               />
             </div>
 
@@ -443,7 +443,7 @@ function MediaPrincipalTab({
                 rows="3"
                 value={principalIntroduction}
                 onChange={(e) => setPrincipalIntroduction(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-medium leading-relaxed"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-medium leading-relaxed"
               />
             </div>
 
@@ -455,7 +455,7 @@ function MediaPrincipalTab({
       {/* Photo Preview Modal */}
       {activePhotoPreview && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="relative max-w-3xl max-h-[80vh] bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden p-2 shadow-2xl">
+          <div className="relative max-w-3xl max-h-[80vh] bg-[#0D1326] border border-slate-800 rounded-2xl overflow-hidden p-2 shadow-2xl">
             <button
               onClick={() => setActivePhotoPreview(null)}
               className="absolute top-4 right-4 bg-slate-800/80 hover:bg-slate-700 text-white rounded-full p-2 cursor-pointer z-10"
@@ -468,7 +468,7 @@ function MediaPrincipalTab({
       )}
 
       {/* Info warning banner */}
-      <div className="bg-[#0F172A] border border-slate-850 rounded-xl px-4 py-3.5 text-xs text-slate-350 mt-4 flex items-center gap-2.5">
+      <div className="bg-purple-50 dark:bg-[#0F172A] border border-purple-200 dark:border-slate-850 rounded-xl px-4 py-3.5 text-xs text-slate-700 dark:text-slate-350 mt-4 flex items-center gap-2.5">
         <FaInfoCircle className="text-purple-500 text-base" />
         <span>Good quality photos and complete information help build trust with parents and enhance your school's profile.</span>
       </div>
