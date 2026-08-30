@@ -34,13 +34,17 @@ function UserProfile() {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUser(res.data);
+      const userAvatar = res.data.avatar || res.data.photo || res.data.profilePhoto || "";
       setFormData({
         name: res.data.name || "",
         phoneNumber: res.data.phoneNumber || "",
         fatherMobileNumber: res.data.fatherMobileNumber || "",
         motherMobileNumber: res.data.motherMobileNumber || "",
-        avatar: res.data.avatar || ""
+        avatar: userAvatar
       });
+      if (res.data.name) localStorage.setItem("name", res.data.name);
+      if (userAvatar) localStorage.setItem("avatar", userAvatar);
+      window.dispatchEvent(new Event("profileUpdate"));
     } catch (err) {
       console.error("Error fetching profile:", err);
     } finally {
@@ -70,11 +74,16 @@ function UserProfile() {
       const res = await axios.put(`${API}/api/auth/profile`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setUser(res.data.user);
+      const updatedUser = res.data.user || res.data;
+      setUser(updatedUser);
       setEditMode(false);
+
+      const updatedAvatar = updatedUser.avatar || updatedUser.photo || updatedUser.profilePhoto || formData.avatar || "";
+      const updatedName = updatedUser.name || formData.name || "";
+
       // Update name and avatar in localStorage for Layout header updates
-      localStorage.setItem("name", res.data.user.name);
-      localStorage.setItem("avatar", res.data.user.avatar || "");
+      localStorage.setItem("name", updatedName);
+      localStorage.setItem("avatar", updatedAvatar);
       window.dispatchEvent(new Event("profileUpdate"));
     } catch (err) {
       alert(err.response?.data?.message || "Failed to update profile");

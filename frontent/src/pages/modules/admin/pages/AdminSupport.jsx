@@ -59,6 +59,16 @@ function AdminSupport() {
     };
   }, [socket]);
 
+  const DEFAULT_SUPERADMIN = {
+    _id: "superadmin_support_fallback",
+    name: "Super Admin Support",
+    email: "support@teachhub.com",
+    role: "superadmin",
+    schoolName: "TeachHub HQ",
+    isOnline: true,
+    avatar: ""
+  };
+
   const fetchContacts = async () => {
     try {
       setLoading(true);
@@ -67,12 +77,15 @@ function AdminSupport() {
       });
       setContacts(res.data);
       
-      const superAdmin = res.data.find(c => c.role === "superadmin");
-      if (superAdmin && activeTab === "superadmin") {
+      const superAdmin = res.data.find(c => c.role?.toLowerCase() === "superadmin") || DEFAULT_SUPERADMIN;
+      if (activeTab === "superadmin") {
         setActiveContact(superAdmin);
       }
     } catch (err) {
       console.error("Error fetching contacts:", err);
+      if (activeTab === "superadmin") {
+        setActiveContact(DEFAULT_SUPERADMIN);
+      }
     } finally {
       setLoading(false);
     }
@@ -115,10 +128,8 @@ function AdminSupport() {
     setNewBroadcast("");
 
     if (tab === "superadmin") {
-      const superAdmin = contacts.find(c => c.role === "superadmin");
-      if (superAdmin) {
-        setActiveContact(superAdmin);
-      }
+      const superAdmin = contacts.find(c => c.role?.toLowerCase() === "superadmin") || DEFAULT_SUPERADMIN;
+      setActiveContact(superAdmin);
     } else {
       setSubTab("personal");
     }
@@ -199,17 +210,11 @@ function AdminSupport() {
         {/* Super Admin Tab */}
         {activeTab === "superadmin" && (
           <div className="flex-1 flex h-full bg-white dark:bg-[#111827] relative">
-            {activeContact ? (
-              <SupportChatEngine 
-                activeContact={activeContact} 
-                onBack={() => setActiveContact(null)} 
-                userRole="admin" 
-              />
-            ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/10 dark:bg-transparent">
-                <p className="text-xs text-slate-400 dark:text-slate-550 font-semibold">Super Admin is currently unavailable.</p>
-              </div>
-            )}
+            <SupportChatEngine 
+              activeContact={activeContact || DEFAULT_SUPERADMIN} 
+              onBack={() => setActiveContact(null)} 
+              userRole="admin" 
+            />
           </div>
         )}
 

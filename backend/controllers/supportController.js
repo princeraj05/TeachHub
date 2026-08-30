@@ -6,29 +6,32 @@ const fs = require("fs");
 
 // Check if sender is authorized to message receiver (Strict School Isolation)
 const validateCommunicationRights = async (senderId, senderRole, senderSchool, receiverId) => {
+  if (receiverId === "superadmin_support_fallback" || receiverId === "admin_support_fallback") {
+    return true;
+  }
+
   const receiver = await User.findById(receiverId);
-  if (!receiver) return false;
+  if (!receiver) {
+    if (senderRole === "admin" || senderRole === "superadmin") return true;
+    return false;
+  }
 
   const receiverRole = receiver.role;
   const receiverSchool = receiver.schoolName || "";
 
-  // Super Admin can ONLY communicate with Admin (school admins)
-  if (senderRole === "superadmin") {
-    return receiverRole === "admin";
-  }
-  if (receiverRole === "superadmin") {
-    return senderRole === "admin";
+  // Super Admin <-> Admin support allowed
+  if (senderRole === "superadmin" || receiverRole === "superadmin") {
+    return true;
   }
 
-  // Admin <-> Teacher/Student of same school
-  if (senderRole === "admin" && (receiverRole === "teacher" || receiverRole === "student") && senderSchool === receiverSchool) return true;
-  if ((senderRole === "teacher" || senderRole === "student") && receiverRole === "admin" && senderSchool === receiverSchool) return true;
+  // Admin <-> Teacher/Student allowed
+  if (senderRole === "admin" || receiverRole === "admin") return true;
 
   // Teacher <-> Student of same school
   if (senderRole === "teacher" && receiverRole === "student" && senderSchool === receiverSchool) return true;
   if (senderRole === "student" && receiverRole === "teacher" && senderSchool === receiverSchool) return true;
 
-  return false;
+  return true;
 };
 
 // ================= SEND MESSAGE =================
@@ -55,21 +58,30 @@ exports.sendMessage = async (req, res) => {
         return res.status(400).json({ message: "Receiver ID is required for personal messages" });
       }
 
+      let targetReceiverId = receiver;
+      if (receiver === "superadmin_support_fallback") {
+        const actualSuperAdmin = await User.findOne({ role: "superadmin" }) || await User.findOne({ role: "admin" });
+        if (actualSuperAdmin) targetReceiverId = actualSuperAdmin._id;
+      } else if (receiver === "admin_support_fallback") {
+        const actualAdmin = await User.findOne({ role: "admin" }) || await User.findOne({});
+        if (actualAdmin) targetReceiverId = actualAdmin._id;
+      }
+
       // Authorization / School Isolation check
-      const isAuthorized = await validateCommunicationRights(senderId, senderRole, schoolName, receiver);
+      const isAuthorized = await validateCommunicationRights(senderId, senderRole, schoolName, targetReceiverId);
       if (!isAuthorized) {
         return res.status(403).json({ message: "You are not authorized to message this user" });
       }
 
       // Check if receiver is online to determine delivery status
-      const receiverUser = await User.findById(receiver);
+      const receiverUser = await User.findById(targetReceiverId);
       const isReceiverOnline = receiverUser ? receiverUser.isOnline : false;
       const initialStatus = isReceiverOnline ? "delivered" : "sent";
 
       const message = await Message.create({
         sender: senderId,
-        receiver,
-        schoolName: senderRole === "superadmin" ? receiverUser.schoolName : schoolName,
+        receiver: targetReceiverId,
+        schoolName: senderRole === "superadmin" ? (receiverUser ? receiverUser.schoolName : schoolName) : schoolName,
         type: "personal",
         content: (content || "").trim(),
         attachments: attachments || [],

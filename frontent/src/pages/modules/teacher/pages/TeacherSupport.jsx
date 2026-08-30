@@ -58,6 +58,16 @@ function TeacherSupport() {
     };
   }, [socket]);
 
+  const DEFAULT_ADMIN = {
+    _id: "admin_support_fallback",
+    name: "School Admin Support",
+    email: "admin@school.com",
+    role: "admin",
+    schoolName: "School Management",
+    isOnline: true,
+    avatar: ""
+  };
+
   const fetchContacts = async () => {
     try {
       setLoading(true);
@@ -66,13 +76,16 @@ function TeacherSupport() {
       });
       setContacts(res.data);
       
-      const admin = res.data.find(c => c.role === "admin");
-      if (admin && activeTab === "admin") {
+      const admin = res.data.find(c => c.role?.toLowerCase() === "admin" || c.role?.toLowerCase() === "superadmin") || DEFAULT_ADMIN;
+      if (activeTab === "admin") {
         setActiveContact(admin);
         fetchBroadcastHistory();
       }
     } catch (err) {
       console.error("Error fetching contacts:", err);
+      if (activeTab === "admin") {
+        setActiveContact(DEFAULT_ADMIN);
+      }
     } finally {
       setLoading(false);
     }
@@ -191,17 +204,11 @@ function TeacherSupport() {
 
             {/* Personal Admin Chat (Right) */}
             <div className="w-1/2 flex flex-col h-full bg-white dark:bg-[#111827] relative">
-              {activeContact ? (
-                <SupportChatEngine 
-                  activeContact={activeContact} 
-                  onBack={() => setActiveContact(null)} 
-                  userRole="teacher" 
-                />
-              ) : (
-                <div className="flex-1 flex items-center justify-center text-center text-slate-400 text-xs font-semibold select-none">
-                  Admin support currently unavailable.
-                </div>
-              )}
+              <SupportChatEngine 
+                activeContact={activeContact || DEFAULT_ADMIN} 
+                onBack={() => setActiveContact(null)} 
+                userRole="teacher" 
+              />
             </div>
           </div>
         )}

@@ -68,6 +68,32 @@ function SuperAdminLayout() {
   }, []);
 
   useEffect(() => {
+    const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    axios
+      .get(`${API}/api/auth/profile`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then((res) => {
+        const user = res.data;
+        if (user) {
+          if (user.name) {
+            localStorage.setItem("name", user.name);
+            setName(user.name);
+          }
+          const userAvatar = user.avatar || user.photo || user.profilePhoto || "";
+          if (userAvatar) {
+            localStorage.setItem("avatar", userAvatar);
+            setAvatar(userAvatar);
+          }
+        }
+      })
+      .catch((err) => console.log("SuperAdmin profile sync error:", err));
+  }, []);
+
+  useEffect(() => {
     setMobileMenuOpen(false);
     setProfileDropdownOpen(false);
   }, [location.pathname]);
@@ -340,11 +366,20 @@ function SuperAdminLayout() {
               <>
                 <div className="fixed inset-0 z-[45]" onClick={() => setProfileDropdownOpen(false)} />
                 <div className="absolute right-0 top-12 w-52 bg-[#0F172A] border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 text-slate-350 animate-fadeIn">
-                  <div className="px-3 py-2 border-b border-white/[0.08] mb-1">
-                    <p className="text-xs font-bold text-white truncate">{name}</p>
-                    <span className="inline-flex items-center gap-1 text-[8px] font-extrabold text-[#38BDF8] uppercase tracking-widest mt-1 bg-white/5 border border-white/[0.06] px-1.5 py-0.5 rounded">
-                      <FaUserShield /> Super Admin
-                    </span>
+                  <div className="px-3 py-2 border-b border-white/[0.08] mb-1 flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-xs overflow-hidden border border-white/20 shrink-0">
+                      {avatar ? (
+                        <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        name.charAt(0).toUpperCase()
+                      )}
+                    </div>
+                    <div className="overflow-hidden">
+                      <p className="text-xs font-bold text-white truncate">{name}</p>
+                      <span className="inline-flex items-center gap-1 text-[8px] font-extrabold text-[#38BDF8] uppercase tracking-widest mt-0.5 bg-white/5 border border-white/[0.06] px-1.5 py-0.5 rounded">
+                        <FaUserShield /> Super Admin
+                      </span>
+                    </div>
                   </div>
                   <Link
                     to="/superadmin/profile"

@@ -46,6 +46,32 @@ function StudentLayout() {
     return () => window.removeEventListener("profileUpdate", handleProfileUpdate);
   }, []);
 
+  useEffect(() => {
+    const API = import.meta.env.VITE_API_URL;
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    axios
+      .get(`${API}/api/auth/profile`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then((res) => {
+        const user = res.data;
+        if (user) {
+          if (user.name) {
+            localStorage.setItem("name", user.name);
+            setName(user.name);
+          }
+          const userAvatar = user.avatar || user.photo || user.profilePhoto || "";
+          if (userAvatar) {
+            localStorage.setItem("avatar", userAvatar);
+            setAvatar(userAvatar);
+          }
+        }
+      })
+      .catch((err) => console.log("Student profile sync error:", err));
+  }, []);
+
   const handleLogout = () => {
     confirmLogout(navigate);
   };
