@@ -6,6 +6,7 @@ import {
   FaCheck, 
   FaCalendarCheck, 
   FaCalendarAlt, 
+  FaCalendarWeek,
   FaBullhorn, 
   FaUsers, 
   FaTimes, 
