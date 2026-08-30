@@ -79,6 +79,8 @@ exports.createEvent = async (req, res) => {
   }
 };
 
+const escapeRegex = (str) => (str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // 2. Get Events (Filtered by School Name for standard users, all for Super Admin)
 exports.getEvents = async (req, res) => {
   try {
@@ -92,12 +94,12 @@ exports.getEvents = async (req, res) => {
     if (global === "true") {
       // Global feed: no schoolName restriction
     } else if (schoolName) {
-      query.schoolName = schoolName;
+      query.schoolName = new RegExp("^" + escapeRegex(schoolName) + "$", "i");
     } else if (authUser.role === "superadmin") {
       // Superadmin default: no restriction
     } else {
       if (!authUser.schoolName) return res.status(200).json([]);
-      query.schoolName = authUser.schoolName;
+      query.schoolName = new RegExp("^" + escapeRegex(authUser.schoolName) + "$", "i");
     }
 
     const events = await Event.find(query).sort({ eventDate: -1 });
@@ -119,19 +121,19 @@ exports.getUpcomingEvents = async (req, res) => {
     today.setHours(0, 0, 0, 0);
 
     let query = { 
-      status: "upcoming",
+      status: { $regex: /^upcoming$/i },
       eventDate: { $gte: today }
     };
     const { schoolName, global } = req.query;
     if (global === "true") {
       // Global feed: no schoolName restriction
     } else if (schoolName) {
-      query.schoolName = schoolName;
+      query.schoolName = new RegExp("^" + escapeRegex(schoolName) + "$", "i");
     } else if (authUser.role === "superadmin") {
       // Superadmin default: no restriction
     } else {
       if (!authUser.schoolName) return res.status(200).json([]);
-      query.schoolName = authUser.schoolName;
+      query.schoolName = new RegExp("^" + escapeRegex(authUser.schoolName) + "$", "i");
     }
 
     const events = await Event.find(query).sort({ eventDate: 1 });
@@ -154,7 +156,7 @@ exports.getCompletedEvents = async (req, res) => {
 
     let query = {
       $or: [
-        { status: "completed" },
+        { status: { $regex: /^completed$/i } },
         { eventDate: { $lt: today } }
       ]
     };
@@ -162,12 +164,12 @@ exports.getCompletedEvents = async (req, res) => {
     if (global === "true") {
       // Global feed: no schoolName restriction
     } else if (schoolName) {
-      query.schoolName = schoolName;
+      query.schoolName = new RegExp("^" + escapeRegex(schoolName) + "$", "i");
     } else if (authUser.role === "superadmin") {
       // Superadmin default: no restriction
     } else {
       if (!authUser.schoolName) return res.status(200).json([]);
-      query.schoolName = authUser.schoolName;
+      query.schoolName = new RegExp("^" + escapeRegex(authUser.schoolName) + "$", "i");
     }
 
     const events = await Event.find(query).sort({ eventDate: -1 });

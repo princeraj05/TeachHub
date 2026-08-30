@@ -230,26 +230,26 @@ function SuperAdminDashboard() {
       )}
 
       {/* Welcome & Calendar Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 select-none mb-3 sm:mb-6">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+          <h2 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">
             Welcome back, Super Admin! 👋
           </h2>
-          <p className="text-xs text-slate-450 dark:text-slate-400 font-semibold mt-0.5">
+          <p className="text-[11px] sm:text-xs text-slate-450 dark:text-slate-400 font-semibold mt-0.5">
             Here's what's happening across TeachHub today.
           </p>
         </div>
 
         {/* Date card */}
-        <div className="flex items-center gap-3 bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] px-4.5 py-3 rounded-2.5xl shadow-sm">
-          <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center shrink-0">
-            <FaCalendarAlt className="text-base" />
+        <div className="flex items-center gap-2.5 bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] px-3 py-1.5 sm:px-4.5 sm:py-3 rounded-xl shadow-sm self-start sm:self-auto">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center shrink-0">
+            <FaCalendarAlt className="text-xs sm:text-base" />
           </div>
           <div>
-            <h4 className="text-xs font-black text-slate-805 dark:text-white leading-tight">
+            <h4 className="text-[11px] sm:text-xs font-black text-slate-805 dark:text-white leading-tight">
               {formattedDate}
             </h4>
-            <p className="text-[10px] text-slate-450 dark:text-slate-450 font-bold mt-0.5">
+            <p className="text-[9px] sm:text-[10px] text-slate-450 dark:text-slate-450 font-bold mt-0.5">
               {formattedDay}
             </p>
           </div>
@@ -257,95 +257,95 @@ function SuperAdminDashboard() {
       </div>
 
       {/* Stat Cards Grid (6 items - 2 COLUMNS ON MOBILE) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4 select-none">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 select-none mb-4 sm:mb-6">
         
         {/* Stat 1: Total Users */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-3 sm:p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between mb-2 gap-1">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-2.5 sm:p-4.5 rounded-2xl shadow-sm relative overflow-hidden flex flex-col justify-between h-24 sm:h-auto">
+          <div className="flex items-center justify-between mb-1 gap-1">
             <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">Total Users</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center text-xs shrink-0">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center text-xs shrink-0">
               <FaUsers />
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+          <p className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             {stats.totalUsers}
           </p>
-          <span className="block text-[8px] sm:text-[9px] font-black text-green-555 mt-1.5 sm:mt-2 truncate">↗ 12% from last week</span>
+          <span className="block text-[8px] sm:text-[9px] font-black text-emerald-500 truncate mt-0.5">↗ 12% from last week</span>
         </div>
 
         {/* Stat 2: Pending Approvals */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-3 sm:p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between mb-2 gap-1">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-2.5 sm:p-4.5 rounded-2xl shadow-sm relative overflow-hidden flex flex-col justify-between h-24 sm:h-auto">
+          <div className="flex items-center justify-between mb-1 gap-1">
             <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">Pending Appr.</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 text-amber-555 flex items-center justify-center text-xs shrink-0">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 text-amber-555 flex items-center justify-center text-xs shrink-0">
               <FaHourglassHalf />
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+          <p className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             {stats.pendingApprovals}
           </p>
           <button 
             onClick={() => navigate("/superadmin/users")}
-            className="block text-[8px] sm:text-[9px] font-black text-amber-600 dark:text-amber-400 hover:underline text-left mt-1.5 sm:mt-2 cursor-pointer truncate"
+            className="block text-[8px] sm:text-[9px] font-black text-amber-600 dark:text-amber-400 hover:underline text-left mt-0.5 cursor-pointer truncate"
           >
             View pending →
           </button>
         </div>
 
         {/* Stat 3: Total Schools */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-3 sm:p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between mb-2 gap-1">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-2.5 sm:p-4.5 rounded-2xl shadow-sm relative overflow-hidden flex flex-col justify-between h-24 sm:h-auto">
+          <div className="flex items-center justify-between mb-1 gap-1">
             <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">Total Schools</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs shrink-0">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs shrink-0">
               <FaSchool />
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+          <p className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             {stats.totalSchools}
           </p>
-          <span className="block text-[8px] sm:text-[9px] font-black text-green-555 mt-1.5 sm:mt-2 truncate">↗ 0 this month</span>
+          <span className="block text-[8px] sm:text-[9px] font-black text-emerald-500 truncate mt-0.5">↗ 0 this month</span>
         </div>
 
         {/* Stat 4: Admins */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-3 sm:p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between mb-2 gap-1">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-2.5 sm:p-4.5 rounded-2xl shadow-sm relative overflow-hidden flex flex-col justify-between h-24 sm:h-auto">
+          <div className="flex items-center justify-between mb-1 gap-1">
             <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">Admins</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center text-xs shrink-0">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center text-xs shrink-0">
               <FaUserShield />
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+          <p className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             {stats.admins}
           </p>
-          <span className="block text-[8px] sm:text-[9px] font-bold text-slate-450 mt-1.5 sm:mt-2 truncate">Active admins</span>
+          <span className="block text-[8px] sm:text-[9px] font-bold text-slate-450 truncate mt-0.5">Active admins</span>
         </div>
 
         {/* Stat 5: Teachers */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-3 sm:p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between mb-2 gap-1">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-2.5 sm:p-4.5 rounded-2xl shadow-sm relative overflow-hidden flex flex-col justify-between h-24 sm:h-auto">
+          <div className="flex items-center justify-between mb-1 gap-1">
             <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">Teachers</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center text-xs shrink-0">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center text-xs shrink-0">
               <FaChalkboardTeacher />
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+          <p className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             {stats.teachers}
           </p>
-          <span className="block text-[8px] sm:text-[9px] font-bold text-slate-455 mt-1.5 sm:mt-2 truncate">Active teachers</span>
+          <span className="block text-[8px] sm:text-[9px] font-bold text-slate-455 truncate mt-0.5">Active teachers</span>
         </div>
 
         {/* Stat 6: Students */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-3 sm:p-4.5 rounded-2.5xl shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between mb-2 gap-1">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-2.5 sm:p-4.5 rounded-2xl shadow-sm relative overflow-hidden flex flex-col justify-between h-24 sm:h-auto">
+          <div className="flex items-center justify-between mb-1 gap-1">
             <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">Students</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs shrink-0">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs shrink-0">
               <FaUserGraduate />
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+          <p className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             {stats.students}
           </p>
-          <span className="block text-[8px] sm:text-[9px] font-bold text-slate-450 mt-1.5 sm:mt-2 truncate">Active students</span>
+          <span className="block text-[8px] sm:text-[9px] font-bold text-slate-450 truncate mt-0.5">Active students</span>
         </div>
 
       </div>

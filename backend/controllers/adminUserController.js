@@ -4,6 +4,8 @@ const Subject = require("../models/Subject");
 const AdmissionExam = require("../models/AdmissionExam");
 
 
+const escapeRegex = (str) => (str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // ================= GET TEACHERS =================
 
 exports.getTeachers = async (req,res)=>{
@@ -14,14 +16,31 @@ if (!req.user || !req.user.schoolName) {
   return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
 }
 
+const school = req.user.schoolName;
+const schoolRegex = new RegExp("^" + escapeRegex(school) + "$", "i");
+
+// Auto-restore teachers if role was wrongly set to unassigned
+await User.updateMany(
+  {
+    $or: [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }],
+    role: "unassigned",
+    requestedRole: "teacher",
+    requestStatus: "approved"
+  },
+  { $set: { role: "teacher" } }
+);
+
 const teachers = await User
-.find({ role:"teacher", schoolName: req.user.schoolName })
+.find({
+  role: { $regex: /^teacher$/i },
+  $or: [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }]
+})
 .select("-password")
 .lean();
 
 for (let teacher of teachers) {
-  const classes = await Class.find({ teacher: teacher._id, schoolName: req.user.schoolName }).select("name section");
-  const subjects = await Subject.find({ teacher: teacher._id, schoolName: req.user.schoolName }).select("name");
+  const classes = await Class.find({ teacher: teacher._id, schoolName: schoolRegex }).select("name section");
+  const subjects = await Subject.find({ teacher: teacher._id, schoolName: schoolRegex }).select("name");
   teacher.classes = classes;
   teacher.subjects = subjects;
 }
@@ -51,17 +70,27 @@ if (!req.user || !req.user.schoolName) {
 }
 
 const school = req.user.schoolName;
+const schoolRegex = new RegExp("^" + escapeRegex(school) + "$", "i");
 
-// Auto-heal/migrate student candidates whose exam has not happened or who aren't fully approved:
+// Auto-restore students if role was wrongly set to unassigned
+await User.updateMany(
+  {
+    $or: [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }],
+    role: "unassigned",
+    requestedRole: "student",
+    requestStatus: "approved"
+  },
+  { $set: { role: "student" } }
+);
+
+// Auto-heal unassigned candidates whose exam has not happened or who aren't fully approved:
 const candidatesToHeal = await User.find({
   $or: [
-    { schoolName: school },
-    { requestedSchool: school }
+    { schoolName: schoolRegex },
+    { requestedSchool: schoolRegex }
   ],
-  $or: [
-    { role: "student" },
-    { requestedRole: "student" }
-  ],
+  role: "unassigned",
+  requestedRole: "student",
   classId: { $exists: false },
   requestStatus: { $ne: "approved" }
 });
@@ -75,7 +104,10 @@ for (let c of candidatesToHeal) {
 }
 
 const students = await User
-.find({ role:"student", schoolName: school, requestStatus: "approved" })
+.find({
+  role: { $regex: /^student$/i },
+  $or: [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }]
+})
 .populate("classId", "name section")
 .select("-password");
 
@@ -99,17 +131,16 @@ exports.getJoinRequests = async (req, res) => {
     }
 
     const school = req.user.schoolName;
+    const schoolRegex = new RegExp("^" + escapeRegex(school) + "$", "i");
 
     // Run the auto-heal/migrate here too to keep both endpoints in sync
     const candidatesToHeal = await User.find({
       $or: [
-        { schoolName: school },
-        { requestedSchool: school }
+        { schoolName: schoolRegex },
+        { requestedSchool: schoolRegex }
       ],
-      $or: [
-        { role: "student" },
-        { requestedRole: "student" }
-      ],
+      role: "unassigned",
+      requestedRole: "student",
       classId: { $exists: false },
       requestStatus: { $ne: "approved" }
     });

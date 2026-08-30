@@ -114,15 +114,9 @@ function UserProfile() {
     <div style={{ fontFamily: SORA }} className="w-full max-w-2xl mx-auto px-3 sm:px-4 py-5 sm:py-8">
       {/* Page Header */}
       <div className="mb-6 sm:mb-8 px-1">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED] dark:text-[#38BDF8] mb-1">
-          Settings
-        </p>
         <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight">
           Personal Profile
         </h1>
-        <p className="text-xs text-slate-400 font-medium mt-0.5">
-          Manage your personal credentials, contact info, and avatar image
-        </p>
       </div>
 
       <div className="bg-white dark:bg-[#0B132A] rounded-2xl sm:rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-lg sm:shadow-xl overflow-hidden flex flex-col relative transition-all duration-200">

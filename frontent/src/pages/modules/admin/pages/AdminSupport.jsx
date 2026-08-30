@@ -172,10 +172,10 @@ function AdminSupport() {
 
   const getFilteredContacts = () => {
     if (activeTab === "teachers") {
-      return contacts.filter(c => c.role === "teacher");
+      return contacts.filter(c => c.role?.toLowerCase() === "teacher");
     }
     if (activeTab === "students") {
-      return contacts.filter(c => c.role === "student");
+      return contacts.filter(c => c.role?.toLowerCase() === "student");
     }
     return [];
   };

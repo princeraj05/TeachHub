@@ -33,6 +33,9 @@ function AdminEvents() {
 
   const [activeTab, setActiveTab] = useState("upcoming"); // upcoming, completed
   const [events, setEvents] = useState([]);
+  const [upcomingCount, setUpcomingCount] = useState(0);
+  const [completedCount, setCompletedCount] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
 
   // Modals visibility states
@@ -65,11 +68,13 @@ function AdminEvents() {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const endpoint = activeTab === "upcoming" ? "/api/events/upcoming" : "/api/events/completed";
-      const res = await axios.get(`${API}${endpoint}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setEvents(res.data);
+      const [upRes, compRes] = await Promise.all([
+        axios.get(`${API}/api/events/upcoming`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/api/events/completed`, { headers: { Authorization: `Bearer ${token}` } })
+      ]);
+      setUpcomingCount(upRes.data.length);
+      setCompletedCount(compRes.data.length);
+      setEvents(activeTab === "upcoming" ? upRes.data : compRes.data);
     } catch (err) {
       console.error("Error loading events:", err);
     } finally {
@@ -310,28 +315,57 @@ function AdminEvents() {
         </button>
       </div>
 
-      {/* Tabs list */}
-      <div className="flex bg-white dark:bg-[#0B132A] p-1.5 border border-slate-200/50 dark:border-white/10 rounded-2xl shadow-sm w-fit gap-1 select-none">
-        <button
-          onClick={() => setActiveTab("upcoming")}
-          className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer ${
-            activeTab === "upcoming"
-              ? "bg-[#7C3AED] text-white dark:bg-[#38BDF8] dark:text-[#090F1C] shadow-md shadow-[#7C3AED]/10"
-              : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white"
-          }`}
-        >
-          Upcoming Events
-        </button>
-        <button
-          onClick={() => setActiveTab("completed")}
-          className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer ${
-            activeTab === "completed"
-              ? "bg-[#7C3AED] text-white dark:bg-[#38BDF8] dark:text-[#090F1C] shadow-md shadow-[#7C3AED]/10"
-              : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white"
-          }`}
-        >
-          Completed / Gallery
-        </button>
+      {/* Search and Tabs Header */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 select-none">
+        {/* Tabs list with counts */}
+        <div className="flex bg-white dark:bg-[#0B132A] p-1.5 border border-slate-200/50 dark:border-white/10 rounded-2xl shadow-sm gap-1 select-none">
+          <button
+            onClick={() => setActiveTab("upcoming")}
+            className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-2 ${
+              activeTab === "upcoming"
+                ? "bg-[#7C3AED] text-white dark:bg-[#38BDF8] dark:text-[#090F1C] shadow-md shadow-[#7C3AED]/10"
+                : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white"
+            }`}
+          >
+            <span>Upcoming Events</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+              activeTab === "upcoming"
+                ? "bg-white/20 dark:bg-black/20 text-white dark:text-[#090F1C]"
+                : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300"
+            }`}>
+              {upcomingCount}
+            </span>
+          </button>
+          <button
+            onClick={() => setActiveTab("completed")}
+            className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-2 ${
+              activeTab === "completed"
+                ? "bg-[#7C3AED] text-white dark:bg-[#38BDF8] dark:text-[#090F1C] shadow-md shadow-[#7C3AED]/10"
+                : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white"
+            }`}
+          >
+            <span>Completed / Gallery</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+              activeTab === "completed"
+                ? "bg-white/20 dark:bg-black/20 text-white dark:text-[#090F1C]"
+                : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300"
+            }`}>
+              {completedCount}
+            </span>
+          </button>
+        </div>
+
+        {/* Search input */}
+        <div className="relative w-full sm:w-64">
+          <input
+            type="text"
+            placeholder="Search events..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-2xl text-xs text-slate-700 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition"
+          />
+          <FaSearch className="absolute left-3 top-3 text-slate-400 text-xs" />
+        </div>
       </div>
 
       {/* Loading state */}
@@ -340,112 +374,174 @@ function AdminEvents() {
           <div className="w-8 h-8 border-4 border-[#7C3AED] border-t-transparent rounded-full animate-spin mb-3" />
           <p className="text-slate-400 text-xs font-bold">Synchronizing events database...</p>
         </div>
-      ) : events.length === 0 ? (
-        <div className="py-20 text-center select-none bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl p-8">
-          <div className="w-16 h-16 rounded-3xl bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] flex items-center justify-center text-2xl mx-auto mb-4">
+      ) : (events.filter(ev => {
+          if (!searchTerm.trim()) return true;
+          const term = searchTerm.toLowerCase();
+          return (
+            ev.title?.toLowerCase().includes(term) ||
+            ev.subtitle?.toLowerCase().includes(term) ||
+            ev.description?.toLowerCase().includes(term)
+          );
+        })).length === 0 ? (
+        <div className="py-20 text-center select-none bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl p-8 shadow-sm">
+          <div className="w-16 h-16 rounded-3xl bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] flex items-center justify-center text-2xl mx-auto mb-4 shadow-inner">
             <FaCalendarAlt />
           </div>
           <h3 className="text-sm font-bold text-slate-700 dark:text-white uppercase tracking-wider">No events found</h3>
           <p className="text-xs text-slate-400 mt-1.5 max-w-xs mx-auto leading-relaxed">
-            There are currently no {activeTab} school events in the schedule. Use the "Add Event" button to create one.
+            {searchTerm
+              ? `No ${activeTab} events matching "${searchTerm}". Try clearing your search.`
+              : `There are currently no ${activeTab} school events in the schedule. Use the "Add Event" button to create one.`}
           </p>
+          {searchTerm ? (
+            <button
+              onClick={() => setSearchTerm("")}
+              className="mt-4 px-4 py-2 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white rounded-xl text-xs font-bold hover:bg-slate-200 transition"
+            >
+              Clear Search
+            </button>
+          ) : (
+            <button
+              onClick={() => { resetForm(); setShowAddModal(true); }}
+              className="mt-4 px-4 py-2 bg-[#7C3AED] text-white rounded-xl text-xs font-bold hover:bg-[#6D28D9] transition shadow-md shadow-[#7C3AED]/20"
+            >
+              + Create Event
+            </button>
+          )}
         </div>
       ) : (
         /* Event Grid */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((ev) => {
-            const hasCover = ev.photos && ev.photos.length > 0;
-            const coverUrl = hasCover ? getMediaUrl(ev.photos[0].url) : null;
+          {events
+            .filter(ev => {
+              if (!searchTerm.trim()) return true;
+              const term = searchTerm.toLowerCase();
+              return (
+                ev.title?.toLowerCase().includes(term) ||
+                ev.subtitle?.toLowerCase().includes(term) ||
+                ev.description?.toLowerCase().includes(term)
+              );
+            })
+            .map((ev) => {
+              const hasCover = ev.photos && ev.photos.length > 0;
+              const coverUrl = hasCover ? getMediaUrl(ev.photos[0].url) : null;
+              const photoCount = ev.photos?.length || 0;
+              const videoCount = ev.videos?.length || 0;
 
-            return (
-              <div 
-                key={ev._id}
-                className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl overflow-hidden shadow-sm relative flex flex-col justify-between"
-              >
-                <div>
-                  {activeTab === "completed" && (
-                    <div className="h-44 bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b border-slate-150 dark:border-white/5">
-                      {coverUrl ? (
-                        <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="text-center text-slate-400 dark:text-slate-500">
-                          <FaImage className="text-3xl mx-auto mb-2 opacity-50" />
-                          <p className="text-[10px] font-bold">No Photos Uploaded</p>
+              return (
+                <div 
+                  key={ev._id}
+                  className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 relative flex flex-col justify-between group"
+                >
+                  <div>
+                    {/* Event Header Image for Completed or Cover View */}
+                    {activeTab === "completed" ? (
+                      <div className="h-44 bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b border-slate-150 dark:border-white/5">
+                        {coverUrl ? (
+                          <img src={coverUrl} alt="Cover" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        ) : (
+                          <div className="text-center text-slate-400 dark:text-slate-500">
+                            <FaImage className="text-3xl mx-auto mb-2 opacity-50" />
+                            <p className="text-[10px] font-bold">No Photos Uploaded</p>
+                          </div>
+                        )}
+                        {/* Media Count Pills */}
+                        <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
+                          {photoCount > 0 && (
+                            <span className="px-2 py-0.5 bg-black/60 backdrop-blur-md text-white text-[9px] font-bold rounded-full flex items-center gap-1">
+                              <FaImage className="text-[8px]" /> {photoCount}
+                            </span>
+                          )}
+                          {videoCount > 0 && (
+                            <span className="px-2 py-0.5 bg-black/60 backdrop-blur-md text-white text-[9px] font-bold rounded-full flex items-center gap-1">
+                              <FaVideo className="text-[8px]" /> {videoCount}
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  )}
 
-                  <div className="p-6">
-                    <h3 className="text-sm font-black text-slate-800 dark:text-white leading-snug">{ev.title}</h3>
-                    {ev.subtitle && (
-                      <p className="text-[10px] font-bold text-[#7C3AED] dark:text-[#38BDF8] mt-1 uppercase tracking-wider">{ev.subtitle}</p>
+                        {/* Status Badge */}
+                        <span className="absolute top-3 left-3 px-2.5 py-1 bg-emerald-500/90 text-white text-[9px] font-extrabold rounded-full backdrop-blur-md shadow-sm flex items-center gap-1">
+                          <FaCheckCircle className="text-[9px]" /> Completed
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="p-6 pb-0 flex items-center justify-between">
+                        <span className="px-2.5 py-1 bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] text-[9px] font-extrabold rounded-full flex items-center gap-1 border border-[#7C3AED]/20">
+                          <FaClock className="text-[9px]" /> Upcoming
+                        </span>
+                      </div>
                     )}
 
-                    <div className="flex flex-wrap items-center gap-4 text-[10px] text-slate-450 dark:text-slate-400 font-bold mt-4 border-t border-slate-100 dark:border-white/5 pt-3">
-                      <span className="flex items-center gap-1.5"><FaCalendarAlt className="text-slate-400" /> {getFormattedDate(ev.eventDate)}</span>
-                      <span className="flex items-center gap-1.5"><FaClock className="text-slate-400" /> {ev.eventTime}</span>
-                    </div>
+                    <div className="p-6">
+                      <h3 className="text-sm font-black text-slate-800 dark:text-white leading-snug group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition-colors">{ev.title}</h3>
+                      {ev.subtitle && (
+                        <p className="text-[10px] font-bold text-[#7C3AED] dark:text-[#38BDF8] mt-1 uppercase tracking-wider">{ev.subtitle}</p>
+                      )}
 
-                    <p className="text-xs text-slate-550 dark:text-slate-400 mt-4 leading-relaxed line-clamp-3 whitespace-pre-wrap">
-                      {ev.description || "No description provided."}
-                    </p>
+                      <div className="flex flex-wrap items-center gap-4 text-[10px] text-slate-450 dark:text-slate-400 font-bold mt-4 border-t border-slate-100 dark:border-white/5 pt-3">
+                        <span className="flex items-center gap-1.5"><FaCalendarAlt className="text-slate-400" /> {getFormattedDate(ev.eventDate)}</span>
+                        <span className="flex items-center gap-1.5"><FaClock className="text-slate-400" /> {ev.eventTime}</span>
+                      </div>
+
+                      <p className="text-xs text-slate-550 dark:text-slate-400 mt-4 leading-relaxed line-clamp-3 whitespace-pre-wrap">
+                        {ev.description || "No description provided."}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Event Actions Footer */}
+                  <div className="p-6 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] flex items-center gap-2 select-none">
+                    {activeTab === "upcoming" ? (
+                      <>
+                        <button
+                          onClick={() => openComplete(ev)}
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-extrabold text-[10px] py-2.5 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer shadow-sm shadow-emerald-600/10 transition"
+                        >
+                          <FaCheckCircle /> Complete Event
+                        </button>
+                        <button
+                          onClick={() => openEdit(ev)}
+                          className="p-2.5 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-350 hover:bg-slate-200 dark:hover:bg-white/10 active:scale-95 rounded-xl cursor-pointer border border-slate-200 dark:border-white/10 transition"
+                          title="Edit Details"
+                        >
+                          <FaEdit />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteEvent(ev._id)}
+                          className="p-2.5 bg-rose-500/10 hover:bg-rose-500 text-rose-600 hover:text-white active:scale-95 rounded-xl cursor-pointer transition border border-rose-500/15"
+                          title="Delete Event"
+                        >
+                          <FaTrash />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => openGallery(ev)}
+                          className="flex-1 bg-gradient-to-r from-[#7C3AED] to-[#312E81] hover:opacity-95 active:scale-95 text-white font-extrabold text-[10px] py-2.5 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer transition"
+                        >
+                          <FaEye /> View / Add Media
+                        </button>
+                        <button
+                          onClick={() => openEdit(ev)}
+                          className="p-2.5 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-350 hover:bg-slate-200 dark:hover:bg-white/10 active:scale-95 rounded-xl cursor-pointer border border-slate-200 dark:border-white/10 transition"
+                          title="Edit Details"
+                        >
+                          <FaEdit />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteEvent(ev._id)}
+                          className="p-2.5 bg-rose-500/10 hover:bg-rose-500 text-rose-600 hover:text-white active:scale-95 rounded-xl cursor-pointer transition border border-rose-500/15"
+                          title="Delete Event"
+                        >
+                          <FaTrash />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
-
-                {/* Event Actions Footer */}
-                <div className="p-6 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] flex items-center gap-2 select-none">
-                  {activeTab === "upcoming" ? (
-                    <>
-                      <button
-                        onClick={() => openComplete(ev)}
-                        className="flex-1 bg-green-600 hover:bg-green-500 text-white font-extrabold text-[10px] py-2.5 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer shadow-sm shadow-green-600/10"
-                      >
-                        <FaCheckCircle /> Complete Event
-                      </button>
-                      <button
-                        onClick={() => openEdit(ev)}
-                        className="p-2.5 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-350 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl cursor-pointer border border-slate-200 dark:border-white/10"
-                        title="Edit Details"
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteEvent(ev._id)}
-                        className="p-2.5 bg-rose-500/10 hover:bg-rose-500 text-rose-600 hover:text-white rounded-xl cursor-pointer transition border border-rose-500/15"
-                        title="Delete Event"
-                      >
-                        <FaTrash />
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => openGallery(ev)}
-                        className="flex-1 bg-gradient-to-r from-[#7C3AED] to-[#312E81] text-white font-extrabold text-[10px] py-2.5 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
-                      >
-                        <FaEye /> View / Add Media
-                      </button>
-                      <button
-                        onClick={() => openEdit(ev)}
-                        className="p-2.5 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-350 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl cursor-pointer border border-slate-200 dark:border-white/10"
-                        title="Edit Details"
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteEvent(ev._id)}
-                        className="p-2.5 bg-rose-500/10 hover:bg-rose-500 text-rose-600 hover:text-white rounded-xl cursor-pointer transition border border-rose-500/15"
-                        title="Delete Event"
-                      >
-                        <FaTrash />
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       )}
 

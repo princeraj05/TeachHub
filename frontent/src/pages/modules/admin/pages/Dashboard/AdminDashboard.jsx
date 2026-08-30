@@ -184,43 +184,43 @@ function AdminDashboard() {
     <div className="text-slate-900 dark:text-slate-100 transition-colors duration-200" style={{ fontFamily: SORA }}>
       
       {/* ── GREETING & CLOCK HEADER ── */}
-      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="mb-3 sm:mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-2.5 sm:gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
             Welcome back, {data?.adminName || "Admin"} <span className="animate-bounce">👋</span>
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">
+          <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
             Here's what's happening at {data?.schoolName || "your school"} today.
           </p>
         </div>
         
         {/* Dynamic Real-Time Clock */}
-        <div className="flex items-center gap-3 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800/80 rounded-2xl px-4 py-3 shadow-sm w-fit self-start md:self-auto">
-          <FaCalendarAlt className="text-purple-500 text-lg" />
+        <div className="flex items-center gap-2.5 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800/80 rounded-xl px-3 py-1.5 sm:px-4 sm:py-2.5 shadow-sm w-fit self-start md:self-auto">
+          <FaCalendarAlt className="text-purple-500 text-xs sm:text-base" />
           <div className="text-left">
-            <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{formatLocalDate(currentTime)}</p>
-            <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">{formatLocalTime(currentTime)}</p>
+            <p className="text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200">{formatLocalDate(currentTime)}</p>
+            <p className="text-[9px] sm:text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">{formatLocalTime(currentTime)}</p>
           </div>
         </div>
       </div>
 
       {/* ── SIX GLOWING STATS CARDS (2 COLUMNS ON MOBILE) ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 mb-3 sm:mb-6">
         
         {/* Card 1: Students */}
-        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#8B5CF6]/15 hover:border-[#8B5CF6]/30 transition-all rounded-2xl p-3 sm:p-4 flex flex-col justify-between h-32 sm:h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
+        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#8B5CF6]/15 hover:border-[#8B5CF6]/30 transition-all rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between h-24 sm:h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
           <div className="flex items-center justify-between gap-1">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#8B5CF6]/10 flex items-center justify-center text-[#8B5CF6] text-xs sm:text-sm font-bold shrink-0">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-[#8B5CF6]/10 flex items-center justify-center text-[#8B5CF6] text-xs sm:text-sm font-bold shrink-0">
               <FaUserGraduate />
             </div>
             <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider truncate">Total Students</p>
           </div>
-          <div className="mt-1.5 sm:mt-2 z-10">
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{stats.students.total}</h2>
-            <p className="text-[9px] sm:text-[10px] font-bold text-emerald-500 dark:text-emerald-400 mt-0.5 truncate">{stats.students.growth}</p>
+          <div className="mt-0.5 sm:mt-2 z-10">
+            <h2 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{stats.students.total}</h2>
+            <p className="text-[8px] sm:text-[10px] font-bold text-emerald-500 dark:text-emerald-400 mt-0.5 truncate">{stats.students.growth}</p>
           </div>
           {/* Sparkline */}
-          <div className="absolute bottom-0 left-0 right-0 h-8 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-0 left-0 right-0 h-6 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={sparklines.students} margin={{ top: 0, bottom: 0, left: 0, right: 0 }}>
                 <Area type="monotone" dataKey="value" stroke="#8B5CF6" fill="rgba(139, 92, 246, 0.08)" strokeWidth={1.5} dot={false} />
@@ -230,19 +230,19 @@ function AdminDashboard() {
         </div>
 
         {/* Card 2: Teachers */}
-        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#3B82F6]/15 hover:border-[#3B82F6]/30 transition-all rounded-2xl p-3 sm:p-4 flex flex-col justify-between h-32 sm:h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
+        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#3B82F6]/15 hover:border-[#3B82F6]/30 transition-all rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between h-24 sm:h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
           <div className="flex items-center justify-between gap-1">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#3B82F6]/10 flex items-center justify-center text-[#3B82F6] text-xs sm:text-sm font-bold shrink-0">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-[#3B82F6]/10 flex items-center justify-center text-[#3B82F6] text-xs sm:text-sm font-bold shrink-0">
               <FaChalkboardTeacher />
             </div>
             <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider truncate">Total Teachers</p>
           </div>
-          <div className="mt-1.5 sm:mt-2 z-10">
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{stats.teachers.total}</h2>
-            <p className="text-[9px] sm:text-[10px] font-bold text-emerald-500 dark:text-emerald-400 mt-0.5 truncate">{stats.teachers.growth}</p>
+          <div className="mt-0.5 sm:mt-2 z-10">
+            <h2 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{stats.teachers.total}</h2>
+            <p className="text-[8px] sm:text-[10px] font-bold text-emerald-500 dark:text-emerald-400 mt-0.5 truncate">{stats.teachers.growth}</p>
           </div>
           {/* Sparkline */}
-          <div className="absolute bottom-0 left-0 right-0 h-8 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-0 left-0 right-0 h-6 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={sparklines.teachers} margin={{ top: 0, bottom: 0, left: 0, right: 0 }}>
                 <Area type="monotone" dataKey="value" stroke="#3B82F6" fill="rgba(59, 130, 246, 0.08)" strokeWidth={1.5} dot={false} />
@@ -252,19 +252,19 @@ function AdminDashboard() {
         </div>
 
         {/* Card 3: Classes */}
-        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#10B981]/15 hover:border-[#10B981]/30 transition-all rounded-2xl p-3 sm:p-4 flex flex-col justify-between h-32 sm:h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
+        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#10B981]/15 hover:border-[#10B981]/30 transition-all rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between h-24 sm:h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
           <div className="flex items-center justify-between gap-1">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#10B981]/10 flex items-center justify-center text-[#10B981] text-xs sm:text-sm font-bold shrink-0">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-[#10B981]/10 flex items-center justify-center text-[#10B981] text-xs sm:text-sm font-bold shrink-0">
               <FaSchool />
             </div>
             <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider truncate">Total Classes</p>
           </div>
-          <div className="mt-1.5 sm:mt-2 z-10">
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{stats.classes.total}</h2>
-            <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 truncate">{stats.classes.growth}</p>
+          <div className="mt-0.5 sm:mt-2 z-10">
+            <h2 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{stats.classes.total}</h2>
+            <p className="text-[8px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 truncate">{stats.classes.growth}</p>
           </div>
           {/* Sparkline */}
-          <div className="absolute bottom-0 left-0 right-0 h-8 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-0 left-0 right-0 h-6 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={sparklines.classes} margin={{ top: 0, bottom: 0, left: 0, right: 0 }}>
                 <Area type="monotone" dataKey="value" stroke="#10B981" fill="rgba(16, 185, 129, 0.08)" strokeWidth={1.5} dot={false} />
@@ -274,19 +274,19 @@ function AdminDashboard() {
         </div>
 
         {/* Card 4: Subjects */}
-        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#F59E0B]/15 hover:border-[#F59E0B]/30 transition-all rounded-2xl p-3 sm:p-4 flex flex-col justify-between h-32 sm:h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
+        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#F59E0B]/15 hover:border-[#F59E0B]/30 transition-all rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between h-24 sm:h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
           <div className="flex items-center justify-between gap-1">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center text-[#F59E0B] text-xs sm:text-sm font-bold shrink-0">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center text-[#F59E0B] text-xs sm:text-sm font-bold shrink-0">
               <FaBook />
             </div>
             <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider truncate">Total Subjects</p>
           </div>
-          <div className="mt-1.5 sm:mt-2 z-10">
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{stats.subjects.total}</h2>
-            <p className="text-[9px] sm:text-[10px] font-bold text-emerald-500 dark:text-emerald-400 mt-0.5 truncate">{stats.subjects.growth}</p>
+          <div className="mt-0.5 sm:mt-2 z-10">
+            <h2 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{stats.subjects.total}</h2>
+            <p className="text-[8px] sm:text-[10px] font-bold text-emerald-500 dark:text-emerald-400 mt-0.5 truncate">{stats.subjects.growth}</p>
           </div>
           {/* Sparkline */}
-          <div className="absolute bottom-0 left-0 right-0 h-8 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-0 left-0 right-0 h-6 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={sparklines.subjects} margin={{ top: 0, bottom: 0, left: 0, right: 0 }}>
                 <Area type="monotone" dataKey="value" stroke="#F59E0B" fill="rgba(245, 158, 11, 0.08)" strokeWidth={1.5} dot={false} />
@@ -296,19 +296,19 @@ function AdminDashboard() {
         </div>
 
         {/* Card 5: Events */}
-        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#14B8A6]/15 hover:border-[#14B8A6]/30 transition-all rounded-2xl p-3 sm:p-4 flex flex-col justify-between h-32 sm:h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
+        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#14B8A6]/15 hover:border-[#14B8A6]/30 transition-all rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between h-24 sm:h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
           <div className="flex items-center justify-between gap-1">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#14B8A6]/10 flex items-center justify-center text-[#14B8A6] text-xs sm:text-sm font-bold shrink-0">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-[#14B8A6]/10 flex items-center justify-center text-[#14B8A6] text-xs sm:text-sm font-bold shrink-0">
               <FaCalendarAlt />
             </div>
             <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider truncate">Events Month</p>
           </div>
-          <div className="mt-1.5 sm:mt-2 z-10">
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{stats.events.total}</h2>
-            <p className="text-[9px] sm:text-[10px] font-bold text-teal-600 dark:text-teal-400 mt-0.5 truncate">{stats.events.growth}</p>
+          <div className="mt-0.5 sm:mt-2 z-10">
+            <h2 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{stats.events.total}</h2>
+            <p className="text-[8px] sm:text-[10px] font-bold text-teal-600 dark:text-teal-400 mt-0.5 truncate">{stats.events.growth}</p>
           </div>
           {/* Sparkline */}
-          <div className="absolute bottom-0 left-0 right-0 h-8 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-0 left-0 right-0 h-6 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={sparklines.events} margin={{ top: 0, bottom: 0, left: 0, right: 0 }}>
                 <Area type="monotone" dataKey="value" stroke="#14B8A6" fill="rgba(20, 184, 166, 0.08)" strokeWidth={1.5} dot={false} />
@@ -318,99 +318,99 @@ function AdminDashboard() {
         </div>
 
         {/* Card 6: Payments */}
-        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#EF4444]/15 hover:border-[#EF4444]/30 transition-all rounded-2xl p-3 sm:p-4 flex flex-col justify-between h-32 sm:h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
+        <div className="bg-white dark:bg-[#0F1631]/80 backdrop-blur border border-slate-200/80 dark:border-[#EF4444]/15 hover:border-[#EF4444]/30 transition-all rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between h-24 sm:h-36 relative overflow-hidden shadow-sm dark:shadow-lg group">
           <div className="flex items-center justify-between gap-1">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#EF4444]/10 flex items-center justify-center text-[#EF4444] text-xs sm:text-sm font-bold shrink-0">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-[#EF4444]/10 flex items-center justify-center text-[#EF4444] text-xs sm:text-sm font-bold shrink-0">
               <FaRupeeSign />
             </div>
             <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider truncate">Pending Pay</p>
           </div>
-          <div className="mt-1 sm:mt-2 z-10 pb-1">
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight truncate">
+          <div className="mt-0.5 sm:mt-2 z-10 pb-0.5">
+            <h2 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white leading-tight truncate">
               ₹{Number(stats.payments.total).toLocaleString("en-IN")}
             </h2>
-            <p className="text-[9px] sm:text-[10px] font-bold text-rose-500 mt-0.5 truncate">{stats.payments.growth}</p>
+            <p className="text-[8px] sm:text-[10px] font-bold text-rose-500 mt-0.5 truncate">{stats.payments.growth}</p>
           </div>
         </div>
 
       </div>
 
       {/* ── MIDDLE ROW: QUICK ACTIONS & ANNOUNCEMENTS ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-6 mb-4 sm:mb-6">
         
         {/* Quick Actions (7 Cols) */}
-        <div className="lg:col-span-7 bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between shadow-sm dark:shadow-xl">
+        <div className="lg:col-span-7 bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3.5 sm:p-5 flex flex-col justify-between shadow-sm dark:shadow-xl">
           <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <h2 className="text-xs sm:text-base font-bold text-slate-900 dark:text-white mb-2.5 sm:mb-4">Quick Actions</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
               
               {/* Add Student */}
-              <Link to="/admin/students" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
-                <div className="w-10 h-10 rounded-full bg-[#8B5CF6]/10 flex items-center justify-center text-[#8B5CF6] text-base mb-2.5 group-hover:scale-110 transition duration-300">
+              <Link to="/admin/students" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-2.5 sm:p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
+                <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-[#8B5CF6]/10 flex items-center justify-center text-[#8B5CF6] text-xs sm:text-base mb-1.5 sm:mb-2.5 group-hover:scale-110 transition duration-300">
                   <FaUserPlus />
                 </div>
-                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Add Student</span>
+                <span className="text-[10px] sm:text-xs font-semibold text-slate-800 dark:text-slate-200 line-clamp-1">Add Student</span>
               </Link>
 
               {/* Add Teacher */}
-              <Link to="/admin/teachers" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
-                <div className="w-10 h-10 rounded-full bg-[#3B82F6]/10 flex items-center justify-center text-[#3B82F6] text-base mb-2.5 group-hover:scale-110 transition duration-300">
+              <Link to="/admin/teachers" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-2.5 sm:p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
+                <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-[#3B82F6]/10 flex items-center justify-center text-[#3B82F6] text-xs sm:text-base mb-1.5 sm:mb-2.5 group-hover:scale-110 transition duration-300">
                   <FaUserPlus />
                 </div>
-                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Add Teacher</span>
+                <span className="text-[10px] sm:text-xs font-semibold text-slate-800 dark:text-slate-200 line-clamp-1">Add Teacher</span>
               </Link>
 
               {/* Create Timetable */}
-              <Link to="/admin/create-timetable" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
-                <div className="w-10 h-10 rounded-full bg-[#10B981]/10 flex items-center justify-center text-[#10B981] text-base mb-2.5 group-hover:scale-110 transition duration-300">
+              <Link to="/admin/create-timetable" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-2.5 sm:p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
+                <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-[#10B981]/10 flex items-center justify-center text-[#10B981] text-xs sm:text-base mb-1.5 sm:mb-2.5 group-hover:scale-110 transition duration-300">
                   <FaCalendarPlus />
                 </div>
-                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Create Timetable</span>
+                <span className="text-[10px] sm:text-xs font-semibold text-slate-800 dark:text-slate-200 line-clamp-1">Create Timetable</span>
               </Link>
 
               {/* Schedule Exam */}
-              <Link to="/admin/exam-schedule" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
-                <div className="w-10 h-10 rounded-full bg-[#F59E0B]/10 flex items-center justify-center text-[#F59E0B] text-base mb-2.5 group-hover:scale-110 transition duration-300">
+              <Link to="/admin/exam-schedule" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-2.5 sm:p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
+                <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-[#F59E0B]/10 flex items-center justify-center text-[#F59E0B] text-xs sm:text-base mb-1.5 sm:mb-2.5 group-hover:scale-110 transition duration-300">
                   <FaClipboardList />
                 </div>
-                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Schedule Exam</span>
+                <span className="text-[10px] sm:text-xs font-semibold text-slate-800 dark:text-slate-200 line-clamp-1">Schedule Exam</span>
               </Link>
 
               {/* Create Assignment */}
-              <Link to="/admin/assign-student-class" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
-                <div className="w-10 h-10 rounded-full bg-[#6366F1]/10 flex items-center justify-center text-[#6366F1] text-base mb-2.5 group-hover:scale-110 transition duration-300">
+              <Link to="/admin/assign-student-class" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-2.5 sm:p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
+                <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-[#6366F1]/10 flex items-center justify-center text-[#6366F1] text-xs sm:text-base mb-1.5 sm:mb-2.5 group-hover:scale-110 transition duration-300">
                   <FaFileSignature />
                 </div>
-                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Assign Student</span>
+                <span className="text-[10px] sm:text-xs font-semibold text-slate-800 dark:text-slate-200 line-clamp-1">Assign Student</span>
               </Link>
 
               {/* Manage Leaves */}
-              <Link to="/admin/teacher-leaves" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
-                <div className="w-10 h-10 rounded-full bg-[#EF4444]/10 flex items-center justify-center text-[#EF4444] text-base mb-2.5 group-hover:scale-110 transition duration-300">
+              <Link to="/admin/teacher-leaves" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-2.5 sm:p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
+                <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-[#EF4444]/10 flex items-center justify-center text-[#EF4444] text-xs sm:text-base mb-1.5 sm:mb-2.5 group-hover:scale-110 transition duration-300">
                   <FaFileAlt />
                 </div>
-                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Manage Leaves</span>
+                <span className="text-[10px] sm:text-xs font-semibold text-slate-800 dark:text-slate-200 line-clamp-1">Manage Leaves</span>
               </Link>
 
               {/* Join Requests */}
-              <Link to="/admin/requests" className="relative flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
-                <div className="w-10 h-10 rounded-full bg-[#EC4899]/10 flex items-center justify-center text-[#EC4899] text-base mb-2.5 group-hover:scale-110 transition duration-300">
+              <Link to="/admin/requests" className="relative flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-2.5 sm:p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
+                <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-[#EC4899]/10 flex items-center justify-center text-[#EC4899] text-xs sm:text-base mb-1.5 sm:mb-2.5 group-hover:scale-110 transition duration-300">
                   <FaUserCheck />
                 </div>
                 {joinRequestsCount > 0 && (
-                  <span className="absolute top-2.5 right-6 bg-rose-500 text-white text-[9px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center border border-white dark:border-[#0D1326] animate-bounce">
+                  <span className="absolute top-1.5 right-4 sm:top-2.5 sm:right-6 bg-rose-500 text-white text-[8px] sm:text-[9px] font-extrabold w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center border border-white dark:border-[#0D1326] animate-bounce">
                     {joinRequestsCount}
                   </span>
                 )}
-                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Join Requests</span>
+                <span className="text-[10px] sm:text-xs font-semibold text-slate-800 dark:text-slate-200 line-clamp-1">Join Requests</span>
               </Link>
 
               {/* Support Chat */}
-              <Link to="/admin/support" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
-                <div className="w-10 h-10 rounded-full bg-[#14B8A6]/10 flex items-center justify-center text-[#14B8A6] text-base mb-2.5 group-hover:scale-110 transition duration-300">
+              <Link to="/admin/support" className="flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-[#131B35] dark:hover:bg-[#1A254C] transition p-2.5 sm:p-4 rounded-xl border border-slate-200/60 dark:border-white/5 group text-center cursor-pointer">
+                <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-[#14B8A6]/10 flex items-center justify-center text-[#14B8A6] text-xs sm:text-base mb-1.5 sm:mb-2.5 group-hover:scale-110 transition duration-300">
                   <FaComments />
                 </div>
-                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Support Chat</span>
+                <span className="text-[10px] sm:text-xs font-semibold text-slate-800 dark:text-slate-200 line-clamp-1">Support Chat</span>
               </Link>
 
             </div>
