@@ -60,12 +60,16 @@ function StudentLayout() {
         const user = res.data;
         if (user) {
           if (user.name) {
-            localStorage.setItem("name", user.name);
+            try { localStorage.setItem("name", user.name); } catch(e) {}
             setName(user.name);
           }
           const userAvatar = user.avatar || user.photo || user.profilePhoto || "";
           if (userAvatar) {
-            localStorage.setItem("avatar", userAvatar);
+            try {
+              localStorage.setItem("avatar", userAvatar);
+            } catch (e) {
+              console.warn("Avatar localStorage quota exceeded:", e);
+            }
             setAvatar(userAvatar);
           }
         }

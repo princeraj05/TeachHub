@@ -69,63 +69,72 @@ function StudentProfile() {
   };
 
   return (
-    <div style={{ fontFamily: SORA }} className="space-y-6">
-      
-      {/* Top Header Row */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            Student Workspace
-          </h1>
-          <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] dark:text-[#38BDF8] mt-1">
-            LEARNER CONSOLE
-          </p>
-        </div>
-        
-        {/* Right Buttons Container */}
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={toggleTheme}
-            className="w-10 h-10 rounded-full bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/[0.08] text-slate-555 dark:text-amber-400 hover:border-slate-350 dark:hover:border-white/15 flex items-center justify-center transition-all cursor-pointer"
-            aria-label="Toggle Theme"
-          >
-            {theme === "dark" ? "☀️" : "🌙"}
-          </button>
-          
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-800 text-white flex items-center justify-center font-black text-sm shadow-md border-2 border-white dark:border-[#0B132A] overflow-hidden">
-            {profile?.avatar ? (
-              <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
-            ) : (
-              userInitials
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Hello, Learner profile card */}
+    <div style={{ fontFamily: SORA }} className="space-y-6 max-w-6xl mx-auto pb-6">
+      {/* Premium Hero Profile Card */}
       <div 
         onClick={() => setShowProfileModal(true)}
-        className="bg-gradient-to-r from-violet-900 to-indigo-950 border border-violet-850/40 rounded-3xl p-5 text-white flex items-center justify-between shadow-lg shadow-indigo-955/15 cursor-pointer hover:border-violet-600/40 transition-all select-none"
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#3B82F6] p-6 text-white shadow-xl shadow-[#7C3AED]/20 cursor-pointer transition-all duration-300 hover:scale-[1.005] hover:shadow-2xl hover:shadow-[#7C3AED]/30 select-none group"
       >
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-cyan-400 to-[#7C3AED] flex items-center justify-center text-white font-black text-xl border-2 border-white/20 overflow-hidden shrink-0">
-            {profile?.avatar ? (
-              <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
-            ) : (
-              userInitials
-            )}
+        {/* Ambient Decorative Blurs & Shapes */}
+        <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-white/10 blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+        <div className="absolute -bottom-20 -left-20 w-48 h-48 rounded-full bg-black/10 blur-xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+          <div className="flex items-center gap-5">
+            {/* Avatar Circle */}
+            <div className="relative shrink-0">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/20 backdrop-blur-md p-1 border-2 border-white/40 shadow-inner overflow-hidden">
+                <div className="w-full h-full rounded-xl bg-gradient-to-tr from-cyan-400 to-indigo-600 flex items-center justify-center text-white font-black text-2xl overflow-hidden">
+                  {profile?.avatar ? (
+                    <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    userInitials
+                  )}
+                </div>
+              </div>
+              <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-400 border-2 border-white rounded-full flex items-center justify-center text-[10px] text-emerald-950 font-black shadow-sm">
+                ✓
+              </span>
+            </div>
+
+            {/* Profile Brief Info */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                  Hello, {profile?.name || "Learner"}! <span className="animate-bounce">👋</span>
+                </h2>
+                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider bg-white/20 backdrop-blur-md border border-white/30 text-white px-2.5 py-0.5 rounded-full shadow-sm">
+                  Student Account
+                </span>
+              </div>
+              <p className="text-xs text-white/80 font-medium max-w-md">
+                {profile?.email || "Stay connected, track your progress, and excel."}
+              </p>
+              
+              {/* Quick Metadata Chips */}
+              <div className="flex items-center gap-3 pt-2 text-[11px] font-semibold text-white/90">
+                {profile?.schoolName && (
+                  <span className="inline-flex items-center gap-1.5 bg-black/20 backdrop-blur-sm px-2.5 py-1 rounded-lg">
+                    <FaSchool className="text-cyan-300 text-xs" />
+                    {profile.schoolName}
+                  </span>
+                )}
+                {profile?.className && (
+                  <span className="inline-flex items-center gap-1.5 bg-black/20 backdrop-blur-sm px-2.5 py-1 rounded-lg">
+                    <FaGraduationCap className="text-amber-300 text-xs" />
+                    Class {profile.className}
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
-          <div>
-            <h2 className="text-base sm:text-lg font-black tracking-tight flex items-center gap-1.5">
-              Hello, {profile?.name || "Learner"}! <span className="animate-bounce">👋</span>
-            </h2>
-            <p className="text-xs text-slate-300 font-semibold mt-0.5">Stay connected, stay informed.</p>
-            <span className="inline-block text-[8px] font-black uppercase tracking-widest bg-violet-600/60 border border-violet-500/30 text-white px-2.5 py-0.5 rounded mt-2.5">
-              Student
-            </span>
+
+          {/* Action Link Arrow */}
+          <div className="self-end sm:self-center shrink-0 flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 px-4 py-2 rounded-xl text-xs font-bold transition-all">
+            <span>View Full Profile</span>
+            <FaChevronRight className="text-xs group-hover:translate-x-1 transition-transform" />
           </div>
         </div>
-        <FaChevronRight className="text-slate-300 text-xs" />
       </div>
 
       {/* Section 1: CONNECT */}

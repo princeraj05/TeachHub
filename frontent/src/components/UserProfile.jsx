@@ -42,8 +42,12 @@ function UserProfile() {
         motherMobileNumber: res.data.motherMobileNumber || "",
         avatar: userAvatar
       });
-      if (res.data.name) localStorage.setItem("name", res.data.name);
-      if (userAvatar) localStorage.setItem("avatar", userAvatar);
+      if (res.data.name) {
+        try { localStorage.setItem("name", res.data.name); } catch(e) {}
+      }
+      if (userAvatar) {
+        try { localStorage.setItem("avatar", userAvatar); } catch(e) {}
+      }
       window.dispatchEvent(new Event("profileUpdate"));
     } catch (err) {
       console.error("Error fetching profile:", err);
@@ -82,8 +86,8 @@ function UserProfile() {
       const updatedName = updatedUser.name || formData.name || "";
 
       // Update name and avatar in localStorage for Layout header updates
-      localStorage.setItem("name", updatedName);
-      localStorage.setItem("avatar", updatedAvatar);
+      try { localStorage.setItem("name", updatedName); } catch(e) {}
+      try { localStorage.setItem("avatar", updatedAvatar); } catch(e) {}
       window.dispatchEvent(new Event("profileUpdate"));
     } catch (err) {
       alert(err.response?.data?.message || "Failed to update profile");

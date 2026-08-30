@@ -160,11 +160,11 @@ function TeacherProfile() {
 
       <form onSubmit={handleSaveChanges} className="flex flex-col gap-6">
         
-        {/* Upper Dashboard: Photo, Personal Info, Summary Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Upper Dashboard: Photo and Personal Info Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* Card 1: Profile Photo (1/4 width) */}
-          <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm flex flex-col items-center justify-between min-h-[360px]">
+          {/* Card 1: Profile Photo (1/3 width) */}
+          <div className="lg:col-span-1 bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm flex flex-col items-center justify-between min-h-[360px]">
             <div className="w-full select-none text-center">
               <h3 className="text-xs font-black uppercase text-slate-450 tracking-wider pb-3 border-b border-slate-100 dark:border-white/[0.03] text-left">
                 Profile Photo
@@ -220,7 +220,7 @@ function TeacherProfile() {
             </div>
           </div>
 
-          {/* Card 2 & 3: Personal Information Form (2/4 width) */}
+          {/* Card 2: Personal Information Form (2/3 width) */}
           <div className="lg:col-span-2 bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm flex flex-col justify-between">
             <div className="pb-3 border-b border-slate-100 dark:border-white/[0.03] mb-4 select-none">
               <h3 className="text-xs font-black uppercase text-slate-450 tracking-wider">Personal Information</h3>
@@ -376,183 +376,10 @@ function TeacherProfile() {
             </div>
           </div>
 
-          {/* Card 4: Account Summary & Quick Links (1/4 width) */}
-          <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm flex flex-col justify-between select-none">
-            
-            {/* Top account descriptors */}
-            <div className="flex flex-col gap-4">
-              <div className="pb-3 border-b border-slate-100 dark:border-white/[0.03]">
-                <h3 className="text-xs font-black uppercase text-slate-450 tracking-wider">Account Summary</h3>
-              </div>
-
-              <div className="flex flex-col gap-3">
-                {/* User ID */}
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 border border-blue-500/15 flex items-center justify-center shrink-0">
-                    <FaUser className="text-xs" />
-                  </div>
-                  <div>
-                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wide block">User ID</span>
-                    <span className="text-[11px] font-black text-slate-900 dark:text-white leading-none">{teacherIdText}</span>
-                  </div>
-                </div>
-
-                {/* Role */}
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-500 border border-purple-500/15 flex items-center justify-center shrink-0">
-                    <FaBriefcase className="text-xs" />
-                  </div>
-                  <div>
-                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wide block">Role</span>
-                    <span className="text-[11px] font-black text-slate-900 dark:text-white leading-none">{designation}</span>
-                  </div>
-                </div>
-
-                {/* Joined On */}
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-550 border border-amber-500/15 flex items-center justify-center shrink-0">
-                    <FaCalendarAlt className="text-xs" />
-                  </div>
-                  <div>
-                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wide block">Joined On</span>
-                    <span className="text-[11px] font-black text-slate-900 dark:text-white leading-none">{joinedDate}</span>
-                  </div>
-                </div>
-
-                {/* Last Login */}
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 border border-indigo-500/15 flex items-center justify-center shrink-0">
-                    <FaClock className="text-xs" />
-                  </div>
-                  <div>
-                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wide block">Last Login</span>
-                    <span className="text-[11px] font-black text-slate-900 dark:text-white leading-none">{lastLoginText}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Links (Change Password Removed) */}
-            <div className="flex flex-col gap-3 mt-6">
-              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Quick Links</p>
-              
-              <div className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 dark:border-white/[0.03] hover:border-purple-500/20 bg-slate-50/40 dark:bg-white/[0.01] cursor-pointer transition-all">
-                <span className="text-[10px] font-bold flex items-center gap-2"><FaBell className="text-slate-400" /> Notification Settings</span>
-                <FaChevronRight className="text-[8px] text-slate-400" />
-              </div>
-
-              <div className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 dark:border-white/[0.03] hover:border-purple-500/20 bg-slate-50/40 dark:bg-white/[0.01] cursor-pointer transition-all">
-                <span className="text-[10px] font-bold flex items-center gap-2"><FaUserShield className="text-slate-400" /> Privacy Settings</span>
-                <FaChevronRight className="text-[8px] text-slate-400" />
-              </div>
-
-              <div className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 dark:border-white/[0.03] hover:border-purple-500/20 bg-slate-50/40 dark:bg-white/[0.01] cursor-pointer transition-all">
-                <span className="text-[10px] font-bold flex items-center gap-2"><FaDesktop className="text-slate-400" /> Connected Devices</span>
-                <FaChevronRight className="text-[8px] text-slate-400" />
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* Lower Dashboard: Security Settings (Change Password Removed) */}
-        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm select-none">
-          <div className="pb-3 border-b border-slate-100 dark:border-white/[0.03] mb-4">
-            <h3 className="text-xs font-black uppercase text-slate-450 tracking-wider">Security Settings</h3>
-          </div>
-
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-slate-50/50 dark:bg-white/[0.01] rounded-2xl border border-slate-100 dark:border-white/[0.03]">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/15 flex items-center justify-center shrink-0">
-                <FaShieldAlt className="text-base" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-extrabold text-slate-900 dark:text-white leading-none">Two-Factor Authentication (2FA)</span>
-                  <span className="text-[7px] font-black uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Enabled</span>
-                </div>
-                <p className="text-[9px] font-bold text-slate-450 dark:text-slate-500 mt-2">
-                  Add an extra layer of security to your account.
-                </p>
-                <p className="text-[9px] font-bold text-slate-400 dark:text-slate-400 mt-0.5">
-                  Authentication App: <span className="text-purple-500">Google Authenticator</span>
-                </p>
-              </div>
-            </div>
-
-            <button 
-              type="button"
-              className="px-4 py-2 text-center text-xs font-extrabold text-purple-650 hover:text-purple-750 hover:bg-purple-500/5 border border-purple-500/20 rounded-xl cursor-pointer transition-all whitespace-nowrap"
-            >
-              Manage 2FA
-            </button>
-          </div>
-        </div>
-
-        {/* Lower Dashboard: Account Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 select-none">
-          
-          {/* Download Data */}
-          <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm flex flex-col justify-between">
-            <div className="pb-3 border-b border-slate-100 dark:border-white/[0.03] mb-4">
-              <h3 className="text-xs font-black uppercase text-slate-450 tracking-wider">Account Actions</h3>
-            </div>
-
-            <div className="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-white/[0.01] rounded-2xl border border-slate-100 dark:border-white/[0.03]">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 border border-purple-500/15 flex items-center justify-center shrink-0">
-                  <FaDownload className="text-sm" />
-                </div>
-                <div>
-                  <p className="text-xs font-extrabold text-slate-900 dark:text-white leading-tight">Download My Data</p>
-                  <p className="text-[9px] text-slate-450 dark:text-slate-500 mt-1 font-semibold">
-                    Request a copy of your personal data archive.
-                  </p>
-                </div>
-              </div>
-
-              <button 
-                type="button"
-                className="px-4 py-2 border border-slate-200 dark:border-white/[0.08] hover:border-purple-500/35 hover:bg-purple-500/5 text-purple-500 text-xs font-bold rounded-xl cursor-pointer transition-all"
-              >
-                Request Data
-              </button>
-            </div>
-          </div>
-
-          {/* Delete Account */}
-          <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm flex flex-col justify-between">
-            <div className="pb-3 border-b border-slate-100 dark:border-white/[0.03] mb-4">
-              <h3 className="text-xs font-black uppercase text-slate-450 tracking-wider">Delete Account</h3>
-            </div>
-
-            <div className="flex items-center justify-between p-4 bg-rose-500/[0.02] rounded-2xl border border-rose-500/10">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/15 flex items-center justify-center shrink-0">
-                  <FaTrash className="text-xs" />
-                </div>
-                <div>
-                  <p className="text-xs font-extrabold text-slate-900 dark:text-white leading-tight">Delete Account</p>
-                  <p className="text-[9px] text-slate-450 dark:text-slate-500 mt-1 font-semibold">
-                    Permanently delete your TeachHub faculty profile.
-                  </p>
-                </div>
-              </div>
-
-              <button 
-                type="button"
-                className="px-4 py-2 border border-rose-500/20 hover:bg-rose-500/10 text-rose-500 text-xs font-bold rounded-xl cursor-pointer transition-all"
-              >
-                Delete Account
-              </button>
-            </div>
-          </div>
-
         </div>
 
         {/* Bottom Alert messages and submit save trigger */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
           
           {/* Feedback alerts */}
           <div className="flex-1 w-full">

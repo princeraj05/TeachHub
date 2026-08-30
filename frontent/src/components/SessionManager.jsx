@@ -15,12 +15,16 @@ export default function SessionManager({ children }) {
       })
       .then((response) => {
         const user = response.data;
-        if (user?.token) localStorage.setItem("token", user.token);
-        if (user?.role) localStorage.setItem("role", user.role);
-        if (user?.name) localStorage.setItem("name", user.name);
-        if (user?.schoolName !== undefined) localStorage.setItem("schoolName", user.schoolName || "");
-        if (user?._id) localStorage.setItem("userId", user._id);
-        if (user?.avatar) localStorage.setItem("avatar", user.avatar);
+        try {
+          if (user?.token) localStorage.setItem("token", user.token);
+          if (user?.role) localStorage.setItem("role", user.role);
+          if (user?.name) localStorage.setItem("name", user.name);
+          if (user?.schoolName !== undefined) localStorage.setItem("schoolName", user.schoolName || "");
+          if (user?._id) localStorage.setItem("userId", user._id);
+          if (user?.avatar) localStorage.setItem("avatar", user.avatar);
+        } catch (storageErr) {
+          console.warn("SessionManager storage quota warning:", storageErr?.message);
+        }
       })
       .catch((error) => {
         // Do NOT clear localStorage or force redirect on background sync error!
