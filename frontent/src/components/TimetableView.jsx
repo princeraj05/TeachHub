@@ -2,9 +2,35 @@ import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 
 const dayName = new Intl.DateTimeFormat("en-US", { weekday: "long" });
-const toMinutes = (time) => { const [hours, minutes] = time.split(":").map(Number); return hours * 60 + minutes; };
+const toMinutes = (timeStr) => {
+  if (!timeStr) return 0;
+  const clean = String(timeStr).trim().toUpperCase();
+  const match = clean.match(/^(\d+):(\d+)\s*(AM|PM)?$/);
+  if (!match) {
+    const parts = clean.split(":");
+    return (Number(parts[0]) || 0) * 60 + (Number(parts[1]) || 0);
+  }
+  let h = parseInt(match[1], 10);
+  const m = parseInt(match[2], 10);
+  const ampm = match[3];
+  if (ampm === "PM" && h < 12) h += 12;
+  if (ampm === "AM" && h === 12) h = 0;
+  return h * 60 + m;
+};
 const liveStatus = (entry, now) => { const current = now.getHours() * 60 + now.getMinutes(); return current < toMinutes(entry.startTime) ? "Coming" : current < toMinutes(entry.endTime) ? "Going On" : "Completed"; };
-const displayTime = (time) => new Date(`2000-01-01T${time}:00`).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+const displayTime = (timeStr) => {
+  if (!timeStr) return "";
+  const clean = String(timeStr).trim().toUpperCase();
+  if (clean.includes("AM") || clean.includes("PM")) return clean;
+  const [hStr, mStr] = clean.split(":");
+  const h = Number(hStr);
+  const m = Number(mStr);
+  if (isNaN(h) || isNaN(m)) return timeStr;
+  const ampm = h >= 12 ? "PM" : "AM";
+  const displayH = h % 12 || 12;
+  const displayM = String(m).padStart(2, "0");
+  return `${String(displayH).padStart(2, "0")}:${displayM} ${ampm}`;
+};
 
 export default function TimetableView() {
   const API = import.meta.env.VITE_API_URL;

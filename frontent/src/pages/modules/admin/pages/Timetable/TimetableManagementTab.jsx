@@ -16,16 +16,49 @@ import {
 
 const DAYS_LIST = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-// Define fixed Time Slots matching Image 2
+// Helper to parse any time string into minutes since midnight
+const parseMins = (tStr) => {
+  if (!tStr) return 0;
+  const clean = String(tStr).trim().toUpperCase();
+  const match = clean.match(/^(\d+):(\d+)\s*(AM|PM)?$/);
+  if (!match) {
+    const parts = clean.split(":");
+    return (Number(parts[0]) || 0) * 60 + (Number(parts[1]) || 0);
+  }
+  let h = parseInt(match[1], 10);
+  const m = parseInt(match[2], 10);
+  const ampm = match[3];
+  if (ampm === "PM" && h < 12) h += 12;
+  if (ampm === "AM" && h === 12) h = 0;
+  return h * 60 + m;
+};
+
+// Helper to format 24h or 12h time string to 12h format
+const formatTime12h = (timeStr) => {
+  if (!timeStr) return "";
+  const clean = String(timeStr).trim().toUpperCase();
+  if (clean.includes("AM") || clean.includes("PM")) return clean;
+  const [hStr, mStr] = clean.split(":");
+  const h = Number(hStr);
+  const m = Number(mStr);
+  if (isNaN(h) || isNaN(m)) return timeStr;
+  const ampm = h >= 12 ? "PM" : "AM";
+  const displayH = h % 12 || 12;
+  const displayM = String(m).padStart(2, "0");
+  return `${String(displayH).padStart(2, "0")}:${displayM} ${ampm}`;
+};
+
+// Define standard Time Slots
 const TIME_SLOTS = [
-  { label: "08:00 - 08:45 AM", start: "08:00", end: "08:45", isBreak: false, type: "period" },
-  { label: "08:45 - 09:30 AM", start: "08:45", end: "09:30", isBreak: false, type: "period" },
-  { label: "09:30 - 09:45 AM", start: "09:30", end: "09:45", isBreak: true, type: "break", name: "Short Break" },
-  { label: "09:45 - 10:30 AM", start: "09:45", end: "10:30", isBreak: false, type: "period" },
-  { label: "10:30 - 11:15 AM", start: "10:30", end: "11:15", isBreak: false, type: "period" },
-  { label: "11:15 - 11:30 AM", start: "11:15", end: "11:30", isBreak: true, type: "lunch", name: "Lunch Break" },
-  { label: "11:30 - 12:15 PM", start: "11:30", end: "12:15", isBreak: false, type: "period" },
-  { label: "12:15 - 01:00 PM", start: "12:15", end: "01:00", isBreak: false, type: "period" }
+  { label: "08:00 - 09:00 AM", start: "08:00", end: "09:00", isBreak: false, type: "period" },
+  { label: "09:00 - 10:00 AM", start: "09:00", end: "10:00", isBreak: false, type: "period" },
+  { label: "10:00 - 11:00 AM", start: "10:00", end: "11:00", isBreak: false, type: "period" },
+  { label: "11:00 - 11:30 AM", start: "11:00", end: "11:30", isBreak: true, type: "break", name: "Short Break" },
+  { label: "11:30 - 12:30 PM", start: "11:30", end: "12:30", isBreak: false, type: "period" },
+  { label: "12:30 - 01:30 PM", start: "12:30", end: "01:30", isBreak: true, type: "lunch", name: "Lunch Break" },
+  { label: "01:30 - 02:30 PM", start: "01:30", end: "02:30", isBreak: false, type: "period" },
+  { label: "02:30 - 03:30 PM", start: "02:30", end: "03:30", isBreak: false, type: "period" },
+  { label: "03:30 - 04:30 PM", start: "03:30", end: "04:30", isBreak: false, type: "period" }
 ];
 
 // Color mapping for subjects
@@ -127,11 +160,6 @@ function TimetableManagementTab({
         const b = filteredEntries[j];
         
         if (a.day === b.day) {
-          // Convert times to minutes to compare overlaps
-          const parseMins = (t) => {
-            const [h, m] = t.split(":").map(Number);
-            return h * 60 + m;
-          };
           const startA = parseMins(a.startTime);
           const endA = parseMins(a.endTime);
           const startB = parseMins(b.startTime);
@@ -149,19 +177,18 @@ function TimetableManagementTab({
 
   // Find period matching day and time slot
   const getCellPeriod = (day, slot) => {
-    const slotStartMins = parseInt(slot.start.split(":")[0]) * 60 + parseInt(slot.start.split(":")[1]);
-    const slotEndMins = parseInt(slot.end.split(":")[0]) * 60 + parseInt(slot.end.split(":")[1]);
+    const slotStartMins = parseMins(slot.start);
+    const slotEndMins = parseMins(slot.end);
 
     return filteredEntries.find(e => {
       if (e.day !== day) return false;
       
-      const [sh, sm] = e.startTime.split(":").map(Number);
-      const [eh, em] = e.endTime.split(":").map(Number);
-      const entryStartMins = sh * 60 + sm;
-      const entryEndMins = eh * 60 + em;
+      const entryStartMins = parseMins(e.startTime);
+      const entryEndMins = parseMins(e.endTime);
 
-      // Overlaps if slot start is less than entry end AND slot end is greater than entry start
-      return slotStartMins < entryEndMins && slotEndMins > entryStartMins;
+      // Matches if entry starts in this slot or slot overlaps entry start
+      return (entryStartMins >= slotStartMins && entryStartMins < slotEndMins) ||
+             (slotStartMins >= entryStartMins && slotStartMins < entryEndMins);
     });
   };
 
@@ -381,8 +408,11 @@ function TimetableManagementTab({
                                     <FaTrashAlt />
                                   </button>
                                 </div>
-                                <span className="block text-[8px] font-bold text-slate-400 truncate mt-1">
+                                <span className="block text-[8px] font-bold text-slate-400 truncate mt-0.5">
                                   {period.teacher?.name || "Teacher"}
+                                </span>
+                                <span className="block text-[8px] font-extrabold text-purple-300 truncate mt-0.5">
+                                  {formatTime12h(period.startTime)} - {formatTime12h(period.endTime)}
                                 </span>
                                 
                                 {/* Room location & conflict indicator */}

@@ -55,10 +55,34 @@ function CreateTimetableTab({
     setForm({ ...form, repeatDays: updatedDays });
   };
 
-  // Convert "HH:MM" to 12-hour format string (e.g. "09:00 AM")
+  // Helper to parse any time string into minutes since midnight
+  const parseTimeToMinutes = (timeStr) => {
+    if (!timeStr) return 0;
+    const clean = String(timeStr).trim().toUpperCase();
+    const match = clean.match(/^(\d+):(\d+)\s*(AM|PM)?$/);
+    if (!match) {
+      const parts = clean.split(":");
+      return (Number(parts[0]) || 0) * 60 + (Number(parts[1]) || 0);
+    }
+    let hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    const ampm = match[3];
+    if (ampm) {
+      if (ampm === "PM" && hours < 12) hours += 12;
+      if (ampm === "AM" && hours === 12) hours = 0;
+    }
+    return hours * 60 + minutes;
+  };
+
+  // Convert "HH:MM" or 12-hour format string to 12-hour format string (e.g. "09:00 AM")
   const formatTime12h = (timeStr) => {
     if (!timeStr) return "00:00 AM";
-    const [h, m] = timeStr.split(":").map(Number);
+    const clean = String(timeStr).trim().toUpperCase();
+    if (clean.includes("AM") || clean.includes("PM")) return clean;
+    const [hStr, mStr] = clean.split(":");
+    const h = Number(hStr);
+    const m = Number(mStr);
+    if (isNaN(h) || isNaN(m)) return timeStr;
     const ampm = h >= 12 ? "PM" : "AM";
     const hours = h % 12 || 12;
     const minutes = String(m).padStart(2, "0");
@@ -68,8 +92,7 @@ function CreateTimetableTab({
   // Calculate End Time based on Start Time + Duration
   const calculatedEndTime = useMemo(() => {
     if (!form.startTime) return "00:00 AM";
-    const [h, m] = form.startTime.split(":").map(Number);
-    const startMins = h * 60 + m;
+    const startMins = parseTimeToMinutes(form.startTime);
     const endMins = startMins + Number(form.durationMinutes);
     const endHours = Math.floor(endMins / 60) % 24;
     const endMinsOnly = endMins % 60;
@@ -97,8 +120,9 @@ function CreateTimetableTab({
       if (e.class?._id !== form.classId && e.class !== form.classId) return false;
       if (e.day !== day) return false;
       
-      const [sh] = e.startTime.split(":").map(Number);
-      return sh === targetHour;
+      const startMins = parseTimeToMinutes(e.startTime);
+      const startHour = Math.floor(startMins / 60);
+      return startHour === targetHour;
     });
   };
 

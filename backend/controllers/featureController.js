@@ -171,7 +171,7 @@ exports.createTimetable = async (req, res) => {
 
     const [classData, subject, teacher] = await Promise.all([
       Class.findOne({ _id: classId, schoolName: req.user.schoolName }),
-      Subject.findOne({ _id: subjectId, class: classId, schoolName: req.user.schoolName }),
+      Subject.findOne({ _id: subjectId, schoolName: req.user.schoolName, $or: [{ class: classId }, { classes: classId }] }),
       User.findOne({ _id: teacherId, role: "teacher", schoolName: req.user.schoolName })
     ]);
 
@@ -229,7 +229,7 @@ exports.updateTimetable = async (req, res) => {
     const [entry, classData, subject, teacher] = await Promise.all([
       Timetable.findOne({ _id: req.params.id, schoolName: req.user.schoolName }),
       Class.findOne({ _id: classId, schoolName: req.user.schoolName }),
-      Subject.findOne({ _id: subjectId, class: classId, schoolName: req.user.schoolName }),
+      Subject.findOne({ _id: subjectId, schoolName: req.user.schoolName, $or: [{ class: classId }, { classes: classId }] }),
       User.findOne({ _id: teacherId, role: "teacher", schoolName: req.user.schoolName })
     ]);
 

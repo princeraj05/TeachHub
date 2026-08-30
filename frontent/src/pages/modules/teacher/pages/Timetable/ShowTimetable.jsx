@@ -69,16 +69,33 @@ function ShowTimetable() {
     totalStudents: 128
   });
 
+  const parseTimeToMin = (tStr) => {
+    if (!tStr) return 0;
+    const clean = String(tStr).trim().toUpperCase();
+    const match = clean.match(/^(\d+):(\d+)\s*(AM|PM)?$/);
+    if (!match) {
+      const parts = clean.split(":");
+      return (Number(parts[0]) || 0) * 60 + (Number(parts[1]) || 0);
+    }
+    let hrs = parseInt(match[1], 10);
+    const mins = parseInt(match[2], 10);
+    const ampm = match[3];
+    if (ampm) {
+      if (ampm === "PM" && hrs < 12) hrs += 12;
+      if (ampm === "AM" && hrs === 12) hrs = 0;
+    }
+    return hrs * 60 + mins;
+  };
+
   const timeSlots = [
-    { start: "08:00 AM", end: "08:45 AM" },
-    { start: "09:00 AM", end: "09:45 AM" },
-    { start: "10:00 AM", end: "10:45 AM" },
-    { start: "11:00 AM", end: "11:45 AM" },
-    { start: "12:00 PM", end: "12:45 PM" },
-    { start: "12:45 PM", end: "01:30 PM", isLunch: true },
-    { start: "01:30 PM", end: "02:15 PM" },
-    { start: "02:30 PM", end: "03:15 PM" },
-    { start: "03:30 PM", end: "04:15 PM" }
+    { start: "08:00 AM", end: "09:00 AM" },
+    { start: "09:00 AM", end: "10:00 AM" },
+    { start: "10:00 AM", end: "11:00 AM" },
+    { start: "11:00 AM", end: "12:00 PM" },
+    { start: "12:00 PM", end: "01:00 PM", isLunch: true },
+    { start: "01:00 PM", end: "02:00 PM" },
+    { start: "02:00 PM", end: "03:00 PM" },
+    { start: "03:00 PM", end: "04:00 PM" }
   ];
 
   const daysOfWeek = [
@@ -126,10 +143,16 @@ function ShowTimetable() {
 
   // Helper: check if a class falls in a specific day & time slot
   const getCellClass = (day, slot) => {
-    return timetable.find(entry => 
-      entry.day === day && 
-      entry.startTime === slot.start
-    );
+    const slotStartMin = parseTimeToMin(slot.start);
+    const slotEndMin = parseTimeToMin(slot.end);
+
+    return timetable.find(entry => {
+      if (entry.day !== day) return false;
+      const entryStartMin = parseTimeToMin(entry.startTime);
+      const entryEndMin = parseTimeToMin(entry.endTime);
+      return (entryStartMin >= slotStartMin && entryStartMin < slotEndMin) ||
+             (slotStartMin >= entryStartMin && slotStartMin < entryEndMin);
+    });
   };
 
   // Status calculation helper for vertical timeline
@@ -202,7 +225,12 @@ function ShowTimetable() {
     return timeSlots
       .filter(s => !s.isLunch)
       .map(slot => {
-        const cls = todayClasses.find(c => c.startTime === slot.start);
+        const cls = todayClasses.find(c => {
+          const cStart = parseTimeToMin(c.startTime);
+          const sStart = parseTimeToMin(slot.start);
+          const sEnd = parseTimeToMin(slot.end);
+          return (cStart >= sStart && cStart < sEnd) || (sStart >= cStart && sStart < parseTimeToMin(c.endTime));
+        });
         return {
           slot,
           classData: cls,
