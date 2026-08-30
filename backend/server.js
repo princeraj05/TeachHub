@@ -290,8 +290,6 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "OK", message: "TeachHub Backend Health Check Passed", timestamp: new Date() });
 });
 
-const path = require("path");
-const fs = require("fs");
 const uploadDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
