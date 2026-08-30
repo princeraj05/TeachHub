@@ -297,7 +297,7 @@ function SuperAdminSupport() {
     <div style={{ fontFamily: SORA }} className="space-y-5 text-slate-800 dark:text-white select-none">
       
       {/* HEADER BAR */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#0B132A] p-4.5 rounded-2.5xl border border-slate-200/60 dark:border-white/[0.08] shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#0B132A] p-4.5 rounded-2.5xl border border-slate-200/80 dark:border-white/[0.08] shadow-sm">
         <div className="flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white text-lg shadow-md shadow-[#7C3AED]/20 shrink-0">
             <FaComments />
@@ -349,7 +349,7 @@ function SuperAdminSupport() {
       </div>
 
       {/* MESSAGING CONTAINER */}
-      <div className="flex bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl overflow-hidden shadow-sm h-[calc(100vh-210px)] min-h-[500px]">
+      <div className="flex bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] rounded-3xl overflow-hidden shadow-sm h-[calc(100vh-210px)] min-h-[500px]">
         
         {/* LEFT SIDEBAR: Conversations List */}
         <div className="w-full lg:w-[340px] border-r border-slate-100 dark:border-white/[0.06] flex flex-col bg-slate-50/40 dark:bg-[#090F1C]/40 shrink-0 min-h-0">
@@ -363,12 +363,12 @@ function SuperAdminSupport() {
                 placeholder="Search conversations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0B132A] text-slate-800 dark:text-white placeholder-slate-400 text-xs font-semibold focus:outline-none focus:border-[#7C3AED]"
+                className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0B132A] text-slate-800 dark:text-white placeholder-slate-400 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition"
               />
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex gap-1 bg-slate-200/50 dark:bg-white/5 p-1 rounded-xl">
+            <div className="flex gap-1 bg-slate-200/60 dark:bg-white/5 p-1 rounded-xl">
               {[
                 { id: "All", label: "All", count: conversationsList.length },
                 { id: "Open", label: "Open", count: conversationsList.filter(c => c.status === "Open").length },
@@ -378,10 +378,10 @@ function SuperAdminSupport() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveFilter(tab.id)}
-                  className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black transition cursor-pointer text-center ${
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-extrabold transition cursor-pointer text-center ${
                     activeFilter === tab.id
-                      ? "bg-[#7C3AED] text-white shadow-sm"
-                      : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                      ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/25"
+                      : "text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/10"
                   }`}
                 >
                   {tab.label} ({tab.count})
@@ -413,8 +413,8 @@ function SuperAdminSupport() {
                     }}
                     className={`w-full p-4 text-left transition flex items-start gap-3.5 cursor-pointer relative ${
                       isActive 
-                        ? "bg-[#7C3AED]/10 dark:bg-[#7C3AED]/15 border-l-4 border-[#7C3AED]" 
-                        : "hover:bg-slate-100/60 dark:hover:bg-white/[0.02]"
+                        ? "bg-purple-50/80 dark:bg-[#7C3AED]/15 border-l-4 border-[#7C3AED] shadow-xs" 
+                        : "hover:bg-slate-100/80 dark:hover:bg-white/[0.03]"
                     }`}
                   >
                     {/* Avatar */}
@@ -430,7 +430,9 @@ function SuperAdminSupport() {
                           <span className="text-[10px] text-slate-400 font-medium shrink-0">{c.time}</span>
                         )}
                       </div>
-                      <p className="text-[10px] text-[#7C3AED] dark:text-[#38BDF8] font-bold truncate mt-0.5">{c.schoolName}</p>
+                      <span className="text-[10px] text-[#7C3AED] dark:text-[#38BDF8] font-bold bg-purple-50 dark:bg-purple-950/40 px-1.5 py-0.5 rounded mt-1 inline-block truncate max-w-full">
+                        {c.schoolName}
+                      </span>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate mt-1">{c.lastMessage}</p>
                     </div>
                   </button>
@@ -471,7 +473,7 @@ function SuperAdminSupport() {
               </div>
 
               {/* Chat Feed */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/20 dark:bg-black/10">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/30 dark:bg-black/20">
                 
                 <div className="text-center my-4">
                   <span className="px-3.5 py-1 rounded-full bg-slate-200/60 dark:bg-white/5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Today</span>
@@ -487,10 +489,10 @@ function SuperAdminSupport() {
                     return (
                       <div 
                         key={msg._id || index}
-                        className={`flex flex-col max-w-[75%] sm:max-w-[65%] ${isSenderMe ? "ml-auto items-end" : "mr-auto items-start"}`}
+                        className={`flex flex-col max-w-[80%] sm:max-w-[70%] ${isSenderMe ? "ml-auto items-end" : "mr-auto items-start"}`}
                       >
                         {msg.content && (
-                          <div className={`px-4.5 py-3 rounded-2xl text-xs font-semibold leading-relaxed shadow-sm ${
+                          <div className={`px-4 py-2.5 rounded-2xl text-xs font-medium leading-relaxed shadow-xs ${
                             isSenderMe 
                               ? "bg-gradient-to-r from-[#7C3AED] to-[#6366F1] text-white rounded-tr-xs" 
                               : "bg-slate-100 dark:bg-[#1E293B] text-slate-800 dark:text-slate-100 border border-slate-200/60 dark:border-white/10 rounded-tl-xs"
@@ -502,7 +504,7 @@ function SuperAdminSupport() {
                         {msg.attachments && msg.attachments.map((file, fileIdx) => (
                           <div 
                             key={fileIdx}
-                            className="bg-slate-100 dark:bg-[#1E293B] border border-slate-200/60 dark:border-white/10 rounded-2xl p-3.5 flex items-center gap-3 max-w-xs shadow-sm"
+                            className="bg-slate-100 dark:bg-[#1E293B] border border-slate-200/60 dark:border-white/10 rounded-2xl p-3 flex items-center gap-3 max-w-xs shadow-xs mt-1"
                           >
                             <div className="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0">
                               <FaFilePdf className="text-base" />
@@ -523,12 +525,12 @@ function SuperAdminSupport() {
                         ))}
 
                         <div className="flex items-center gap-1.5 mt-1 select-none px-1">
-                          <span className="text-[9px] text-slate-400 font-medium">
+                          <span className="text-[10px] text-slate-400 font-medium">
                             {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
                           </span>
                           
                           {isSenderMe && (
-                            <FaCheckDouble className={`text-[10px] ${msg.status === "read" ? "text-blue-500" : "text-slate-400"}`} />
+                            <FaCheckDouble className={`text-[11px] ${msg.status === "read" ? "text-sky-400" : "text-slate-400"}`} />
                           )}
 
                           {hasReaction && (
@@ -557,7 +559,7 @@ function SuperAdminSupport() {
               </div>
 
               {/* Message Input Bar */}
-              <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-100 dark:border-white/[0.06] flex items-center gap-3 bg-white dark:bg-[#0B132A]">
+              <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-100 dark:border-white/[0.06] flex items-center gap-2.5 bg-white dark:bg-[#0B132A]">
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -570,7 +572,7 @@ function SuperAdminSupport() {
                   type="button"
                   disabled={uploading}
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-10 h-10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl text-slate-500 dark:text-slate-400 flex items-center justify-center transition cursor-pointer shrink-0 border border-slate-200/60 dark:border-white/10"
+                  className="w-10 h-10 bg-slate-100 dark:bg-white/5 hover:bg-purple-50 dark:hover:bg-white/10 hover:text-[#7C3AED] rounded-xl text-slate-500 dark:text-slate-400 flex items-center justify-center transition cursor-pointer shrink-0 border border-slate-200/60 dark:border-white/10"
                   title="Attach File"
                 >
                   <FaPaperclip className="text-sm" />
@@ -579,7 +581,7 @@ function SuperAdminSupport() {
                 <button
                   type="button"
                   onClick={() => setInputText(prev => prev + " 😊")}
-                  className="w-10 h-10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl text-slate-500 dark:text-slate-400 flex items-center justify-center transition cursor-pointer shrink-0 border border-slate-200/60 dark:border-white/10"
+                  className="w-10 h-10 bg-slate-100 dark:bg-white/5 hover:bg-purple-50 dark:hover:bg-white/10 hover:text-[#7C3AED] rounded-xl text-slate-500 dark:text-slate-400 flex items-center justify-center transition cursor-pointer shrink-0 border border-slate-200/60 dark:border-white/10"
                   title="Emoji"
                 >
                   <FaRegSmile className="text-sm" />
@@ -591,7 +593,7 @@ function SuperAdminSupport() {
                     placeholder="Type your message..."
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-[#1E293B] text-slate-800 dark:text-white placeholder-slate-400 text-xs font-semibold focus:outline-none focus:border-[#7C3AED]"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#1E293B] text-slate-800 dark:text-white placeholder-slate-400 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition"
                   />
                 </div>
 
@@ -606,7 +608,7 @@ function SuperAdminSupport() {
                   <button
                     type="button"
                     onClick={() => alert("Voice transcription started...")}
-                    className="w-10 h-10 bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20 rounded-xl flex items-center justify-center transition cursor-pointer shrink-0"
+                    className="w-10 h-10 bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] hover:bg-purple-500/20 border border-[#7C3AED]/20 rounded-xl flex items-center justify-center transition cursor-pointer shrink-0"
                   >
                     <FaMicrophone className="text-xs" />
                   </button>
