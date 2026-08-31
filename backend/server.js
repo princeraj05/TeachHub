@@ -251,7 +251,13 @@ mongoose
       console.error("Migration/Startup Sync Error:", migrationError);
     }
   })
-  .catch((err) => console.log(err));
+  .catch((err) => {
+    console.error("❌ MongoDB Connection Error:", err.message);
+    if (err.name === "MongoServerError" && err.code === 18) {
+      console.error("👉 BAD AUTHENTICATION: Check the username and password in your MONGO_URI environment variable on Hostinger.");
+      console.error("👉 Tip: If your password contains special characters like @, #, $, %, etc., remember to URL-encode them (e.g. @ becomes %40).");
+    }
+  });
 
 
 // ================= ROUTES =================
