@@ -27,7 +27,7 @@ import { useTheme } from "../../../context/ThemeContext";
 const SORA = "'Sora', sans-serif";
 
 function SuperAdminUsers() {
-  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
   const token = localStorage.getItem("token");
   const { theme, toggleTheme } = useTheme();
 

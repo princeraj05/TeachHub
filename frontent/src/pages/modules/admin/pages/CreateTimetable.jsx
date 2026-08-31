@@ -19,7 +19,7 @@ const belongsToClass = (subject, classId) => {
 };
 
 export default function CreateTimetable() {
-  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
 
   // Navigation tab state
   const [activeTab, setActiveTab] = useState("basic");
