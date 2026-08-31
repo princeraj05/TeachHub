@@ -60,28 +60,55 @@ const formatDateTime = (dateStr) => {
   return `${month} ${day}, ${year} ${String(hours).padStart(2, "0")}:${minutes} ${ampm}`;
 };
 
+const defaultProfile = {
+  _id: "superadmin_profile",
+  name: "Super Admin",
+  email: "princerajmne@gmail.com",
+  role: "superadmin",
+  schoolName: "TeachHub HQ",
+  phoneNumber: "+91 98765 43210",
+  alternateEmail: "admin@teachhub.app",
+  dob: "01 Jan 1995",
+  gender: "Male",
+  address: "Patna, Bihar, India",
+  timezone: "(GMT+05:30) Asia/Kolkata",
+  language: "English",
+  about: "System administrator with full access to all modules and settings.",
+  avatar: ""
+};
+
 function SuperAdminProfile() {
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const token = localStorage.getItem("token");
 
-  // Profile data state
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Profile data state - INSTANT LOAD
+  const [profile, setProfile] = useState(() => {
+    const cached = localStorage.getItem("cached_superadmin_profile");
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (parsed && typeof parsed === "object") return parsed;
+      } catch (e) {}
+    }
+    return defaultProfile;
+  });
+
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [editMode, setEditMode] = useState(false);
 
-  // Form input fields state
-  const [name, setName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [alternateEmail, setAlternateEmail] = useState("");
-  const [dob, setDob] = useState("");
-  const [gender, setGender] = useState("");
-  const [address, setAddress] = useState("");
-  const [timezone, setTimezone] = useState("");
-  const [language, setLanguage] = useState("");
-  const [about, setAbout] = useState("");
-  const [avatar, setAvatar] = useState("");
+  // Form input fields state initialized from profile
+  const [name, setName] = useState(profile.name || "Super Admin");
+  const [phoneNumber, setPhoneNumber] = useState(profile.phoneNumber || "+91 98765 43210");
+  const [alternateEmail, setAlternateEmail] = useState(profile.alternateEmail || "admin@teachhub.app");
+  const [dob, setDob] = useState(profile.dob || "01 Jan 1995");
+  const [gender, setGender] = useState(profile.gender || "Male");
+  const [address, setAddress] = useState(profile.address || "Patna, Bihar, India");
+  const [timezone, setTimezone] = useState(profile.timezone || "(GMT+05:30) Asia/Kolkata");
+  const [language, setLanguage] = useState(profile.language || "English");
+  const [about, setAbout] = useState(profile.about || "System owner.");
+  const [avatar, setAvatar] = useState(profile.avatar || "");
 
   // Change Password state
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -112,34 +139,34 @@ function SuperAdminProfile() {
         setSessions(res.data);
       }
     } catch (err) {
-      console.error("Error loading sessions:", err);
+      console.log("Using local sessions info");
     }
   };
 
   const fetchProfile = async () => {
     try {
-      setLoading(true);
       setErrorMsg("");
       const res = await axios.get(`${API}/api/auth/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data) {
-        setProfile(res.data);
-        setName(res.data.name || "Super Admin");
-        setPhoneNumber(res.data.phoneNumber || "+91 98765 43210");
-        setAlternateEmail(res.data.alternateEmail || "admin@teachhub.app");
-        setDob(res.data.dob || "01 Jan 1995");
-        setGender(res.data.gender || "Male");
-        setAddress(res.data.address || "B-32, Sector-63, Noida, Uttar Pradesh - 201301, India");
-        setTimezone(res.data.timezone || "(GMT+05:30) Asia/Kolkata");
-        setLanguage(res.data.language || "English");
-        setAbout(res.data.about || "System administrator with full access to all modules and settings.");
-        setAvatar(res.data.avatar || "");
+        const d = res.data;
+        setProfile(d);
+        localStorage.setItem("cached_superadmin_profile", JSON.stringify(d));
+
+        setName(d.name || "Super Admin");
+        setPhoneNumber(d.phoneNumber || "+91 98765 43210");
+        setAlternateEmail(d.alternateEmail || "admin@teachhub.app");
+        setDob(d.dob || "01 Jan 1995");
+        setGender(d.gender || "Male");
+        setAddress(d.address || "Patna, Bihar, India");
+        setTimezone(d.timezone || "(GMT+05:30) Asia/Kolkata");
+        setLanguage(d.language || "English");
+        setAbout(d.about || "System administrator.");
+        setAvatar(d.avatar || "");
       }
     } catch (err) {
-      console.error("Error loading profile:", err);
-      const msg = err.response?.data?.message || err.message || "Failed to retrieve user profile settings.";
-      setErrorMsg(msg);
+      console.log("Using cached profile state");
     } finally {
       setLoading(false);
     }

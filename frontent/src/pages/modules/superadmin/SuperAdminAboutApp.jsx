@@ -71,7 +71,7 @@ function SuperAdminAboutApp() {
   const [originalData, setOriginalData] = useState({});
 
   // Loading & notification states
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
@@ -86,7 +86,6 @@ function SuperAdminAboutApp() {
 
   const fetchConfig = async () => {
     try {
-      setLoading(true);
       setErrorMsg("");
       const res = await axios.get(`${API}/api/about-app`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -127,8 +126,7 @@ function SuperAdminAboutApp() {
         setOriginalData(d);
       }
     } catch (err) {
-      console.error("Error loading platform configuration details:", err);
-      setErrorMsg("Failed to fetch platform configuration settings.");
+      console.log("Using default platform configuration settings");
     } finally {
       setLoading(false);
     }
