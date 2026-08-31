@@ -59,11 +59,12 @@ export default function CreateTimetable() {
     setErrorMsg("");
     try {
       const reqHeaders = getHeaders();
+      const config = { headers: reqHeaders, timeout: 10000 };
       const [classRes, subjectRes, teacherRes, entryRes] = await Promise.allSettled([
-        axios.get(`${API}/api/admin/classes`, { headers: reqHeaders }),
-        axios.get(`${API}/api/admin/subjects`, { headers: reqHeaders }),
-        axios.get(`${API}/api/admin/users/teachers`, { headers: reqHeaders }),
-        axios.get(`${API}/api/timetable`, { headers: reqHeaders })
+        axios.get(`${API}/api/admin/classes`, config),
+        axios.get(`${API}/api/admin/subjects`, config),
+        axios.get(`${API}/api/admin/users/teachers`, config),
+        axios.get(`${API}/api/timetable`, config)
       ]);
 
       if (classRes.status === "fulfilled" && Array.isArray(classRes.value.data)) {
