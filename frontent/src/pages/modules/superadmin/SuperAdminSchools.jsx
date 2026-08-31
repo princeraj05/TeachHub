@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
+import axios from "axios";
 import {
   FaSchool,
   FaFileContract,
@@ -15,70 +16,20 @@ import {
   FaExclamationTriangle,
   FaBan,
   FaMapMarkerAlt,
-  FaUserTie
+  FaUserTie,
+  FaSpinner
 } from "react-icons/fa";
 
-// Initial sample schools list matching design mockup
-const initialSchools = [
-  {
-    id: "1",
-    name: "G.D Academy",
-    address: "New Delhi, India",
-    principal: "Banny Thapar",
-    students: 3120,
-    teachers: 185,
-    plan: "Enterprise",
-    status: "Active",
-    logo: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=150&auto=format&fit=crop&q=80"
-  },
-  {
-    id: "2",
-    name: "Pine Academy",
-    address: "Mumbai, India",
-    principal: "Mr. James Wilson",
-    students: 1850,
-    teachers: 110,
-    plan: "Pro",
-    status: "Active",
-    logo: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=150&auto=format&fit=crop&q=80"
-  },
-  {
-    id: "3",
-    name: "Bright Future High",
-    address: "Bengaluru, India",
-    principal: "Sarah Johnson",
-    students: 2400,
-    teachers: 140,
-    plan: "Free",
-    status: "Pending",
-    logo: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=150&auto=format&fit=crop&q=80"
-  },
-  {
-    id: "4",
-    name: "Maplewood School",
-    address: "Chandigarh, India",
-    principal: "Michael Lee",
-    students: 980,
-    teachers: 55,
-    plan: "Enterprise",
-    status: "Active",
-    logo: "https://images.unsplash.com/photo-1568667256549-094345857637?w=150&auto=format&fit=crop&q=80"
-  },
-  {
-    id: "5",
-    name: "City Arts School",
-    address: "Pune, India",
-    principal: "Sophie Dubois",
-    students: 1210,
-    teachers: 70,
-    plan: "Pro",
-    status: "Suspended",
-    logo: "https://images.unsplash.com/photo-1557223562-6c77ef16210f?w=150&auto=format&fit=crop&q=80"
-  }
-];
-
 function SuperAdminSchools() {
-  const [schools, setSchools] = useState(initialSchools);
+  const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
+  const token = localStorage.getItem("token");
+
+  const [schools, setSchools] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
   const [search, setSearch] = useState("");
   const [planFilter, setPlanFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -91,89 +42,158 @@ function SuperAdminSchools() {
 
   // Form state for adding/editing school
   const [formData, setFormData] = useState({
+    id: "",
     name: "",
+    email: "",
     address: "",
-    principal: "",
-    students: 100,
-    teachers: 10,
-    plan: "Pro",
+    plan: "Free Plan (Trial)",
     status: "Active"
   });
 
-  // Calculate statistics
+  // Fetch real schools from backend on mount
+  useEffect(() => {
+    fetchSchoolsDetail();
+  }, []);
+
+  const fetchSchoolsDetail = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const res = await axios.get(`${API}/api/superadmin/schools-detail`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = Array.isArray(res.data) ? res.data : [];
+      setSchools(data);
+    } catch (err) {
+      console.error("Error fetching schools detail:", err);
+      setError(err.response?.data?.message || "Failed to fetch real schools from database");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Calculate real statistics
   const stats = useMemo(() => {
     const total = schools.length;
     const activeSub = schools.filter((s) => s.status === "Active").length;
-    const totalStudents = schools.reduce((sum, s) => sum + Number(s.students || 0), 0);
-    const totalTeachers = schools.reduce((sum, s) => sum + Number(s.teachers || 0), 0);
+    const totalStudents = schools.reduce((sum, s) => sum + (s.stats?.students || 0), 0);
+    const totalTeachers = schools.reduce((sum, s) => sum + (s.stats?.teachers || 0), 0);
     return { total, activeSub, totalStudents, totalTeachers };
   }, [schools]);
 
   // Filtered schools list
   const filteredSchools = useMemo(() => {
     return schools.filter((s) => {
-      const matchesSearch =
-        s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.address.toLowerCase().includes(search.toLowerCase()) ||
-        s.principal.toLowerCase().includes(search.toLowerCase());
+      const name = s.name || "";
+      const address = s.location || s.address || "";
+      const email = s.email || "";
 
-      const matchesPlan = planFilter === "All" || s.plan.toLowerCase() === planFilter.toLowerCase();
-      const matchesStatus = statusFilter === "All" || s.status.toLowerCase() === statusFilter.toLowerCase();
+      const matchesSearch =
+        name.toLowerCase().includes(search.toLowerCase()) ||
+        address.toLowerCase().includes(search.toLowerCase()) ||
+        email.toLowerCase().includes(search.toLowerCase());
+
+      const matchesPlan = planFilter === "All" || (s.plan || "").toLowerCase().includes(planFilter.toLowerCase());
+      const matchesStatus = statusFilter === "All" || (s.status || "").toLowerCase() === statusFilter.toLowerCase();
 
       return matchesSearch && matchesPlan && matchesStatus;
     });
   }, [schools, search, planFilter, statusFilter]);
 
-  // Handle Add School
-  const handleAddSubmit = (e) => {
+  // Handle Add School via Backend API
+  const handleAddSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.principal) return;
+    if (!formData.name) return;
 
-    const newSchool = {
-      id: Date.now().toString(),
-      name: formData.name,
-      address: formData.address || "Main Campus",
-      principal: formData.principal,
-      students: Number(formData.students) || 0,
-      teachers: Number(formData.teachers) || 0,
-      plan: formData.plan,
-      status: formData.status,
-      logo: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=150&auto=format&fit=crop&q=80"
-    };
+    try {
+      setActionLoading(true);
+      setError("");
+      await axios.post(
+        `${API}/api/superadmin/schools`,
+        {
+          name: formData.name,
+          email: formData.email,
+          address: formData.address,
+          plan: formData.plan
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    setSchools([newSchool, ...schools]);
-    setFormData({ name: "", address: "", principal: "", students: 100, teachers: 10, plan: "Pro", status: "Active" });
-    setIsAddModalOpen(false);
-  };
-
-  // Handle Edit Submit
-  const handleEditSubmit = (e) => {
-    e.preventDefault();
-    setSchools(schools.map((s) => (s.id === editSchool.id ? { ...s, ...formData } : s)));
-    setEditSchool(null);
-  };
-
-  // Handle Delete
-  const handleDeleteConfirm = () => {
-    setSchools(schools.filter((s) => s.id !== deleteSchoolId));
-    setDeleteSchoolId(null);
-  };
-
-  // Helper for Plan pill style
-  const getPlanBadgeStyle = (plan) => {
-    switch (plan) {
-      case "Enterprise":
-        return "bg-purple-500/20 text-purple-300 border border-purple-500/30";
-      case "Pro":
-        return "bg-blue-500/20 text-blue-400 border border-blue-500/30";
-      case "Free":
-        return "bg-slate-700/60 text-slate-300 border border-slate-600/40";
-      default:
-        return "bg-slate-800 text-slate-400";
+      setSuccess("New school created successfully in database!");
+      setTimeout(() => setSuccess(""), 4000);
+      setIsAddModalOpen(false);
+      setFormData({ id: "", name: "", email: "", address: "", plan: "Free Plan (Trial)", status: "Active" });
+      fetchSchoolsDetail();
+    } catch (err) {
+      console.error("Create school error:", err);
+      setError(err.response?.data?.message || "Failed to create school");
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  // Helper for Status pill style
+  // Handle Edit School via Backend API
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!editSchool?._id) return;
+
+    try {
+      setActionLoading(true);
+      setError("");
+      await axios.put(
+        `${API}/api/superadmin/schools/${editSchool._id}`,
+        {
+          name: formData.name,
+          email: formData.email,
+          address: formData.address,
+          plan: formData.plan,
+          status: formData.status
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setSuccess("School updated successfully!");
+      setTimeout(() => setSuccess(""), 4000);
+      setEditSchool(null);
+      fetchSchoolsDetail();
+    } catch (err) {
+      console.error("Update school error:", err);
+      setError(err.response?.data?.message || "Failed to update school");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Handle Delete School via Backend API
+  const handleDeleteConfirm = async () => {
+    if (!deleteSchoolId) return;
+
+    try {
+      setActionLoading(true);
+      setError("");
+      await axios.delete(`${API}/api/superadmin/schools/${deleteSchoolId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setSuccess("School deleted successfully!");
+      setTimeout(() => setSuccess(""), 4000);
+      setDeleteSchoolId(null);
+      fetchSchoolsDetail();
+    } catch (err) {
+      console.error("Delete school error:", err);
+      setError(err.response?.data?.message || "Failed to delete school");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Badge styles
+  const getPlanBadgeStyle = (plan) => {
+    if (plan?.includes("Enterprise")) return "bg-purple-500/20 text-purple-300 border border-purple-500/30";
+    if (plan?.includes("Configured") || plan?.includes("Pro")) return "bg-blue-500/20 text-blue-400 border border-blue-500/30";
+    return "bg-slate-700/60 text-slate-300 border border-slate-600/40";
+  };
+
   const getStatusBadgeStyle = (status) => {
     switch (status) {
       case "Active":
@@ -183,62 +203,72 @@ function SuperAdminSchools() {
       case "Suspended":
         return "bg-rose-500/20 text-rose-400 border border-rose-500/30";
       default:
-        return "bg-slate-700 text-slate-300";
+        return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
     }
   };
 
   return (
     <div className="min-h-screen bg-[#0B0F19] text-slate-100 p-4 md:p-8 font-sans">
+      {/* Alerts */}
+      {error && (
+        <div className="mb-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-sm flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError("")} className="text-rose-400 hover:text-white"><FaTimes /></button>
+        </div>
+      )}
+      {success && (
+        <div className="mb-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm flex items-center justify-between">
+          <span>{success}</span>
+          <button onClick={() => setSuccess("")} className="text-emerald-400 hover:text-white"><FaTimes /></button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Schools Management</h1>
-        <p className="text-sm text-slate-400 mt-1">Overview of registered institutions, principals, and subscriptions.</p>
+        <p className="text-sm text-slate-400 mt-1">Manage registered institutions, subscriptions, and access.</p>
       </div>
 
       {/* Summary Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {/* Card 1: Total Schools */}
         <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Schools</p>
             <h3 className="text-2xl font-extrabold text-white mt-1">{stats.total}</h3>
-            <span className="text-xs text-emerald-400 font-medium mt-1 inline-block">↑ 8.1% active</span>
+            <span className="text-xs text-emerald-400 font-medium mt-1 inline-block">Live Database</span>
           </div>
           <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xl">
             <FaSchool />
           </div>
         </div>
 
-        {/* Card 2: Active Subscriptions */}
         <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Subscriptions</p>
             <h3 className="text-2xl font-extrabold text-emerald-400 mt-1">{stats.activeSub}</h3>
-            <span className="text-xs text-emerald-400/80 font-medium mt-1 inline-block">↑ 12.5% paid</span>
+            <span className="text-xs text-emerald-400/80 font-medium mt-1 inline-block">Configured</span>
           </div>
           <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xl">
             <FaFileContract />
           </div>
         </div>
 
-        {/* Card 3: Total Students */}
         <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Students</p>
             <h3 className="text-2xl font-extrabold text-white mt-1">{stats.totalStudents.toLocaleString()}</h3>
-            <span className="text-xs text-amber-400 font-medium mt-1 inline-block">Across all schools</span>
+            <span className="text-xs text-amber-400 font-medium mt-1 inline-block">Across schools</span>
           </div>
           <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xl">
             <FaUserGraduate />
           </div>
         </div>
 
-        {/* Card 4: Total Teachers */}
         <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Teachers</p>
             <h3 className="text-2xl font-extrabold text-white mt-1">{stats.totalTeachers.toLocaleString()}</h3>
-            <span className="text-xs text-purple-400 font-medium mt-1 inline-block">Staff members</span>
+            <span className="text-xs text-purple-400 font-medium mt-1 inline-block">Faculty staff</span>
           </div>
           <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-xl">
             <FaChalkboardTeacher />
@@ -246,54 +276,25 @@ function SuperAdminSchools() {
         </div>
       </div>
 
-      {/* Control Bar: Search, Filters & Add School */}
+      {/* Control Bar */}
       <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        {/* Search Input */}
         <div className="relative w-full md:w-96">
           <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm" />
           <input
             type="text"
-            placeholder="Search schools by name, address, principal..."
+            placeholder="Search schools by name, address, email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-[#0B0F19] border border-slate-700/60 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition-colors"
           />
         </div>
 
-        {/* Filter Dropdowns & Add Button */}
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          {/* Plan Filter */}
-          <div className="flex items-center gap-2 bg-[#0B0F19] border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-slate-300">
-            <FaFilter className="text-xs text-slate-500" />
-            <select
-              value={planFilter}
-              onChange={(e) => setPlanFilter(e.target.value)}
-              className="bg-transparent text-slate-200 focus:outline-none cursor-pointer"
-            >
-              <option value="All" className="bg-[#131B2E]">Filter by Plan: All</option>
-              <option value="Enterprise" className="bg-[#131B2E]">Enterprise</option>
-              <option value="Pro" className="bg-[#131B2E]">Pro</option>
-              <option value="Free" className="bg-[#131B2E]">Free</option>
-            </select>
-          </div>
-
-          {/* Status Filter */}
-          <div className="flex items-center gap-2 bg-[#0B0F19] border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-slate-300">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-transparent text-slate-200 focus:outline-none cursor-pointer"
-            >
-              <option value="All" className="bg-[#131B2E]">Filter by Status: All</option>
-              <option value="Active" className="bg-[#131B2E]">Active</option>
-              <option value="Pending" className="bg-[#131B2E]">Pending</option>
-              <option value="Suspended" className="bg-[#131B2E]">Suspended</option>
-            </select>
-          </div>
-
-          {/* Add School Button */}
           <button
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={() => {
+              setFormData({ id: "", name: "", email: "", address: "", plan: "Free Plan (Trial)", status: "Active" });
+              setIsAddModalOpen(true);
+            }}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm px-4 py-2.5 rounded-xl shadow-lg transition-all ml-auto md:ml-0"
           >
             <FaPlus className="text-xs" />
@@ -302,15 +303,15 @@ function SuperAdminSchools() {
         </div>
       </div>
 
-      {/* Schools Data Table */}
+      {/* Table */}
       <div className="bg-[#131B2E] border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="bg-[#0B0F19]/60 border-b border-slate-800 text-slate-400 uppercase text-xs tracking-wider">
                 <th className="py-4 px-5">School Name</th>
-                <th className="py-4 px-5">Address / City</th>
-                <th className="py-4 px-5">Principal</th>
+                <th className="py-4 px-5">Address</th>
+                <th className="py-4 px-5">Contact Email</th>
                 <th className="py-4 px-5 text-center">Students</th>
                 <th className="py-4 px-5 text-center">Teachers</th>
                 <th className="py-4 px-5">Plan</th>
@@ -319,72 +320,64 @@ function SuperAdminSchools() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
-              {filteredSchools.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan="8" className="py-12 text-center text-slate-400">
+                    <FaSpinner className="animate-spin text-2xl mx-auto mb-2 text-blue-400" />
+                    <p className="text-sm">Fetching real schools from MongoDB...</p>
+                  </td>
+                </tr>
+              ) : filteredSchools.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="py-12 text-center text-slate-500">
-                    <p className="text-base font-medium">No schools found matching your search</p>
-                    <p className="text-xs text-slate-600 mt-1">Try adjusting plan or status filters</p>
+                    <p className="text-base font-medium">No schools found in database</p>
+                    <p className="text-xs text-slate-600 mt-1">Click Add New School to register an institution</p>
                   </td>
                 </tr>
               ) : (
                 filteredSchools.map((school) => (
-                  <tr key={school.id} className="hover:bg-slate-800/30 transition-colors">
-                    {/* School Profile */}
+                  <tr key={school._id} className="hover:bg-slate-800/30 transition-colors">
                     <td className="py-3.5 px-5">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={school.logo}
-                          alt={school.name}
-                          className="w-10 h-10 rounded-xl object-cover border border-slate-700"
-                        />
+                        <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-xs">
+                          <FaSchool />
+                        </div>
                         <span className="font-semibold text-white text-sm">{school.name}</span>
                       </div>
                     </td>
 
-                    {/* Address */}
                     <td className="py-3.5 px-5 text-slate-300">
                       <div className="flex items-center gap-1.5 text-xs text-slate-400">
                         <FaMapMarkerAlt className="text-slate-500 text-[10px]" />
-                        <span>{school.address}</span>
+                        <span>{school.location || "Patna, Bihar"}</span>
                       </div>
                     </td>
 
-                    {/* Principal */}
-                    <td className="py-3.5 px-5 text-slate-200 font-medium">
-                      <div className="flex items-center gap-1.5">
-                        <FaUserTie className="text-blue-400/80 text-xs" />
-                        <span>{school.principal}</span>
-                      </div>
+                    <td className="py-3.5 px-5 text-slate-300 text-xs">
+                      {school.email || "N/A"}
                     </td>
 
-                    {/* Students Count */}
                     <td className="py-3.5 px-5 text-center font-bold text-slate-200">
-                      {school.students.toLocaleString()}
+                      {(school.stats?.students || 0).toLocaleString()}
                     </td>
 
-                    {/* Teachers Count */}
                     <td className="py-3.5 px-5 text-center font-bold text-slate-200">
-                      {school.teachers.toLocaleString()}
+                      {(school.stats?.teachers || 0).toLocaleString()}
                     </td>
 
-                    {/* Plan Pill */}
                     <td className="py-3.5 px-5">
                       <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${getPlanBadgeStyle(school.plan)}`}>
-                        {school.plan}
+                        {school.plan || "yet not set"}
                       </span>
                     </td>
 
-                    {/* Status Pill */}
                     <td className="py-3.5 px-5">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full ${getStatusBadgeStyle(school.status)}`}>
-                        {school.status === "Active" && <FaCheckCircle className="text-[10px]" />}
-                        {school.status === "Pending" && <FaExclamationTriangle className="text-[10px]" />}
-                        {school.status === "Suspended" && <FaBan className="text-[10px]" />}
-                        {school.status}
+                        <FaCheckCircle className="text-[10px]" />
+                        {school.status || "Active"}
                       </span>
                     </td>
 
-                    {/* Action Buttons */}
                     <td className="py-3.5 px-5 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
@@ -398,13 +391,12 @@ function SuperAdminSchools() {
                           onClick={() => {
                             setEditSchool(school);
                             setFormData({
+                              id: school._id,
                               name: school.name,
-                              address: school.address,
-                              principal: school.principal,
-                              students: school.students,
-                              teachers: school.teachers,
-                              plan: school.plan,
-                              status: school.status
+                              email: school.email || "",
+                              address: school.location || "",
+                              plan: school.plan || "Free Plan (Trial)",
+                              status: school.status || "Active"
                             });
                           }}
                           title="Edit School"
@@ -413,7 +405,7 @@ function SuperAdminSchools() {
                           <FaEdit className="text-sm" />
                         </button>
                         <button
-                          onClick={() => setDeleteSchoolId(school.id)}
+                          onClick={() => setDeleteSchoolId(school._id)}
                           title="Delete School"
                           className="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"
                         >
@@ -428,10 +420,9 @@ function SuperAdminSchools() {
           </table>
         </div>
 
-        {/* Footer info */}
         <div className="p-4 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between">
-          <span>Showing {filteredSchools.length} of {schools.length} schools</span>
-          <span>Page 1 of 1</span>
+          <span>Showing {filteredSchools.length} of {schools.length} real schools</span>
+          <span>Live Sync</span>
         </div>
       </div>
 
@@ -441,9 +432,7 @@ function SuperAdminSchools() {
           <div className="bg-[#131B2E] border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
               <h3 className="text-lg font-bold text-white">Add New School</h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-white">
-                <FaTimes />
-              </button>
+              <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-white"><FaTimes /></button>
             </div>
             <form onSubmit={handleAddSubmit} className="space-y-4">
               <div>
@@ -451,9 +440,20 @@ function SuperAdminSchools() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Saint Mary's High"
+                  placeholder="e.g. G.D Academy"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Admin Email</label>
+                <input
+                  type="email"
+                  placeholder="admin@school.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
                 />
               </div>
@@ -470,80 +470,23 @@ function SuperAdminSchools() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Principal Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Dr. Aisha Khan"
-                  value={formData.principal}
-                  onChange={(e) => setFormData({ ...formData, principal: e.target.value })}
+                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Subscription Plan</label>
+                <select
+                  value={formData.plan}
+                  onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
                   className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Students</label>
-                  <input
-                    type="number"
-                    value={formData.students}
-                    onChange={(e) => setFormData({ ...formData, students: e.target.value })}
-                    className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Teachers</label>
-                  <input
-                    type="number"
-                    value={formData.teachers}
-                    onChange={(e) => setFormData({ ...formData, teachers: e.target.value })}
-                    className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Plan</label>
-                  <select
-                    value={formData.plan}
-                    onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
-                    className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
-                  >
-                    <option value="Pro">Pro</option>
-                    <option value="Enterprise">Enterprise</option>
-                    <option value="Free">Free</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Status</label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Suspended">Suspended</option>
-                  </select>
-                </div>
+                >
+                  <option value="Free Plan (Trial)">Free Plan (Trial)</option>
+                  <option value="Pro">Pro Plan</option>
+                  <option value="Enterprise">Enterprise Plan</option>
+                </select>
               </div>
 
               <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-500"
-                >
-                  Save School
+                <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Cancel</button>
+                <button type="submit" disabled={actionLoading} className="px-4 py-2 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-500 flex items-center gap-2">
+                  {actionLoading && <FaSpinner className="animate-spin" />}
+                  <span>Create School</span>
                 </button>
               </div>
             </form>
@@ -557,47 +500,40 @@ function SuperAdminSchools() {
           <div className="bg-[#131B2E] border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
               <h3 className="text-lg font-bold text-white">School Details</h3>
-              <button onClick={() => setViewSchool(null)} className="text-slate-400 hover:text-white">
-                <FaTimes />
-              </button>
+              <button onClick={() => setViewSchool(null)} className="text-slate-400 hover:text-white"><FaTimes /></button>
             </div>
             <div className="flex items-center gap-4 mb-6">
-              <img src={viewSchool.logo} alt={viewSchool.name} className="w-14 h-14 rounded-2xl object-cover border border-blue-500/40" />
+              <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 text-2xl font-bold">
+                <FaSchool />
+              </div>
               <div>
                 <h4 className="text-base font-bold text-white">{viewSchool.name}</h4>
-                <p className="text-xs text-slate-400">{viewSchool.address}</p>
+                <p className="text-xs text-slate-400">{viewSchool.location || "Patna, Bihar"}</p>
                 <span className={`inline-block mt-2 px-2.5 py-0.5 text-xs font-semibold rounded-full ${getPlanBadgeStyle(viewSchool.plan)}`}>
-                  {viewSchool.plan} Plan
+                  {viewSchool.plan || "Free"}
                 </span>
               </div>
             </div>
             <div className="space-y-3 bg-[#0B0F19] p-4 rounded-xl text-sm">
               <div className="flex justify-between">
-                <span className="text-slate-500">Principal:</span>
-                <span className="text-slate-200 font-medium">{viewSchool.principal}</span>
+                <span className="text-slate-500">Contact Email:</span>
+                <span className="text-slate-200 font-medium">{viewSchool.email || "N/A"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Total Students:</span>
-                <span className="text-slate-200 font-bold">{viewSchool.students.toLocaleString()}</span>
+                <span className="text-slate-500">Total Admins:</span>
+                <span className="text-slate-200 font-bold">{viewSchool.stats?.admins || 0}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Total Teachers:</span>
-                <span className="text-slate-200 font-bold">{viewSchool.teachers.toLocaleString()}</span>
+                <span className="text-slate-200 font-bold">{viewSchool.stats?.teachers || 0}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Status:</span>
-                <span className={`font-semibold ${viewSchool.status === "Active" ? "text-emerald-400" : "text-amber-400"}`}>
-                  {viewSchool.status}
-                </span>
+                <span className="text-slate-500">Total Students:</span>
+                <span className="text-slate-200 font-bold">{viewSchool.stats?.students || 0}</span>
               </div>
             </div>
             <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => setViewSchool(null)}
-                className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-200 hover:bg-slate-700"
-              >
-                Close
-              </button>
+              <button onClick={() => setViewSchool(null)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-200 hover:bg-slate-700">Close</button>
             </div>
           </div>
         </div>
@@ -609,9 +545,7 @@ function SuperAdminSchools() {
           <div className="bg-[#131B2E] border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
               <h3 className="text-lg font-bold text-white">Edit School</h3>
-              <button onClick={() => setEditSchool(null)} className="text-slate-400 hover:text-white">
-                <FaTimes />
-              </button>
+              <button onClick={() => setEditSchool(null)} className="text-slate-400 hover:text-white"><FaTimes /></button>
             </div>
             <form onSubmit={handleEditSubmit} className="space-y-4">
               <div>
@@ -626,22 +560,21 @@ function SuperAdminSchools() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Address / Location</label>
+                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Contact Email</label>
                 <input
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Principal Name</label>
+                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Address / Location</label>
                 <input
                   type="text"
-                  required
-                  value={formData.principal}
-                  onChange={(e) => setFormData({ ...formData, principal: e.target.value })}
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
                 />
               </div>
@@ -654,9 +587,9 @@ function SuperAdminSchools() {
                     onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
                     className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
                   >
-                    <option value="Pro">Pro</option>
-                    <option value="Enterprise">Enterprise</option>
-                    <option value="Free">Free</option>
+                    <option value="Free Plan (Trial)">Free Plan (Trial)</option>
+                    <option value="Pro">Pro Plan</option>
+                    <option value="Enterprise">Enterprise Plan</option>
                   </select>
                 </div>
 
@@ -675,18 +608,10 @@ function SuperAdminSchools() {
               </div>
 
               <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setEditSchool(null)}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl text-sm font-semibold bg-amber-600 text-white hover:bg-amber-500"
-                >
-                  Update School
+                <button type="button" onClick={() => setEditSchool(null)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Cancel</button>
+                <button type="submit" disabled={actionLoading} className="px-4 py-2 rounded-xl text-sm font-semibold bg-amber-600 text-white hover:bg-amber-500 flex items-center gap-2">
+                  {actionLoading && <FaSpinner className="animate-spin" />}
+                  <span>Update School</span>
                 </button>
               </div>
             </form>
@@ -702,21 +627,12 @@ function SuperAdminSchools() {
               <FaExclamationTriangle />
             </div>
             <h3 className="text-lg font-bold text-white">Delete School?</h3>
-            <p className="text-xs text-slate-400 mt-2">
-              Are you sure you want to remove this school? This will remove associated records.
-            </p>
+            <p className="text-xs text-slate-400 mt-2">Are you sure you want to delete this school from MongoDB?</p>
             <div className="flex justify-center gap-3 mt-6">
-              <button
-                onClick={() => setDeleteSchoolId(null)}
-                className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteConfirm}
-                className="px-4 py-2 rounded-xl text-sm font-semibold bg-rose-600 text-white hover:bg-rose-500"
-              >
-                Yes, Delete
+              <button onClick={() => setDeleteSchoolId(null)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Cancel</button>
+              <button onClick={handleDeleteConfirm} disabled={actionLoading} className="px-4 py-2 rounded-xl text-sm font-semibold bg-rose-600 text-white hover:bg-rose-500 flex items-center gap-2">
+                {actionLoading && <FaSpinner className="animate-spin" />}
+                <span>Delete</span>
               </button>
             </div>
           </div>

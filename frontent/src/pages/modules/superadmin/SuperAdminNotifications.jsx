@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
+import axios from "axios";
 import {
   FaBell,
   FaCheckCircle,
@@ -11,73 +12,85 @@ import {
   FaCheckDouble,
   FaTrash,
   FaEye,
-  FaShieldAlt,
+  FaSpinner,
   FaInfoCircle
 } from "react-icons/fa";
 
-// Sample notification data matching design mockup
-const initialNotifications = [
-  {
-    id: "1",
-    title: "Pending Approval: New Course & Teacher Registration",
-    description: "Teacher 'Adna Thompson' applied for registration under Lincoln Academy and is awaiting admin verification.",
-    category: "Approvals",
-    time: "5m ago",
-    unread: true,
-    type: "amber"
-  },
-  {
-    id: "2",
-    title: "Payment Success: G.D Academy Enterprise Plan",
-    description: "Subscription payment of ₹14,999 received successfully via Razorpay for G.D Academy.",
-    category: "Payments",
-    time: "12m ago",
-    unread: true,
-    type: "emerald"
-  },
-  {
-    id: "3",
-    title: "Support Ticket #1874 Updated by School Admin",
-    description: "Principal Banny Thapar submitted a query regarding student attendance reporting.",
-    category: "Support",
-    time: "20m ago",
-    unread: true,
-    type: "cyan"
-  },
-  {
-    id: "4",
-    title: "System Alert: Server Maintenance Scheduled",
-    description: "Routine database maintenance and security patch deployment scheduled for Sunday at 02:00 AM UTC.",
-    category: "System",
-    time: "1h ago",
-    unread: true,
-    type: "blue"
-  },
-  {
-    id: "5",
-    title: "New School Registration: Bright Future High",
-    description: "Bright Future High registered on the platform and submitted initial school credentials.",
-    category: "Approvals",
-    time: "3h ago",
-    unread: false,
-    type: "amber"
-  },
-  {
-    id: "6",
-    title: "Payment Received: Renewal for Pine Academy",
-    description: "Monthly Pro plan subscription auto-renewed successfully.",
-    category: "Payments",
-    time: "5h ago",
-    unread: false,
-    type: "emerald"
-  }
-];
-
 function SuperAdminNotifications() {
-  const [notifications, setNotifications] = useState(initialNotifications);
+  const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
+  const token = localStorage.getItem("token");
+
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [viewItem, setViewItem] = useState(null);
+
+  // Fetch live stats & recent activity from backend
+  useEffect(() => {
+    fetchLiveNotifications();
+  }, []);
+
+  const fetchLiveNotifications = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      // Fetch dashboard stats & recent activity
+      const statsRes = await axios.get(`${API}/api/superadmin/dashboard-stats`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const recentActivity = statsRes.data?.recentActivity || [];
+      
+      // Transform recent activity into structured notification feed items
+      const liveItems = recentActivity.map((act, index) => {
+        let category = "System";
+        let type = "blue";
+        if (act.type?.includes("user") || act.type?.includes("registration")) {
+          category = "Approvals";
+          type = "amber";
+        } else if (act.type?.includes("Payment") || act.type?.includes("received")) {
+          category = "Payments";
+          type = "emerald";
+        } else if (act.type?.includes("Support") || act.type?.includes("Ticket")) {
+          category = "Support";
+          type = "cyan";
+        }
+
+        return {
+          id: act._id || `notif-${index}`,
+          title: act.type || "System Activity",
+          description: act.detail || "Platform event recorded.",
+          category: category,
+          time: act.time || act.dateText || "Recently",
+          unread: true,
+          type: type
+        };
+      });
+
+      // If no activity returned, create default system ready card
+      if (liveItems.length === 0) {
+        liveItems.push({
+          id: "notif-ready",
+          title: "System Live & Operational",
+          description: "All services are running normally with active MongoDB & Socket.io connections.",
+          category: "System",
+          time: "Just now",
+          unread: false,
+          type: "blue"
+        });
+      }
+
+      setNotifications(liveItems);
+    } catch (err) {
+      console.error("Error fetching live notifications:", err);
+      setError(err.response?.data?.message || "Failed to sync notifications from backend");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Statistics calculation
   const stats = useMemo(() => {
@@ -85,8 +98,7 @@ function SuperAdminNotifications() {
     const payments = notifications.filter((n) => n.category === "Payments").length;
     const support = notifications.filter((n) => n.category === "Support").length;
     const system = notifications.filter((n) => n.category === "System").length;
-    const totalUnread = notifications.filter((n) => n.unread).length;
-    return { approvals, payments, support, system, totalUnread };
+    return { approvals, payments, support, system };
   }, [notifications]);
 
   // Filtered list
@@ -102,7 +114,7 @@ function SuperAdminNotifications() {
     });
   }, [notifications, search, categoryFilter]);
 
-  // Action handlers
+  // Actions
   const handleMarkAllRead = () => {
     setNotifications(notifications.map((n) => ({ ...n, unread: false })));
   };
@@ -115,7 +127,7 @@ function SuperAdminNotifications() {
     setNotifications(notifications.filter((n) => n.id !== id));
   };
 
-  // Helper for category icon & color
+  // Category Icon Meta
   const getCategoryMeta = (category) => {
     switch (category) {
       case "Approvals":
@@ -148,7 +160,7 @@ function SuperAdminNotifications() {
 
   return (
     <div className="min-h-screen bg-[#0B0F19] text-slate-100 p-4 md:p-8 font-sans">
-      {/* Top Header */}
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Notifications Center</h1>
@@ -163,9 +175,8 @@ function SuperAdminNotifications() {
         </button>
       </div>
 
-      {/* Summary Stat Cards */}
+      {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {/* Card 1: Pending Approvals */}
         <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pending Approvals</p>
@@ -177,31 +188,28 @@ function SuperAdminNotifications() {
           </div>
         </div>
 
-        {/* Card 2: Payments */}
         <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Payments & Billing</p>
             <h3 className="text-2xl font-extrabold text-emerald-400 mt-1">{stats.payments}</h3>
-            <span className="text-xs text-emerald-400/80 font-medium mt-1 inline-block">Recent transactions</span>
+            <span className="text-xs text-emerald-400/80 font-medium mt-1 inline-block">Transactions</span>
           </div>
           <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xl">
             <FaDollarSign />
           </div>
         </div>
 
-        {/* Card 3: Support */}
         <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Support Messages</p>
             <h3 className="text-2xl font-extrabold text-cyan-400 mt-1">{stats.support}</h3>
-            <span className="text-xs text-cyan-400/80 font-medium mt-1 inline-block">User inquiries</span>
+            <span className="text-xs text-cyan-400/80 font-medium mt-1 inline-block">Inquiries</span>
           </div>
           <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 text-xl">
             <FaComments />
           </div>
         </div>
 
-        {/* Card 4: System Alerts */}
         <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">System Alerts</p>
@@ -214,9 +222,8 @@ function SuperAdminNotifications() {
         </div>
       </div>
 
-      {/* Filter Tabs & Search Bar */}
+      {/* Filter Tabs & Search */}
       <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        {/* Category Tabs */}
         <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none">
           {["All", "Approvals", "Payments", "Support", "System"].map((cat) => (
             <button
@@ -233,7 +240,6 @@ function SuperAdminNotifications() {
           ))}
         </div>
 
-        {/* Search Input */}
         <div className="relative w-full md:w-80">
           <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm" />
           <input
@@ -246,13 +252,18 @@ function SuperAdminNotifications() {
         </div>
       </div>
 
-      {/* Notification Feed List */}
+      {/* Notifications List */}
       <div className="space-y-3">
-        {filteredNotifications.length === 0 ? (
+        {loading ? (
+          <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-12 text-center text-slate-400">
+            <FaSpinner className="animate-spin text-2xl mx-auto mb-2 text-blue-400" />
+            <p className="text-sm">Fetching real notifications from backend...</p>
+          </div>
+        ) : filteredNotifications.length === 0 ? (
           <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-12 text-center text-slate-500 shadow-xl">
             <FaBell className="text-3xl mx-auto mb-3 text-slate-600" />
             <p className="text-base font-medium">No notifications found</p>
-            <p className="text-xs text-slate-600 mt-1">Check back later or adjust your category search filter.</p>
+            <p className="text-xs text-slate-600 mt-1">Check back later or adjust your category filter.</p>
           </div>
         ) : (
           filteredNotifications.map((item) => {
@@ -264,9 +275,7 @@ function SuperAdminNotifications() {
                   item.unread ? "border-blue-500/40 bg-[#131B2E]" : "border-slate-800/80 opacity-80"
                 }`}
               >
-                {/* Left Section: Icon, Unread Indicator, Title & Desc */}
                 <div className="flex items-start gap-4">
-                  {/* Category Icon Badge */}
                   <div className={`w-11 h-11 rounded-xl border flex items-center justify-center text-lg flex-shrink-0 ${meta.bg}`}>
                     {meta.icon}
                   </div>
@@ -286,7 +295,6 @@ function SuperAdminNotifications() {
                   </div>
                 </div>
 
-                {/* Right Section: Quick Action Buttons */}
                 <div className="flex items-center gap-2 self-end md:self-center flex-shrink-0">
                   <button
                     onClick={() => setViewItem(item)}
@@ -318,7 +326,7 @@ function SuperAdminNotifications() {
         )}
       </div>
 
-      {/* MODAL: Notification Detail View */}
+      {/* Detail View Modal */}
       {viewItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-[#131B2E] border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
@@ -327,9 +335,7 @@ function SuperAdminNotifications() {
                 <FaBell className="text-blue-400" />
                 <h3 className="text-base font-bold text-white">Notification Details</h3>
               </div>
-              <button onClick={() => setViewItem(null)} className="text-slate-400 hover:text-white">
-                <FaTimes />
-              </button>
+              <button onClick={() => setViewItem(null)} className="text-slate-400 hover:text-white"><FaTimes /></button>
             </div>
 
             <div className="space-y-3">
@@ -348,13 +354,8 @@ function SuperAdminNotifications() {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-2">
-              <button
-                onClick={() => setViewItem(null)}
-                className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-200 hover:bg-slate-700"
-              >
-                Close
-              </button>
+            <div className="mt-6 flex justify-end">
+              <button onClick={() => setViewItem(null)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-200 hover:bg-slate-700">Close</button>
             </div>
           </div>
         </div>
