@@ -437,6 +437,17 @@ function AdminLayout() {
           <span className="text-[9px] font-extrabold tracking-tight">Dashboard</span>
         </Link>
 
+        {/* Events */}
+        <Link
+          to="/admin/events"
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
+            isActive("/admin/events") ? "text-[#7C3AED] dark:text-[#38BDF8] font-bold" : "text-slate-400 dark:text-slate-500"
+          }`}
+        >
+          <FaCalendarAlt className="text-base" />
+          <span className="text-[9px] font-extrabold tracking-tight">Events</span>
+        </Link>
+
         {/* Requests */}
         <Link
           to="/admin/requests"
@@ -447,21 +458,10 @@ function AdminLayout() {
           <FaUserPlus className="text-base" />
           <span className="text-[9px] font-extrabold tracking-tight">Requests</span>
           {requestCount > 0 && (
-            <span className="absolute top-1 right-3 bg-rose-500 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-full animate-bounce">
+            <span className="absolute top-1 right-2 bg-rose-500 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-full animate-bounce">
               {requestCount}
             </span>
           )}
-        </Link>
-
-        {/* Conduct Exam */}
-        <Link
-          to="/admin/proctoring"
-          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
-            isActive("/admin/proctoring") ? "text-[#7C3AED] dark:text-[#38BDF8] font-bold" : "text-slate-400 dark:text-slate-500"
-          }`}
-        >
-          <FaTv className="text-base" />
-          <span className="text-[9px] font-extrabold tracking-tight">Conduct</span>
         </Link>
 
         {/* Support */}
