@@ -90,7 +90,12 @@ function SuperAdminLayout() {
           }
         }
       })
-      .catch((err) => console.log("SuperAdmin profile sync error:", err));
+      .catch((err) => {
+        console.log("SuperAdmin profile sync error:", err);
+        if (err.response && err.response.status === 401) {
+          performLogout(navigate);
+        }
+      });
   }, []);
 
   useEffect(() => {

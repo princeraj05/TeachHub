@@ -115,7 +115,13 @@ function PendingApproval() {
 
   // Poll for role assignment updates
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      performLogout(navigate);
+      return;
+    }
+
+    let isMounted = true;
+    let intervalId = null;
 
     const checkRoleStatus = () => {
       axios
@@ -123,6 +129,7 @@ function PendingApproval() {
           headers: { Authorization: `Bearer ${token}` }
         })
         .then((res) => {
+          if (!isMounted) return;
           if (res.data) {
             setUser(res.data);
             if (res.data.role && res.data.role !== "unassigned") {
@@ -146,13 +153,21 @@ function PendingApproval() {
           }
         })
         .catch((err) => {
+          if (!isMounted) return;
           console.error("Polling profile status error:", err);
+          if (err.response && err.response.status === 401) {
+            if (intervalId) clearInterval(intervalId);
+            performLogout(navigate);
+          }
         });
     };
 
     checkRoleStatus(); // Run once immediately
-    const interval = setInterval(checkRoleStatus, 3000);
-    return () => clearInterval(interval);
+    intervalId = setInterval(checkRoleStatus, 3000);
+    return () => {
+      isMounted = false;
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [navigate, API, token]);
 
   useEffect(() => {

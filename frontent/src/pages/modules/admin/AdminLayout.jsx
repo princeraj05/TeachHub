@@ -106,7 +106,12 @@ function AdminLayout() {
           }
         }
       })
-      .catch((err) => console.log("Admin profile sync error:", err));
+      .catch((err) => {
+        console.log("Admin profile sync error:", err);
+        if (err.response && err.response.status === 401) {
+          performLogout(navigate);
+        }
+      });
   }, []);
 
   const handleLogout = () => {
