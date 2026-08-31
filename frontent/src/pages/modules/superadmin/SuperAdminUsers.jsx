@@ -67,8 +67,9 @@ function SuperAdminUsers() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      const currentToken = localStorage.getItem("token");
       const res = await axios.get(`${API}/api/superadmin/users`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${currentToken}` }
       });
       const data = Array.isArray(res.data) ? res.data : (res.data?.users || res.data?.data || []);
       setUsers(data);
@@ -83,8 +84,9 @@ function SuperAdminUsers() {
 
   const fetchSchools = async () => {
     try {
+      const currentToken = localStorage.getItem("token");
       const res = await axios.get(`${API}/api/superadmin/schools`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${currentToken}` }
       });
       setSchools(Array.isArray(res.data) ? res.data : (res.data?.schools || res.data?.data || []));
     } catch (err) {
@@ -282,7 +284,7 @@ function SuperAdminUsers() {
   // Filtered Users List
   const displayedUsers = useMemo(() => {
     return userList
-      .filter(u => u.role !== "superadmin")
+      .filter(u => u && u.role !== "superadmin")
       .filter(u => {
         // Tab Filters
         if (activeTab === "pending") return isPending(u);
@@ -293,7 +295,7 @@ function SuperAdminUsers() {
       .filter(u => {
         // Search Filter
         const term = search.toLowerCase();
-        return u.name?.toLowerCase().includes(term) || u.email?.toLowerCase().includes(term);
+        return (u.name || "").toLowerCase().includes(term) || (u.email || "").toLowerCase().includes(term);
       })
       .filter(u => {
         // Role Dropdown Filter
