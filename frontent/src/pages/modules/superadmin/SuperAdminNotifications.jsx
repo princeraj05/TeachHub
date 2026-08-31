@@ -9,7 +9,6 @@ import {
   FaSchool,
   FaShieldAlt,
   FaSearch,
-  FaFilter,
   FaCheckCircle
 } from "react-icons/fa";
 
@@ -243,13 +242,12 @@ function SuperAdminNotifications() {
       )}
 
       {/* 2. KPI Stats Cards Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 select-none">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 select-none">
         {[
           { id: "approval", label: "Pending Approvals", count: stats.approvals, color: "bg-purple-500/10 text-purple-650", icon: <FaFileAlt className="text-sm" /> },
           { id: "payment", label: "Payments & Billing", count: stats.payments, color: "bg-emerald-500/10 text-emerald-600", icon: <FaRupeeSign className="text-sm" /> },
           { id: "support", label: "Support Messages", count: stats.support, color: "bg-amber-500/10 text-amber-600", icon: <FaComments className="text-sm" /> },
-          { id: "school", label: "New Schools", count: stats.schools, color: "bg-blue-500/10 text-blue-600", icon: <FaSchool className="text-sm" /> },
-          { id: "system", label: "System Alerts", count: stats.system, color: "bg-rose-500/10 text-rose-600", icon: <FaShieldAlt className="text-sm" /> }
+          { id: "school", label: "New Schools", count: stats.schools, color: "bg-blue-500/10 text-blue-600", icon: <FaSchool className="text-sm" /> }
         ].map((card) => (
           <div key={card.id} className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4 rounded-2.5xl shadow-sm">
             <div className="flex items-center justify-between mb-2">
@@ -276,8 +274,7 @@ function SuperAdminNotifications() {
           { id: "approval", label: "Pending Approvals", count: stats.approvals },
           { id: "payment", label: "Payments", count: stats.payments },
           { id: "support", label: "Support", count: stats.support },
-          { id: "school", label: "New Schools", count: stats.schools },
-          { id: "system", label: "System Alerts", count: stats.system }
+          { id: "school", label: "New Schools", count: stats.schools }
         ].map(tab => (
           <button
             key={tab.id}
@@ -308,10 +305,6 @@ function SuperAdminNotifications() {
             className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B132A] text-slate-805 dark:text-white placeholder-slate-405 text-xs font-semibold focus:outline-none"
           />
         </div>
-
-        <button className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 text-slate-705 dark:text-white py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer hover:border-slate-350">
-          <FaFilter className="text-slate-400" /> Filter
-        </button>
 
         <select
           value={timeFilter}

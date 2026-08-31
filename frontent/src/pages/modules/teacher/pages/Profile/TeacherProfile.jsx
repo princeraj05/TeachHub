@@ -37,6 +37,7 @@ function TeacherProfile() {
   const [dob, setDob] = useState("");
   const [gender, setGender] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [alternatePhone, setAlternatePhone] = useState("");
   const [address, setAddress] = useState("");
   const [department, setDepartment] = useState("");
   const [bio, setBio] = useState("");

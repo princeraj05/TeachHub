@@ -349,8 +349,8 @@ function SuperAdminUsers() {
             </p>
           </div>
 
-          {/* Stats Cards grid (4 items) */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 select-none">
+          {/* Stats Cards grid (3 items) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 select-none">
             {/* Total Users */}
             <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4.5 rounded-2.5xl shadow-sm">
               <div className="flex items-center justify-between mb-2">
@@ -386,18 +386,6 @@ function SuperAdminUsers() {
               <p className="text-xl sm:text-2xl font-black leading-none">{approvedUsersCount}</p>
               <span className="block text-[9px] font-black text-green-555 mt-2">Active on platform</span>
             </div>
-
-            {/* Deactivated */}
-            <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] p-4.5 rounded-2.5xl shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-black text-slate-455 dark:text-slate-400 uppercase tracking-widest">Deactivated</span>
-                <div className="w-8.5 h-8.5 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
-                  <FaShieldAlt className="text-sm" />
-                </div>
-              </div>
-              <p className="text-xl sm:text-2xl font-black leading-none">{deactivatedUsersCount}</p>
-              <span className="block text-[9px] font-bold text-slate-400 mt-2">No deactivated users</span>
-            </div>
           </div>
 
           {/* Navigation tab pills */}
@@ -405,8 +393,7 @@ function SuperAdminUsers() {
             {[
               { id: "all", label: `All Users (${totalUsersCount})` },
               { id: "pending", label: `Pending (${pendingUsersCount})` },
-              { id: "approved", label: `Approved (${approvedUsersCount})` },
-              { id: "deactivated", label: `Deactivated (${deactivatedUsersCount})` }
+              { id: "approved", label: `Approved (${approvedUsersCount})` }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -638,23 +625,8 @@ function SuperAdminUsers() {
             </div>
 
             {/* Pagination Segment */}
-            <div className="px-5 py-4 border-t border-slate-100 dark:border-white/[0.04] flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] font-black text-slate-455 dark:text-slate-400 select-none">
+            <div className="px-5 py-4 border-t border-slate-100 dark:border-white/[0.04] flex items-center justify-between text-[10px] font-black text-slate-455 dark:text-slate-400 select-none">
               <span>Showing 1 to {displayedUsers.length} of {displayedUsers.length} users</span>
-              
-              <div className="flex items-center gap-1">
-                <button className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition">&lt;</button>
-                <button className="px-3 py-1.5 rounded-lg bg-[#7C3AED] text-white border border-[#7C3AED]">1</button>
-                <button className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition">&gt;</button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span>Rows per page</span>
-                <select className="bg-transparent border border-slate-200 dark:border-white/10 rounded px-1.5 py-1 text-[10px] font-bold focus:outline-none">
-                  <option>10</option>
-                  <option>25</option>
-                  <option>50</option>
-                </select>
-              </div>
             </div>
           </div>
 

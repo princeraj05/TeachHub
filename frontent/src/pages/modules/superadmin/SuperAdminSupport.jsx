@@ -296,60 +296,8 @@ function SuperAdminSupport() {
   return (
     <div style={{ fontFamily: SORA }} className="space-y-5 text-slate-800 dark:text-white select-none">
       
-      {/* HEADER BAR */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#0B132A] p-4.5 rounded-2.5xl border border-slate-200/80 dark:border-white/[0.08] shadow-sm">
-        <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white text-lg shadow-md shadow-[#7C3AED]/20 shrink-0">
-            <FaComments />
-          </div>
-          <div>
-            <h2 className="text-xl font-black tracking-tight flex items-center gap-2">
-              Support Workspace
-            </h2>
-            <p className="text-[11px] text-slate-400 font-semibold mt-0.5">
-              Real-time communication & support center for school administrators.
-            </p>
-          </div>
-        </div>
-
-        {selectedContact && (
-          <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
-            <button
-              onClick={() => startCall(selectedContact, "voice")}
-              className="px-3.5 py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
-              title="Voice Call"
-            >
-              <FaPhoneAlt className="text-xs" /> Voice Call
-            </button>
-            
-            <button
-              onClick={() => startCall(selectedContact, "video")}
-              className="px-3.5 py-2.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
-              title="Video Call"
-            >
-              <FaVideo className="text-xs" /> Video Call
-            </button>
-
-            <button
-              onClick={() => alert("Add user to conversation")}
-              className="p-2.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20 transition cursor-pointer"
-              title="Add users to chat"
-            >
-              <FaUsers className="text-sm" />
-            </button>
-
-            <button
-              onClick={() => alert("Show more support tools")}
-              className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 transition cursor-pointer"
-            >
-              <FaEllipsisH className="text-sm" />
-            </button>
-          </div>
-        )}
-      </div>
-
       {/* MESSAGING CONTAINER */}
-      <div className="flex bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] rounded-3xl overflow-hidden shadow-sm h-[calc(100vh-210px)] min-h-[500px]">
+      <div className="flex bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] rounded-3xl overflow-hidden shadow-sm h-[calc(100vh-140px)] min-h-[500px]">
         
         {/* LEFT SIDEBAR: Conversations List */}
         <div className="w-full lg:w-[340px] border-r border-slate-100 dark:border-white/[0.06] flex flex-col bg-slate-50/40 dark:bg-[#090F1C]/40 shrink-0 min-h-0">
@@ -461,7 +409,7 @@ function SuperAdminSupport() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold ${
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold ${
                     selectedContact.isOnline 
                       ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" 
                       : "bg-slate-100 dark:bg-white/5 text-slate-400 border border-slate-200 dark:border-white/10"
@@ -469,6 +417,38 @@ function SuperAdminSupport() {
                     <FaCircle className={`text-[6px] ${selectedContact.isOnline ? "animate-pulse text-emerald-500" : "text-slate-400"}`} />
                     {selectedContact.isOnline ? "Online" : "Offline"}
                   </span>
+
+                  <button
+                    onClick={() => startCall(selectedContact, "voice")}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                    title="Voice Call"
+                  >
+                    <FaPhoneAlt className="text-xs" /> Voice Call
+                  </button>
+                  
+                  <button
+                    onClick={() => startCall(selectedContact, "video")}
+                    className="px-3 py-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                    title="Video Call"
+                  >
+                    <FaVideo className="text-xs" /> Video Call
+                  </button>
+
+                  <button
+                    onClick={() => alert("Add user to conversation")}
+                    className="p-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20 transition cursor-pointer"
+                    title="Add users to chat"
+                  >
+                    <FaUsers className="text-xs" />
+                  </button>
+
+                  <button
+                    onClick={() => alert("Show more support tools")}
+                    className="p-2 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 transition cursor-pointer"
+                    title="More options"
+                  >
+                    <FaEllipsisH className="text-xs" />
+                  </button>
                 </div>
               </div>
 

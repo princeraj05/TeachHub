@@ -1,6 +1,6 @@
 {
   "appId": "com.yourschool.app",
-  "appName": "Your School",
+  "appName": "TeachHub",
   "webDir": "dist",
   "plugins": {
     "GoogleAuth": {
