@@ -7,7 +7,10 @@ if (!fs.existsSync(envPath)) {
   try {
     let envContent = "";
     for (const [key, val] of Object.entries(process.env)) {
-      if (val) envContent += `${key}=${val}\n`;
+      if (val) {
+        const sanitizedVal = val.includes("\n") ? JSON.stringify(val) : val;
+        envContent += `${key}=${sanitizedVal}\n`;
+      }
     }
     fs.writeFileSync(envPath, envContent);
     console.log("Runtime .env file created successfully from environment variables.");
