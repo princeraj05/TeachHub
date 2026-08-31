@@ -51,17 +51,23 @@ if (getApps().length === 0) {
       if (typeof privateKey === "string") {
         privateKey = privateKey.trim();
 
-        if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+        // Unquote if JSON stringified
+        if ((privateKey.startsWith('"') && privateKey.endsWith('"')) || (privateKey.startsWith("'") && privateKey.endsWith("'"))) {
           try {
             privateKey = JSON.parse(privateKey);
           } catch (e) {
             privateKey = privateKey.slice(1, -1);
           }
-        } else if (privateKey.startsWith("'") && privateKey.endsWith("'")) {
-          privateKey = privateKey.slice(1, -1);
         }
 
-        privateKey = privateKey.replace(/\\n/g, "\n").replace(/\r\n/g, "\n");
+        // Clean escaped quotes and normalize backslash newlines
+        privateKey = privateKey
+          .replace(/\\"/g, '"')
+          .replace(/\\'/g, "'")
+          .replace(/\\\\n/g, "\n")
+          .replace(/\\n/g, "\n")
+          .replace(/\r\n/g, "\n")
+          .trim();
       }
 
       credential = cert({
