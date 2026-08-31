@@ -8,45 +8,7 @@ let app;
 if (getApps().length === 0) {
   let credential;
 
-  // 1. Try FIREBASE_SERVICE_ACCOUNT_JSON env variable (raw JSON string or Base64 string)
-  const jsonEnv = process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (!credential && jsonEnv) {
-    try {
-      const jsonStr = jsonEnv.trim();
-      let parsed;
-      if (jsonStr.startsWith("{")) {
-        parsed = JSON.parse(jsonStr);
-      } else {
-        const decoded = Buffer.from(jsonStr, "base64").toString("utf-8");
-        parsed = JSON.parse(decoded);
-      }
-      if (parsed && typeof parsed.private_key === "string") {
-        parsed.private_key = parsed.private_key.replace(/\\n/g, "\n");
-      }
-      credential = cert(parsed);
-      console.log("Firebase Admin initialized via JSON environment variable");
-    } catch (err) {
-      console.error("Error loading Firebase service account from JSON env var:", err.message);
-    }
-  }
-
-  // 2. Try FIREBASE_SERVICE_ACCOUNT_PATH (file path) if file exists
-  if (!credential && process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
-    try {
-      const resolvedPath = path.resolve(process.env.FIREBASE_SERVICE_ACCOUNT_PATH);
-      if (fs.existsSync(resolvedPath)) {
-        const serviceAccount = require(resolvedPath);
-        credential = cert(serviceAccount);
-        console.log("Firebase Admin initialized via service account file");
-      } else {
-        console.warn(`⚠️ Firebase service account file not found at: ${resolvedPath}`);
-      }
-    } catch (err) {
-      console.error("Error loading Firebase service account JSON file:", err.message);
-    }
-  }
-
-  // 3. Try individual env variables
+  // 1. Try individual env variables (most reliable on cloud hosters like Hostinger)
   if (!credential && process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
     try {
       let privateKey = process.env.FIREBASE_PRIVATE_KEY;
@@ -80,7 +42,52 @@ if (getApps().length === 0) {
       });
       console.log("Firebase Admin initialized via environment variables");
     } catch (err) {
-      console.error("Error initializing Firebase cert from env variables:", err.message);
+      // Silently fall back to next method
+    }
+  }
+
+  // 2. Try physical service account file (explicit path or auto-detected in backend/root folder)
+  if (!credential) {
+    const candidatePaths = [
+      process.env.FIREBASE_SERVICE_ACCOUNT_PATH,
+      path.join(__dirname, "teachhub-da45a-firebase-adminsdk-fbsvc-97809f78a9.json"),
+      path.join(__dirname, "..", "teachhub-da45a-firebase-adminsdk-fbsvc-97809f78a9.json")
+    ].filter(Boolean);
+
+    for (const p of candidatePaths) {
+      try {
+        const resolvedPath = path.resolve(p);
+        if (fs.existsSync(resolvedPath)) {
+          const serviceAccount = require(resolvedPath);
+          credential = cert(serviceAccount);
+          console.log(`Firebase Admin initialized via service account file (${path.basename(resolvedPath)})`);
+          break;
+        }
+      } catch (err) {
+        // Continue checking other candidates
+      }
+    }
+  }
+
+  // 3. Try FIREBASE_SERVICE_ACCOUNT_JSON env variable (raw JSON string or Base64 string)
+  const jsonEnv = process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (!credential && jsonEnv) {
+    try {
+      const jsonStr = jsonEnv.trim();
+      let parsed;
+      if (jsonStr.startsWith("{")) {
+        parsed = JSON.parse(jsonStr);
+      } else {
+        const decoded = Buffer.from(jsonStr, "base64").toString("utf-8");
+        parsed = JSON.parse(decoded);
+      }
+      if (parsed && typeof parsed.private_key === "string") {
+        parsed.private_key = parsed.private_key.replace(/\\n/g, "\n");
+      }
+      credential = cert(parsed);
+      console.log("Firebase Admin initialized via JSON environment variable");
+    } catch (err) {
+      // Silently fall back
     }
   }
 
@@ -105,4 +112,3 @@ const firebaseAdmin = {
 };
 
 module.exports = firebaseAdmin;
-

@@ -138,10 +138,16 @@ mongoose
         try {
           const Model = require(item.path);
           for (const field of item.fields) {
-            await Model.updateMany(
-              { [field]: { $in: ["G.D Accedmy", "G.D Accedmy "] } },
-              { [field]: "G.D Academy" }
-            );
+            const existingCorrect = await Model.findOne({ [field]: "G.D Academy" });
+            if (existingCorrect) {
+              // If correct record already exists, remove duplicate typo records to avoid E11000 duplicate key errors
+              await Model.deleteMany({ [field]: { $in: ["G.D Accedmy", "G.D Accedmy "] } });
+            } else {
+              await Model.updateMany(
+                { [field]: { $in: ["G.D Accedmy", "G.D Accedmy "] } },
+                { [field]: "G.D Academy" }
+              );
+            }
           }
         } catch (err) {
           console.error(`Failed to migrate ${item.path}:`, err.message);
