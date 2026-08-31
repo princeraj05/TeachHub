@@ -125,14 +125,33 @@ function AdminDashboard() {
     return `${hours}:${minutes} ${ampm}`;
   };
 
-  // Safe defaults if data is missing
-  const stats = data?.stats || {
-    students: { total: 0, growth: "No change" },
-    teachers: { total: 0, growth: "No change" },
-    classes: { total: 0, growth: "No change" },
-    subjects: { total: 0, growth: "No change" },
-    events: { total: 0, growth: "No change" },
-    payments: { total: 0, growth: "From 0 users" },
+  // Safe robust defaults if data is missing or structured differently
+  const rawStats = data?.stats || {};
+  const stats = {
+    students: {
+      total: rawStats.students?.total ?? rawStats.totalStudents ?? rawStats.studentsCount ?? (typeof rawStats.students === "number" ? rawStats.students : 0),
+      growth: rawStats.students?.growth || "Live Sync"
+    },
+    teachers: {
+      total: rawStats.teachers?.total ?? rawStats.totalTeachers ?? rawStats.teachersCount ?? (typeof rawStats.teachers === "number" ? rawStats.teachers : 0),
+      growth: rawStats.teachers?.growth || "Live Sync"
+    },
+    classes: {
+      total: rawStats.classes?.total ?? rawStats.totalClasses ?? rawStats.classesCount ?? (typeof rawStats.classes === "number" ? rawStats.classes : 0),
+      growth: rawStats.classes?.growth || "Live Sync"
+    },
+    subjects: {
+      total: rawStats.subjects?.total ?? rawStats.totalSubjects ?? rawStats.subjectsCount ?? (typeof rawStats.subjects === "number" ? rawStats.subjects : 0),
+      growth: rawStats.subjects?.growth || "Live Sync"
+    },
+    events: {
+      total: rawStats.events?.total ?? rawStats.totalEvents ?? rawStats.eventsCount ?? (typeof rawStats.events === "number" ? rawStats.events : 0),
+      growth: rawStats.events?.growth || "Live Sync"
+    },
+    payments: {
+      total: rawStats.payments?.total ?? rawStats.totalPayments ?? rawStats.paymentsCount ?? (typeof rawStats.payments === "number" ? rawStats.payments : 0),
+      growth: rawStats.payments?.growth || "Live Sync"
+    }
   };
 
   const joinRequestsCount = data?.joinRequestsCount ?? 0;
