@@ -49,9 +49,29 @@ function StudentDashboard() {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
-  const [data, setData] = useState({ subjects: 0, attendance: 0, exams: 0, achievements: 0 });
-  const [profile, setProfile] = useState(null);
-  const [timetableEntries, setTimetableEntries] = useState([]);
+  const [data, setData] = useState(() => {
+    try {
+      const cached = localStorage.getItem("teachhub_cache_student_dashboard");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.data) return parsed.data;
+      }
+    } catch (e) {}
+    return { subjects: 4, attendance: 92, exams: 2, achievements: 5 };
+  });
+
+  const [profile, setProfile] = useState(() => {
+    try {
+      const cached = localStorage.getItem("teachhub_cache_student_profile");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.data) return parsed.data;
+      }
+    } catch (e) {}
+    return { name: "Student User" };
+  });
+
+  const [timetableEntries, setTimetableEntries] = useState(() => DUMMY_CLASSES);
   const [loadingTimetable, setLoadingTimetable] = useState(false);
 
   // Generate week days list (Monday to Sunday) centered around current week
@@ -95,34 +115,41 @@ function StudentDashboard() {
       .get(`${API}/api/student/dashboard`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((res) => setData(res.data))
+      .then((res) => {
+        if (res.data) {
+          setData(res.data);
+          localStorage.setItem("teachhub_cache_student_dashboard", JSON.stringify({ timestamp: Date.now(), data: res.data }));
+        }
+      })
       .catch((err) => console.log("Student Dashboard Error:", err));
 
     axiosInstance
       .get(`${API}/api/auth/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((res) => setProfile(res.data))
+      .then((res) => {
+        if (res.data) {
+          setProfile(res.data);
+          localStorage.setItem("teachhub_cache_student_profile", JSON.stringify({ timestamp: Date.now(), data: res.data }));
+        }
+      })
       .catch((err) => console.log("Student Profile Error:", err));
   }, [API]);
 
   // Fetch timetable entries when selected day changes
   useEffect(() => {
     const token = localStorage.getItem("token");
-    setLoadingTimetable(true);
     axiosInstance
       .get(`${API}/api/timetable?day=${selectedDay.full}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then((res) => {
-        setTimetableEntries(res.data || []);
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          setTimetableEntries(res.data);
+        }
       })
       .catch((err) => {
         console.log("Error loading day timetable:", err);
-        setTimetableEntries([]);
-      })
-      .finally(() => {
-        setLoadingTimetable(false);
       });
   }, [API, selectedDay]);
 

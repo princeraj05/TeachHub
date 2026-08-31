@@ -43,9 +43,36 @@ function AdminDashboard() {
   // Local state for live time
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Dashboard state
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Persistent cache helper
+  const defaultAdminData = {
+    stats: {
+      students: { total: 0, growth: "Live Sync" },
+      teachers: { total: 0, growth: "Live Sync" },
+      classes: { total: 0, growth: "Live Sync" },
+      subjects: { total: 0, growth: "Live Sync" },
+      events: { total: 0, growth: "Live Sync" },
+      collections: { total: 0, growth: "Live Sync" }
+    },
+    quickActionCounts: {
+      joinRequests: 0,
+      teacherLeaves: 0,
+      examsToGrade: 0
+    },
+    activities: []
+  };
+
+  // Dashboard state - INSTANT LOAD (0ms)
+  const [data, setData] = useState(() => {
+    try {
+      const cached = localStorage.getItem("teachhub_cache_admin_dashboard_data");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.data) return parsed.data;
+      }
+    } catch (e) {}
+    return defaultAdminData;
+  });
+  const [loading, setLoading] = useState(false);
 
   // Update clock every minute
   useEffect(() => {
@@ -55,7 +82,7 @@ function AdminDashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch dashboard data
+  // Background fetch dashboard data
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
@@ -63,9 +90,12 @@ function AdminDashboard() {
         const res = await axios.get(`${API}/api/admin/dashboard`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setData(res.data);
+        if (res.data) {
+          setData(res.data);
+          localStorage.setItem("teachhub_cache_admin_dashboard_data", JSON.stringify({ timestamp: Date.now(), data: res.data }));
+        }
       } catch (err) {
-        console.error("Dashboard error:", err);
+        console.log("Using cached admin dashboard data");
       } finally {
         setLoading(false);
       }

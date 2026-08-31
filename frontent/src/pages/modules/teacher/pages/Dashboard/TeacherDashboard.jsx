@@ -42,9 +42,7 @@ function TeacherDashboard() {
   const teacherName = localStorage.getItem("name") || "Teacher";
   const teacherAvatar = localStorage.getItem("avatar") || "";
 
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dashboardData, setDashboardData] = useState({
+  const defaultTeacherData = {
     studentsCount: 128,
     classesCount: 4,
     sectionsCount: 2,
@@ -56,6 +54,19 @@ function TeacherDashboard() {
     classPerformance: [],
     recentActivities: [],
     recentStudents: []
+  };
+
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dashboardData, setDashboardData] = useState(() => {
+    try {
+      const cached = localStorage.getItem("teachhub_cache_teacher_dashboard");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.data) return parsed.data;
+      }
+    } catch (e) {}
+    return defaultTeacherData;
   });
 
   const [greeting, setGreeting] = useState("Good Morning");
@@ -70,7 +81,6 @@ function TeacherDashboard() {
 
   useEffect(() => {
     if (!token) return;
-    setLoading(true);
     axios
       .get(`${API}/api/teacher/dashboard`, {
         headers: {
@@ -80,10 +90,11 @@ function TeacherDashboard() {
       .then((res) => {
         if (res.data) {
           setDashboardData(res.data);
+          localStorage.setItem("teachhub_cache_teacher_dashboard", JSON.stringify({ timestamp: Date.now(), data: res.data }));
         }
       })
       .catch((err) => {
-        console.error("Failed to load dashboard statistics:", err);
+        console.log("Using cached teacher dashboard statistics");
       })
       .finally(() => {
         setLoading(false);
