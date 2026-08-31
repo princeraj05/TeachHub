@@ -184,16 +184,31 @@ exports.getHistory = async (req, res) => {
       return res.status(400).json({ message: "otherUserId is required for personal chat history" });
     }
 
+    const mongoose = require("mongoose");
+    let targetOtherUserId = otherUserId;
+
+    if (otherUserId === "superadmin_support_fallback") {
+      const actualSuperAdmin = await User.findOne({ role: "superadmin" }) || await User.findOne({ role: "admin" });
+      if (actualSuperAdmin) targetOtherUserId = actualSuperAdmin._id.toString();
+    } else if (otherUserId === "admin_support_fallback") {
+      const actualAdmin = await User.findOne({ role: "admin" }) || await User.findOne({});
+      if (actualAdmin) targetOtherUserId = actualAdmin._id.toString();
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(targetOtherUserId)) {
+      return res.json([]);
+    }
+
     // Security/Isolation validation
-    const isAuthorized = await validateCommunicationRights(currentUserId, role, schoolName, otherUserId);
+    const isAuthorized = await validateCommunicationRights(currentUserId, role, schoolName, targetOtherUserId);
     if (!isAuthorized) {
       return res.status(403).json({ message: "You are not authorized to view chat history with this user" });
     }
 
     const messages = await Message.find({
       $or: [
-        { sender: currentUserId, receiver: otherUserId },
-        { sender: otherUserId, receiver: currentUserId }
+        { sender: currentUserId, receiver: targetOtherUserId },
+        { sender: targetOtherUserId, receiver: currentUserId }
       ],
       type: "personal"
     })

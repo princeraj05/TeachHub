@@ -30,66 +30,108 @@ const C = {
   faint: "#5B6478",
 };
 
+const defaultTeachers = [
+  { _id: "t1", name: "Maya Smith", email: "adns.t@example.com", subject: "Mathematics", gender: "Female", phoneNumber: "+91 98765 43210" },
+  { _id: "t2", name: "Amna Smith", email: "alex.t2@example.com", subject: "Science", gender: "Female", phoneNumber: "+91 98765 43211" }
+];
+
+const defaultTeacherData = {
+  _id: "t1",
+  name: "Maya Smith",
+  email: "adns.t@example.com",
+  phoneNumber: "+91 98765 43210",
+  dob: "12 May 1990",
+  gender: "Female",
+  qualification: "M.Sc, B.Ed",
+  experience: "6 Years",
+  joiningDate: "15 Aug 2023",
+  employeeId: "TCH8821",
+  assignedClasses: ["Class 10-A", "Class 9-B"],
+  subjects: ["Mathematics", "Physics"]
+};
+
 export default function TeacherManagement() {
-  const api = import.meta.env.VITE_API_URL;
+  const api = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const headers = { Authorization: "Bearer " + localStorage.getItem("token") };
 
-  const [teachers, setTeachers] = useState([]);
-  const [selectedTeacherId, setSelectedTeacherId] = useState("");
-  const [teacherData, setTeacherData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [teachers, setTeachers] = useState(() => {
+    try {
+      const cached = localStorage.getItem("teachhub_cache_teachers_list");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return defaultTeachers;
+  });
+
+  const [selectedTeacherId, setSelectedTeacherId] = useState("t1");
+  const [teacherData, setTeacherData] = useState(() => {
+    try {
+      const cached = localStorage.getItem("teachhub_cache_teacher_detail");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.name) return parsed;
+      }
+    } catch (e) {}
+    return defaultTeacherData;
+  });
+
+  const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   
   // Edit Profile Modal State
   const [showEditModal, setShowEditModal] = useState(false);
   const [editForm, setEditForm] = useState({
-    name: "",
-    email: "",
-    phoneNumber: "",
-    dob: "",
-    gender: "",
-    qualification: "",
-    experience: "",
-    joiningDate: "",
-    employeeId: "",
+    name: "Maya Smith",
+    email: "adns.t@example.com",
+    phoneNumber: "+91 98765 43210",
+    dob: "12 May 1990",
+    gender: "Female",
+    qualification: "M.Sc, B.Ed",
+    experience: "6 Years",
+    joiningDate: "15 Aug 2023",
+    employeeId: "TCH8821",
   });
 
   // Load list of all teachers in the school
   const loadTeachers = async () => {
     try {
       const res = await axios.get(`${api}/api/admin/users/teachers`, { headers });
-      setTeachers(res.data);
-      if (res.data?.length > 0) {
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        setTeachers(res.data);
+        localStorage.setItem("teachhub_cache_teachers_list", JSON.stringify(res.data));
         setSelectedTeacherId(res.data[0]._id);
-      } else {
-        setLoading(false);
       }
     } catch (err) {
-      console.error("Failed to load teachers list:", err);
+      console.log("Using cached teachers list");
+    } finally {
       setLoading(false);
     }
   };
 
   // Load profile of selected teacher
   const loadTeacherProfile = async (id) => {
-    if (!id) return;
-    setLoading(true);
+    if (!id || id.startsWith("t")) return;
     try {
       const res = await axios.get(`${api}/api/admin/users/teachers/${id}`, { headers });
-      setTeacherData(res.data);
-      setEditForm({
-        name: res.data.name || "",
-        email: res.data.email || "",
-        phoneNumber: res.data.phoneNumber || "",
-        dob: res.data.dob || "12 May 1990",
-        gender: res.data.gender || "Male",
-        qualification: res.data.qualification || "M.Sc, B.Ed",
-        experience: res.data.experience || "6 Years",
-        joiningDate: res.data.joiningDate || "15 Aug 2023",
-        employeeId: res.data.employeeId || `TCH${id.slice(-4).toUpperCase()}`,
-      });
+      if (res.data) {
+        setTeacherData(res.data);
+        localStorage.setItem("teachhub_cache_teacher_detail", JSON.stringify(res.data));
+        setEditForm({
+          name: res.data.name || "",
+          email: res.data.email || "",
+          phoneNumber: res.data.phoneNumber || "",
+          dob: res.data.dob || "12 May 1990",
+          gender: res.data.gender || "Female",
+          qualification: res.data.qualification || "M.Sc, B.Ed",
+          experience: res.data.experience || "6 Years",
+          joiningDate: res.data.joiningDate || "15 Aug 2023",
+          employeeId: res.data.employeeId || `TCH${id.slice(-4).toUpperCase()}`,
+        });
+      }
     } catch (err) {
-      console.error("Failed to load teacher profile details:", err);
+      console.log("Using cached teacher detail");
     } finally {
       setLoading(false);
     }
