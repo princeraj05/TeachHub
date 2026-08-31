@@ -20,6 +20,9 @@ if (getApps().length === 0) {
         const decoded = Buffer.from(jsonStr, "base64").toString("utf-8");
         parsed = JSON.parse(decoded);
       }
+      if (parsed && typeof parsed.private_key === "string") {
+        parsed.private_key = parsed.private_key.replace(/\\n/g, "\n");
+      }
       credential = cert(parsed);
       console.log("Firebase Admin initialized via JSON environment variable");
     } catch (err) {
