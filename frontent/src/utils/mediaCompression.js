@@ -57,6 +57,6 @@ export const compressVideo = async (file) => {
     await audioContext.resume(); recorder.start(1000); await video.play(); drawFrame(); await new Promise((resolve) => { video.onended = resolve; }); recorder.stop();
     const blob = await blobPromise;
     await audioContext.close();
-    return blob.size && blob.size < file.size ? new File([blob], file.name.replace(/\.[^.]+$/, ".webm"), { type: mimeType }) : file;
+    return blob.size && blob.size < file.size ? new File([blob], file.name.replace(/\.[^.]+$/, ".webm"), { type: "video/webm" }) : file;
   } catch { return file; } finally { cancelAnimationFrame(animationFrame); URL.revokeObjectURL(sourceUrl); video.remove(); canvas.remove(); }
 };

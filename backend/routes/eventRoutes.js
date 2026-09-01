@@ -23,13 +23,17 @@ const storage = multer.diskStorage({
 
 // Enforce type checking for images and videos
 const fileFilter = (req, file, cb) => {
-  const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
-  const allowedVideoTypes = ["video/mp4", "video/webm", "video/quicktime", "video/mov"];
+  const cleanMime = (file.mimetype || "").split(";")[0].toLowerCase().trim();
+  const allowedImageTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+  const allowedVideoTypes = ["video/mp4", "video/webm", "video/quicktime", "video/mov", "video/x-matroska", "video/avi", "application/octet-stream"];
   const extension = path.extname(file.originalname || "").toLowerCase();
   const imageExtensions = [".jpg", ".jpeg", ".png", ".webp"];
-  const videoExtensions = [".mp4", ".webm", ".mov"];
+  const videoExtensions = [".mp4", ".webm", ".mov", ".mkv", ".avi"];
   
-  if ((allowedImageTypes.includes(file.mimetype) && imageExtensions.includes(extension)) || (allowedVideoTypes.includes(file.mimetype) && videoExtensions.includes(extension))) {
+  const isImage = (allowedImageTypes.includes(cleanMime) || cleanMime.startsWith("image/")) && (imageExtensions.includes(extension) || !extension);
+  const isVideo = (allowedVideoTypes.includes(cleanMime) || cleanMime.startsWith("video/")) && (videoExtensions.includes(extension) || !extension);
+
+  if (isImage || isVideo) {
     cb(null, true);
   } else {
     cb(new Error("File type not allowed. Please upload JPG, JPEG, PNG, WEBP images or MP4, WEBM, MOV videos."));

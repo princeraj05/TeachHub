@@ -364,7 +364,10 @@ exports.uploadVideos = async (req, res) => {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: "No files uploaded" });
     }
-    if (req.files.some((file) => !["video/mp4", "video/webm", "video/quicktime", "video/mov"].includes(file.mimetype))) {
+    if (req.files.some((file) => {
+      const cleanMime = (file.mimetype || "").split(";")[0].toLowerCase().trim();
+      return !cleanMime.startsWith("video/") && !["video/mp4", "video/webm", "video/quicktime", "video/mov", "application/octet-stream"].includes(cleanMime);
+    })) {
       return res.status(400).json({ message: "Videos must be MP4, WEBM, or MOV files" });
     }
     if ((event.videos?.length || 0) + req.files.length > 5) return res.status(400).json({ message: "An event can contain a maximum of 5 videos" });
