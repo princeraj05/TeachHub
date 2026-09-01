@@ -27,10 +27,22 @@ function MediaPrincipalTab({
   const [activePhotoPreview, setActivePhotoPreview] = useState(null);
   const [activeReplaceIndex, setActiveReplaceIndex] = useState(null);
 
+  const autoSaveMedia = async (updatedPayload) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(`${API}/api/schools/my-school`, updatedPayload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch (err) {
+      console.error("Auto-save media failed:", err);
+    }
+  };
+
   const handleDeletePhoto = (index) => {
     const updated = [...schoolPhotos];
     updated.splice(index, 1);
     setSchoolPhotos(updated);
+    autoSaveMedia({ schoolPhotos: updated });
   };
 
   const handleCoverUpload = async (e) => {
@@ -50,6 +62,7 @@ function MediaPrincipalTab({
       });
       if (res.data?.url) {
         setCoverImage(res.data.url);
+        autoSaveMedia({ coverImage: res.data.url });
       }
     } catch (err) {
       alert("Failed to upload cover banner image. Please try again.");
@@ -73,7 +86,9 @@ function MediaPrincipalTab({
         }
       });
       if (res.data?.url) {
-        setSchoolPhotos([...schoolPhotos, res.data.url]);
+        const updated = [...schoolPhotos, res.data.url];
+        setSchoolPhotos(updated);
+        autoSaveMedia({ schoolPhotos: updated });
       }
     } catch (err) {
       alert("Failed to upload image. Please try again.");
@@ -100,6 +115,7 @@ function MediaPrincipalTab({
         const updated = [...schoolPhotos];
         updated[activeReplaceIndex] = res.data.url;
         setSchoolPhotos(updated);
+        autoSaveMedia({ schoolPhotos: updated });
       }
     } catch (err) {
       alert("Failed to upload image. Please try again.");
@@ -125,6 +141,7 @@ function MediaPrincipalTab({
       });
       if (res.data?.url) {
         setPrincipalPhoto(res.data.url);
+        autoSaveMedia({ principalPhoto: res.data.url });
       }
     } catch (err) {
       alert("Failed to upload image. Please try again.");

@@ -91,7 +91,7 @@ exports.getMySchool = async (req, res) => {
       school.coverImage = "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=1200&q=80";
       modified = true;
     }
-    if (!school.schoolPhotos || school.schoolPhotos.length === 0) {
+    if (!school.schoolPhotos) {
       school.schoolPhotos = [
         "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=400&q=80", // school front
         "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=400&q=80", // campus garden
