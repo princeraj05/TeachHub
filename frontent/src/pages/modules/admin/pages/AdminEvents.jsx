@@ -584,14 +584,47 @@ function AdminEvents() {
                   </div>
                   <div>
                     <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">Event Time</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="09:00 AM"
-                      value={eventTime}
-                      onChange={(e) => setEventTime(e.target.value)}
-                      className="w-full px-3 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED]"
-                    />
+                    <div className="relative flex items-center">
+                      <FaClock className="pointer-events-none absolute left-3 text-slate-400 text-xs z-10" />
+                      <input
+                        type="text"
+                        required
+                        placeholder="09:00 AM"
+                        value={eventTime}
+                        onChange={(e) => setEventTime(e.target.value)}
+                        className="w-full pl-8 pr-16 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED]"
+                      />
+                      <div className="absolute right-1.5 flex gap-1 bg-slate-200/50 dark:bg-white/10 p-0.5 rounded-lg border border-slate-300/40 dark:border-white/10">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const raw = (eventTime || "09:00").replace(/am|pm/gi, "").trim();
+                            setEventTime(`${raw || "09:00"} AM`);
+                          }}
+                          className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold transition cursor-pointer ${
+                            eventTime.toUpperCase().includes("AM")
+                              ? "bg-[#7C3AED] text-white shadow-sm"
+                              : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                          }`}
+                        >
+                          AM
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const raw = (eventTime || "09:00").replace(/am|pm/gi, "").trim();
+                            setEventTime(`${raw || "09:00"} PM`);
+                          }}
+                          className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold transition cursor-pointer ${
+                            eventTime.toUpperCase().includes("PM")
+                              ? "bg-[#7C3AED] text-white shadow-sm"
+                              : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                          }`}
+                        >
+                          PM
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -676,13 +709,47 @@ function AdminEvents() {
                   </div>
                   <div>
                     <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">Event Time</label>
-                    <input
-                      type="text"
-                      required
-                      value={eventTime}
-                      onChange={(e) => setEventTime(e.target.value)}
-                      className="w-full px-3 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED]"
-                    />
+                    <div className="relative flex items-center">
+                      <FaClock className="pointer-events-none absolute left-3 text-slate-400 text-xs z-10" />
+                      <input
+                        type="text"
+                        required
+                        placeholder="09:00 AM"
+                        value={eventTime}
+                        onChange={(e) => setEventTime(e.target.value)}
+                        className="w-full pl-8 pr-16 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED]"
+                      />
+                      <div className="absolute right-1.5 flex gap-1 bg-slate-200/50 dark:bg-white/10 p-0.5 rounded-lg border border-slate-300/40 dark:border-white/10">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const raw = (eventTime || "09:00").replace(/am|pm/gi, "").trim();
+                            setEventTime(`${raw || "09:00"} AM`);
+                          }}
+                          className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold transition cursor-pointer ${
+                            eventTime.toUpperCase().includes("AM")
+                              ? "bg-[#7C3AED] text-white shadow-sm"
+                              : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                          }`}
+                        >
+                          AM
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const raw = (eventTime || "09:00").replace(/am|pm/gi, "").trim();
+                            setEventTime(`${raw || "09:00"} PM`);
+                          }}
+                          className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold transition cursor-pointer ${
+                            eventTime.toUpperCase().includes("PM")
+                              ? "bg-[#7C3AED] text-white shadow-sm"
+                              : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                          }`}
+                        >
+                          PM
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
