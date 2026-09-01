@@ -18,10 +18,36 @@ function UserProfile() {
   const API = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
 
-  const [user, setUser] = useState({ name: "", email: "", role: "", phoneNumber: "", fatherMobileNumber: "", motherMobileNumber: "", avatar: "" });
+  const getCachedUser = () => {
+    try {
+      const cached = localStorage.getItem("teachhub_cache_user_profile");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && typeof parsed === "object" && parsed.name) return parsed;
+      }
+    } catch (e) {}
+    return {
+      name: localStorage.getItem("name") || "",
+      email: localStorage.getItem("email") || "",
+      role: localStorage.getItem("role") || "",
+      phoneNumber: localStorage.getItem("phoneNumber") || "",
+      avatar: localStorage.getItem("avatar") || ""
+    };
+  };
+
+  const [user, setUser] = useState(getCachedUser);
   const [editMode, setEditMode] = useState(false);
-  const [formData, setFormData] = useState({ name: "", phoneNumber: "", fatherMobileNumber: "", motherMobileNumber: "", avatar: "" });
-  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState(() => {
+    const cached = getCachedUser();
+    return {
+      name: cached.name || "",
+      phoneNumber: cached.phoneNumber || "",
+      fatherMobileNumber: cached.fatherMobileNumber || "",
+      motherMobileNumber: cached.motherMobileNumber || "",
+      avatar: cached.avatar || ""
+    };
+  });
+  const [loading, setLoading] = useState(() => !localStorage.getItem("name"));
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -45,24 +71,27 @@ function UserProfile() {
 
   const fetchProfile = async () => {
     try {
-      setLoading(true);
+      if (!user.name) setLoading(true);
       const res = await axios.get(`${API}/api/auth/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setUser(res.data);
-      const userAvatar = res.data.avatar || res.data.photo || res.data.profilePhoto || "";
-      setFormData({
-        name: res.data.name || "",
-        phoneNumber: res.data.phoneNumber || "",
-        fatherMobileNumber: res.data.fatherMobileNumber || "",
-        motherMobileNumber: res.data.motherMobileNumber || "",
-        avatar: userAvatar
-      });
-      if (res.data.name) {
-        try { localStorage.setItem("name", res.data.name); } catch(e) {}
-      }
-      if (userAvatar) {
-        try { localStorage.setItem("avatar", userAvatar); } catch(e) {}
+      if (res.data) {
+        setUser(res.data);
+        const userAvatar = res.data.avatar || res.data.photo || res.data.profilePhoto || "";
+        setFormData({
+          name: res.data.name || "",
+          phoneNumber: res.data.phoneNumber || "",
+          fatherMobileNumber: res.data.fatherMobileNumber || "",
+          motherMobileNumber: res.data.motherMobileNumber || "",
+          avatar: userAvatar
+        });
+        try {
+          localStorage.setItem("teachhub_cache_user_profile", JSON.stringify(res.data));
+          if (res.data.name) localStorage.setItem("name", res.data.name);
+          if (res.data.email) localStorage.setItem("email", res.data.email);
+          if (res.data.phoneNumber) localStorage.setItem("phoneNumber", res.data.phoneNumber);
+          if (userAvatar) localStorage.setItem("avatar", userAvatar);
+        } catch (e) {}
       }
       window.dispatchEvent(new Event("profileUpdate"));
     } catch (err) {
