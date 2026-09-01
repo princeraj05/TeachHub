@@ -495,18 +495,30 @@ function AdminEvents() {
                   className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 relative flex flex-col justify-between group"
                 >
                   <div>
-                    {/* Event Header Image for Completed or Cover View */}
-                    {activeTab === "completed" ? (
-                      <div className="h-44 bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b border-slate-150 dark:border-white/5">
-                        {coverUrl ? (
-                          <img src={coverUrl} alt="Cover" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                        ) : (
-                          <div className="text-center text-slate-400 dark:text-slate-500">
-                            <FaImage className="text-3xl mx-auto mb-2 opacity-50" />
-                            <p className="text-[10px] font-bold">No Photos Uploaded</p>
-                          </div>
-                        )}
-                        {/* Media Count Pills */}
+                    {/* Event Header Banner Image */}
+                    <div className="h-44 bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b border-slate-150 dark:border-white/5">
+                      {coverUrl ? (
+                        <img src={coverUrl} alt={ev.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      ) : (
+                        <div className="text-center text-slate-400 dark:text-slate-500">
+                          <FaImage className="text-3xl mx-auto mb-2 opacity-50" />
+                          <p className="text-[10px] font-bold">No Cover Image Uploaded</p>
+                        </div>
+                      )}
+
+                      {/* Status Badge */}
+                      {activeTab === "completed" ? (
+                        <span className="absolute top-3 left-3 px-2.5 py-1 bg-emerald-500/90 text-white text-[9px] font-extrabold rounded-full backdrop-blur-md shadow-sm flex items-center gap-1">
+                          <FaCheckCircle className="text-[9px]" /> Completed
+                        </span>
+                      ) : (
+                        <span className="absolute top-3 left-3 px-2.5 py-1 bg-[#7C3AED]/90 text-white text-[9px] font-extrabold rounded-full backdrop-blur-md shadow-sm flex items-center gap-1">
+                          <FaClock className="text-[9px]" /> Upcoming
+                        </span>
+                      )}
+
+                      {/* Media Count Pills for Completed tab */}
+                      {activeTab === "completed" && (
                         <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
                           {photoCount > 0 && (
                             <span className="px-2 py-0.5 bg-black/60 backdrop-blur-md text-white text-[9px] font-bold rounded-full flex items-center gap-1">
@@ -519,19 +531,8 @@ function AdminEvents() {
                             </span>
                           )}
                         </div>
-
-                        {/* Status Badge */}
-                        <span className="absolute top-3 left-3 px-2.5 py-1 bg-emerald-500/90 text-white text-[9px] font-extrabold rounded-full backdrop-blur-md shadow-sm flex items-center gap-1">
-                          <FaCheckCircle className="text-[9px]" /> Completed
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="p-6 pb-0 flex items-center justify-between">
-                        <span className="px-2.5 py-1 bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] text-[9px] font-extrabold rounded-full flex items-center gap-1 border border-[#7C3AED]/20">
-                          <FaClock className="text-[9px]" /> Upcoming
-                        </span>
-                      </div>
-                    )}
+                      )}
+                    </div>
 
                     <div className="p-6">
                       <h3 className="text-sm font-black text-slate-800 dark:text-white leading-snug group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition-colors">{ev.title}</h3>
