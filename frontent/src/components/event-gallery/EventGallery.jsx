@@ -7,7 +7,7 @@ export default function EventGallery({ event, api = "", onDeletePhoto, onDeleteV
   const photos = event?.photos || [];
   const videos = event?.videos || [];
   const [activeTab, setActiveTab] = useState(photos.length ? "photos" : "videos");
-  const getMediaUrl = (url) => url?.startsWith("http") ? url : `${api}${url || ""}`;
+  const getMediaUrl = (url) => (url?.startsWith("http") || url?.startsWith("data:") || url?.startsWith("blob:")) ? url : `${api}${url || ""}`;
 
   if (!photos.length && !videos.length) return <div className="rounded-2xl border border-dashed border-slate-200 p-10 text-center text-xs font-bold text-slate-400 dark:border-white/10">No media has been uploaded to this event yet.</div>;
 

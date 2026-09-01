@@ -46,6 +46,24 @@ const upload = multer({
   limits: { fileSize: 50 * 1024 * 1024 } // 50MB per compressed upload
 });
 
+const uploadPhotosMiddleware = (req, res, next) => {
+  upload.array("photos", 10)(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message || "Invalid photo upload" });
+    }
+    next();
+  });
+};
+
+const uploadVideosMiddleware = (req, res, next) => {
+  upload.array("videos", 5)(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message || "Invalid video upload" });
+    }
+    next();
+  });
+};
+
 // Endpoints
 router.post("/", protect, authorize("admin"), eventController.createEvent);
 router.get("/", protect, eventController.getEvents);
@@ -58,8 +76,8 @@ router.delete("/:id", protect, authorize("admin", "superadmin"), eventController
 router.post("/:id/complete", protect, authorize("admin", "superadmin"), eventController.completeEvent);
 
 // Media uploads
-router.post("/:id/photos", protect, authorize("admin", "superadmin"), upload.array("photos", 10), eventController.uploadPhotos);
-router.post("/:id/videos", protect, authorize("admin", "superadmin"), upload.array("videos", 5), eventController.uploadVideos);
+router.post("/:id/photos", protect, authorize("admin", "superadmin"), uploadPhotosMiddleware, eventController.uploadPhotos);
+router.post("/:id/videos", protect, authorize("admin", "superadmin"), uploadVideosMiddleware, eventController.uploadVideos);
 
 router.delete("/:id/photos/:photoId", protect, authorize("admin", "superadmin"), eventController.deletePhoto);
 router.delete("/:id/videos/:videoId", protect, authorize("admin", "superadmin"), eventController.deleteVideo);

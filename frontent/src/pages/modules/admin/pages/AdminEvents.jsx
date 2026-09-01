@@ -15,7 +15,8 @@ function AdminEvents() {
 
   const getMediaUrl = (url) => {
     if (!url) return "";
-    return url.startsWith("http") ? url : `${API}${url}`;
+    if (url.startsWith("http") || url.startsWith("data:") || url.startsWith("blob:")) return url;
+    return `${API}${url}`;
   };
 
   const openLightbox = (type, url, filename) => {
@@ -696,7 +697,7 @@ function AdminEvents() {
                   </label>
                   {eventImagePreview ? (
                     <div className="relative w-full h-28 rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 group">
-                      <img src={eventImagePreview} alt="Event Preview" className="w-full h-full object-cover" />
+                      <img src={getMediaUrl(eventImagePreview)} alt="Event Preview" className="w-full h-full object-cover" />
                       <button
                         type="button"
                         onClick={() => { setEventImage(null); setEventImagePreview(""); }}
@@ -850,7 +851,7 @@ function AdminEvents() {
                   </label>
                   {eventImagePreview ? (
                     <div className="relative w-full h-28 rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 group">
-                      <img src={eventImagePreview} alt="Event Preview" className="w-full h-full object-cover" />
+                      <img src={getMediaUrl(eventImagePreview)} alt="Event Preview" className="w-full h-full object-cover" />
                       <button
                         type="button"
                         onClick={() => { setEventImage(null); setEventImagePreview(""); }}

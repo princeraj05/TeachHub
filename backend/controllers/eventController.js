@@ -321,7 +321,20 @@ exports.uploadPhotos = async (req, res) => {
           filename = result.public_id;
           deletePhysicalFile(file.filename);
         } catch (cErr) {
-          console.error("Cloudinary photo upload error, falling back to local file:", cErr.message);
+          console.error("Cloudinary photo upload error, falling back to data URL:", cErr.message);
+        }
+      }
+
+      if (!photoUrl.startsWith("http")) {
+        try {
+          if (fs.existsSync(file.path)) {
+            const fileBuffer = fs.readFileSync(file.path);
+            const base64Str = fileBuffer.toString("base64");
+            photoUrl = `data:${file.mimetype};base64,${base64Str}`;
+            deletePhysicalFile(file.filename);
+          }
+        } catch (fErr) {
+          console.error("Failed to convert image to base64 Data URL:", fErr);
         }
       }
 
