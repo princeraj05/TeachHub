@@ -163,7 +163,7 @@ function PendingApproval() {
     };
 
     checkRoleStatus(); // Run once immediately
-    intervalId = setInterval(checkRoleStatus, 3000);
+    intervalId = setInterval(checkRoleStatus, 15000);
     return () => {
       isMounted = false;
       if (intervalId) clearInterval(intervalId);

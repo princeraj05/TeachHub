@@ -338,7 +338,7 @@ function MyStudents() {
                 <div className="flex flex-col sm:flex-row items-center justify-around gap-4 py-2">
                   {/* Pie donut */}
                   <div className="relative w-36 h-36 flex items-center justify-center shrink-0">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                       <PieChart>
                         <Pie
                           data={attendanceDonut}
@@ -859,7 +859,7 @@ function MyStudents() {
                       <td className="px-6 py-4 select-none">
                         <div className="flex items-center gap-2">
                           <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                               <PieChart>
                                 <Pie
                                   data={[

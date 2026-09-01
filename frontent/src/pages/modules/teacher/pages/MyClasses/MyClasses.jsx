@@ -401,7 +401,7 @@ function MyClasses() {
                 <div className="flex flex-col sm:flex-row items-center justify-around gap-4 py-2">
                   {/* Pie chart */}
                   <div className="relative w-36 h-36 flex items-center justify-center shrink-0">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                       <PieChart>
                         <Pie
                           data={attendanceDonutData}
@@ -477,7 +477,7 @@ function MyClasses() {
                       <h4 className="text-lg font-black text-[#3B82F6] mt-1 tracking-tight">{details.performanceOverview?.classAverage || 85}%</h4>
                     </div>
                     <div className="h-6 mt-2">
-                      <ResponsiveContainer width="100%" height="100%">
+                      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                         <LineChart data={sparkDataBlue}>
                           <Line type="monotone" dataKey="value" stroke="#3B82F6" strokeWidth={1.5} dot={false} />
                         </LineChart>
@@ -492,7 +492,7 @@ function MyClasses() {
                       <h4 className="text-lg font-black text-[#10B981] mt-1 tracking-tight">{details.performanceOverview?.highestScore || 92}%</h4>
                     </div>
                     <div className="h-6 mt-2">
-                      <ResponsiveContainer width="100%" height="100%">
+                      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                         <LineChart data={sparkDataGreen}>
                           <Line type="monotone" dataKey="value" stroke="#10B981" strokeWidth={1.5} dot={false} />
                         </LineChart>
@@ -507,7 +507,7 @@ function MyClasses() {
                       <h4 className="text-lg font-black text-[#F59E0B] mt-1 tracking-tight">{details.performanceOverview?.passPercentage || 95}%</h4>
                     </div>
                     <div className="h-6 mt-2">
-                      <ResponsiveContainer width="100%" height="100%">
+                      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                         <LineChart data={sparkDataYellow}>
                           <Line type="monotone" dataKey="value" stroke="#F59E0B" strokeWidth={1.5} dot={false} />
                         </LineChart>
@@ -721,7 +721,7 @@ function MyClasses() {
 
                   {/* Performance Donut on right */}
                   <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                       <PieChart>
                         <Pie
                           data={donutChartData}

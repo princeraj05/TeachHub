@@ -72,8 +72,8 @@ function AdminLayout() {
 
   useEffect(() => {
     fetchRequestCount();
-    // Poll requests count every 10 seconds for real-time notifications
-    const interval = setInterval(fetchRequestCount, 10000);
+    // Poll requests count every 60 seconds for smooth background updates
+    const interval = setInterval(fetchRequestCount, 60000);
     return () => clearInterval(interval);
   }, []);
 

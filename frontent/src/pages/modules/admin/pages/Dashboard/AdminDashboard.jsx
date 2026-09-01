@@ -270,7 +270,7 @@ function AdminDashboard() {
           </div>
           {/* Sparkline */}
           <div className="absolute bottom-0 left-0 right-0 h-6 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <AreaChart data={sparklines.students} margin={{ top: 0, bottom: 0, left: 0, right: 0 }}>
                 <Area type="monotone" dataKey="value" stroke="#8B5CF6" fill="rgba(139, 92, 246, 0.08)" strokeWidth={1.5} dot={false} />
               </AreaChart>
@@ -292,7 +292,7 @@ function AdminDashboard() {
           </div>
           {/* Sparkline */}
           <div className="absolute bottom-0 left-0 right-0 h-6 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <AreaChart data={sparklines.teachers} margin={{ top: 0, bottom: 0, left: 0, right: 0 }}>
                 <Area type="monotone" dataKey="value" stroke="#3B82F6" fill="rgba(59, 130, 246, 0.08)" strokeWidth={1.5} dot={false} />
               </AreaChart>
@@ -314,7 +314,7 @@ function AdminDashboard() {
           </div>
           {/* Sparkline */}
           <div className="absolute bottom-0 left-0 right-0 h-6 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <AreaChart data={sparklines.classes} margin={{ top: 0, bottom: 0, left: 0, right: 0 }}>
                 <Area type="monotone" dataKey="value" stroke="#10B981" fill="rgba(16, 185, 129, 0.08)" strokeWidth={1.5} dot={false} />
               </AreaChart>
@@ -336,7 +336,7 @@ function AdminDashboard() {
           </div>
           {/* Sparkline */}
           <div className="absolute bottom-0 left-0 right-0 h-6 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <AreaChart data={sparklines.subjects} margin={{ top: 0, bottom: 0, left: 0, right: 0 }}>
                 <Area type="monotone" dataKey="value" stroke="#F59E0B" fill="rgba(245, 158, 11, 0.08)" strokeWidth={1.5} dot={false} />
               </AreaChart>
@@ -358,7 +358,7 @@ function AdminDashboard() {
           </div>
           {/* Sparkline */}
           <div className="absolute bottom-0 left-0 right-0 h-6 sm:h-10 w-full opacity-60 group-hover:opacity-100 transition-opacity">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <AreaChart data={sparklines.events} margin={{ top: 0, bottom: 0, left: 0, right: 0 }}>
                 <Area type="monotone" dataKey="value" stroke="#14B8A6" fill="rgba(20, 184, 166, 0.08)" strokeWidth={1.5} dot={false} />
               </AreaChart>
@@ -628,7 +628,7 @@ function AdminDashboard() {
             
             {/* Area Chart */}
             <div className="h-36 w-full opacity-90">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <AreaChart data={finalActivityChartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#CBD5E1" />
                   <XAxis
