@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import {
   FaCalendarAlt, FaClock, FaPlus, FaTrash, FaEdit, 
-  FaCheckCircle, FaTimes, FaImage, FaVideo, FaEye, FaExpand, FaSearch 
+  FaCheckCircle, FaTimes, FaImage, FaVideo, FaEye, FaExpand, FaSearch, FaCamera 
 } from "react-icons/fa";
 import { compressImage, compressVideo, videoDuration } from "../../../../utils/mediaCompression";
 import EventGallery from "../../../../components/EventGallery";
@@ -53,6 +53,21 @@ function AdminEvents() {
   const [description, setDescription] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
+  const [eventImage, setEventImage] = useState(null);
+  const [eventImagePreview, setEventImagePreview] = useState("");
+
+  const handleImageSelect = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        const compressed = await compressImage(file);
+        setEventImage(compressed);
+        setEventImagePreview(URL.createObjectURL(compressed));
+      } catch (err) {
+        console.error("Error compressing image:", err);
+      }
+    }
+  };
 
   const [selectedEvent, setSelectedEvent] = useState(null);
 
@@ -92,6 +107,27 @@ function AdminEvents() {
         { title, subtitle, description, eventDate, eventTime },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      // Upload cover image if selected
+      if (eventImage && res.data?._id) {
+        try {
+          const formData = new FormData();
+          formData.append("photos", eventImage);
+          await axios.post(
+            `${API}/api/events/${res.data._id}/photos`,
+            formData,
+            {
+              headers: { 
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "multipart/form-data" 
+              }
+            }
+          );
+        } catch (imgErr) {
+          console.error("Error uploading cover image:", imgErr);
+        }
+      }
+
       setShowAddModal(false);
       resetForm();
       fetchEvents();
@@ -110,6 +146,27 @@ function AdminEvents() {
         { title, subtitle, description, eventDate, eventTime },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      // Upload new cover image if selected
+      if (eventImage) {
+        try {
+          const formData = new FormData();
+          formData.append("photos", eventImage);
+          await axios.post(
+            `${API}/api/events/${selectedEvent._id}/photos`,
+            formData,
+            {
+              headers: { 
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "multipart/form-data" 
+              }
+            }
+          );
+        } catch (imgErr) {
+          console.error("Error uploading cover image:", imgErr);
+        }
+      }
+
       setShowEditModal(false);
       setSelectedEvent(null);
       resetForm();
@@ -268,6 +325,8 @@ function AdminEvents() {
     setDescription(ev.description || "");
     setEventDate(ev.eventDate ? ev.eventDate.substring(0, 10) : "");
     setEventTime(ev.eventTime);
+    setEventImage(null);
+    setEventImagePreview(ev.photos && ev.photos.length > 0 ? getMediaUrl(ev.photos[0].url) : "");
     setShowEditModal(true);
   };
 
@@ -291,6 +350,8 @@ function AdminEvents() {
     setDescription("");
     setEventDate("");
     setEventTime("");
+    setEventImage(null);
+    setEventImagePreview("");
   };
 
   const getFormattedDate = (dateStr) => {
@@ -629,6 +690,35 @@ function AdminEvents() {
                 </div>
 
                 <div>
+                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">
+                    Event Cover Photo / Poster (Optional)
+                  </label>
+                  {eventImagePreview ? (
+                    <div className="relative w-full h-28 rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 group">
+                      <img src={eventImagePreview} alt="Event Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => { setEventImage(null); setEventImagePreview(""); }}
+                        className="absolute top-2 right-2 bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-lg text-xs shadow-md transition cursor-pointer"
+                      >
+                        <FaTimes />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="w-full py-2.5 px-3 bg-slate-50 dark:bg-white/5 border border-dashed border-slate-300 dark:border-white/20 rounded-xl flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400 hover:border-[#7C3AED] hover:text-[#7C3AED] cursor-pointer transition">
+                      <FaCamera className="text-sm text-[#7C3AED]" />
+                      <span className="font-bold">Upload Event Image / Poster</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+
+                <div>
                   <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">Description (Optional)</label>
                   <textarea
                     rows={3}
@@ -751,6 +841,35 @@ function AdminEvents() {
                       </div>
                     </div>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">
+                    Event Cover Photo / Poster (Optional)
+                  </label>
+                  {eventImagePreview ? (
+                    <div className="relative w-full h-28 rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 group">
+                      <img src={eventImagePreview} alt="Event Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => { setEventImage(null); setEventImagePreview(""); }}
+                        className="absolute top-2 right-2 bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-lg text-xs shadow-md transition cursor-pointer"
+                      >
+                        <FaTimes />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="w-full py-2.5 px-3 bg-slate-50 dark:bg-white/5 border border-dashed border-slate-300 dark:border-white/20 rounded-xl flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400 hover:border-[#7C3AED] hover:text-[#7C3AED] cursor-pointer transition">
+                      <FaCamera className="text-sm text-[#7C3AED]" />
+                      <span className="font-bold">Upload Event Image / Poster</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
                 </div>
 
                 <div>
