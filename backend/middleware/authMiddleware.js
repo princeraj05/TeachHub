@@ -9,7 +9,7 @@ exports.protect = async (req, res, next) => {
 
   try {
     const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY");
 
     // A token only identifies the user. Read the current role and school from the
     // database so a stale token cannot retain permissions after an admin change.

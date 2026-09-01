@@ -178,7 +178,7 @@ exports.firebaseSync = async (req, res) => {
         role: user.role,
         schoolName: user.schoolName
       },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || "SECRET_KEY",
       { expiresIn: "365d" }
     );
 
@@ -416,7 +416,7 @@ exports.verifyOTP = async (req, res) => {
         role: user.role,
         schoolName: user.schoolName
       },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || "SECRET_KEY",
       { expiresIn: "365d" }
     );
 
@@ -473,7 +473,7 @@ exports.getProfile = async (req, res) => {
         role: user.role,
         schoolName: user.schoolName
       },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || "SECRET_KEY",
       { expiresIn: "30d" }
     );
 

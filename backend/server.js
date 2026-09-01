@@ -366,7 +366,7 @@ io.use(async (socket, next) => {
     return next(new Error("Authentication error: No token provided"));
   }
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY");
     // Fetch database-authoritative user profile
     const dbUser = await User.findById(decoded.id).select("name email role schoolName avatar");
     if (!dbUser) {
@@ -729,6 +729,24 @@ io.on("connection", (socket) => {
 });
 
 app.set("io", io);
+
+
+// ================= GLOBAL ERROR HANDLER =================
+app.use((err, req, res, next) => {
+  console.error("Global Express Error:", err);
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  } else {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+  }
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin");
+  res.status(err.status || 500).json({
+    message: err.message || "Internal Server Error"
+  });
+});
 
 
 // ================= SERVER =================
