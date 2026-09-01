@@ -20,197 +20,9 @@ import { useTheme } from "../../../../context/ThemeContext";
 
 const SORA = "'Sora', sans-serif";
 
-const MOCK_GROUPS = [
-  {
-    _id: "mock-1",
-    name: "Class 10-A Students",
-    description: "General discussions & updates",
-    lastMessage: {
-      sender: { name: "Riya" },
-      content: "Don't forget about the test tomorrow.",
-    },
-    unreadCount: 3,
-    updatedAt: new Date(Date.now() - 35 * 60 * 1000).toISOString(),
-    timeText: "10:25 AM",
-    avatarBg: "bg-purple-955/15 text-purple-405 border border-purple-500/20",
-    avatarIcon: <FaUsers />
-  },
-  {
-    _id: "mock-2",
-    name: "Study Group - Science",
-    description: "Share notes, doubts & solutions",
-    lastMessage: {
-      sender: { name: "Aman" },
-      content: "Thanks for the notes!",
-    },
-    unreadCount: 1,
-    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    timeText: "Yesterday",
-    avatarBg: "bg-blue-955/15 text-blue-400 border border-blue-500/20",
-    avatarIcon: <FaGraduationCap />
-  },
-  {
-    _id: "mock-3",
-    name: "Project Team Alpha",
-    description: "Project discussions & planning",
-    lastMessage: {
-      sender: { name: "You" },
-      content: "Please check the latest update.",
-    },
-    unreadCount: 0,
-    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    timeText: "2 Days Ago",
-    avatarBg: "bg-emerald-955/15 text-emerald-400 border border-emerald-500/20",
-    avatarIcon: <FaUsers />
-  },
-  {
-    _id: "mock-4",
-    name: "School Announcements",
-    description: "Official announcements & alerts",
-    lastMessage: {
-      sender: { name: "Admin" },
-      content: "Annual sports day on Sunday.",
-    },
-    unreadCount: 0,
-    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    timeText: "3 Days Ago",
-    avatarBg: "bg-amber-955/15 text-amber-400 border border-amber-500/20",
-    avatarIcon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-      </svg>
-    )
-  }
-];
-
-const MOCK_TEACHERS = [
-  {
-    _id: "teacher-1",
-    name: "Mrs. Anjali Sharma",
-    subject: "Mathematics",
-    status: "Available",
-    education: "M.Sc. Mathematics, B.Ed.",
-    experience: "8+ Years of Experience",
-    lastMessage: "Hi Ishani, how can I help you today?",
-    time: "10:45 AM",
-    badgeBg: "bg-purple-955/15 text-purple-400 border border-purple-500/10",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80"
-  },
-  {
-    _id: "teacher-2",
-    name: "Mr. Rahul Verma",
-    subject: "Physics",
-    status: "Available",
-    education: "M.Sc. Physics, B.Ed.",
-    experience: "6+ Years of Experience",
-    lastMessage: "Feel free to ask any doubts.",
-    time: "Yesterday",
-    badgeBg: "bg-blue-955/15 text-blue-400 border border-blue-500/10",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
-  },
-  {
-    _id: "teacher-3",
-    name: "Mrs. Priya Singh",
-    subject: "English",
-    status: "Available",
-    education: "M.A. English, B.Ed.",
-    experience: "7+ Years of Experience",
-    lastMessage: "Let's work together to achieve your goals!",
-    time: "Yesterday",
-    badgeBg: "bg-emerald-955/15 text-emerald-400 border border-emerald-500/10",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80"
-  },
-  {
-    _id: "teacher-4",
-    name: "Mr. Amit Kumar",
-    subject: "Chemistry",
-    status: "Busy",
-    education: "M.Sc. Chemistry, B.Ed.",
-    experience: "5+ Years of Experience",
-    lastMessage: "I will reply as soon as I'm available.",
-    time: "21 May 2024",
-    badgeBg: "bg-amber-955/15 text-amber-400 border border-amber-500/10",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80"
-  }
-];
-
-const MOCK_CALL_LOGS = [
-  {
-    _id: "cl-1",
-    name: "Mrs. Anjali Sharma",
-    role: "Mathematics Teacher",
-    type: "Outgoing Call",
-    typeColor: "text-green-555",
-    icon: (
-      <svg className="w-3 h-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-      </svg>
-    ),
-    time: "10:45 AM",
-    duration: "07:32",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80"
-  },
-  {
-    _id: "cl-2",
-    name: "Mr. Rahul Verma",
-    role: "Physics Teacher",
-    type: "Incoming Call",
-    typeColor: "text-blue-500",
-    icon: (
-      <svg className="w-3 h-3 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-      </svg>
-    ),
-    time: "Yesterday",
-    duration: "06:18",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
-  },
-  {
-    _id: "cl-3",
-    name: "Mrs. Priya Singh",
-    role: "English Teacher",
-    type: "Outgoing Call",
-    typeColor: "text-green-555",
-    icon: (
-      <svg className="w-3 h-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-      </svg>
-    ),
-    time: "Yesterday",
-    duration: "12:21",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80"
-  },
-  {
-    _id: "cl-4",
-    name: "Mr. Amit Kumar",
-    role: "Chemistry Teacher",
-    type: "Missed Call",
-    typeColor: "text-rose-500",
-    icon: (
-      <svg className="w-3 h-3 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-      </svg>
-    ),
-    time: "21 May 2024",
-    duration: "--:--",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80"
-  },
-  {
-    _id: "cl-5",
-    name: "School Admin Support",
-    role: "Support Team",
-    type: "Incoming Call",
-    typeColor: "text-blue-500",
-    icon: (
-      <svg className="w-3 h-3 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-      </svg>
-    ),
-    time: "20 May 2024",
-    duration: "04:05",
-    avatar: "school"
-  }
-];
+const MOCK_GROUPS = [];
+const MOCK_TEACHERS = [];
+const MOCK_CALL_LOGS = [];
 
 function StudentSupport() {
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -449,14 +261,7 @@ function StudentSupport() {
   }, [contacts, currentUserId]);
 
   const displayGroups = useMemo(() => {
-    const combined = [...groups];
-    MOCK_GROUPS.forEach(mock => {
-      if (!combined.some(g => g.name.toLowerCase() === mock.name.toLowerCase())) {
-        combined.push(mock);
-      }
-    });
-
-    return combined.filter(g => {
+    return groups.filter(g => {
       const matchesSearch = g.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
         (g.lastMessage?.content || "").toLowerCase().includes(searchQuery.toLowerCase());
       
@@ -467,15 +272,16 @@ function StudentSupport() {
   }, [groups, searchQuery, filterType]);
 
   const displayTeachers = useMemo(() => {
-    return MOCK_TEACHERS.filter(t => {
+    const realTeachers = contacts.filter(c => c.role === "teacher");
+    return realTeachers.filter(t => {
       const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        t.subject.toLowerCase().includes(searchQuery.toLowerCase());
+        (t.subject || "").toLowerCase().includes(searchQuery.toLowerCase());
       
       const matchesSubject = subjectFilter === "All" || t.subject === subjectFilter;
       
       return matchesSearch && matchesSubject;
     });
-  }, [searchQuery, subjectFilter]);
+  }, [contacts, searchQuery, subjectFilter]);
 
   const displayCallLogs = useMemo(() => {
     return MOCK_CALL_LOGS.filter(c => 

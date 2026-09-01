@@ -20,50 +20,7 @@ import { useTheme } from "../../../../context/ThemeContext";
 
 const SORA = "'Sora', sans-serif";
 
-const DUMMY_SUBJECTS = [
-  {
-    _id: "dummy-subj-1",
-    name: "Mathematics",
-    teacher: { name: "Lovely Coder" },
-    progress: 80,
-    grade: "A",
-    assignmentsCompleted: 12,
-    assignmentsTotal: 15,
-    quizzesCompleted: 8,
-    quizzesTotal: 10,
-    notesCount: 23,
-    nextClass: "Tomorrow",
-    status: "Active"
-  },
-  {
-    _id: "dummy-subj-2",
-    name: "Science",
-    teacher: { name: "Lovely Coder" },
-    progress: 65,
-    grade: "B+",
-    assignmentsCompleted: 9,
-    assignmentsTotal: 14,
-    quizzesCompleted: 6,
-    quizzesTotal: 10,
-    notesCount: 18,
-    nextClass: "Today, 10:00 AM",
-    status: "Active"
-  },
-  {
-    _id: "dummy-subj-3",
-    name: "Social Science",
-    teacher: { name: "Lovely Coder" },
-    progress: 70,
-    grade: "A-",
-    assignmentsCompleted: 10,
-    assignmentsTotal: 16,
-    quizzesCompleted: 7,
-    quizzesTotal: 10,
-    notesCount: 20,
-    nextClass: "Today, 11:00 AM",
-    status: "Active"
-  }
-];
+const DUMMY_SUBJECTS = [];
 
 function StudentSubjects() {
   const API = import.meta.env.VITE_API_URL;
@@ -98,7 +55,7 @@ function StudentSubjects() {
   // Helper: Decorate database subjects with performance data
   const decoratedSubjects = useMemo(() => {
     if (dbSubjects.length === 0) {
-      return DUMMY_SUBJECTS;
+      return [];
     }
 
     return dbSubjects.map((s, i) => {

@@ -17,13 +17,7 @@ import { useTheme } from "../../../../context/ThemeContext";
 
 const SORA = "'Sora', sans-serif";
 
-const DUMMY_ATTENDANCE = [
-  { _id: "dummy-att-1", date: "2026-05-20", status: "Present", subject: "Mathematics", remarks: "-" },
-  { _id: "dummy-att-2", date: "2026-05-19", status: "Present", subject: "Science", remarks: "-" },
-  { _id: "dummy-att-3", date: "2026-05-16", status: "Absent", subject: "Social Science", remarks: "Medical Leave" },
-  { _id: "dummy-att-4", date: "2026-05-15", status: "Present", subject: "Mathematics", remarks: "-" },
-  { _id: "dummy-att-5", date: "2026-05-14", status: "Present", subject: "Science", remarks: "-" }
-];
+const DUMMY_ATTENDANCE = [];
 
 const WEEKS_DATA = [
   { name: "W1", value: 70 },
@@ -89,7 +83,7 @@ function StudentAttendance() {
   // Helper: Decorate database records with subjects and remarks
   const decoratedAttendance = useMemo(() => {
     if (dbAttendance.length === 0) {
-      return DUMMY_ATTENDANCE;
+      return [];
     }
 
     return dbAttendance.map((item, idx) => {

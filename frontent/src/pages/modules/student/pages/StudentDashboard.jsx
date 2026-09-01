@@ -17,32 +17,7 @@ import { useTheme } from "../../../../context/ThemeContext";
 
 const SORA = "'Sora', sans-serif";
 
-const DUMMY_CLASSES = [
-  {
-    _id: "dummy-class-1",
-    startTime: "09:00 AM",
-    endTime: "10:00 AM",
-    subject: { name: "Mathematics" },
-    room: "Room 101",
-    teacher: { name: "Lovely Coder" }
-  },
-  {
-    _id: "dummy-class-2",
-    startTime: "10:00 AM",
-    endTime: "11:00 AM",
-    subject: { name: "Science" },
-    room: "Room 102",
-    teacher: { name: "Lovely Coder" }
-  },
-  {
-    _id: "dummy-class-3",
-    startTime: "11:00 AM",
-    endTime: "12:00 PM",
-    subject: { name: "Social Science" },
-    room: "Room 103",
-    teacher: { name: "Lovely Coder" }
-  }
-];
+const DUMMY_CLASSES = [];
 
 function StudentDashboard() {
   const API = import.meta.env.VITE_API_URL;
@@ -71,7 +46,7 @@ function StudentDashboard() {
     return { name: "Student User" };
   });
 
-  const [timetableEntries, setTimetableEntries] = useState(() => DUMMY_CLASSES);
+  const [timetableEntries, setTimetableEntries] = useState([]);
   const [loadingTimetable, setLoadingTimetable] = useState(false);
 
   // Generate week days list (Monday to Sunday) centered around current week
@@ -197,19 +172,11 @@ function StudentDashboard() {
     return "3 Classes";
   };
 
-  // Switch display elements: either live db entries, or fallback to dummy list
   const activeClasses = useMemo(() => {
     if (selectedDay.full === "Saturday" || selectedDay.full === "Sunday") {
       return [];
     }
-    if (timetableEntries.length > 0) {
-      return timetableEntries;
-    }
-    // Fallback: Return dummy classes if database has none
-    if (selectedDay.full === "Friday") {
-      return DUMMY_CLASSES.slice(0, 2);
-    }
-    return DUMMY_CLASSES;
+    return timetableEntries;
   }, [selectedDay, timetableEntries]);
 
   return (

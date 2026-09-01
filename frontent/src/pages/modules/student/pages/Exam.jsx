@@ -24,43 +24,7 @@ import {
 
 const SORA = "'Sora', sans-serif";
 
-const DUMMY_EXAMS = [
-  {
-    _id: "dummy-exam-1",
-    subject: "Admission Entrance Test (Online)",
-    date: "2026-08-21T22:55:00.000Z",
-    duration: 60,
-    mode: "online",
-    proctored: true,
-    isAdmission: true,
-    taken: false,
-    status: "Upcoming"
-  },
-  {
-    _id: "dummy-exam-2",
-    subject: "Mathematics Test",
-    date: "2026-08-15T11:00:00.000Z",
-    duration: 90,
-    mode: "offline",
-    room: "Room 101",
-    taken: true,
-    score: 85,
-    total: 100,
-    status: "Completed"
-  },
-  {
-    _id: "dummy-exam-3",
-    subject: "Science Quiz",
-    date: "2026-08-08T11:00:00.000Z",
-    duration: 45,
-    mode: "offline",
-    room: "Room 102",
-    taken: true,
-    score: 78,
-    total: 100,
-    status: "Completed"
-  }
-];
+const DUMMY_EXAMS = [];
 
 // Countdown Timer Component
 const AdmissionCountdown = ({ dateStr, onLaunchTest, examTaken }) => {
@@ -295,7 +259,7 @@ function Exam() {
     }
 
     if (list.length === 0) {
-      return DUMMY_EXAMS;
+      return [];
     }
 
     return list.map((e, idx) => {
@@ -420,7 +384,7 @@ function Exam() {
     }
   };
 
-  const currentNextExam = nextExamItem || DUMMY_EXAMS[0];
+  const currentNextExam = nextExamItem || null;
 
   // Proctoring setup media activations
   const activateCamera = async () => {

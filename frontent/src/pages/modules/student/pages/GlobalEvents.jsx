@@ -16,72 +16,7 @@ import EventGallery from "../../../../components/EventGallery";
 
 const SORA = "'Sora', sans-serif";
 
-const DUMMY_EVENTS = [
-  {
-    _id: "dummy-1",
-    schoolName: "G.D Academy School",
-    title: "Independence Day Celebration 🇮🇳",
-    subtitle: "Celebration",
-    description: "A proud celebration of India's 78th Independence Day with cultural programs, flag hoisting, and students' performances.",
-    eventDate: "2025-08-15T00:00:00.000Z",
-    eventTime: "10:00 AM",
-    status: "completed",
-    photosCount: 15,
-    videosCount: 2,
-    location: "Siwan, Bihar",
-    image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80",
-    photos: [
-      { url: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80", filename: "photo1.jpg", mimeType: "image/jpeg", size: 100000 },
-      { url: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=800&auto=format&fit=crop&q=80", filename: "photo2.jpg", mimeType: "image/jpeg", size: 100000 },
-      { url: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=80", filename: "photo3.jpg", mimeType: "image/jpeg", size: 100000 }
-    ],
-    videos: [
-      { url: "https://www.w3schools.com/html/mov_bbb.mp4", filename: "video1.mp4", mimeType: "video/mp4", size: 5000000 }
-    ]
-  },
-  {
-    _id: "dummy-2",
-    schoolName: "Prince School",
-    title: "Inter School Science Quiz 2025 🧠",
-    subtitle: "Academic",
-    description: "An engaging science quiz competition where students showcased their knowledge and problem-solving skills.",
-    eventDate: "2025-08-10T00:00:00.000Z",
-    eventTime: "11:00 AM",
-    status: "completed",
-    photosCount: 12,
-    videosCount: 1,
-    location: "Noida, Uttar Pradesh",
-    image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&auto=format&fit=crop&q=80",
-    photos: [
-      { url: "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&auto=format&fit=crop&q=80", filename: "photo1.jpg", mimeType: "image/jpeg", size: 100000 },
-      { url: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80", filename: "photo2.jpg", mimeType: "image/jpeg", size: 100000 }
-    ],
-    videos: [
-      { url: "https://www.w3schools.com/html/movie.mp4", filename: "video1.mp4", mimeType: "video/mp4", size: 5000000 }
-    ]
-  },
-  {
-    _id: "dummy-3",
-    schoolName: "Bright Future School",
-    title: "Annual Sports Meet 2025 ⚽",
-    subtitle: "Sports",
-    description: "A day full of energy, teamwork, and sportsmanship. Students participated in various track and field events.",
-    eventDate: "2025-08-05T00:00:00.000Z",
-    eventTime: "09:00 AM",
-    status: "completed",
-    photosCount: 18,
-    videosCount: 3,
-    location: "Patna, Bihar",
-    image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&auto=format&fit=crop&q=80",
-    photos: [
-      { url: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&auto=format&fit=crop&q=80", filename: "photo1.jpg", mimeType: "image/jpeg", size: 100000 },
-      { url: "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800&auto=format&fit=crop&q=80", filename: "photo2.jpg", mimeType: "image/jpeg", size: 100000 }
-    ],
-    videos: [
-      { url: "https://www.w3schools.com/html/mov_bbb.mp4", filename: "video1.mp4", mimeType: "video/mp4", size: 5000000 }
-    ]
-  }
-];
+const DUMMY_EVENTS = [];
 
 const CATEGORIES = [
   { name: "All Events", label: "All Events" },
@@ -182,10 +117,7 @@ function GlobalEvents() {
     return "https://images.unsplash.com/photo-1577896851231-70ef18881754?w=800&auto=format&fit=crop&q=80";
   };
 
-  const allMergedEvents = [
-    ...dbEvents,
-    ...DUMMY_EVENTS.filter(dummy => !dbEvents.some(db => db.title.toLowerCase() === dummy.title.toLowerCase()))
-  ];
+  const allMergedEvents = dbEvents;
 
   const filteredEvents = allMergedEvents.filter((ev) => {
     const searchMatch = searchQuery.trim() === "" ||
