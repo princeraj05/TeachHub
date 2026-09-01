@@ -50,13 +50,22 @@ exports.uploadLogo = async (req, res) => {
       return res.status(400).json({ message: "No logo file uploaded" });
     }
 
-    const cloudinary = require("../config/cloudinary");
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "teachhub/platform",
-      resource_type: "image"
-    });
-
     const fs = require("fs");
+    let logoUrl = "";
+    try {
+      const cloudinary = require("../config/cloudinary");
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "teachhub/platform",
+        resource_type: "image"
+      });
+      logoUrl = result.secure_url;
+    } catch (cErr) {
+      console.error("Cloudinary logo upload error, using base64 fallback:", cErr.message);
+      const fileData = fs.readFileSync(req.file.path);
+      const mimeType = req.file.mimetype || "image/png";
+      logoUrl = `data:${mimeType};base64,${fileData.toString("base64")}`;
+    }
+
     try {
       if (fs.existsSync(req.file.path)) {
         fs.unlinkSync(req.file.path);
@@ -65,7 +74,7 @@ exports.uploadLogo = async (req, res) => {
       console.error("Local file delete error:", err);
     }
 
-    res.json({ url: result.secure_url });
+    res.json({ url: logoUrl });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -28,7 +28,7 @@ import {
 const SORA = "'Sora', sans-serif";
 
 function SuperAdminAboutApp() {
-  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
   const token = localStorage.getItem("token");
 
   // Platform Information
@@ -362,8 +362,25 @@ function SuperAdminAboutApp() {
             <div className="flex flex-col items-center justify-center p-4 border border-slate-100 dark:border-white/5 rounded-2.5xl bg-slate-50/20">
               <span className="block text-[10px] font-black text-slate-455 uppercase tracking-widest mb-3">Platform Logo</span>
               
-              <div className="w-24 h-24 rounded-2.5xl overflow-hidden bg-white border border-slate-200/50 flex items-center justify-center p-2 mb-3 shadow-inner">
-                <img src={logoPreview} alt="Logo" className="w-full h-full object-contain" />
+              <div className="w-24 h-24 rounded-2.5xl overflow-hidden bg-white border border-slate-200/50 flex items-center justify-center p-2 mb-3 shadow-inner relative">
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt="Logo"
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                      if (e.target.nextSibling) e.target.nextSibling.style.display = "flex";
+                    }}
+                  />
+                ) : null}
+                <div
+                  className="w-full h-full flex flex-col items-center justify-center text-[#7C3AED] font-black text-xs"
+                  style={{ display: logoUrl ? "none" : "flex" }}
+                >
+                  <FaUpload className="text-xl mb-1 opacity-60" />
+                  <span>Logo</span>
+                </div>
               </div>
 
               <input
