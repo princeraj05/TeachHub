@@ -60,8 +60,8 @@ function SchoolDescriptionTab({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left animate-fadeIn">
       
-      {/* EDIT SCHOOL DESCRIPTION CARD (7 Cols) */}
-      <div className="lg:col-span-7 bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between">
+      {/* EDIT SCHOOL DESCRIPTION CARD (8 Cols) */}
+      <div className="lg:col-span-8 bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between">
         <div>
           <div className="flex items-center gap-2 border-b border-slate-200/60 dark:border-slate-800/60 pb-3 mb-4">
             <FaEdit className="text-purple-500 text-sm" />
@@ -107,7 +107,7 @@ function SchoolDescriptionTab({
               onInput={(e) => setDescription(e.currentTarget.innerHTML)}
               onBlur={(e) => setDescription(e.currentTarget.innerHTML)}
               dangerouslySetInnerHTML={{ __html: description }}
-              className="w-full min-h-[240px] max-h-[380px] overflow-y-auto p-4 bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none text-xs font-medium leading-relaxed prose dark:prose-invert max-w-none"
+              className="w-full min-h-[260px] max-h-[420px] overflow-y-auto p-4 bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none text-xs font-medium leading-relaxed prose dark:prose-invert max-w-none"
             />
           </div>
 
@@ -124,32 +124,8 @@ function SchoolDescriptionTab({
         </div>
       </div>
 
-      {/* RIGHT COLUMN CARDS (5 Cols) */}
-      <div className="lg:col-span-5 space-y-6 flex flex-col justify-between">
-        
-        {/* PREVIEW CONTAINER */}
-        <div className="bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl">
-          <div className="flex items-center gap-2 border-b border-slate-200/60 dark:border-slate-800/60 pb-3 mb-4">
-            <FaEye className="text-purple-500 text-sm" />
-            <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">Preview</h3>
-          </div>
-          <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium mb-3">This is how your description will appear to students and parents.</p>
-
-          <div className="border border-slate-200 dark:border-slate-850 rounded-xl p-4 bg-slate-50 dark:bg-[#0F172A]/40 min-h-[160px] max-h-56 overflow-y-auto">
-            {/* HTML Description preview container */}
-            <div
-              className="prose dark:prose-invert prose-xs text-xs text-slate-800 dark:text-slate-300 font-medium leading-relaxed space-y-3"
-              dangerouslySetInnerHTML={{ __html: description || `<p className="text-slate-400 italic">Provide a description in the editor to see it here.</p>` }}
-            />
-            
-            <button
-              type="button"
-              className="mt-4 text-[9px] font-extrabold text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              View Full Page Preview &rarr;
-            </button>
-          </div>
-        </div>
+      {/* RIGHT COLUMN CARDS (4 Cols) */}
+      <div className="lg:col-span-4 space-y-6 flex flex-col justify-between">
 
         {/* DESCRIPTION STRENGTH */}
         <div className="bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl">
