@@ -512,7 +512,13 @@ function SuperAdminProfile() {
 
           <div className="my-8 flex flex-col items-center space-y-4">
             <div className="w-32 h-32 rounded-full overflow-hidden bg-slate-100 border border-slate-200 shadow-inner flex items-center justify-center p-1">
-              <img src={avatarSource} alt="Profile Photo" className="w-full h-full object-cover rounded-full" />
+              {avatar ? (
+                <img src={avatar} alt="Profile Photo" className="w-full h-full object-cover rounded-full" />
+              ) : (
+                <div className="w-full h-full bg-[#7C3AED] text-white text-3xl font-black rounded-full flex items-center justify-center">
+                  {profileInitials}
+                </div>
+              )}
             </div>
             <p className="text-[10px] text-slate-400 font-bold">JPG, PNG or GIF. Max size of 2MB.</p>
           </div>
