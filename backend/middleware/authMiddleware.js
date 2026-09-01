@@ -21,30 +21,34 @@ exports.protect = async (req, res, next) => {
     const UserSession = require("../models/UserSession");
     const { parseUserAgent, getIpLocation } = require("../utils/sessionHelper");
     
-    let session = await UserSession.findOne({ token });
+    let session = await UserSession.findOne({ token }).lean();
     if (!session) {
-      // Create session on the fly for active legacy tokens
+      // Create session asynchronously on the fly without blocking middleware
       const ua = req.headers["user-agent"] || "";
       const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "127.0.0.1";
       const { device, browser } = parseUserAgent(ua);
-      const location = await getIpLocation(ip);
-      session = await UserSession.create({
+      UserSession.create({
         userId: user._id,
         token,
         device,
         browser,
         ip,
-        location,
+        location: "Unknown Location",
         status: "Active",
         lastActive: new Date()
-      });
+      }).then(newSession => {
+        getIpLocation(ip).then(loc => {
+          if (loc && loc !== "Unknown Location") {
+            UserSession.findByIdAndUpdate(newSession._id, { location: loc }).catch(() => {});
+          }
+        }).catch(() => {});
+      }).catch(() => {});
     } else if (session.status === "Logged out") {
       return res.status(401).json({ message: "Session has been logged out" });
     } else {
       const now = Date.now();
       if (!session.lastActive || now - new Date(session.lastActive).getTime() > 60000) {
-        session.lastActive = new Date();
-        session.save().catch(() => {});
+        UserSession.updateOne({ _id: session._id }, { lastActive: new Date() }).catch(() => {});
       }
     }
 

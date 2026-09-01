@@ -449,20 +449,20 @@ exports.getProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Auto-migrate legacy oversized base64 avatar to Cloudinary if available
+    // Auto-migrate legacy oversized base64 avatar to Cloudinary asynchronously in the background
     if (user.avatar && user.avatar.startsWith("data:image") && user.avatar.length > 150000) {
       if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
         try {
           const cloudinary = require("../config/cloudinary");
-          const uploadRes = await cloudinary.uploader.upload(user.avatar, {
+          cloudinary.uploader.upload(user.avatar, {
             folder: "teachhub_avatars",
             transformation: [{ width: 300, height: 300, crop: "fill" }]
+          }).then(uploadRes => {
+            User.findByIdAndUpdate(user._id, { avatar: uploadRes.secure_url }).catch(() => {});
+          }).catch(cErr => {
+            console.error("Cloudinary legacy avatar migration failed:", cErr.message);
           });
-          user.avatar = uploadRes.secure_url;
-          await User.findByIdAndUpdate(user._id, { avatar: uploadRes.secure_url });
-        } catch (cErr) {
-          console.error("Cloudinary legacy avatar migration failed:", cErr.message);
-        }
+        } catch (e) {}
       }
     }
     
@@ -481,7 +481,7 @@ exports.getProfile = async (req, res) => {
     userObj.token = token;
 
     // Fetch login sessions for user
-    const sessions = await UserSession.find({ userId: user._id }).sort({ createdAt: -1 });
+    const sessions = await UserSession.find({ userId: user._id }).sort({ createdAt: -1 }).limit(10).lean();
     const totalLogins = sessions.length;
     const lastSession = sessions[0];
     const prevSession = sessions[1];
