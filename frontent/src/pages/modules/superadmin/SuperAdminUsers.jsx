@@ -450,7 +450,7 @@ function SuperAdminUsers() {
                                 userId: user._id,
                                 name: user.name,
                                 email: user.email,
-                                role: user.role === "unassigned" ? "student" : user.role,
+                                role: user.role,
                                 schoolName: user.schoolName || user.requestedSchool || "",
                                 status: displayStatus
                               });

@@ -37,4 +37,7 @@ const userSessionSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+userSessionSchema.index({ token: 1 });
+userSessionSchema.index({ userId: 1 });
+
 module.exports = mongoose.model("UserSession", userSessionSchema);

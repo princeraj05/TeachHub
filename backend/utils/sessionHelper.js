@@ -80,27 +80,39 @@ function getIpLocation(ip) {
     // strip IPv6 prefix if present e.g. ::ffff:103.21.45.67
     const cleanIp = ip.includes(":") ? ip.split(":").pop() : ip;
 
-    http.get(`http://ip-api.com/json/${cleanIp}`, (res) => {
-      let data = "";
-      res.on("data", (chunk) => {
-        data += chunk;
-      });
-      res.on("end", () => {
-        try {
-          const parsed = JSON.parse(data);
-          if (parsed && parsed.status === "success") {
-            const loc = [parsed.city, parsed.regionName, parsed.country].filter(Boolean).join(", ");
-            resolve(loc || "Unknown Location");
-          } else {
+    let timer = setTimeout(() => {
+      resolve("Unknown Location");
+    }, 800);
+
+    try {
+      const req = http.get(`http://ip-api.com/json/${cleanIp}`, (res) => {
+        let data = "";
+        res.on("data", (chunk) => {
+          data += chunk;
+        });
+        res.on("end", () => {
+          clearTimeout(timer);
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed && parsed.status === "success") {
+              const loc = [parsed.city, parsed.regionName, parsed.country].filter(Boolean).join(", ");
+              resolve(loc || "Unknown Location");
+            } else {
+              resolve("Unknown Location");
+            }
+          } catch (e) {
             resolve("Unknown Location");
           }
-        } catch (e) {
-          resolve("Unknown Location");
-        }
+        });
       });
-    }).on("error", () => {
+      req.on("error", () => {
+        clearTimeout(timer);
+        resolve("Unknown Location");
+      });
+    } catch (err) {
+      clearTimeout(timer);
       resolve("Unknown Location");
-    });
+    }
   });
 }
 

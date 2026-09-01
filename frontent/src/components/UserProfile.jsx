@@ -10,6 +10,7 @@ import {
   FaTimes,
   FaCamera
 } from "react-icons/fa";
+import { compressAvatar } from "../utils/mediaCompression";
 
 const SORA = "'Sora', sans-serif";
 
@@ -60,14 +61,15 @@ function UserProfile() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, avatar: reader.result }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressedBase64 = await compressAvatar(file);
+        setFormData((prev) => ({ ...prev, avatar: compressedBase64 }));
+      } catch (err) {
+        console.error("Error compressing avatar:", err);
+      }
     }
   };
 

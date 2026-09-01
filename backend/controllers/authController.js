@@ -444,9 +444,26 @@ exports.verifyOTP = async (req, res) => {
 // ================= GET PROFILE =================
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    let user = await User.findById(req.user.id).select("-password");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    // Auto-migrate legacy oversized base64 avatar to Cloudinary if available
+    if (user.avatar && user.avatar.startsWith("data:image") && user.avatar.length > 150000) {
+      if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+        try {
+          const cloudinary = require("../config/cloudinary");
+          const uploadRes = await cloudinary.uploader.upload(user.avatar, {
+            folder: "teachhub_avatars",
+            transformation: [{ width: 300, height: 300, crop: "fill" }]
+          });
+          user.avatar = uploadRes.secure_url;
+          await User.findByIdAndUpdate(user._id, { avatar: uploadRes.secure_url });
+        } catch (cErr) {
+          console.error("Cloudinary legacy avatar migration failed:", cErr.message);
+        }
+      }
     }
     
     // Generate a fresh token with current role and schoolName
@@ -523,7 +540,27 @@ exports.updateProfile = async (req, res) => {
 
     if (name) user.name = name;
     if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
-    if (avatar !== undefined) user.avatar = avatar;
+    if (avatar !== undefined) {
+      if (avatar && avatar.startsWith("data:image")) {
+        if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+          try {
+            const cloudinary = require("../config/cloudinary");
+            const uploadRes = await cloudinary.uploader.upload(avatar, {
+              folder: "teachhub_avatars",
+              transformation: [{ width: 300, height: 300, crop: "fill" }]
+            });
+            user.avatar = uploadRes.secure_url;
+          } catch (cErr) {
+            console.error("Cloudinary avatar upload failed, saving compressed base64:", cErr.message);
+            user.avatar = avatar;
+          }
+        } else {
+          user.avatar = avatar;
+        }
+      } else {
+        user.avatar = avatar;
+      }
+    }
 
     if (password) {
       const bcrypt = require("bcryptjs");

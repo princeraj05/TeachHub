@@ -6,7 +6,7 @@ const cloudinary = require("../config/cloudinary");
 
 // Helper to get user's authoritative school name
 const getAuthoritativeSchool = async (userId) => {
-  const user = await User.findById(userId);
+  const user = await User.findById(userId).select("role schoolName requestedSchool").lean();
   if (!user) return null;
   // If user is pending/unassigned, use requestedSchool
   if (user.role === "unassigned") {
@@ -121,7 +121,7 @@ exports.getUpcomingEvents = async (req, res) => {
     today.setHours(0, 0, 0, 0);
 
     let query = { 
-      status: { $regex: /^upcoming$/i },
+      status: "upcoming",
       eventDate: { $gte: today }
     };
     const { schoolName, global } = req.query;
@@ -156,7 +156,7 @@ exports.getCompletedEvents = async (req, res) => {
 
     let query = {
       $or: [
-        { status: { $regex: /^completed$/i } },
+        { status: "completed" },
         { eventDate: { $lt: today } }
       ]
     };

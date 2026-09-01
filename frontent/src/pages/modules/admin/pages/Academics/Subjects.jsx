@@ -86,6 +86,14 @@ export default function Subjects() {
 
   const toggleClass = id => setClassIds(current => current.includes(id) ? current.filter(value => value !== id) : [...current, id]);
 
+  const toggleSelectAll = () => {
+    if (classes.length > 0 && classIds.length === classes.length) {
+      setClassIds([]);
+    } else {
+      setClassIds(classes.map(c => c._id));
+    }
+  };
+
   const filtered = subjects.filter(subject => `${subject.name} ${(subject.classes || []).map(item => classLabel(item)).join(" ")}`.toLowerCase().includes(search.toLowerCase()));
 
   return (
@@ -131,7 +139,18 @@ export default function Subjects() {
           </label>
           
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <p className="mb-2 text-xs font-bold text-slate-600">Assign classes</p>
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-xs font-bold text-slate-600">Assign classes</p>
+              {classes.length > 0 && (
+                <button
+                  type="button"
+                  onClick={toggleSelectAll}
+                  className="text-[11px] font-extrabold text-teal-600 hover:text-teal-700 active:scale-95 transition-all cursor-pointer bg-teal-50 border border-teal-200/60 px-2 py-0.5 rounded"
+                >
+                  {classIds.length === classes.length ? "Deselect All" : "Select All"}
+                </button>
+              )}
+            </div>
             <div className="grid max-h-32 grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-2">
               {classes.map(item => (
                 <label key={item._id} className="flex cursor-pointer items-center gap-2 text-xs text-slate-700">

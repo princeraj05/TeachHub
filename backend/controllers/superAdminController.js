@@ -248,7 +248,7 @@ exports.getDashboardStats = async (req, res) => {
         ...recentUsers.map(u => ({
           _id: u._id,
           type: u.role === "unassigned" ? "New user registered" : "User approved",
-          detail: `${u.name} (${u.role === "unassigned" ? "Student" : u.role.charAt(0).toUpperCase() + u.role.slice(1)})`,
+          detail: `${u.name} (${u.role === "unassigned" ? "Unassigned" : u.role.charAt(0).toUpperCase() + u.role.slice(1)})`,
           time: new Date(u.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           dateText: new Date(u.createdAt).toDateString() === new Date().toDateString() ? "Today" : "Yesterday",
           rawDate: u.createdAt

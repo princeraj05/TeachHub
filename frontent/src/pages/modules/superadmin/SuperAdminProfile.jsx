@@ -20,6 +20,7 @@ import {
   FaCheckCircle,
   FaTimesCircle
 } from "react-icons/fa";
+import { compressAvatar } from "../../../utils/mediaCompression";
 
 const SORA = "'Sora', sans-serif";
 
@@ -172,9 +173,8 @@ function SuperAdminProfile() {
     setErrorMsg("");
     setSuccessMsg("");
 
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64Data = reader.result;
+    try {
+      const base64Data = await compressAvatar(file);
       setAvatar(base64Data);
 
       try {
@@ -195,11 +195,12 @@ function SuperAdminProfile() {
         window.dispatchEvent(new Event("profileUpdate"));
         setSuccessMsg("Photo updated!");
         setTimeout(() => setSuccessMsg(""), 3000);
-      } finally {
-        setUploading(false);
       }
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      setErrorMsg("Failed to process image");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSaveChanges = async (e) => {
