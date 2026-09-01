@@ -307,14 +307,27 @@ exports.uploadPhotos = async (req, res) => {
 
     const newPhotos = [];
     for (const file of req.files) {
-      const result = await cloudinary.uploader.upload(file.path, {
-        folder: "teachhub/events/photos",
-        resource_type: "image"
-      });
-      uploadedIds.push(result.public_id);
+      let photoUrl = `/uploads/${file.filename}`;
+      let filename = file.filename;
+
+      if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+        try {
+          const result = await cloudinary.uploader.upload(file.path, {
+            folder: "teachhub/events/photos",
+            resource_type: "image"
+          });
+          uploadedIds.push(result.public_id);
+          photoUrl = result.secure_url;
+          filename = result.public_id;
+          deletePhysicalFile(file.filename);
+        } catch (cErr) {
+          console.error("Cloudinary photo upload error, falling back to local file:", cErr.message);
+        }
+      }
+
       newPhotos.push({
-        url: result.secure_url,
-        filename: result.public_id,
+        url: photoUrl,
+        filename: filename,
         mimeType: file.mimetype,
         size: file.size
       });
@@ -325,10 +338,8 @@ exports.uploadPhotos = async (req, res) => {
 
     res.json(event);
   } catch (err) {
-    await cleanupCloudinaryUploads(uploadedIds, "image");
-    res.status(500).json({ message: "Could not upload photos" });
-  } finally {
-    cleanupTemporaryUploads(req.files);
+    console.error("uploadPhotos error:", err);
+    res.status(500).json({ message: err.message || "Could not upload photos" });
   }
 };
 
@@ -360,18 +371,27 @@ exports.uploadVideos = async (req, res) => {
 
     const newVideos = [];
     for (const file of req.files) {
-      const result = await cloudinary.uploader.upload(file.path, {
-        folder: "teachhub/events/videos",
-        resource_type: "video"
-      });
-      uploadedIds.push(result.public_id);
-      if (Number(result.duration || 0) > 60) {
-        await cleanupCloudinaryUploads(uploadedIds, "video");
-        return res.status(400).json({ message: "Each video must be 1 minute or shorter" });
+      let videoUrl = `/uploads/${file.filename}`;
+      let filename = file.filename;
+
+      if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+        try {
+          const result = await cloudinary.uploader.upload(file.path, {
+            folder: "teachhub/events/videos",
+            resource_type: "video"
+          });
+          uploadedIds.push(result.public_id);
+          videoUrl = result.secure_url;
+          filename = result.public_id;
+          deletePhysicalFile(file.filename);
+        } catch (cErr) {
+          console.error("Cloudinary video upload error, falling back to local file:", cErr.message);
+        }
       }
+
       newVideos.push({
-        url: result.secure_url,
-        filename: result.public_id,
+        url: videoUrl,
+        filename: filename,
         mimeType: file.mimetype,
         size: file.size
       });
@@ -382,10 +402,8 @@ exports.uploadVideos = async (req, res) => {
 
     res.json(event);
   } catch (err) {
-    await cleanupCloudinaryUploads(uploadedIds, "video");
-    res.status(500).json({ message: "Could not upload videos" });
-  } finally {
-    cleanupTemporaryUploads(req.files);
+    console.error("uploadVideos error:", err);
+    res.status(500).json({ message: err.message || "Could not upload videos" });
   }
 };
 
