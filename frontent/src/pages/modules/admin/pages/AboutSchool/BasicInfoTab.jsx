@@ -89,6 +89,9 @@ function BasicInfoTab({
       });
       if (res.data?.url) {
         setPhoto(res.data.url);
+        await axios.put(`${API}/api/schools/my-school`, { photo: res.data.url }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
       }
     } catch (err) {
       alert("Failed to upload image. Please try again.");

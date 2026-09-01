@@ -402,10 +402,18 @@ exports.uploadSchoolPhoto = async (req, res) => {
       }
     }
 
-    const host = req.get("host");
-    const protocol = req.protocol;
-    const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
-    res.json({ url: fileUrl });
+    let fileUrl = "";
+    if (fs.existsSync(req.file.path)) {
+      const fileBuffer = fs.readFileSync(req.file.path);
+      const base64Str = fileBuffer.toString("base64");
+      fileUrl = `data:${req.file.mimetype};base64,${base64Str}`;
+      fs.unlinkSync(req.file.path);
+    } else {
+      const host = req.get("host");
+      const protocol = req.protocol;
+      fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
+    }
+    return res.json({ url: fileUrl });
   } catch (error) {
     const fs = require("fs");
     if (req.file && fs.existsSync(req.file.path)) {
