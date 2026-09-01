@@ -25,7 +25,22 @@ function UserProfile() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetchProfile();
+    let isMounted = true;
+    const safetyTimer = setTimeout(() => {
+      if (isMounted) setLoading(false);
+    }, 2500);
+
+    fetchProfile().finally(() => {
+      if (isMounted) {
+        clearTimeout(safetyTimer);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      clearTimeout(safetyTimer);
+    };
   }, []);
 
   const fetchProfile = async () => {

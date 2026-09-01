@@ -19,6 +19,10 @@ export default function PhotoGallery({ photos, getMediaUrl, onDeletePhoto }) {
             src={getMediaUrl(photo.url)}
             alt={photo.filename || `Event photo ${index + 1}`}
             loading="lazy"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=400&q=80";
+            }}
             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">

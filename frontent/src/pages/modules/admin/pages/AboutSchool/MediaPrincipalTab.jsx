@@ -27,6 +27,12 @@ function MediaPrincipalTab({
   const [activePhotoPreview, setActivePhotoPreview] = useState(null);
   const [activeReplaceIndex, setActiveReplaceIndex] = useState(null);
 
+  const getMediaUrl = (url) => {
+    if (!url) return "";
+    if (url.startsWith("http") || url.startsWith("data:") || url.startsWith("blob:")) return url;
+    return `${API}${url}`;
+  };
+
   const autoSaveMedia = async (updatedPayload) => {
     try {
       const token = localStorage.getItem("token");
@@ -191,7 +197,7 @@ function MediaPrincipalTab({
             <div key={idx} className="flex flex-col gap-2">
               <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-[#0F172A] group">
                 <img
-                  src={url}
+                  src={getMediaUrl(url)}
                   alt={`School Photo ${idx + 1}`}
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -291,9 +297,13 @@ function MediaPrincipalTab({
           {coverImage ? (
             <>
               <img
-                src={coverImage}
+                src={getMediaUrl(coverImage)}
                 alt="School Widescreen Cover Banner"
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=1200&q=80";
+                }}
               />
               <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
                 <button

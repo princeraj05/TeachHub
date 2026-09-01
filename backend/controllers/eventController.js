@@ -310,7 +310,7 @@ exports.uploadPhotos = async (req, res) => {
       let photoUrl = `/uploads/${file.filename}`;
       let filename = file.filename;
 
-      if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+      if (process.env.CLOUDINARY_URL || process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_NAME) {
         try {
           const result = await cloudinary.uploader.upload(file.path, {
             folder: "teachhub/events/photos",
@@ -390,7 +390,7 @@ exports.uploadVideos = async (req, res) => {
       let videoUrl = `/uploads/${file.filename}`;
       let filename = file.filename;
 
-      if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+      if (process.env.CLOUDINARY_URL || process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_NAME) {
         try {
           const result = await cloudinary.uploader.upload(file.path, {
             folder: "teachhub/events/videos",

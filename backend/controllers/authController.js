@@ -480,8 +480,13 @@ exports.getProfile = async (req, res) => {
     const userObj = user.toObject();
     userObj.token = token;
 
-    // Fetch login sessions for user
-    const sessions = await UserSession.find({ userId: user._id }).sort({ createdAt: -1 }).limit(10).lean();
+    // Fetch login sessions for user safely
+    let sessions = [];
+    try {
+      sessions = await UserSession.find({ userId: user._id }).sort({ createdAt: -1 }).limit(10).lean();
+    } catch (sErr) {
+      console.error("UserSession fetch error:", sErr.message);
+    }
     const totalLogins = sessions.length;
     const lastSession = sessions[0];
     const prevSession = sessions[1];
