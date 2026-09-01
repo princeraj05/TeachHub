@@ -29,10 +29,12 @@ exports.getSchools = async (req, res) => {
   }
 };
 
+const escapeRegex = (str) => (str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // GET /api/schools/my-school
 exports.getMySchool = async (req, res) => {
   try {
-    const adminUser = await User.findById(req.user.id);
+    const adminUser = await User.findById(req.user.id).select("role schoolName").lean();
     if (!adminUser || adminUser.role !== "admin") {
       return res.status(403).json({ message: "Unauthorized: Only School Admins can access their school details" });
     }
@@ -43,12 +45,19 @@ exports.getMySchool = async (req, res) => {
     }
 
     const normalized = normalizeName(schoolName);
-    let school = await School.findOne({ normalizedName: normalized });
+    let school = await School.findOne({
+      $or: [
+        { normalizedName: normalized },
+        { name: new RegExp("^" + escapeRegex(schoolName.trim()) + "$", "i") }
+      ]
+    });
     if (!school) {
       school = new School({
         name: schoolName.trim(),
         normalizedName: normalized
       });
+    } else if (!school.normalizedName) {
+      school.normalizedName = normalized;
     }
 
     // Auto-seed example data if not filled (matching the mockup images exactly)
@@ -141,11 +150,18 @@ exports.getMySchool = async (req, res) => {
       await school.save();
     }
 
-    // Fetch dynamic counts
-    const dynamicStudentsCount = await User.countDocuments({ role: "student", schoolName });
-    const dynamicTeachersCount = await User.countDocuments({ role: "teacher", schoolName });
-    const dynamicClassesCount = await Class.countDocuments({ schoolName });
-    const dynamicSubjectsCount = await Subject.countDocuments({ schoolName });
+    // Fetch dynamic counts in parallel
+    const [
+      dynamicStudentsCount,
+      dynamicTeachersCount,
+      dynamicClassesCount,
+      dynamicSubjectsCount
+    ] = await Promise.all([
+      User.countDocuments({ role: "student", schoolName }),
+      User.countDocuments({ role: "teacher", schoolName }),
+      Class.countDocuments({ schoolName }),
+      Subject.countDocuments({ schoolName })
+    ]);
 
     const schoolObj = school.toObject();
     schoolObj.totalStudents = dynamicStudentsCount || 0;
@@ -162,7 +178,7 @@ exports.getMySchool = async (req, res) => {
 // PUT /api/schools/my-school
 exports.updateMySchool = async (req, res) => {
   try {
-    const adminUser = await User.findById(req.user.id);
+    const adminUser = await User.findById(req.user.id).select("role schoolName").lean();
     if (!adminUser || adminUser.role !== "admin") {
       return res.status(403).json({ message: "Unauthorized: Only School Admins can update school details" });
     }
@@ -173,12 +189,19 @@ exports.updateMySchool = async (req, res) => {
     }
 
     const normalized = normalizeName(schoolName);
-    let school = await School.findOne({ normalizedName: normalized });
+    let school = await School.findOne({
+      $or: [
+        { normalizedName: normalized },
+        { name: new RegExp("^" + escapeRegex(schoolName.trim()) + "$", "i") }
+      ]
+    });
     if (!school) {
       school = new School({
         name: schoolName.trim(),
         normalizedName: normalized
       });
+    } else if (!school.normalizedName) {
+      school.normalizedName = normalized;
     }
 
     const {
