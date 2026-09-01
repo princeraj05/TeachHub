@@ -78,7 +78,7 @@ const defaultProfile = {
 };
 
 function SuperAdminProfile() {
-  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
   const token = localStorage.getItem("token");
 
   // Profile data state - INSTANT LOAD
@@ -101,12 +101,8 @@ function SuperAdminProfile() {
   // Form input fields state initialized from profile
   const [name, setName] = useState(profile.name || "Super Admin");
   const [phoneNumber, setPhoneNumber] = useState(profile.phoneNumber || "+91 98765 43210");
-  const [alternateEmail, setAlternateEmail] = useState(profile.alternateEmail || "admin@teachhub.app");
-  const [dob, setDob] = useState(profile.dob || "01 Jan 1995");
   const [gender, setGender] = useState(profile.gender || "Male");
   const [address, setAddress] = useState(profile.address || "Patna, Bihar, India");
-  const [timezone, setTimezone] = useState(profile.timezone || "(GMT+05:30) Asia/Kolkata");
-  const [language, setLanguage] = useState(profile.language || "English");
   const [about, setAbout] = useState(profile.about || "System owner.");
   const [avatar, setAvatar] = useState(profile.avatar || "");
 
@@ -156,12 +152,8 @@ function SuperAdminProfile() {
 
         setName(d.name || "Super Admin");
         setPhoneNumber(d.phoneNumber || "+91 98765 43210");
-        setAlternateEmail(d.alternateEmail || "admin@teachhub.app");
-        setDob(d.dob || "01 Jan 1995");
         setGender(d.gender || "Male");
         setAddress(d.address || "Patna, Bihar, India");
-        setTimezone(d.timezone || "(GMT+05:30) Asia/Kolkata");
-        setLanguage(d.language || "English");
         setAbout(d.about || "System administrator.");
         setAvatar(d.avatar || "");
       }
@@ -176,33 +168,38 @@ function SuperAdminProfile() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Use FileReader for preview
+    setUploading(true);
+    setErrorMsg("");
+    setSuccessMsg("");
+
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setAvatar(reader.result);
+    reader.onloadend = async () => {
+      const base64Data = reader.result;
+      setAvatar(base64Data);
+
+      try {
+        const res = await axios.put(`${API}/api/auth/profile`, { avatar: base64Data }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data?.user) {
+          setProfile(res.data.user);
+          localStorage.setItem("avatar", res.data.user.avatar || base64Data);
+          localStorage.setItem("cached_superadmin_profile", JSON.stringify(res.data.user));
+        }
+        window.dispatchEvent(new Event("profileUpdate"));
+        setSuccessMsg("Photo updated successfully!");
+        setTimeout(() => setSuccessMsg(""), 3000);
+      } catch (err) {
+        // Fallback to storing in localStorage if offline
+        localStorage.setItem("avatar", base64Data);
+        window.dispatchEvent(new Event("profileUpdate"));
+        setSuccessMsg("Photo updated!");
+        setTimeout(() => setSuccessMsg(""), 3000);
+      } finally {
+        setUploading(false);
+      }
     };
     reader.readAsDataURL(file);
-
-    // Upload to Cloudinary using standard support uploader
-    const formData = new FormData();
-    formData.append("file", file);
-    setUploading(true);
-
-    try {
-      const uploadRes = await axios.post(`${API}/api/support/upload`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data"
-        }
-      });
-      setAvatar(uploadRes.data.url);
-      setSuccessMsg("Photo updated successfully!");
-      setTimeout(() => setSuccessMsg(""), 3000);
-    } catch (err) {
-      setErrorMsg("Failed to save avatar image.");
-    } finally {
-      setUploading(false);
-    }
   };
 
   const handleSaveChanges = async (e) => {
@@ -215,12 +212,8 @@ function SuperAdminProfile() {
       const payload = {
         name,
         phoneNumber,
-        alternateEmail,
-        dob,
         gender,
         address,
-        timezone,
-        language,
         about,
         avatar
       };
@@ -232,6 +225,7 @@ function SuperAdminProfile() {
       setProfile(res.data.user);
       localStorage.setItem("name", res.data.user.name);
       localStorage.setItem("avatar", res.data.user.avatar || "");
+      localStorage.setItem("cached_superadmin_profile", JSON.stringify(res.data.user));
       window.dispatchEvent(new Event("profileUpdate"));
       setEditMode(false);
       setSuccessMsg("Personal profile settings saved successfully!");
@@ -308,7 +302,6 @@ function SuperAdminProfile() {
   }
 
   const profileInitials = name ? name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase() : "SA";
-  const avatarSource = avatar || "https://res.cloudinary.com/dvm1s1hsp/image/upload/v1724653556/teachhub_logo_placeholder.png";
 
   return (
     <div style={{ fontFamily: SORA }} className="space-y-6 text-slate-805 dark:text-white text-left max-w-5xl mx-auto pb-12 select-none animate-fadeIn">
@@ -391,34 +384,19 @@ function SuperAdminProfile() {
               <FaPhoneAlt className="text-slate-400" /> {phoneNumber}
             </p>
             <p className="text-xs text-slate-500 font-bold flex items-center gap-1.5 justify-center sm:justify-start">
-              <FaMapMarkerAlt className="text-slate-400" /> {address || "No Address Provided"}
+              <FaMapMarkerAlt className="text-slate-400" /> {address || "No Location Provided"}
             </p>
           </div>
         </div>
 
         {/* Right role metrics log card block */}
-        <div className="border-t lg:border-t-0 lg:border-l border-slate-100 dark:border-white/5 pt-5 lg:pt-0 lg:pl-8 flex-grow grid grid-cols-2 gap-4 text-xs font-bold text-slate-500 select-none">
+        <div className="border-t lg:border-t-0 lg:border-l border-slate-100 dark:border-white/5 pt-5 lg:pt-0 lg:pl-8 flex-grow flex flex-col justify-center gap-3 text-xs font-bold text-slate-500 select-none">
           <div className="space-y-1">
             <span className="text-[9px] font-black text-slate-405 uppercase tracking-widest block">Role</span>
-            <p className="text-slate-805 dark:text-white font-extrabold">Super Administrator</p>
+            <p className="text-slate-805 dark:text-white font-extrabold text-sm">Super Administrator</p>
           </div>
 
-          <div className="space-y-1">
-            <span className="text-[9px] font-black text-slate-405 uppercase tracking-widest block">Employee ID</span>
-            <p className="text-slate-805 dark:text-white font-extrabold">SA-0001</p>
-          </div>
-
-          <div className="space-y-1">
-            <span className="text-[9px] font-black text-slate-405 uppercase tracking-widest block">Member Since</span>
-            <p className="text-slate-805 dark:text-white font-extrabold flex items-center gap-1"><FaCalendarAlt /> {profile?.createdAt ? formatDate(profile.createdAt) : "N/A"}</p>
-          </div>
-
-          <div className="space-y-1">
-            <span className="text-[9px] font-black text-slate-405 uppercase tracking-widest block">Last Login</span>
-            <p className="text-slate-805 dark:text-white font-extrabold flex items-center gap-1"><FaRegClock /> {profile?.loginActivity?.lastLogin ? formatDate(profile.loginActivity.lastLogin.time) : "N/A"}</p>
-          </div>
-
-          <div className="col-span-2 pt-1.5">
+          <div className="pt-1">
             <span className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider inline-block">Active Account</span>
           </div>
         </div>
@@ -467,24 +445,6 @@ function SuperAdminProfile() {
               </div>
 
               <div className="space-y-1">
-                <span className="text-[9px] font-black text-slate-405 uppercase tracking-widest block">Alternate Email</span>
-                {editMode ? (
-                  <input type="email" value={alternateEmail} onChange={(e) => setAlternateEmail(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#1E293B] text-slate-805 dark:text-white font-semibold outline-none focus:border-[#7C3AED]" />
-                ) : (
-                  <p className="text-slate-805 dark:text-white font-extrabold text-xs">{alternateEmail}</p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <span className="text-[9px] font-black text-slate-405 uppercase tracking-widest block">Date of Birth</span>
-                {editMode ? (
-                  <input type="text" value={dob} onChange={(e) => setDob(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#1E293B] text-slate-805 dark:text-white font-semibold outline-none focus:border-[#7C3AED]" />
-                ) : (
-                  <p className="text-slate-850 dark:text-white font-extrabold text-xs">{dob}</p>
-                )}
-              </div>
-
-              <div className="space-y-1">
                 <span className="text-[9px] font-black text-slate-405 uppercase tracking-widest block">Gender</span>
                 {editMode ? (
                   <select value={gender} onChange={(e) => setGender(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#1E293B] text-slate-805 dark:text-white font-semibold outline-none focus:border-[#7C3AED] cursor-pointer">
@@ -498,33 +458,11 @@ function SuperAdminProfile() {
               </div>
 
               <div className="md:col-span-2 space-y-1">
-                <span className="text-[9px] font-black text-slate-405 uppercase tracking-widest block">Address</span>
+                <span className="text-[9px] font-black text-slate-405 uppercase tracking-widest block">Current Location</span>
                 {editMode ? (
                   <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#1E293B] text-slate-805 dark:text-white font-semibold outline-none focus:border-[#7C3AED]" />
                 ) : (
                   <p className="text-slate-850 dark:text-white font-extrabold text-xs">{address}</p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <span className="text-[9px] font-black text-slate-405 uppercase tracking-widest block">Time Zone</span>
-                {editMode ? (
-                  <select value={timezone} onChange={(e) => setTimezone(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#1E293B] text-slate-805 dark:text-white font-semibold outline-none focus:border-[#7C3AED] cursor-pointer">
-                    {COMMON_TIMEZONES.map((tz) => (
-                      <option key={tz} value={tz}>{tz}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <p className="text-slate-850 dark:text-white font-extrabold text-xs flex items-center gap-1"><FaGlobe /> {timezone}</p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <span className="text-[9px] font-black text-slate-405 uppercase tracking-widest block">Language</span>
-                {editMode ? (
-                  <input type="text" value={language} onChange={(e) => setLanguage(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#1E293B] text-slate-805 dark:text-white font-semibold outline-none focus:border-[#7C3AED]" />
-                ) : (
-                  <p className="text-slate-850 dark:text-white font-extrabold text-xs">{language}</p>
                 )}
               </div>
 

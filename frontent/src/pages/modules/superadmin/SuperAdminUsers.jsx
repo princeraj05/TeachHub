@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
+import { useSearchParams } from "react-router-dom";
 import {
   FaUsers,
   FaUserClock,
@@ -23,6 +24,10 @@ const defaultUsers = [];
 function SuperAdminUsers() {
   const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
   const token = localStorage.getItem("token");
+  const [searchParams] = useSearchParams();
+
+  const initialStatus = searchParams.get("status") || "All";
+  const initialRole = searchParams.get("role") || "All";
 
   // Instant load state from local cache or pre-loaded defaults
   const [users, setUsers] = useState(() => {
@@ -45,8 +50,16 @@ function SuperAdminUsers() {
   const [success, setSuccess] = useState("");
 
   const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [roleFilter, setRoleFilter] = useState(initialRole);
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
+
+  // Sync state if URL query params change
+  useEffect(() => {
+    const urlStatus = searchParams.get("status");
+    const urlRole = searchParams.get("role");
+    if (urlStatus && urlStatus !== statusFilter) setStatusFilter(urlStatus);
+    if (urlRole && urlRole !== roleFilter) setRoleFilter(urlRole);
+  }, [searchParams]);
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -64,16 +77,22 @@ function SuperAdminUsers() {
     status: "Approved"
   });
 
-  // Background fetch on mount
+  // Background fetch on mount & filter change
   useEffect(() => {
     fetchUsers();
     fetchSchools();
-  }, []);
+  }, [roleFilter, statusFilter]);
 
   const fetchUsers = async () => {
     try {
       setSyncing(true);
+      const params = {};
+      if (roleFilter !== "All") params.role = roleFilter;
+      if (statusFilter !== "All") params.status = statusFilter;
+      if (search) params.search = search;
+
       const res = await axios.get(`${API}/api/superadmin/users`, {
+        params,
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = Array.isArray(res.data) ? res.data : (res.data?.users || res.data?.data || []);
@@ -97,11 +116,14 @@ function SuperAdminUsers() {
     } catch (err) {}
   };
 
-  // Instant statistics
+  // Instant statistics (Superadmin is excluded from Total, Pending, and Active Admins)
   const stats = useMemo(() => {
-    const total = users.length;
-    const pending = users.filter((u) => u.role === "unassigned" || u.requestStatus === "pending").length;
-    const admins = users.filter((u) => u.role === "admin" || u.role === "superadmin").length;
+    const nonSuperAdminUsers = users.filter((u) => u.role !== "superadmin");
+    const total = nonSuperAdminUsers.length;
+    const pending = nonSuperAdminUsers.filter(
+      (u) => u.role === "unassigned" || u.requestStatus === "pending" || u.requestStatus === "scheduled" || u.requestStatus === "exam_completed"
+    ).length;
+    const admins = users.filter((u) => u.role === "admin").length;
     const teachers = users.filter((u) => u.role === "teacher").length;
     return { total, pending, admins, teachers };
   }, [users]);
@@ -122,7 +144,8 @@ function SuperAdminUsers() {
       const matchesRole =
         roleFilter === "All" || role.toLowerCase() === roleFilter.toLowerCase();
 
-      const userStatus = (role === "unassigned" || u.requestStatus === "pending") ? "Pending" : "Approved";
+      const isPending = (role === "unassigned" || u.requestStatus === "pending" || u.requestStatus === "scheduled" || u.requestStatus === "exam_completed");
+      const userStatus = isPending ? "Pending" : (u.requestStatus === "rejected" ? "Rejected" : "Approved");
       const matchesStatus =
         statusFilter === "All" || userStatus.toLowerCase() === statusFilter.toLowerCase();
 

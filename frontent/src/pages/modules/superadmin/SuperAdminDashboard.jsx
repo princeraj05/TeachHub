@@ -133,7 +133,7 @@ function SuperAdminDashboard() {
               {stats?.pendingApprovals || 0}
             </h3>
             <button
-              onClick={() => navigate("/superadmin/users")}
+              onClick={() => navigate("/superadmin/users?status=Pending")}
               className="text-xs text-amber-400/90 hover:underline font-medium mt-1 inline-block"
             >
               Requires review →
@@ -148,9 +148,9 @@ function SuperAdminDashboard() {
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Schools</p>
             <h3 className="text-2xl font-extrabold text-white mt-1">
-              {stats?.totalSchools || 0}
+              {(stats?.totalSchools || 0).toLocaleString()}
             </h3>
-            <span className="text-xs text-emerald-400 font-medium mt-1 inline-block">Active institutions</span>
+            <span className="text-xs text-emerald-400 font-medium mt-1 inline-block">Active Institutions</span>
           </div>
           <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xl">
             <FaSchool />
@@ -177,7 +177,7 @@ function SuperAdminDashboard() {
           <h3 className="text-base font-bold text-white mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
-              onClick={() => navigate("/superadmin/users")}
+              onClick={() => navigate("/superadmin/users?status=Pending")}
               className="p-4 rounded-xl bg-[#0B0F19] hover:bg-slate-800/70 border border-slate-700/60 transition-all text-left group"
             >
               <p className="text-sm font-bold text-blue-400 group-hover:text-blue-300 flex items-center justify-between">

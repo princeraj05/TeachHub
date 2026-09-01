@@ -3,21 +3,48 @@ const User = require("../models/User");
 // GET /api/superadmin/users
 exports.getUsers = async (req, res) => {
   try {
-    const { role, schoolName, search } = req.query;
+    const { role, status, schoolName, search } = req.query;
 
     const query = {};
 
-    if (role) {
-      query.role = role;
+    if (role && role !== "All") {
+      query.role = role.toLowerCase();
     }
-    if (schoolName) {
+
+    if (status && status !== "All") {
+      if (status.toLowerCase() === "pending") {
+        query.role = { $ne: "superadmin" };
+        query.$or = [
+          { role: "unassigned" },
+          { requestStatus: { $in: ["pending", "scheduled", "exam_completed"] } }
+        ];
+      } else if (status.toLowerCase() === "approved") {
+        query.role = { $ne: "unassigned" };
+        query.requestStatus = { $nin: ["pending", "scheduled", "exam_completed"] };
+      }
+    }
+
+    if (schoolName && schoolName !== "All") {
       query.schoolName = schoolName;
     }
+
     if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
+      const searchRegex = { $regex: search, $options: "i" };
+      const searchCond = [
+        { name: searchRegex },
+        { email: searchRegex },
+        { schoolName: searchRegex },
+        { requestedSchool: searchRegex }
       ];
+      if (query.$or) {
+        query.$and = [
+          { $or: query.$or },
+          { $or: searchCond }
+        ];
+        delete query.$or;
+      } else {
+        query.$or = searchCond;
+      }
     }
 
     const users = await User.find(query)
@@ -140,6 +167,7 @@ exports.getDashboardStats = async (req, res) => {
     // 1. User stats
     const totalUsers = await User.countDocuments({ role: { $ne: "superadmin" } });
     const pendingApprovals = await User.countDocuments({ 
+      role: { $ne: "superadmin" },
       $or: [
         { role: "unassigned", requestStatus: { $ne: "rejected" } },
         { requestStatus: { $in: ["pending", "scheduled", "exam_completed"] } }
