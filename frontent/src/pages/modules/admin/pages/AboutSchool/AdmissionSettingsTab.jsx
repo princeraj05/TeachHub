@@ -322,23 +322,90 @@ function AdmissionSettingsTab({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Opening Time</label>
-                <input
-                  type="text"
-                  value={openingTime}
-                  onChange={(e) => setOpeningTime(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none font-bold"
-                  placeholder="e.g. 08:00 AM"
-                />
+                <div className="relative flex items-center">
+                  <FaClock className="pointer-events-none absolute left-3 text-slate-400 text-xs z-10" />
+                  <input
+                    type="text"
+                    value={openingTime}
+                    onChange={(e) => setOpeningTime(e.target.value)}
+                    className="w-full pl-8 pr-16 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 font-bold"
+                    placeholder="08:00 AM"
+                  />
+                  <div className="absolute right-1.5 flex gap-1 bg-slate-200/50 dark:bg-white/10 p-0.5 rounded-lg border border-slate-300/40 dark:border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const raw = (openingTime || "08:00").replace(/am|pm/gi, "").trim();
+                        setOpeningTime(`${raw || "08:00"} AM`);
+                      }}
+                      className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold transition cursor-pointer ${
+                        (openingTime || "").toUpperCase().includes("AM")
+                          ? "bg-purple-600 text-white shadow-sm"
+                          : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                      }`}
+                    >
+                      AM
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const raw = (openingTime || "08:00").replace(/am|pm/gi, "").trim();
+                        setOpeningTime(`${raw || "08:00"} PM`);
+                      }}
+                      className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold transition cursor-pointer ${
+                        (openingTime || "").toUpperCase().includes("PM")
+                          ? "bg-purple-600 text-white shadow-sm"
+                          : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                      }`}
+                    >
+                      PM
+                    </button>
+                  </div>
+                </div>
               </div>
+
               <div>
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Closing Time</label>
-                <input
-                  type="text"
-                  value={closingTime}
-                  onChange={(e) => setClosingTime(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none font-bold"
-                  placeholder="e.g. 04:00 PM"
-                />
+                <div className="relative flex items-center">
+                  <FaClock className="pointer-events-none absolute left-3 text-slate-400 text-xs z-10" />
+                  <input
+                    type="text"
+                    value={closingTime}
+                    onChange={(e) => setClosingTime(e.target.value)}
+                    className="w-full pl-8 pr-16 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 font-bold"
+                    placeholder="04:00 PM"
+                  />
+                  <div className="absolute right-1.5 flex gap-1 bg-slate-200/50 dark:bg-white/10 p-0.5 rounded-lg border border-slate-300/40 dark:border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const raw = (closingTime || "04:00").replace(/am|pm/gi, "").trim();
+                        setClosingTime(`${raw || "04:00"} AM`);
+                      }}
+                      className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold transition cursor-pointer ${
+                        (closingTime || "").toUpperCase().includes("AM")
+                          ? "bg-purple-600 text-white shadow-sm"
+                          : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                      }`}
+                    >
+                      AM
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const raw = (closingTime || "04:00").replace(/am|pm/gi, "").trim();
+                        setClosingTime(`${raw || "04:00"} PM`);
+                      }}
+                      className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold transition cursor-pointer ${
+                        (closingTime || "").toUpperCase().includes("PM")
+                          ? "bg-purple-600 text-white shadow-sm"
+                          : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                      }`}
+                    >
+                      PM
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
