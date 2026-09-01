@@ -348,10 +348,8 @@ app.use("/uploads", express.static(uploadDir));
 
 const io = new Server(server, {
   cors: {
-    origin: [
-      "http://localhost:5173",
-      "https://myschool-admin-panel.vercel.app"
-    ]
+    origin: true,
+    methods: ["GET", "POST"]
   }
 });
 

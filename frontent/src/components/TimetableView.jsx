@@ -38,7 +38,7 @@ export default function TimetableView() {
   const headers = { Authorization: `Bearer ${localStorage.getItem("token")}` };
   const [entries, setEntries] = useState([]); const [now, setNow] = useState(new Date()); const [loading, setLoading] = useState(true); const [error, setError] = useState(""); const [teacherStatus, setTeacherStatus] = useState("");
   const load = () => axios.get(`${API}/api/timetable?day=${dayName.format(new Date())}`, { headers }).then((response) => setEntries(response.data)).catch((err) => setError(err.response?.data?.message || "Could not load timetable")).finally(() => setLoading(false));
-  useEffect(() => { const timer = setInterval(() => setNow(new Date()), 30000); return () => clearInterval(timer); }, []);
+  useEffect(() => { const timer = setInterval(() => setNow(new Date()), 60000); return () => clearInterval(timer); }, []);
   useEffect(() => { load(); }, [API]);
   const markTeacherAttendance = async (status) => { try { await axios.put(`${API}/api/teacher-attendance/today`, { status }, { headers }); setTeacherStatus(`Today marked ${status}.`); load(); } catch (err) { setTeacherStatus(err.response?.data?.message || "Could not update attendance."); } };
   const sorted = useMemo(() => [...entries].sort((a, b) => a.startTime.localeCompare(b.startTime)), [entries]);

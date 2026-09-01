@@ -41,7 +41,7 @@ export default function TodayTimetableWidget() {
   const day = useMemo(() => new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(new Date()), []);
 
   useEffect(() => { axios.get(`${API}/api/timetable?day=${day}`, { headers: { Authorization: `Bearer ${token}` } }).then((response) => setEntries(response.data)).catch(() => setEntries([])); }, [API, day, token]);
-  useEffect(() => { const timer = setInterval(() => setNow(new Date()), 30000); return () => clearInterval(timer); }, []);
+  useEffect(() => { const timer = setInterval(() => setNow(new Date()), 60000); return () => clearInterval(timer); }, []);
   const current = entries.find((entry) => statusFor(entry, now) === "Going On");
   const next = entries.find((entry) => statusFor(entry, now) === "Coming");
   const display = current || next || entries[entries.length - 1];
