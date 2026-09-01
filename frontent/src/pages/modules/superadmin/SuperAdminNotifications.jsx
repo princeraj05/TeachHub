@@ -20,7 +20,7 @@ import {
 const defaultNotifications = [];
 
 function SuperAdminNotifications() {
-  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
+  const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
   const token = localStorage.getItem("token");
 
   // Instant load state from local cache or pre-loaded defaults
