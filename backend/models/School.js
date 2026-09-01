@@ -90,7 +90,7 @@ const schoolSchema = new mongoose.Schema({
   principalLeadershipSince: { type: String, default: "" },
   principalIntroduction: { type: String, default: "" },
   schoolCategoriesList: { type: [String], default: [] },
-  admissionProcess: { type: String, enum: ["Entrance Exam Required", "Direct Admission"], default: "Direct Admission" },
+  admissionProcess: { type: mongoose.Schema.Types.Mixed, default: ["Direct Admission"] },
   schoolBoardType: { type: String, enum: ["Private", "Government", "Government Aided", "Trust / Society"], default: "Private" },
   appointmentBookingType: { type: String, default: "Online Booking" },
   appointmentAdvanceDays: { type: Number, default: 7 },

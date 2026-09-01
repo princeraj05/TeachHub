@@ -112,48 +112,45 @@ function AdmissionSettingsTab({
               <FaClipboardList className="text-purple-500 text-sm" />
               <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">Admission Process</h3>
             </div>
-            <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium mb-4">Configure how students can get admission.</p>
+            <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium mb-4">Select all admission processes that apply to your school.</p>
 
-            <div className="space-y-4">
-              {/* Entrance Exam Required */}
-              <label className={`flex items-start gap-3 p-4 rounded-xl border transition cursor-pointer select-none ${
-                admissionProcess === "Entrance Exam Required" ? "border-purple-600 bg-purple-50 dark:bg-purple-600/10" : "border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-[#131B35]/20 hover:bg-slate-100 dark:hover:bg-[#131B35]/40"
-              }`}>
-                <input
-                  type="radio"
-                  name="admissionProcess"
-                  value="Entrance Exam Required"
-                  checked={admissionProcess === "Entrance Exam Required"}
-                  onChange={() => setAdmissionProcess("Entrance Exam Required")}
-                  className="mt-0.5 text-purple-600 focus:ring-purple-500/20"
-                />
-                <div>
-                  <span className="block text-xs font-bold text-slate-900 dark:text-white">Entrance Exam Required</span>
-                  <span className="block text-[10px] text-slate-500 dark:text-slate-400 mt-1 leading-normal">
-                    Students need to clear an entrance exam for admission.
-                  </span>
-                </div>
-              </label>
+            <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+              {[
+                { title: "Entrance Exam Required", desc: "Students need to clear an entrance exam for admission." },
+                { title: "Direct Admission", desc: "Students can get admission directly without entrance exam." },
+                { title: "Merit Based Admission", desc: "Admission granted based on past academic marks & grades." },
+                { title: "Interaction / Interview", desc: "Student & parent interaction or oral interview." }
+              ].map(opt => {
+                const processList = Array.isArray(admissionProcess) ? admissionProcess : (admissionProcess ? [admissionProcess] : []);
+                const checked = processList.includes(opt.title);
 
-              {/* Direct Admission */}
-              <label className={`flex items-start gap-3 p-4 rounded-xl border transition cursor-pointer select-none ${
-                admissionProcess === "Direct Admission" ? "border-purple-600 bg-purple-50 dark:bg-purple-600/10" : "border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-[#131B35]/20 hover:bg-slate-100 dark:hover:bg-[#131B35]/40"
-              }`}>
-                <input
-                  type="radio"
-                  name="admissionProcess"
-                  value="Direct Admission"
-                  checked={admissionProcess === "Direct Admission"}
-                  onChange={() => setAdmissionProcess("Direct Admission")}
-                  className="mt-0.5 text-purple-600 focus:ring-purple-500/20"
-                />
-                <div>
-                  <span className="block text-xs font-bold text-slate-900 dark:text-white">Direct Admission</span>
-                  <span className="block text-[10px] text-slate-500 dark:text-slate-400 mt-1 leading-normal">
-                    Students can get admission directly without entrance exam.
-                  </span>
-                </div>
-              </label>
+                const toggleOption = () => {
+                  if (checked) {
+                    setAdmissionProcess(processList.filter(item => item !== opt.title));
+                  } else {
+                    setAdmissionProcess([...processList, opt.title]);
+                  }
+                };
+
+                return (
+                  <label key={opt.title} className={`flex items-start gap-3 p-3.5 rounded-xl border transition cursor-pointer select-none ${
+                    checked ? "border-purple-600 bg-purple-50 dark:bg-purple-600/10" : "border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-[#131B35]/20 hover:bg-slate-100 dark:hover:bg-[#131B35]/40"
+                  }`}>
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={toggleOption}
+                      className="mt-0.5 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-purple-600 focus:ring-purple-500/20"
+                    />
+                    <div>
+                      <span className={`block text-xs font-bold ${checked ? "text-purple-600 dark:text-purple-400 font-extrabold" : "text-slate-900 dark:text-white"}`}>{opt.title}</span>
+                      <span className="block text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-normal">
+                        {opt.desc}
+                      </span>
+                    </div>
+                  </label>
+                );
+              })}
             </div>
           </div>
         </div>

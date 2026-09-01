@@ -69,7 +69,7 @@ function AboutYourSchool() {
 
   // Tab 3: Admission & Settings states
   const [schoolCategoriesList, setSchoolCategoriesList] = useState([]);
-  const [admissionProcess, setAdmissionProcess] = useState("Direct Admission");
+  const [admissionProcess, setAdmissionProcess] = useState(["Direct Admission"]);
   const [schoolBoardType, setSchoolBoardType] = useState("Private");
   const [teacherAppointmentBooking, setTeacherAppointmentBooking] = useState(true);
   const [appointmentBookingType, setAppointmentBookingType] = useState("Online Booking");
@@ -138,7 +138,7 @@ function AboutYourSchool() {
 
         // Tab 3 fields
         setSchoolCategoriesList(data.schoolCategoriesList || []);
-        setAdmissionProcess(data.admissionProcess || "Direct Admission");
+        setAdmissionProcess(Array.isArray(data.admissionProcess) ? data.admissionProcess : (data.admissionProcess ? [data.admissionProcess] : ["Direct Admission"]));
         setSchoolBoardType(data.schoolBoardType || "Private");
         setTeacherAppointmentBooking(data.teacherAppointmentBooking !== false);
         setAppointmentBookingType(data.appointmentBookingType || "Online Booking");

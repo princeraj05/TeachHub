@@ -117,7 +117,7 @@ exports.getMySchool = async (req, res) => {
       school.schoolCategoriesList = ["Primary", "Secondary", "Co-Educational", "Residential"];
       modified = true;
     }
-    if (!school.admissionProcess) { school.admissionProcess = "Direct Admission"; modified = true; }
+    if (!school.admissionProcess || (Array.isArray(school.admissionProcess) && school.admissionProcess.length === 0)) { school.admissionProcess = ["Direct Admission"]; modified = true; }
     if (!school.schoolBoardType) { school.schoolBoardType = "Private"; modified = true; }
     if (school.teacherAppointmentBooking === undefined || school.teacherAppointmentBooking === null) {
       school.teacherAppointmentBooking = true;

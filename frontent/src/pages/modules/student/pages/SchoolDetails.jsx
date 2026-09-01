@@ -528,7 +528,7 @@ function SchoolDetails() {
                   </div>
                   <div className="flex justify-between pb-1">
                     <span className="text-slate-400 dark:text-slate-500">Admission Process</span>
-                    <span className="text-purple-650 dark:text-sky-400 font-extrabold">{school.admissionProcess || "Direct Admission"}</span>
+                    <span className="text-purple-650 dark:text-sky-400 font-extrabold">{Array.isArray(school.admissionProcess) ? school.admissionProcess.join(", ") : (school.admissionProcess || "Direct Admission")}</span>
                   </div>
                 </div>
               </div>
