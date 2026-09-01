@@ -17,41 +17,7 @@ import {
   FaSync
 } from "react-icons/fa";
 
-// Pre-loaded initial notifications for 0ms instant display
-const defaultNotifications = [
-  {
-    id: "notif-1",
-    title: "Pending Approval: New Teacher Registration",
-    description: "Teacher applied for registration under Lincoln Academy and is awaiting verification.",
-    category: "Approvals",
-    time: "5m ago",
-    unread: true
-  },
-  {
-    id: "notif-2",
-    title: "Payment Received: G.D Academy Enterprise Plan",
-    description: "Subscription payment of ₹14,999 received successfully via Razorpay for G.D Academy.",
-    category: "Payments",
-    time: "12m ago",
-    unread: true
-  },
-  {
-    id: "notif-3",
-    title: "Support Ticket #1874 Updated by School Admin",
-    description: "Principal Banny Thapar submitted a query regarding student attendance reporting.",
-    category: "Support",
-    time: "20m ago",
-    unread: true
-  },
-  {
-    id: "notif-4",
-    title: "System Live & Operational",
-    description: "All services are running normally with active MongoDB & Socket.io connections.",
-    category: "System",
-    time: "1h ago",
-    unread: false
-  }
-];
+const defaultNotifications = [];
 
 function SuperAdminNotifications() {
   const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
@@ -63,10 +29,12 @@ function SuperAdminNotifications() {
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) {
+          return parsed.filter(n => !["notif-1", "notif-2", "notif-3", "notif-4"].includes(n.id));
+        }
       } catch (e) {}
     }
-    return defaultNotifications;
+    return [];
   });
 
   const [syncing, setSyncing] = useState(false);
@@ -90,32 +58,30 @@ function SuperAdminNotifications() {
       });
 
       const recentActivity = statsRes.data?.recentActivity || [];
-      if (recentActivity.length > 0) {
-        const liveItems = recentActivity.map((act, index) => {
-          let category = "System";
-          if (act.type?.includes("user") || act.type?.includes("registration")) {
-            category = "Approvals";
-          } else if (act.type?.includes("Payment") || act.type?.includes("received")) {
-            category = "Payments";
-          } else if (act.type?.includes("Support") || act.type?.includes("Ticket")) {
-            category = "Support";
-          }
+      const liveItems = recentActivity.map((act, index) => {
+        let category = "System";
+        if (act.type?.includes("user") || act.type?.includes("registration")) {
+          category = "Approvals";
+        } else if (act.type?.includes("Payment") || act.type?.includes("received")) {
+          category = "Payments";
+        } else if (act.type?.includes("Support") || act.type?.includes("Ticket")) {
+          category = "Support";
+        }
 
-          return {
-            id: act._id || `notif-${index}`,
-            title: act.type || "System Activity",
-            description: act.detail || "Platform event recorded.",
-            category: category,
-            time: act.time || act.dateText || "Recently",
-            unread: true
-          };
-        });
+        return {
+          id: act._id || `notif-${index}`,
+          title: act.type || "System Activity",
+          description: act.detail || "Platform event recorded.",
+          category: category,
+          time: act.time || act.dateText || "Recently",
+          unread: true
+        };
+      });
 
-        setNotifications(liveItems);
-        localStorage.setItem("cached_superadmin_notifications", JSON.stringify(liveItems));
-      }
+      setNotifications(liveItems);
+      localStorage.setItem("cached_superadmin_notifications", JSON.stringify(liveItems));
     } catch (err) {
-      console.log("Using cached notifications state");
+      console.log("Error fetching live notifications");
     } finally {
       setSyncing(false);
     }

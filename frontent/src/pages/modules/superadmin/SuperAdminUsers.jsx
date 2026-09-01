@@ -18,17 +18,7 @@ import {
   FaSync
 } from "react-icons/fa";
 
-// Pre-loaded initial users for 0ms instant display
-const defaultUsers = [
-  { _id: "u1", name: "Banny Thapar", email: "principal@gdacademy.com", role: "admin", schoolName: "G.D Academy", requestStatus: "approved" },
-  { _id: "u2", name: "Alex Thompson", email: "alex.t@example.com", role: "superadmin", schoolName: "Oakwood High", requestStatus: "approved" },
-  { _id: "u3", name: "Adna Thompson", email: "admin@example.com", role: "unassigned", requestedSchool: "Lincoln Academy", requestStatus: "pending" },
-  { _id: "u4", name: "Maya Smith", email: "adns.t@example.com", role: "teacher", schoolName: "G.D Academy", requestStatus: "approved" },
-  { _id: "u5", name: "Amna Smith", email: "alex.t2@example.com", role: "teacher", schoolName: "Oakwood High", requestStatus: "pending" },
-  { _id: "u6", name: "Maria Burson", email: "maria.t@example.com", role: "student", schoolName: "G.D Academy", requestStatus: "approved" },
-  { _id: "u7", name: "Maria Turson", email: "maris@example.com", role: "student", schoolName: "Lincoln Academy", requestStatus: "approved" },
-  { _id: "u8", name: "Jania Burson", email: "jania.t@example.com", role: "student", schoolName: "Lincoln Academy", requestStatus: "approved" }
-];
+const defaultUsers = [];
 
 function SuperAdminUsers() {
   const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
@@ -40,13 +30,15 @@ function SuperAdminUsers() {
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) {
+          return parsed.filter(u => !["u1","u2","u3","u4","u5","u6","u7","u8"].includes(u._id));
+        }
       } catch (e) {}
     }
-    return defaultUsers;
+    return [];
   });
 
-  const [schoolsList, setSchoolsList] = useState(["G.D Academy", "Oakwood High", "Lincoln Academy"]);
+  const [schoolsList, setSchoolsList] = useState([]);
   const [syncing, setSyncing] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState("");
@@ -85,12 +77,10 @@ function SuperAdminUsers() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = Array.isArray(res.data) ? res.data : (res.data?.users || res.data?.data || []);
-      if (data.length > 0) {
-        setUsers(data);
-        localStorage.setItem("cached_superadmin_users", JSON.stringify(data));
-      }
+      setUsers(data);
+      localStorage.setItem("cached_superadmin_users", JSON.stringify(data));
     } catch (err) {
-      console.log("Using cached users state");
+      console.log("Error loading users state");
     } finally {
       setSyncing(false);
     }
@@ -101,7 +91,7 @@ function SuperAdminUsers() {
       const res = await axios.get(`${API}/api/superadmin/schools`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (Array.isArray(res.data) && res.data.length > 0) {
+      if (Array.isArray(res.data)) {
         setSchoolsList(res.data);
       }
     } catch (err) {}

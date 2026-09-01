@@ -14,36 +14,7 @@ import {
 import { useCall } from "../../../context/CallContext";
 import SupportChatEngine from "../../../components/SupportChatEngine";
 
-// Pre-loaded initial School Admin contacts for 0ms instant display
-const defaultAdminContacts = [
-  {
-    _id: "admin_gd_academy",
-    name: "Banny Thapar",
-    email: "principal@gdacademy.com",
-    role: "admin",
-    schoolName: "G.D Academy",
-    isOnline: true,
-    avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80"
-  },
-  {
-    _id: "admin_lincoln",
-    name: "Sarah Johnson",
-    email: "admin@lincoln.com",
-    role: "admin",
-    schoolName: "Lincoln Academy",
-    isOnline: false,
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80"
-  },
-  {
-    _id: "admin_pine",
-    name: "James Wilson",
-    email: "admin@pineacademy.com",
-    role: "admin",
-    schoolName: "Pine Academy",
-    isOnline: true,
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
-  }
-];
+const defaultAdminContacts = [];
 
 function SuperAdminSupport() {
   const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
@@ -55,13 +26,15 @@ function SuperAdminSupport() {
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) {
+          return parsed.filter(c => !["admin_gd_academy", "admin_lincoln", "admin_pine"].includes(c._id));
+        }
       } catch (e) {}
     }
-    return defaultAdminContacts;
+    return [];
   });
 
-  const [activeContact, setActiveContact] = useState(() => adminContacts[0] || defaultAdminContacts[0]);
+  const [activeContact, setActiveContact] = useState(() => adminContacts[0] || null);
   const [search, setSearch] = useState("");
   const [syncing, setSyncing] = useState(false);
 
@@ -103,25 +76,27 @@ function SuperAdminSupport() {
       });
 
       const usersList = Array.isArray(res.data) ? res.data : (res.data?.users || []);
-      if (usersList.length > 0) {
-        const mappedAdmins = usersList.map((u, index) => ({
-          _id: u._id,
-          name: u.name || "School Admin",
-          email: u.email || "",
-          role: "admin",
-          schoolName: u.schoolName || u.requestedSchool || "Partner School",
-          isOnline: u.isOnline !== undefined ? u.isOnline : index % 2 === 0,
-          avatar: u.photo || ""
-        }));
+      const mappedAdmins = usersList.map((u, index) => ({
+        _id: u._id,
+        name: u.name || "School Admin",
+        email: u.email || "",
+        role: "admin",
+        schoolName: u.schoolName || u.requestedSchool || "Partner School",
+        isOnline: u.isOnline !== undefined ? u.isOnline : false,
+        avatar: u.photo || ""
+      }));
 
-        setAdminContacts(mappedAdmins);
-        localStorage.setItem("cached_superadmin_support_contacts", JSON.stringify(mappedAdmins));
+      setAdminContacts(mappedAdmins);
+      localStorage.setItem("cached_superadmin_support_contacts", JSON.stringify(mappedAdmins));
+      if (mappedAdmins.length > 0) {
         if (!activeContact || !mappedAdmins.some((c) => c._id === activeContact._id)) {
           setActiveContact(mappedAdmins[0]);
         }
+      } else {
+        setActiveContact(null);
       }
     } catch (err) {
-      console.log("Using pre-loaded School Admin contacts");
+      console.log("Error loading School Admin contacts");
     } finally {
       setSyncing(false);
     }

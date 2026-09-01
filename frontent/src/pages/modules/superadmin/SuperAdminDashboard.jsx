@@ -13,26 +13,22 @@ import {
   FaSync
 } from "react-icons/fa";
 
-// Pre-loaded initial stats for 0ms instant display
 const defaultStats = {
-  totalUsers: 8,
-  pendingApprovals: 3,
-  totalSchools: 3,
-  admins: 2,
-  teachers: 2,
-  students: 4,
+  totalUsers: 0,
+  pendingApprovals: 0,
+  totalSchools: 0,
+  admins: 0,
+  teachers: 0,
+  students: 0,
   financials: {
-    totalRevenue: 530,
-    pendingAmount: 520,
-    pendingSchools: 1,
-    paidSchools: 1
+    totalRevenue: 0,
+    pendingAmount: 0,
+    pendingSchools: 0,
+    paidSchools: 0
   }
 };
 
-const defaultActivity = [
-  { type: "New user registered", detail: "Banny Thapar (Admin)", dateText: "Today" },
-  { type: "Payment received", detail: "G.D Academy - SCHOOL SUBSCRIPTION", dateText: "Today" }
-];
+const defaultActivity = [];
 
 function SuperAdminDashboard() {
   const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
@@ -45,7 +41,7 @@ function SuperAdminDashboard() {
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
-        if (parsed && typeof parsed === "object") return parsed;
+        if (parsed && typeof parsed === "object" && parsed.totalSchools !== 3 && parsed.totalUsers !== 8) return parsed;
       } catch (e) {}
     }
     return defaultStats;
@@ -56,10 +52,10 @@ function SuperAdminDashboard() {
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       } catch (e) {}
     }
-    return defaultActivity;
+    return [];
   });
 
   const [syncing, setSyncing] = useState(false);

@@ -21,12 +21,7 @@ import {
   FaSync
 } from "react-icons/fa";
 
-// Pre-loaded initial schools data for 0ms instant display
-const defaultSchools = [
-  { _id: "s1", name: "G.D Academy", location: "New Delhi, India", email: "principal@gdacademy.com", plan: "Enterprise", status: "Active", stats: { admins: 1, teachers: 15, students: 350 } },
-  { _id: "s2", name: "Pine Academy", location: "Mumbai, India", email: "admin@pineacademy.com", plan: "Pro", status: "Active", stats: { admins: 1, teachers: 10, students: 240 } },
-  { _id: "s3", name: "Lincoln Academy", location: "Bengaluru, India", email: "admin@lincoln.com", plan: "Free Plan (Trial)", status: "Pending", stats: { admins: 1, teachers: 5, students: 120 } }
-];
+const defaultSchools = [];
 
 function SuperAdminSchools() {
   const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
@@ -38,10 +33,12 @@ function SuperAdminSchools() {
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) {
+          return parsed.filter(s => s._id !== "s1" && s._id !== "s2" && s._id !== "s3" && s.name !== "Pine Academy" && s.name !== "Lincoln Academy");
+        }
       } catch (e) {}
     }
-    return defaultSchools;
+    return [];
   });
 
   const [syncing, setSyncing] = useState(false);
@@ -81,12 +78,10 @@ function SuperAdminSchools() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = Array.isArray(res.data) ? res.data : [];
-      if (data.length > 0) {
-        setSchools(data);
-        localStorage.setItem("cached_superadmin_schools", JSON.stringify(data));
-      }
+      setSchools(data);
+      localStorage.setItem("cached_superadmin_schools", JSON.stringify(data));
     } catch (err) {
-      console.log("Using cached schools state");
+      console.log("Error loading live schools");
     } finally {
       setSyncing(false);
     }

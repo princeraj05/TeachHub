@@ -5,32 +5,7 @@ import EventGallery from "../../../components/EventGallery";
 
 const SORA = "'Sora', sans-serif";
 
-  const defaultEvents = [
-    {
-      _id: "ev1",
-      title: "Annual Sports & Cultural Fest 2026",
-      description: "Inter-school sports competitions including track events, football, and cultural dance performances.",
-      date: new Date(Date.now() + 86400000 * 5).toISOString(),
-      time: "09:00 AM - 04:00 PM",
-      venue: "Main Sports Ground",
-      schoolName: "G.D Academy",
-      category: "Sports",
-      type: "upcoming",
-      gallery: []
-    },
-    {
-      _id: "ev2",
-      title: "Science & Technology Exhibition",
-      description: "Student projects demonstration on robotics, AI models, and environmental science.",
-      date: new Date(Date.now() - 86400000 * 10).toISOString(),
-      time: "10:00 AM - 03:00 PM",
-      venue: "Science Auditorium",
-      schoolName: "Oakwood High",
-      category: "Academic",
-      type: "completed",
-      gallery: []
-    }
-  ];
+const defaultEvents = [];
 
 function SuperAdminEvents() {
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -63,10 +38,12 @@ function SuperAdminEvents() {
       const cached = localStorage.getItem("cached_superadmin_events");
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) {
+          return parsed.filter(e => e._id !== "ev1" && e._id !== "ev2");
+        }
       }
     } catch (e) {}
-    return defaultEvents;
+    return [];
   });
   const [schools, setSchools] = useState([]);
   const [selectedSchool, setSelectedSchool] = useState("all");
@@ -89,11 +66,11 @@ function SuperAdminEvents() {
       const res = await axios.get(`${API}/api/auth/schools`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (Array.isArray(res.data) && res.data.length > 0) {
+      if (Array.isArray(res.data)) {
         setSchools(res.data);
       }
     } catch (err) {
-      console.log("Using default schools list");
+      console.log("Error loading schools list");
     }
   };
 
@@ -106,12 +83,12 @@ function SuperAdminEvents() {
         params,
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (Array.isArray(res.data) && res.data.length > 0) {
+      if (Array.isArray(res.data)) {
         setEvents(res.data);
         localStorage.setItem("cached_superadmin_events", JSON.stringify(res.data));
       }
     } catch (err) {
-      console.log("Using cached events state");
+      console.log("Error loading events state");
     } finally {
       setLoading(false);
     }
