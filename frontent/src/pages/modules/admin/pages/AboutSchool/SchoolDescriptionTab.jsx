@@ -49,6 +49,14 @@ function SchoolDescriptionTab({
   if (strengthScore >= 80) progressColor = "bg-emerald-500";
   else if (strengthScore >= 50) progressColor = "bg-amber-500";
 
+  const handleFormat = (command, value = null) => {
+    document.execCommand(command, false, value);
+    const editor = document.getElementById("school-description-editor");
+    if (editor) {
+      setDescription(editor.innerHTML);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left animate-fadeIn">
       
@@ -61,42 +69,45 @@ function SchoolDescriptionTab({
           </div>
           <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium mb-4">Use the editor below to write about your school.</p>
 
-          {/* CUSTOM TEXT EDITOR TOOLBAR */}
+          {/* CUSTOM RICH TEXT EDITOR TOOLBAR */}
           <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-slate-50 dark:bg-[#0F172A]">
             
             {/* Toolbar Buttons */}
             <div className="flex flex-wrap items-center gap-1.5 p-2 border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-[#131B35]/40 select-none">
-              <span className="text-[10px] font-bold text-slate-700 dark:text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-0.5 rounded cursor-pointer flex items-center gap-1">
-                Paragraph <FaChevronDown className="text-[7px]" />
-              </span>
+              <select
+                onChange={(e) => handleFormat("formatBlock", e.target.value)}
+                className="text-[10px] font-bold text-slate-700 dark:text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-1 rounded cursor-pointer outline-none"
+              >
+                <option value="p">Paragraph</option>
+                <option value="h3">Heading (H3)</option>
+                <option value="h4">Subheading (H4)</option>
+              </select>
               <div className="h-4 w-px bg-slate-300 dark:bg-slate-800 mx-1" />
-              <button type="button" className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Bold"><FaBold /></button>
-              <button type="button" className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Italic"><FaItalic /></button>
-              <button type="button" className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Underline"><FaUnderline /></button>
-              <button type="button" className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Strikethrough"><FaStrikethrough /></button>
+              <button type="button" onClick={() => handleFormat("bold")} className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Bold"><FaBold /></button>
+              <button type="button" onClick={() => handleFormat("italic")} className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Italic"><FaItalic /></button>
+              <button type="button" onClick={() => handleFormat("underline")} className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Underline"><FaUnderline /></button>
+              <button type="button" onClick={() => handleFormat("strikeThrough")} className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Strikethrough"><FaStrikethrough /></button>
               <div className="h-4 w-px bg-slate-300 dark:bg-slate-800 mx-1" />
-              <button type="button" className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Bullet List"><FaListUl /></button>
-              <button type="button" className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Numbered List"><FaListOl /></button>
+              <button type="button" onClick={() => handleFormat("insertUnorderedList")} className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Bullet List"><FaListUl /></button>
+              <button type="button" onClick={() => handleFormat("insertOrderedList")} className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Numbered List"><FaListOl /></button>
               <div className="h-4 w-px bg-slate-300 dark:bg-slate-800 mx-1" />
-              <button type="button" className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Align Left"><FaAlignLeft /></button>
-              <button type="button" className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Align Center"><FaAlignCenter /></button>
-              <button type="button" className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Align Right"><FaAlignRight /></button>
+              <button type="button" onClick={() => handleFormat("justifyLeft")} className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Align Left"><FaAlignLeft /></button>
+              <button type="button" onClick={() => handleFormat("justifyCenter")} className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Align Center"><FaAlignCenter /></button>
+              <button type="button" onClick={() => handleFormat("justifyRight")} className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Align Right"><FaAlignRight /></button>
               <div className="h-4 w-px bg-slate-300 dark:bg-slate-800 mx-1" />
-              <button type="button" className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Insert Link"><FaLink /></button>
-              <button type="button" className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Insert Image"><FaImage /></button>
-              <button type="button" className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Insert Video"><FaVideo /></button>
-              <div className="h-4 w-px bg-slate-300 dark:bg-slate-800 mx-1" />
-              <button type="button" className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Undo"><FaUndo /></button>
-              <button type="button" className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Redo"><FaRedo /></button>
+              <button type="button" onClick={() => handleFormat("undo")} className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Undo"><FaUndo /></button>
+              <button type="button" onClick={() => handleFormat("redo")} className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer text-[10px]" title="Redo"><FaRedo /></button>
             </div>
 
-            {/* Editable Text Area (simulated simple Rich Text box or textarea) */}
-            <textarea
-              rows="12"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-4 bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none resize-none leading-relaxed text-xs border-0 font-medium font-mono"
-              placeholder="Write HTML or plain text details here..."
+            {/* WYSIWYG contentEditable Rich Text Area */}
+            <div
+              id="school-description-editor"
+              contentEditable
+              suppressContentEditableWarning
+              onInput={(e) => setDescription(e.currentTarget.innerHTML)}
+              onBlur={(e) => setDescription(e.currentTarget.innerHTML)}
+              dangerouslySetInnerHTML={{ __html: description }}
+              className="w-full min-h-[240px] max-h-[380px] overflow-y-auto p-4 bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none text-xs font-medium leading-relaxed prose dark:prose-invert max-w-none"
             />
           </div>
 
@@ -104,9 +115,8 @@ function SchoolDescriptionTab({
           <div className="flex items-center justify-between text-[9px] font-bold text-slate-500 dark:text-slate-400 mt-4 select-none">
             <span>Words: {wordCount} &nbsp;&bull;&nbsp; Characters: {charCount}</span>
             <div className="flex items-center gap-2">
-              <span>Last saved: {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}, 11:28 AM</span>
               <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded uppercase tracking-wide">
-                All changes saved
+                Live Rich Text Editor
               </span>
             </div>
           </div>
