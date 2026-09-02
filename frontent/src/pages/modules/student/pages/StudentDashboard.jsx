@@ -14,6 +14,7 @@ import {
   FaExclamationTriangle
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
+import TodayTimetableWidget from "../../../../components/TodayTimetableWidget";
 
 const SORA = "'Sora', sans-serif";
 
@@ -236,6 +237,9 @@ function StudentDashboard() {
           </div>
         </div>
       )}
+
+      {/* Today's Timetable Widget (Matching Screenshot 2) */}
+      <TodayTimetableWidget />
 
       {/* Weekly Timetable Panel Wrapper */}
       <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-sm">
