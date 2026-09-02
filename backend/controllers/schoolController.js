@@ -126,6 +126,27 @@ exports.getMySchool = async (req, res) => {
       modified = true;
     }
 
+    // Self-clean legacy dummy seed URLs that may have broken previously
+    if (school.photo && school.photo.includes("/uploads/schoolPhotos-")) {
+      school.photo = "";
+      modified = true;
+    }
+    if (school.coverImage && school.coverImage.includes("/uploads/schoolPhotos-")) {
+      school.coverImage = "";
+      modified = true;
+    }
+    if (school.principalPhoto && school.principalPhoto.includes("/uploads/schoolPhotos-")) {
+      school.principalPhoto = "";
+      modified = true;
+    }
+    if (Array.isArray(school.schoolPhotos)) {
+      const filteredPhotos = school.schoolPhotos.filter(p => p && !p.includes("/uploads/schoolPhotos-"));
+      if (filteredPhotos.length !== school.schoolPhotos.length) {
+        school.schoolPhotos = filteredPhotos;
+        modified = true;
+      }
+    }
+
     if (modified || school.isNew) {
       await school.save();
     }
@@ -378,15 +399,21 @@ exports.uploadSchoolPhoto = async (req, res) => {
         }
         return res.json({ url: result.secure_url });
       } catch (cErr) {
-        console.error("Cloudinary upload failed, falling back to static server URL:", cErr.message);
+        console.error("Cloudinary upload failed, falling back to permanent base64 Data URI:", cErr.message);
       }
     }
 
-    // Return static URL instead of giant base64 data URI to protect MongoDB 16MB BSON limit
-    const host = req.get("host");
-    const protocol = req.headers["x-forwarded-proto"] || req.protocol;
-    const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
-    return res.json({ url: fileUrl });
+    // Convert file to permanent Base64 Data URI stored directly in MongoDB
+    const fileBuffer = fs.readFileSync(req.file.path);
+    const mimeType = req.file.mimetype || "image/jpeg";
+    const base64Data = fileBuffer.toString("base64");
+    const dataUri = `data:${mimeType};base64,${base64Data}`;
+
+    if (fs.existsSync(req.file.path)) {
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
+    }
+
+    return res.json({ url: dataUri });
   } catch (error) {
     const fs = require("fs");
     if (req.file && fs.existsSync(req.file.path)) {

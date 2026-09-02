@@ -248,9 +248,6 @@ function MediaPrincipalTab({
                   src={getMediaUrl(url)}
                   alt={`School Photo ${idx + 1}`}
                   className="w-full h-full object-cover"
-                  onError={() => {
-                    handleDeletePhoto(idx);
-                  }}
                 />
                 <span className="absolute top-2 left-2 w-5 h-5 rounded-full bg-purple-600 text-white text-[10px] font-black flex items-center justify-center shadow-md">
                   {idx + 1}
@@ -349,10 +346,6 @@ function MediaPrincipalTab({
                 src={getMediaUrl(coverImage)}
                 alt="School Widescreen Cover Banner"
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
-                onError={() => {
-                  setCoverImage("");
-                  autoSaveMedia({ coverImage: "" });
-                }}
               />
               <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
                 <button
@@ -413,10 +406,6 @@ function MediaPrincipalTab({
                     src={getMediaUrl(principalPhoto)}
                     alt="Principal"
                     className="w-full h-full object-cover"
-                    onError={() => {
-                      setPrincipalPhoto("");
-                      autoSaveMedia({ principalPhoto: "" });
-                    }}
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center text-slate-400 gap-1 p-2 text-center">

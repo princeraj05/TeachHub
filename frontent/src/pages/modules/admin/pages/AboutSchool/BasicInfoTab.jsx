@@ -118,7 +118,6 @@ function BasicInfoTab({
                   src={photo.startsWith("http") || photo.startsWith("data:") ? photo : `${API}${photo}`}
                   alt="Official School Logo Badge"
                   className="w-full h-full object-cover"
-                  onError={() => setPhoto("")}
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center text-slate-400 gap-1">
