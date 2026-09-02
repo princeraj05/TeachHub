@@ -387,18 +387,24 @@ exports.uploadSchoolPhoto = async (req, res) => {
     }
     const fs = require("fs");
 
-    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+    const hasCloudinary = process.env.CLOUDINARY_URL ||
+      ( (process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_NAME) && 
+        (process.env.CLOUDINARY_API_KEY || process.env.CLOUDINARY_KEY) && 
+        (process.env.CLOUDINARY_API_SECRET || process.env.CLOUDINARY_SECRET) );
+
+    if (hasCloudinary) {
       try {
         const cloudinary = require("../config/cloudinary");
         const result = await cloudinary.uploader.upload(req.file.path, {
           folder: "teachhub_schools",
+          resource_type: "image"
         });
         if (fs.existsSync(req.file.path)) {
-          fs.unlinkSync(req.file.path);
+          try { fs.unlinkSync(req.file.path); } catch (e) {}
         }
         return res.json({ url: result.secure_url });
       } catch (cErr) {
-        console.error("Cloudinary upload failed, falling back to local static URL:", cErr.message);
+        console.error("Cloudinary upload failed, falling back to static URL/base64:", cErr.message);
       }
     }
 
@@ -407,7 +413,7 @@ exports.uploadSchoolPhoto = async (req, res) => {
       const fileBuffer = fs.readFileSync(req.file.path);
       const base64Str = fileBuffer.toString("base64");
       fileUrl = `data:${req.file.mimetype};base64,${base64Str}`;
-      fs.unlinkSync(req.file.path);
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
     } else {
       const host = req.get("host");
       const protocol = req.protocol;
@@ -417,7 +423,7 @@ exports.uploadSchoolPhoto = async (req, res) => {
   } catch (error) {
     const fs = require("fs");
     if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
     }
     res.status(500).json({ message: error.message });
   }
