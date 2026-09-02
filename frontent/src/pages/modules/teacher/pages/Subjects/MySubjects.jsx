@@ -51,15 +51,15 @@ function MySubjects() {
   subjects.forEach(s => {
     s.classes?.forEach(c => classesSet.add(c._id || `${c.name}-${c.section}`));
   });
-  const totalClassesAssigned = classesSet.size || 8;
+  const totalClassesAssigned = classesSet.size;
 
   // Sum students across subjects
-  const totalStudents = subjects.reduce((sum, s) => sum + (s.studentsCount || 0), 0) || 128;
+  const totalStudents = subjects.reduce((sum, s) => sum + (s.studentsCount || 0), 0);
 
   // Average progress across subjects
   const avgProgress = totalSubjects > 0 
     ? Math.round(subjects.reduce((sum, s) => sum + (s.progress || 0), 0) / totalSubjects)
-    : 78;
+    : 0;
 
   // Filter subjects by search query
   const filteredSubjects = subjects.filter(s => 

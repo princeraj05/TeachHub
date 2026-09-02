@@ -59,15 +59,14 @@ exports.getTeacherDashboard = async (req, res) => {
     });
 
     const totalAttendanceCount = todayAttendance.length;
-    // Fallback/mock logic for attendance if not marked yet to make UI look nice:
     const attendanceStats = {
-      present: totalAttendanceCount > 0 ? presentCount : Math.round(uniqueStudentsCount * 0.92) || 117,
-      absent: totalAttendanceCount > 0 ? absentCount : Math.round(uniqueStudentsCount * 0.07) || 9,
-      late: 2, // Mocked late count as it is not in the DB enum
-      leave: totalAttendanceCount > 0 ? leaveCount : Math.round(uniqueStudentsCount * 0.01) || 0,
-      total: totalAttendanceCount > 0 ? uniqueStudentsCount : (uniqueStudentsCount || 128)
+      present: presentCount,
+      absent: absentCount,
+      late: 0,
+      leave: leaveCount,
+      total: totalAttendanceCount > 0 ? totalAttendanceCount : uniqueStudentsCount
     };
-    attendanceStats.percentage = Math.round((attendanceStats.present / attendanceStats.total) * 100) || 92;
+    attendanceStats.percentage = attendanceStats.total > 0 ? Math.round((attendanceStats.present / attendanceStats.total) * 100) : 0;
 
     // 4. Fetch upcoming exams count and list
     const upcomingExams = await Exam.find({
@@ -167,15 +166,7 @@ exports.getTeacherDashboard = async (req, res) => {
         }, 0);
         avgScore = Math.round(totalScorePct / submissions.length);
       } else {
-        // Fallback mockup scores for the performance overview chart so it displays correctly
-        const fallbacks = {
-          "10-A": 92,
-          "10-B": 78,
-          "9-A": 85,
-          "9-B": 65
-        };
-        const key = `${c.name}-${c.section}`;
-        avgScore = fallbacks[key] || 75;
+        avgScore = 0;
       }
       classPerformance.push({
         className: `${c.name} - ${c.section}`,
@@ -237,33 +228,6 @@ exports.getTeacherDashboard = async (req, res) => {
     // Sort recent activities by time descending
     recentActivities.sort((a, b) => new Date(b.time) - new Date(a.time));
 
-    // Add some realistic mockup activities if the array is empty
-    if (recentActivities.length === 0) {
-      const now = new Date();
-      recentActivities.push(
-        {
-          type: "attendance",
-          title: "You marked attendance for Class 10 - A",
-          time: new Date(now.getTime() - 1000 * 60 * 15) // 15 mins ago
-        },
-        {
-          type: "assignment",
-          title: "New assignment added in Science",
-          time: new Date(now.getTime() - 1000 * 60 * 90) // 90 mins ago
-        },
-        {
-          type: "exam",
-          title: "Exam scheduled: Mathematics - Unit Test",
-          time: new Date(now.getTime() - 1000 * 60 * 60 * 20) // 20 hours ago
-        },
-        {
-          type: "leave",
-          title: "Leave request approved",
-          time: new Date(now.getTime() - 1000 * 60 * 60 * 25) // 25 hours ago
-        }
-      );
-    }
-
     // 8. Recent Students list (from teacher's classes)
     const recentStudents = [];
     classes.forEach(c => {
@@ -281,11 +245,11 @@ exports.getTeacherDashboard = async (req, res) => {
     });
 
     res.json({
-      studentsCount: uniqueStudentsCount || 128,
-      classesCount: classesCount || 4,
-      sectionsCount: sectionsCount || 2,
-      subjectsCount: subjectsCount || 3,
-      upcomingExamsCount: upcomingExamsCount || 2,
+      studentsCount: uniqueStudentsCount,
+      classesCount: classesCount,
+      sectionsCount: sectionsCount,
+      subjectsCount: subjectsCount,
+      upcomingExamsCount: upcomingExamsCount,
       attendanceStats,
       timetable: formattedTimetable,
       upcomingExams: formattedExams,

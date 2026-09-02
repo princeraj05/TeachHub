@@ -60,13 +60,13 @@ function ShowTimetable() {
 
   // Attendance stats state
   const [attendanceStats, setAttendanceStats] = useState({
-    percentage: 92,
-    present: 196,
-    absent: 14,
-    late: 3,
+    percentage: 0,
+    present: 0,
+    absent: 0,
+    late: 0,
     leave: 0,
-    totalClasses: 24,
-    totalStudents: 128
+    totalClasses: 0,
+    totalStudents: 0
   });
 
   const parseTimeToMin = (tStr) => {
@@ -99,13 +99,13 @@ function ShowTimetable() {
   ];
 
   const daysOfWeek = [
-    { name: "Monday", label: "Mon", dateStr: "26 May" },
-    { name: "Tuesday", label: "Tue", dateStr: "27 May", isToday: true },
-    { name: "Wednesday", label: "Wed", dateStr: "28 May" },
-    { name: "Thursday", label: "Thu", dateStr: "29 May" },
-    { name: "Friday", label: "Fri", dateStr: "30 May" },
-    { name: "Saturday", label: "Sat", dateStr: "31 May" },
-    { name: "Sunday", label: "Sun", dateStr: "01 June" }
+    { name: "Monday", label: "Mon" },
+    { name: "Tuesday", label: "Tue" },
+    { name: "Wednesday", label: "Wed" },
+    { name: "Thursday", label: "Thu" },
+    { name: "Friday", label: "Fri" },
+    { name: "Saturday", label: "Sat" },
+    { name: "Sunday", label: "Sun" }
   ];
 
   useEffect(() => {
@@ -126,13 +126,13 @@ function ShowTimetable() {
         if (res.data && res.data.kpis) {
           const kpis = res.data.kpis;
           setAttendanceStats({
-            percentage: kpis.percentage || 92,
-            present: kpis.present || 196,
-            absent: kpis.absent || 14,
-            late: kpis.late || 3,
+            percentage: kpis.percentage || 0,
+            present: kpis.present || 0,
+            absent: kpis.absent || 0,
+            late: kpis.late || 0,
             leave: kpis.leave || 0,
-            totalClasses: 24,
-            totalStudents: kpis.total || 128
+            totalClasses: kpis.totalClasses || 0,
+            totalStudents: kpis.total || 0
           });
         }
       })

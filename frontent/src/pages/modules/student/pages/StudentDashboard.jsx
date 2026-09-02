@@ -204,30 +204,13 @@ function StudentDashboard() {
     <div style={{ fontFamily: SORA }} className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 text-left select-none pb-8">
       
       {/* Top Header Row */}
-      <div className="flex items-center justify-between gap-3 mb-2 sm:mb-4">
-        <div>
-          <h1 className="text-lg sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            Student Dashboard
-          </h1>
-          <p className="text-[11px] sm:text-xs text-slate-505 dark:text-slate-400 font-medium mt-0.5">
-            Welcome back, {studentName}! 👋
-          </p>
-        </div>
-        
-        {/* Right Buttons Container */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <button
-            onClick={toggleTheme}
-            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/[0.08] text-slate-505 dark:text-amber-400 hover:border-slate-350 dark:hover:border-white/15 flex items-center justify-center transition-all cursor-pointer text-xs sm:text-base"
-            aria-label="Toggle Theme"
-          >
-            {theme === "dark" ? "☀️" : "🌙"}
-          </button>
-          
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-800 text-white flex items-center justify-center font-black text-xs sm:text-sm shadow-md border-2 border-white dark:border-[#0B132A]">
-            {userInitials}
-          </div>
-        </div>
+      <div className="mb-2 sm:mb-4">
+        <h1 className="text-lg sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+          Student Dashboard
+        </h1>
+        <p className="text-[11px] sm:text-xs text-slate-505 dark:text-slate-400 font-medium mt-0.5">
+          Welcome back, {studentName}! 👋
+        </p>
       </div>
 
       {/* Admission Exam Scheduling Alert */}

@@ -49,12 +49,12 @@ function MyStudents() {
   // Component state
   const [loading, setLoading] = useState(true);
   const [statsData, setStatsData] = useState({
-    totalStudents: 128,
-    presentToday: 117,
-    presentTodayPercentage: 92,
-    avgAttendance: 89,
-    avgPerformance: 76,
-    topPerformer: { name: "Aarav Sharma", average: 96 }
+    totalStudents: 0,
+    presentToday: 0,
+    presentTodayPercentage: 0,
+    avgAttendance: 0,
+    avgPerformance: 0,
+    topPerformer: { name: "N/A", average: 0 }
   });
   const [students, setStudents] = useState([]);
   

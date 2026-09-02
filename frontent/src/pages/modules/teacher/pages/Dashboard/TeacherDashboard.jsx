@@ -43,12 +43,12 @@ function TeacherDashboard() {
   const teacherAvatar = localStorage.getItem("avatar") || "";
 
   const defaultTeacherData = {
-    studentsCount: 128,
-    classesCount: 4,
-    sectionsCount: 2,
-    subjectsCount: 3,
-    upcomingExamsCount: 2,
-    attendanceStats: { present: 117, absent: 9, late: 2, leave: 0, total: 128, percentage: 92 },
+    studentsCount: 0,
+    classesCount: 0,
+    sectionsCount: 0,
+    subjectsCount: 0,
+    upcomingExamsCount: 0,
+    attendanceStats: { present: 0, absent: 0, late: 0, leave: 0, total: 0, percentage: 0 },
     timetable: [],
     upcomingExams: [],
     classPerformance: [],
@@ -103,9 +103,9 @@ function TeacherDashboard() {
 
   // Donut chart data for Attendance Summary
   const donutData = [
-    { name: "Present", value: dashboardData.attendanceStats?.present || 117, color: "#10B981" },
-    { name: "Absent", value: dashboardData.attendanceStats?.absent || 9, color: "#EF4444" },
-    { name: "Late", value: dashboardData.attendanceStats?.late || 2, color: "#F59E0B" },
+    { name: "Present", value: dashboardData.attendanceStats?.present || 0, color: "#10B981" },
+    { name: "Absent", value: dashboardData.attendanceStats?.absent || 0, color: "#EF4444" },
+    { name: "Late", value: dashboardData.attendanceStats?.late || 0, color: "#F59E0B" },
     { name: "Leave", value: dashboardData.attendanceStats?.leave || 0, color: "#6B7280" }
   ];
 
@@ -115,32 +115,32 @@ function TeacherDashboard() {
   const stats = [
     {
       label: "My Students",
-      value: dashboardData.studentsCount,
-      desc: `Across ${dashboardData.classesCount} Classes`,
+      value: dashboardData.studentsCount || 0,
+      desc: `Across ${dashboardData.classesCount || 0} Classes`,
       icon: <FaUserGraduate className="text-xl" />,
       color: "text-purple-500 bg-purple-500/10 border-purple-500/20",
       barColor: "bg-purple-500",
     },
     {
       label: "My Classes",
-      value: dashboardData.classesCount,
-      desc: `${dashboardData.sectionsCount} Sections`,
+      value: dashboardData.classesCount || 0,
+      desc: `${dashboardData.sectionsCount || 0} Sections`,
       icon: <FaSchool className="text-xl" />,
       color: "text-blue-500 bg-blue-500/10 border-blue-500/20",
       barColor: "bg-blue-500",
     },
     {
       label: "Today's Attendance",
-      value: `${dashboardData.attendanceStats?.percentage || 92}%`,
-      desc: `${dashboardData.attendanceStats?.present || 117} / ${dashboardData.attendanceStats?.total || 128} Present`,
+      value: `${dashboardData.attendanceStats?.percentage || 0}%`,
+      desc: `${dashboardData.attendanceStats?.present || 0} / ${dashboardData.attendanceStats?.total || 0} Present`,
       icon: <FaClipboardCheck className="text-xl" />,
       color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
       barColor: "bg-emerald-500",
-      progress: dashboardData.attendanceStats?.percentage || 92
+      progress: dashboardData.attendanceStats?.percentage || 0
     },
     {
       label: "My Subjects",
-      value: dashboardData.subjectsCount,
+      value: dashboardData.subjectsCount || 0,
       desc: "Active Subjects",
       icon: <FaBook className="text-xl" />,
       color: "text-amber-500 bg-amber-500/10 border-amber-500/20",
@@ -375,8 +375,8 @@ function TeacherDashboard() {
             <div className="space-y-2.5 w-full sm:w-auto">
               {donutData.map((d, index) => {
                 const count = d.value;
-                const total = dashboardData.attendanceStats?.total || 128;
-                const percent = Math.round((count / total) * 100) || 0;
+                const total = dashboardData.attendanceStats?.total || 0;
+                const percent = total > 0 ? Math.round((count / total) * 100) : 0;
                 return (
                   <div key={index} className="flex items-center justify-between sm:justify-start gap-4">
                     <div className="flex items-center gap-2">
@@ -394,7 +394,7 @@ function TeacherDashboard() {
 
           <div className="border-t border-slate-100 dark:border-white/5 pt-4 mt-2 flex items-center justify-between">
             <span className="text-[10px] font-bold text-slate-450 dark:text-slate-500">
-              Total Students: {dashboardData.attendanceStats?.total || 128}
+              Total Students: {dashboardData.attendanceStats?.total || 0}
             </span>
             <button 
               onClick={() => navigate("/teacher/mark-attendance")}
