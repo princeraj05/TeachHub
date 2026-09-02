@@ -59,9 +59,7 @@ const formatMinutesTo12h = (mins) => {
   return `${String(displayH).padStart(2, "0")}:${displayM} ${ampm}`;
 };
 
-const buildTimeSlots = (shortStartStr = "11:00 AM", shortMins = 30, lunchStartStr = "12:30 PM", lunchMins = 60) => {
-  const shortStart = parseMins(shortStartStr) || (11 * 60);
-  const shortEnd = shortStart + (Number(shortMins) || 30);
+const buildTimeSlots = (lunchStartStr = "12:30 PM", lunchMins = 60) => {
   const lunchStart = parseMins(lunchStartStr) || (12 * 60 + 30);
   const lunchEnd = lunchStart + (Number(lunchMins) || 60);
 
@@ -69,21 +67,7 @@ const buildTimeSlots = (shortStartStr = "11:00 AM", shortMins = 30, lunchStartSt
     { label: "08:00 - 09:00 AM", start: "08:00", end: "09:00", isBreak: false, type: "period" },
     { label: "09:00 - 10:00 AM", start: "09:00", end: "10:00", isBreak: false, type: "period" },
     { label: "10:00 - 11:00 AM", start: "10:00", end: "11:00", isBreak: false, type: "period" },
-    { 
-      label: `${formatMinutesTo12h(shortStart)} - ${formatMinutesTo12h(shortEnd)}`, 
-      start: formatMinutesTo12h(shortStart), 
-      end: formatMinutesTo12h(shortEnd), 
-      isBreak: true, 
-      type: "break", 
-      name: `Short Break (${shortMins} Mins)` 
-    },
-    { 
-      label: `${formatMinutesTo12h(shortEnd)} - ${formatMinutesTo12h(lunchStart)}`, 
-      start: formatMinutesTo12h(shortEnd), 
-      end: formatMinutesTo12h(lunchStart), 
-      isBreak: false, 
-      type: "period" 
-    },
+    { label: `11:00 AM - ${formatMinutesTo12h(lunchStart)}`, start: "11:00 AM", end: formatMinutesTo12h(lunchStart), isBreak: false, type: "period" },
     { 
       label: `${formatMinutesTo12h(lunchStart)} - ${formatMinutesTo12h(lunchEnd)}`, 
       start: formatMinutesTo12h(lunchStart), 
@@ -188,8 +172,8 @@ function TimetableManagementTab({
   };
 
   const TIME_SLOTS = useMemo(() => {
-    return buildTimeSlots(shortBreakStartTime, shortBreakDuration, lunchBreakStartTime, lunchBreakDuration);
-  }, [shortBreakStartTime, shortBreakDuration, lunchBreakStartTime, lunchBreakDuration]);
+    return buildTimeSlots(lunchBreakStartTime, lunchBreakDuration);
+  }, [lunchBreakStartTime, lunchBreakDuration]);
 
   // Filter local state
   const [activeFilters, setActiveFilters] = useState({
@@ -632,40 +616,6 @@ function TimetableManagementTab({
 
             <form onSubmit={handleSaveBreakSettings} className="space-y-4">
               
-              {/* Short Break Settings */}
-              <div className="p-4 rounded-2xl bg-[#0F172A] border border-slate-800 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-purple-400 uppercase tracking-wider">🍴 Short Break</span>
-                  <span className="text-[10px] text-slate-400 font-bold">Default: 30 Mins</span>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Start Time</label>
-                    <input
-                      type="text"
-                      value={shortBreakStartTime}
-                      onChange={(e) => setShortBreakStartTime(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none font-bold"
-                      placeholder="11:00 AM"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Break Duration</label>
-                    <select
-                      value={shortBreakDuration}
-                      onChange={(e) => setShortBreakDuration(Number(e.target.value))}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none font-bold cursor-pointer"
-                    >
-                      <option value={10}>10 Minutes</option>
-                      <option value={15}>15 Minutes</option>
-                      <option value={20}>20 Minutes</option>
-                      <option value={30}>30 Minutes</option>
-                      <option value={45}>45 Minutes</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
               {/* Lunch Break Settings */}
               <div className="p-4 rounded-2xl bg-[#0F172A] border border-slate-800 space-y-3">
                 <div className="flex items-center justify-between">
@@ -675,13 +625,16 @@ function TimetableManagementTab({
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Start Time</label>
-                    <input
-                      type="text"
-                      value={lunchBreakStartTime}
-                      onChange={(e) => setLunchBreakStartTime(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none font-bold"
-                      placeholder="12:30 PM"
-                    />
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        value={lunchBreakStartTime}
+                        onChange={(e) => setLunchBreakStartTime(e.target.value)}
+                        className="w-full pl-3 pr-8 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none font-bold"
+                        placeholder="12:30 PM"
+                      />
+                      <FaClock className="absolute right-2.5 text-slate-400 text-xs pointer-events-none" />
+                    </div>
                   </div>
                   <div>
                     <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Lunch Duration</label>
