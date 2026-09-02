@@ -353,7 +353,13 @@ exports.uploadPhotos = async (req, res) => {
       }
     }
 
-    event.photos.push(...newPhotos);
+    const isCover = req.query.isCover === "true" || req.body.isCover === "true";
+    if (isCover) {
+      const cleanExisting = (event.photos || []).filter(p => p.url && !p.url.includes("/uploads/"));
+      event.photos = [...newPhotos, ...cleanExisting];
+    } else {
+      event.photos.push(...newPhotos);
+    }
     await event.save();
 
     res.json(event);

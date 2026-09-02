@@ -115,7 +115,7 @@ function AdminEvents() {
           const formData = new FormData();
           formData.append("photos", eventImage);
           await axios.post(
-            `${API}/api/events/${res.data._id}/photos`,
+            `${API}/api/events/${res.data._id}/photos?isCover=true`,
             formData,
             {
               headers: { 
@@ -154,7 +154,7 @@ function AdminEvents() {
           const formData = new FormData();
           formData.append("photos", eventImage);
           await axios.post(
-            `${API}/api/events/${selectedEvent._id}/photos`,
+            `${API}/api/events/${selectedEvent._id}/photos?isCover=true`,
             formData,
             {
               headers: { 
