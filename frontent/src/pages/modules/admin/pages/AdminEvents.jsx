@@ -499,13 +499,24 @@ function AdminEvents() {
                     {/* Event Header Banner Image */}
                     <div className="h-44 bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b border-slate-150 dark:border-white/5">
                       {coverUrl ? (
-                        <img src={coverUrl} alt={ev.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                      ) : (
-                        <div className="text-center text-slate-400 dark:text-slate-500">
-                          <FaImage className="text-3xl mx-auto mb-2 opacity-50" />
-                          <p className="text-[10px] font-bold">No Cover Image Uploaded</p>
-                        </div>
-                      )}
+                        <img 
+                          src={coverUrl} 
+                          alt={ev.title} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            const fallback = e.target.parentElement.querySelector('.cover-fallback');
+                            if (fallback) fallback.style.display = 'block';
+                          }}
+                        />
+                      ) : null}
+                      <div 
+                        className="cover-fallback text-center text-slate-400 dark:text-slate-500"
+                        style={{ display: coverUrl ? 'none' : 'block' }}
+                      >
+                        <FaImage className="text-3xl mx-auto mb-2 opacity-50" />
+                        <p className="text-[10px] font-bold">No Cover Image Uploaded</p>
+                      </div>
 
                       {/* Status Badge */}
                       {activeTab === "completed" ? (
@@ -697,7 +708,15 @@ function AdminEvents() {
                   </label>
                   {eventImagePreview ? (
                     <div className="relative w-full h-28 rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 group">
-                      <img src={getMediaUrl(eventImagePreview)} alt="Event Preview" className="w-full h-full object-cover" />
+                      <img 
+                        src={getMediaUrl(eventImagePreview)} 
+                        alt="Event Preview" 
+                        className="w-full h-full object-cover" 
+                        onError={() => {
+                          setEventImagePreview("");
+                          setEventImage(null);
+                        }}
+                      />
                       <button
                         type="button"
                         onClick={() => { setEventImage(null); setEventImagePreview(""); }}

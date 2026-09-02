@@ -312,7 +312,7 @@ exports.uploadPhotos = async (req, res) => {
 
     const newPhotos = [];
     for (const file of req.files) {
-      let photoUrl = `/uploads/${file.filename}`;
+      let photoUrl = "";
       let filename = file.filename;
 
       if (hasCloudinary) {
@@ -330,7 +330,7 @@ exports.uploadPhotos = async (req, res) => {
         }
       }
 
-      if (!photoUrl.startsWith("http")) {
+      if (!photoUrl) {
         try {
           if (fs.existsSync(file.path)) {
             const fileBuffer = fs.readFileSync(file.path);
@@ -343,12 +343,14 @@ exports.uploadPhotos = async (req, res) => {
         }
       }
 
-      newPhotos.push({
-        url: photoUrl,
-        filename: filename,
-        mimeType: file.mimetype,
-        size: file.size
-      });
+      if (photoUrl) {
+        newPhotos.push({
+          url: photoUrl,
+          filename: filename,
+          mimeType: file.mimetype,
+          size: file.size
+        });
+      }
     }
 
     event.photos.push(...newPhotos);
