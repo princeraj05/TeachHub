@@ -182,6 +182,7 @@ function TimetableManagementTab({
   const [filterTeacher, setFilterTeacher] = useState("All");
   const [filterSubject, setFilterSubject] = useState("All");
   const [showBreaks, setShowBreaks] = useState(true);
+  const [showFullDay, setShowFullDay] = useState(false);
 
   // Break duration and timing states (configurable by Admin)
   const [shortBreakStartTime, setShortBreakStartTime] = useState("11:00 AM");
@@ -229,10 +230,6 @@ function TimetableManagementTab({
     }
   };
 
-  const TIME_SLOTS = useMemo(() => {
-    return buildTimeSlots(lunchBreakStartTime, lunchBreakDuration);
-  }, [lunchBreakStartTime, lunchBreakDuration]);
-
   // Filter local state
   const [activeFilters, setActiveFilters] = useState({
     classId: classes[0]?._id || "",
@@ -277,6 +274,31 @@ function TimetableManagementTab({
       return true;
     });
   }, [entries, activeFilters]);
+
+  // Dynamic TIME_SLOTS: Only show time slots up to the scheduled classes
+  const TIME_SLOTS = useMemo(() => {
+    const rawSlots = buildTimeSlots(lunchBreakStartTime, lunchBreakDuration);
+
+    if (showFullDay) {
+      return rawSlots;
+    }
+
+    if (filteredEntries.length === 0) {
+      // If no entries scheduled yet, show morning slots up to 11:00 AM
+      return rawSlots.filter(s => parseMins(s.start) <= 660);
+    }
+
+    // Find the latest class end time among filtered entries
+    const maxEndMins = Math.max(...filteredEntries.map(e => parseMins(e.endTime)));
+    
+    // Always include slots up to max end time (at least 11:00 AM)
+    const cutoffMins = Math.max(maxEndMins, 660);
+
+    return rawSlots.filter(s => {
+      const slotStart = parseMins(s.start);
+      return slotStart < cutoffMins;
+    });
+  }, [lunchBreakStartTime, lunchBreakDuration, filteredEntries, showFullDay]);
 
   // Check if a cell has an overlapping conflict (two or more entries at the same day/time range)
   const cellConflicts = useMemo(() => {
@@ -452,6 +474,16 @@ function TimetableManagementTab({
             </div>
             
             <div className="flex items-center gap-4 text-xs font-bold text-slate-400 select-none">
+              <label className="flex items-center gap-2 cursor-pointer" title="Toggle full day hours vs fit to scheduled periods">
+                <span>Full Day Grid</span>
+                <input
+                  type="checkbox"
+                  checked={showFullDay}
+                  onChange={(e) => setShowFullDay(e.target.checked)}
+                  className="rounded border-slate-700 bg-slate-900 text-purple-600 focus:ring-purple-500/20"
+                />
+              </label>
+
               <label className="flex items-center gap-2 cursor-pointer">
                 <span>Show Breaks</span>
                 <input
