@@ -23,14 +23,8 @@ const formatTimeRange = (startTime, endTime) => {
     const startPart = start.replace(/\s*(AM|PM)$/i, "");
     return `${startPart}-${end}`;
   }
-  return start || end || "12:00-12:50 PM";
+  return start || end || "";
 };
-
-// Fallback sample cards matching Screenshot 2 if backend returns empty
-const MOCK_TODAY_CARDS = [
-  { _id: "t1", subjectCode: "CSE339", room: "34-102A", status: "Absent", startTime: "12:00 PM", endTime: "12:50 PM" },
-  { _id: "t2", subjectCode: "INT253", room: "33-512", status: "Present", startTime: "12:50 PM", endTime: "01:40 PM" }
-];
 
 export default function TodayTimetableWidget() {
   const API = import.meta.env.VITE_API_URL;
@@ -46,7 +40,7 @@ export default function TodayTimetableWidget() {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then((response) => {
-        if (Array.isArray(response.data) && response.data.length > 0) {
+        if (Array.isArray(response.data)) {
           setEntries(response.data);
         }
       })
@@ -55,18 +49,28 @@ export default function TodayTimetableWidget() {
   }, [API, todayDay, token]);
 
   const cardsToDisplay = useMemo(() => {
-    if (entries.length > 0) {
-      return entries.map((e) => ({
-        _id: e._id,
-        subjectCode: e.subject?.name || "INT253",
-        room: e.room || "33-512",
-        status: e.teacherAttendance || "Present",
-        startTime: e.startTime,
-        endTime: e.endTime
-      }));
-    }
-    return MOCK_TODAY_CARDS;
+    return entries.map((e) => ({
+      _id: e._id,
+      subjectCode: e.subject?.name || "Subject",
+      room: e.room || "Classroom",
+      status: e.teacherAttendance || "Present",
+      startTime: e.startTime,
+      endTime: e.endTime
+    }));
   }, [entries]);
+
+  if (!loading && cardsToDisplay.length === 0) {
+    return (
+      <section className="my-5 select-none text-left">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight mb-2">
+          Today's Timetable
+        </h2>
+        <p className="text-xs text-slate-400 font-semibold italic py-2">
+          No classes scheduled for today ({todayDay}).
+        </p>
+      </section>
+    );
+  }
 
   return (
     <section className="my-5 select-none text-left">

@@ -30,51 +30,21 @@ const formatTimeRange = (startTime, endTime) => {
     const startPart = start.replace(/\s*(AM|PM)$/i, "");
     return `${startPart}-${end}`;
   }
-  return start || end || "12:00-12:50 PM";
+  return start || end || "";
 };
 
-// Helper to format class card details matching design
+// Helper to format class card details
 const formatCardDetails = (entry) => {
-  if (entry.notes && entry.notes.includes("C:") && entry.notes.includes("R:")) {
-    const parts = entry.notes.split("/");
-    if (parts.length >= 2) {
-      return {
-        line1: parts.slice(0, parts.length - 2).join("/") + "/",
-        line2: parts.slice(parts.length - 2).join("/")
-      };
-    }
-  }
-
-  const type = entry.classType || "Lecture";
-  const group = entry.class?.section ? `G:${entry.class.section}` : "G:All";
-  const subjectName = entry.subject?.name || "INT253";
-  const room = entry.room || "33-507Y";
-  const code = entry.notes || (entry.teacher?.name ? `S:${entry.teacher.name.replace(/\s+/g, '')}` : "S:K2P23GM");
-
-  const cleanCode = code.startsWith("S:") ? code : `S:${code}`;
+  const type = entry.classType || "Regular Class";
+  const group = entry.class?.section ? `Section: ${entry.class.section}` : `Class: ${entry.class?.name || ""}`;
+  const subjectName = entry.subject?.name || "Subject";
+  const room = entry.room || "Main Hall";
+  const teacherName = entry.teacher?.name ? `Teacher: ${entry.teacher.name}` : "";
 
   return {
-    line1: `${type} / ${group} C:${subjectName} /`,
-    line2: `R: ${room} / ${cleanCode}`
+    line1: `${type} · ${subjectName}`,
+    line2: `${group}${room ? ` · Room: ${room}` : ""}${teacherName ? ` · ${teacherName}` : ""}`
   };
-};
-
-// Mock fallback sample data matching screenshots if backend has no entries yet
-const MOCK_ENTRIES_BY_DAY = {
-  Monday: [
-    { _id: "m1", startTime: "12:50 PM", endTime: "01:40 PM", classType: "Lecture", room: "33-507Y", notes: "S:K2P23GM", subject: { name: "INT253" }, class: { section: "All" } },
-    { _id: "m2", startTime: "01:40 PM", endTime: "02:30 PM", classType: "Lecture", room: "33-507Y", notes: "S:K2P23GM", subject: { name: "INT253" }, class: { section: "All" } },
-    { _id: "m3", startTime: "03:20 PM", endTime: "04:10 PM", classType: "Practical", room: "38-806", notes: "S:K4O2338", subject: { name: "IXD803" }, class: { section: "0" } }
-  ],
-  Wednesday: [
-    { _id: "w1", startTime: "12:00 PM", endTime: "12:50 PM", classType: "Guidance", room: "34-102A", notes: "S:K4C0165", subject: { name: "CSE339" }, class: { section: "All" } },
-    { _id: "w2", startTime: "12:50 PM", endTime: "01:40 PM", classType: "Practical", room: "33-512", notes: "S:K2P23GM", subject: { name: "INT253" }, class: { section: "0" } },
-    { _id: "w3", startTime: "01:40 PM", endTime: "02:30 PM", classType: "Practical", room: "33-512", notes: "S:K2P23GM", subject: { name: "INT253" }, class: { section: "0" } },
-    { _id: "w4", startTime: "03:20 PM", endTime: "04:10 PM", classType: "Practical", room: "38-902", notes: "S:K4O2338", subject: { name: "IXD803" }, class: { section: "0" } }
-  ],
-  Friday: [
-    { _id: "f1", startTime: "12:50 PM", endTime: "01:40 PM", classType: "Lecture", room: "33-505X", notes: "S:K2P23GM", subject: { name: "INT402" }, class: { section: "All" } }
-  ]
 };
 
 export default function TimetableView() {
@@ -114,20 +84,15 @@ export default function TimetableView() {
     loadTimetable();
   }, [API]);
 
-  // Combine backend entries with sample fallback if empty for selected day
+  // Filter only real backend entries for selected day
   const dayEntries = useMemo(() => {
     const realDayEntries = allEntries.filter(
       (e) => e.day?.toLowerCase() === selectedDay.toLowerCase()
     );
 
-    if (realDayEntries.length > 0) {
-      return [...realDayEntries].sort((a, b) =>
-        (a.startTime || "").localeCompare(b.startTime || "")
-      );
-    }
-
-    // Fallback sample data if no entries created yet by admin for this day
-    return MOCK_ENTRIES_BY_DAY[selectedDay] || [];
+    return [...realDayEntries].sort((a, b) =>
+      (a.startTime || "").localeCompare(b.startTime || "")
+    );
   }, [allEntries, selectedDay]);
 
   return (
@@ -189,8 +154,8 @@ export default function TimetableView() {
             </p>
           </div>
         ) : (
-          /* 4. Timetable Cards Grid (2 Columns on Mobile / Tablet) */
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 pb-8">
+          /* 4. Timetable Cards Grid */
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pb-8">
             {dayEntries.map((entry, idx) => {
               const timeRange = formatTimeRange(entry.startTime, entry.endTime);
               const details = formatCardDetails(entry);
@@ -198,7 +163,7 @@ export default function TimetableView() {
               return (
                 <div
                   key={entry._id || idx}
-                  className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200/90 dark:border-white/10 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col min-h-[160px]"
+                  className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200/90 dark:border-white/10 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col min-h-[140px]"
                 >
                   {/* Top Dark Header for Time */}
                   <div className="bg-[#2D2D2D] text-white py-2 px-2.5 text-center font-semibold text-xs sm:text-sm tracking-tight rounded-t-xl shrink-0">
@@ -207,10 +172,10 @@ export default function TimetableView() {
 
                   {/* White Card Body for Class Details */}
                   <div className="p-3.5 flex-1 flex flex-col items-center justify-center text-center bg-white dark:bg-[#111827] rounded-b-xl">
-                    <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-300 font-normal leading-relaxed tracking-tight">
+                    <p className="text-xs text-slate-800 dark:text-slate-200 font-bold leading-relaxed tracking-tight">
                       {details.line1}
                     </p>
-                    <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-300 font-normal leading-relaxed tracking-tight mt-0.5">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed tracking-tight mt-1">
                       {details.line2}
                     </p>
                   </div>

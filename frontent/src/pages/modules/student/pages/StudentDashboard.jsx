@@ -48,6 +48,7 @@ function StudentDashboard() {
   });
 
   const [timetableEntries, setTimetableEntries] = useState([]);
+  const [allWeeklyEntries, setAllWeeklyEntries] = useState([]);
   const [loadingTimetable, setLoadingTimetable] = useState(false);
 
   // Generate week days list (Monday to Sunday) centered around current week
@@ -110,23 +111,40 @@ function StudentDashboard() {
         }
       })
       .catch((err) => console.log("Student Profile Error:", err));
+
+    // Load overall weekly timetable for dynamic day counts
+    axiosInstance
+      .get(`${API}/api/timetable`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        if (Array.isArray(res.data)) {
+          setAllWeeklyEntries(res.data);
+        }
+      })
+      .catch((err) => console.log("Weekly Timetable Error:", err));
   }, [API]);
 
   // Fetch timetable entries when selected day changes
   useEffect(() => {
     const token = localStorage.getItem("token");
+    setLoadingTimetable(true);
     axiosInstance
       .get(`${API}/api/timetable?day=${selectedDay.full}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then((res) => {
-        if (Array.isArray(res.data) && res.data.length > 0) {
+        if (Array.isArray(res.data)) {
           setTimetableEntries(res.data);
+        } else {
+          setTimetableEntries([]);
         }
       })
       .catch((err) => {
         console.log("Error loading day timetable:", err);
-      });
+        setTimetableEntries([]);
+      })
+      .finally(() => setLoadingTimetable(false));
   }, [API, selectedDay]);
 
   const studentName = profile?.name ? profile.name.split(" ")[0] : "Learner";
@@ -162,15 +180,17 @@ function StudentDashboard() {
     return "Completed";
   };
 
-  // Resolve how many classes a day has (Mon-Fri default, Sat-Sun holiday)
+  // Dynamic class count calculation for each day
   const getDayClassesCount = (day) => {
     if (day.full === "Saturday" || day.full === "Sunday") {
       return "Holiday";
     }
-    if (day.full === "Friday") {
-      return "2 Classes";
-    }
-    return "3 Classes";
+    const dayCount = allWeeklyEntries.filter(
+      (e) => e.day?.toLowerCase() === day.full.toLowerCase()
+    ).length;
+
+    if (dayCount === 0) return "No Classes";
+    return `${dayCount} ${dayCount === 1 ? "Class" : "Classes"}`;
   };
 
   const activeClasses = useMemo(() => {
@@ -327,7 +347,9 @@ function StudentDashboard() {
             </div>
           ) : activeClasses.length === 0 ? (
             <div className="text-center py-10 text-slate-450 dark:text-slate-500 font-bold">
-              🏖️ No classes scheduled. Enjoy your weekend holiday!
+              {selectedDay.full === "Saturday" || selectedDay.full === "Sunday"
+                ? "🏖️ No classes scheduled. Enjoy your weekend holiday!"
+                : `No classes scheduled for ${selectedDay.full}.`}
             </div>
           ) : (
             <div className="relative border-l border-slate-200 dark:border-white/5 pl-7 ml-3.5 space-y-6 my-2">
