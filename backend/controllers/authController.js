@@ -480,6 +480,15 @@ exports.getProfile = async (req, res) => {
     const userObj = user.toObject();
     userObj.token = token;
 
+    if (user.role === "teacher") {
+      const Subject = require("../models/Subject");
+      const Class = require("../models/Class");
+      const subjects = await Subject.find({ teacher: user._id }).select("name code");
+      const classes = await Class.find({ teacher: user._id }).select("name section");
+      userObj.subjects = subjects;
+      userObj.classes = classes;
+    }
+
     // Fetch login sessions for user safely
     let sessions = [];
     try {
@@ -521,6 +530,7 @@ exports.updateProfile = async (req, res) => {
     const {
       name,
       phoneNumber,
+      alternatePhone,
       avatar,
       fatherMobileNumber,
       motherMobileNumber,
@@ -531,6 +541,13 @@ exports.updateProfile = async (req, res) => {
       timezone,
       language,
       about,
+      bio,
+      qualification,
+      experience,
+      joiningDate,
+      employeeId,
+      department,
+      designation,
       password,
       emailNotifications,
       smsNotifications,
@@ -545,6 +562,7 @@ exports.updateProfile = async (req, res) => {
 
     if (name) user.name = name;
     if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
+    if (alternatePhone !== undefined) user.alternatePhone = alternatePhone;
     if (avatar !== undefined) {
       if (avatar && avatar.startsWith("data:image")) {
         if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
@@ -579,6 +597,13 @@ exports.updateProfile = async (req, res) => {
     if (timezone !== undefined) user.timezone = timezone;
     if (language !== undefined) user.language = language;
     if (about !== undefined) user.about = about;
+    if (bio !== undefined) user.bio = bio;
+    if (qualification !== undefined) user.qualification = qualification;
+    if (experience !== undefined) user.experience = experience;
+    if (joiningDate !== undefined) user.joiningDate = joiningDate;
+    if (employeeId !== undefined && user.role === "admin") user.employeeId = employeeId;
+    if (department !== undefined) user.department = department;
+    if (designation !== undefined) user.designation = designation;
     if (emailNotifications !== undefined) user.emailNotifications = emailNotifications;
     if (smsNotifications !== undefined) user.smsNotifications = smsNotifications;
     if (pushNotifications !== undefined) user.pushNotifications = pushNotifications;

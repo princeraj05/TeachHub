@@ -11,27 +11,27 @@ import {
   FaMapMarkerAlt, 
   FaBriefcase, 
   FaShieldAlt, 
-  FaDownload, 
   FaCheck, 
-  FaUserShield, 
   FaLock, 
-  FaBell, 
-  FaChevronRight, 
-  FaDesktop,
-  FaClock 
+  FaBook,
+  FaChalkboardTeacher,
+  FaInfoCircle,
+  FaExclamationCircle,
+  FaGraduationCap,
+  FaIdCard
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
 
 function TeacherProfile() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const token = localStorage.getItem("token");
   const headers = { Authorization: `Bearer ${token}` };
 
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
   
-  // Form values state
+  // Editable form fields
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [dob, setDob] = useState("");
@@ -40,9 +40,17 @@ function TeacherProfile() {
   const [alternatePhone, setAlternatePhone] = useState("");
   const [address, setAddress] = useState("");
   const [department, setDepartment] = useState("");
+  const [qualification, setQualification] = useState("");
+  const [experience, setExperience] = useState("");
+  const [joiningDate, setJoiningDate] = useState("");
+  const [employeeId, setEmployeeId] = useState("");
   const [bio, setBio] = useState("");
   const [avatar, setAvatar] = useState("");
   const [gettingLocation, setGettingLocation] = useState(false);
+
+  // Read-only Assigned Data (managed by School Admin)
+  const [assignedSubjects, setAssignedSubjects] = useState([]);
+  const [assignedClasses, setAssignedClasses] = useState([]);
 
   const [saveMessage, setSaveMessage] = useState("");
   const [saveError, setSaveError] = useState("");
@@ -80,7 +88,7 @@ function TeacherProfile() {
   };
 
   useEffect(() => {
-    // Load standard authentication profile which fetches login sessions
+    // Load authentication profile
     axios.get(`${API}/api/auth/profile`, { headers })
       .then(res => {
         const u = res.data;
@@ -89,14 +97,22 @@ function TeacherProfile() {
         // Initialize form states
         setName(u.name || "");
         setEmail(u.email || "");
-        setDob(u.dob || "");
+        setDob(u.dob || "12 May 1990");
         setGender(u.gender || "Male");
         setPhoneNumber(u.phoneNumber || "");
         setAlternatePhone(u.alternatePhone || "");
         setAddress(u.address || "");
-        setDepartment(u.department || "Mathematics");
-        setBio(u.bio || "Passionate educator with 6+ years of experience in teaching Mathematics. Dedicated to helping students achieve their academic goals.");
+        setDepartment(u.department || "Faculty");
+        setQualification(u.qualification || "M.Sc, B.Ed");
+        setExperience(u.experience || "6 Years");
+        setJoiningDate(u.joiningDate || "15 Aug 2023");
+        setEmployeeId(u.employeeId || `TCH${String(u._id).slice(-4).toUpperCase()}`);
+        setBio(u.bio || "Passionate educator dedicated to academic excellence and student success.");
         setAvatar(u.avatar || "");
+
+        // Set subjects and classes assigned by admin
+        setAssignedSubjects(u.subjects || []);
+        setAssignedClasses(u.classes || []);
         
         setLoading(false);
       })
@@ -121,19 +137,24 @@ function TeacherProfile() {
         alternatePhone,
         address,
         department,
+        qualification,
+        experience,
+        joiningDate,
         bio,
         avatar
       }, { headers });
 
       setSaveMessage("Profile changes saved successfully!");
-      // Update local profile object
-      setProfile(prev => ({ ...prev, ...res.data.teacher }));
+      if (res.data?.teacher) {
+        setProfile(prev => ({ ...prev, ...res.data.teacher }));
+      }
+      setTimeout(() => setSaveMessage(""), 4000);
     } catch (err) {
-      setSaveError(err.response?.data?.error || "Could not save profile changes.");
+      setSaveError(err.response?.data?.error || err.response?.data?.message || "Could not save profile changes.");
+      setTimeout(() => setSaveError(""), 4000);
     }
   };
 
-  // Avatar upload simulation
   const handleAvatarUpload = () => {
     const newAvatarUrl = prompt("Enter profile photo URL:", avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200");
     if (newAvatarUrl !== null) {
@@ -154,80 +175,71 @@ function TeacherProfile() {
     );
   }
 
-  // Formatting helpers
-  const teacherIdText = profile ? `TCH${String(profile._id).slice(-6).toUpperCase()}` : "THB12584";
-  const joinedDate = profile?.createdAt 
-    ? new Date(profile.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
-    : "12 Jan 2024";
-
-  // Last Login details
-  const lastLoginText = profile?.loginActivity?.lastLogin 
-    ? `${new Date(profile.loginActivity.lastLogin.time).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" })}, ${new Date(profile.loginActivity.lastLogin.time).toLocaleTimeString("en-US", { hour:"2-digit", minute:"2-digit" })}`
-    : "27 May 2026, 10:30 AM";
-
   return (
-    <div className="w-full text-slate-800 dark:text-white pb-10" style={{ fontFamily: SORA }}>
+    <div className="w-full text-slate-800 dark:text-white pb-10 font-sans" style={{ fontFamily: SORA }}>
       
       {/* Header breadcrumb */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 select-none">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Edit Profile</h1>
+          <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Teacher Profile</h1>
           <p className="text-xs text-slate-400 dark:text-slate-500 font-bold mt-1">
-            Manage your personal information and account settings
+            Manage your teaching profile, qualifications, and account settings
           </p>
-          <div className="flex items-center gap-1.5 mt-2 text-[10px] text-slate-450 font-bold uppercase tracking-wide">
-            <span className="hover:underline cursor-pointer">Dashboard</span>
+          <div className="flex items-center gap-1.5 mt-2 text-[10px] text-slate-400 font-bold uppercase tracking-wide">
+            <span>Teacher Portal</span>
             <span>&gt;</span>
-            <span className="hover:underline cursor-pointer">Profile</span>
-            <span>&gt;</span>
-            <span className="text-purple-500">Edit Profile</span>
+            <span className="text-purple-500 font-black">My Profile</span>
           </div>
         </div>
       </div>
 
       <form onSubmit={handleSaveChanges} className="flex flex-col gap-6">
         
-        {/* Upper Dashboard: Photo and Personal Info Grid */}
+        {/* Upper Grid: Photo and Personal Info */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* Card 1: Profile Photo (1/3 width) */}
-          <div className="lg:col-span-1 bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm flex flex-col items-center justify-between min-h-[360px]">
-            <div className="w-full select-none text-center">
-              <h3 className="text-xs font-black uppercase text-slate-450 tracking-wider pb-3 border-b border-slate-100 dark:border-white/[0.03] text-left">
-                Profile Photo
+          {/* Card 1: Profile Photo & Basic Identity */}
+          <div className="lg:col-span-1 bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm flex flex-col items-center justify-between min-h-[380px]">
+            <div className="w-full select-none">
+              <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider pb-3 border-b border-slate-100 dark:border-white/[0.03] text-left">
+                Profile Photo & ID
               </h3>
             </div>
 
-            <div className="relative group my-4 select-none">
+            <div className="relative group my-4 select-none flex flex-col items-center">
               {avatar ? (
                 <img 
                   src={avatar} 
-                  alt="avatar" 
-                  className="w-32 h-32 rounded-full border-2 border-slate-200 object-cover"
+                  alt="Teacher avatar" 
+                  className="w-32 h-32 rounded-full border-2 border-purple-500/30 object-cover shadow-lg"
                 />
               ) : (
-                <div className="w-32 h-32 rounded-full bg-slate-100 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.08] flex items-center justify-center text-slate-400 text-3xl font-black shadow-inner">
+                <div className="w-32 h-32 rounded-full bg-purple-500/10 border-2 border-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-400 text-3xl font-black shadow-inner">
                   {name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)}
                 </div>
               )}
               <button 
                 type="button"
                 onClick={handleAvatarUpload}
-                className="absolute bottom-1 right-1 w-8 h-8 rounded-full bg-purple-650 hover:bg-purple-750 text-white border border-white dark:border-[#111827] flex items-center justify-center shadow transition-all cursor-pointer"
+                className="absolute bottom-1 right-1 w-8 h-8 rounded-full bg-purple-600 hover:bg-purple-700 text-white border-2 border-white dark:border-[#111827] flex items-center justify-center shadow-lg transition-all cursor-pointer"
               >
                 <FaCamera className="text-xs" />
               </button>
             </div>
 
-            <div className="w-full flex flex-col gap-3">
-              <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 text-center uppercase tracking-wide select-none">
-                JPG, PNG or WEBP. Max size 2MB.
+            <div className="w-full text-center space-y-1 my-2">
+              <h2 className="text-base font-black text-slate-900 dark:text-white leading-tight">{name}</h2>
+              <p className="text-[11px] font-bold text-purple-600 dark:text-purple-400 flex items-center justify-center gap-1">
+                <FaIdCard className="text-xs" /> Employee ID: {employeeId}
               </p>
-              
+              <p className="text-[10px] text-slate-400 font-semibold">{profile?.schoolName || "TeachHub Academy"}</p>
+            </div>
+
+            <div className="w-full flex flex-col gap-2 pt-3 border-t border-slate-100 dark:border-white/[0.03]">
               <button
                 type="button"
                 onClick={handleAvatarUpload}
-                className="w-full py-2.5 rounded-xl bg-purple-650 hover:bg-purple-750 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-sm"
+                className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-sm"
               >
                 <FaUpload className="text-[10px]" /> Upload New Photo
               </button>
@@ -247,14 +259,28 @@ function TeacherProfile() {
             </div>
           </div>
 
-          {/* Card 2: Personal Information Form (2/3 width) */}
-          <div className="lg:col-span-2 bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm flex flex-col justify-between">
-            <div className="pb-3 border-b border-slate-100 dark:border-white/[0.03] mb-4 select-none">
-              <h3 className="text-xs font-black uppercase text-slate-450 tracking-wider">Personal Information</h3>
+          {/* Card 2: Personal & Academic Details Form */}
+          <div className="lg:col-span-2 bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-white/[0.05] p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+            <div className="pb-3 border-b border-slate-100 dark:border-white/[0.03] mb-4 select-none flex items-center justify-between">
+              <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider">Teacher Information & Credentials</h3>
+              <span className="text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                Active Faculty Status
+              </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               
+              {/* Employee ID (Read Only) */}
+              <div>
+                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Employee ID (Assigned by Admin)</label>
+                <input
+                  type="text"
+                  disabled
+                  value={employeeId}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-100/70 dark:bg-white/[0.03] text-xs font-black text-slate-500 dark:text-slate-400 cursor-not-allowed"
+                />
+              </div>
+
               {/* Full Name */}
               <div>
                 <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Full Name <span className="text-rose-500">*</span></label>
@@ -279,13 +305,24 @@ function TeacherProfile() {
                 />
               </div>
 
-              {/* Date of Birth */}
+              {/* Phone Number */}
               <div>
-                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Date of Birth <span className="text-rose-500">*</span></label>
+                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Phone Number <span className="text-rose-500">*</span></label>
                 <input
                   type="text"
-                  placeholder="15 May 1992"
                   required
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
+                />
+              </div>
+
+              {/* Date of Birth */}
+              <div>
+                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Date of Birth</label>
+                <input
+                  type="text"
+                  placeholder="12 May 1990"
                   value={dob}
                   onChange={(e) => setDob(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
@@ -294,11 +331,10 @@ function TeacherProfile() {
 
               {/* Gender */}
               <div>
-                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Gender <span className="text-rose-500">*</span></label>
+                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Gender</label>
                 <select
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
-                  required
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
                 >
                   <option value="Male">Male</option>
@@ -307,21 +343,40 @@ function TeacherProfile() {
                 </select>
               </div>
 
-              {/* Phone Number */}
+              {/* Qualification */}
               <div>
-                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Phone Number <span className="text-rose-500">*</span></label>
-                <div className="flex gap-2">
-                  <span className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-black select-none">
-                    🇮🇳 +91
-                  </span>
-                  <input
-                    type="text"
-                    required
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
-                  />
-                </div>
+                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Qualification</label>
+                <input
+                  type="text"
+                  placeholder="M.Sc, B.Ed"
+                  value={qualification}
+                  onChange={(e) => setQualification(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
+                />
+              </div>
+
+              {/* Experience */}
+              <div>
+                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Teaching Experience</label>
+                <input
+                  type="text"
+                  placeholder="6 Years"
+                  value={experience}
+                  onChange={(e) => setExperience(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
+                />
+              </div>
+
+              {/* Joining Date */}
+              <div>
+                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Joining Date</label>
+                <input
+                  type="text"
+                  placeholder="15 Aug 2023"
+                  value={joiningDate}
+                  onChange={(e) => setJoiningDate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
+                />
               </div>
 
               {/* Alternate Phone */}
@@ -336,15 +391,15 @@ function TeacherProfile() {
                 />
               </div>
 
-              {/* Address with Use Current Location option */}
+              {/* Address with Geolocation */}
               <div className="sm:col-span-2">
                 <div className="flex items-center justify-between mb-1 select-none">
-                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Address</label>
+                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Residential Address</label>
                   <button
                     type="button"
                     onClick={handleGetCurrentLocation}
                     disabled={gettingLocation}
-                    className="text-[9px] font-black text-purple-650 hover:text-purple-750 dark:text-purple-400 flex items-center gap-1 cursor-pointer bg-purple-500/10 px-2.5 py-1 rounded-lg border border-purple-500/20 hover:bg-purple-500/20 transition-all active:scale-95 disabled:opacity-50"
+                    className="text-[9px] font-black text-purple-600 hover:text-purple-700 dark:text-purple-400 flex items-center gap-1 cursor-pointer bg-purple-500/10 px-2.5 py-1 rounded-lg border border-purple-500/20 hover:bg-purple-500/20 transition-all active:scale-95 disabled:opacity-50"
                   >
                     <FaMapMarkerAlt className="text-[10px]" />
                     {gettingLocation ? "Detecting Location..." : "Use Current Location"}
@@ -352,20 +407,9 @@ function TeacherProfile() {
                 </div>
                 <input
                   type="text"
-                  placeholder="123, Green Avenue, Indore"
+                  placeholder="123, Green Avenue, Siwan, Bihar"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
-                />
-              </div>
-
-              {/* Department */}
-              <div className="sm:col-span-2">
-                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Department</label>
-                <input
-                  type="text"
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
                 />
               </div>
@@ -373,7 +417,7 @@ function TeacherProfile() {
               {/* Bio description */}
               <div className="sm:col-span-2">
                 <div className="flex items-center justify-between mb-1 select-none">
-                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block">Bio</label>
+                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block">Professional Summary / Bio</label>
                   <span className="text-[8px] font-bold text-slate-400">{bio.length}/250</span>
                 </div>
                 <textarea
@@ -389,18 +433,94 @@ function TeacherProfile() {
 
         </div>
 
+        {/* Lower Section: ASSIGNED SUBJECTS & CLASSES (READ-ONLY FOR TEACHER) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          {/* Card 1: Assigned Subjects (Read Only) */}
+          <div className="bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/[0.03] pb-3 mb-4 select-none">
+              <div className="flex items-center gap-2">
+                <FaBook className="text-purple-500 text-sm" />
+                <h3 className="text-xs font-black uppercase text-slate-800 dark:text-slate-200 tracking-wider">Assigned Subjects</h3>
+              </div>
+              <span className="text-[9px] font-extrabold text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-full flex items-center gap-1">
+                <FaLock className="text-[8px]" /> Read Only (Managed by Admin)
+              </span>
+            </div>
+
+            <p className="text-[10px] text-slate-400 font-medium mb-3">
+              Subjects are assigned to you by the School Administrator. Teachers cannot modify their subject assignments.
+            </p>
+
+            <div className="flex flex-wrap gap-2">
+              {assignedSubjects.length > 0 ? (
+                assignedSubjects.map((sub, idx) => (
+                  <div
+                    key={sub._id || idx}
+                    className="flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 px-3 py-2 rounded-xl text-xs font-black shadow-sm"
+                  >
+                    <FaBook className="text-xs text-purple-500" />
+                    <span>{sub.name}</span>
+                    {sub.code && <span className="text-[9px] font-bold text-slate-400">({sub.code})</span>}
+                  </div>
+                ))
+              ) : (
+                <div className="w-full py-4 text-center border border-dashed border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-400 font-bold italic">
+                  No subjects assigned yet. Please contact School Admin to assign course subjects.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Card 2: Assigned Classes (Read Only) */}
+          <div className="bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/[0.03] pb-3 mb-4 select-none">
+              <div className="flex items-center gap-2">
+                <FaChalkboardTeacher className="text-indigo-500 text-sm" />
+                <h3 className="text-xs font-black uppercase text-slate-800 dark:text-slate-200 tracking-wider">Assigned Classes</h3>
+              </div>
+              <span className="text-[9px] font-extrabold text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-full flex items-center gap-1">
+                <FaLock className="text-[8px]" /> Read Only (Managed by Admin)
+              </span>
+            </div>
+
+            <p className="text-[10px] text-slate-400 font-medium mb-3">
+              Classes and sections assigned to your teaching schedule.
+            </p>
+
+            <div className="flex flex-wrap gap-2">
+              {assignedClasses.length > 0 ? (
+                assignedClasses.map((cls, idx) => (
+                  <div
+                    key={cls._id || idx}
+                    className="flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 px-3 py-2 rounded-xl text-xs font-black shadow-sm"
+                  >
+                    <FaChalkboardTeacher className="text-xs text-indigo-500" />
+                    <span>Class {cls.name} - {cls.section || "A"}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="w-full py-4 text-center border border-dashed border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-400 font-bold italic">
+                  No classes assigned yet. Please contact School Admin to assign classes.
+                </div>
+              )}
+            </div>
+          </div>
+
+        </div>
+
         {/* Bottom Alert messages and submit save trigger */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
           
           {/* Feedback alerts */}
           <div className="flex-1 w-full">
             {saveMessage && (
-              <div className="flex items-center gap-2 p-3 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-xl text-[10px] font-bold select-none leading-relaxed w-fit animate-none">
+              <div className="flex items-center gap-2 p-3 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-xl text-[11px] font-extrabold select-none leading-relaxed w-fit shadow-sm">
                 <FaCheck className="text-xs shrink-0" /> {saveMessage}
               </div>
             )}
             {saveError && (
-              <div className="flex items-center gap-2 p-3 bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded-xl text-[10px] font-bold select-none leading-relaxed w-fit animate-none">
+              <div className="flex items-center gap-2 p-3 bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded-xl text-[11px] font-extrabold select-none leading-relaxed w-fit shadow-sm">
                 <FaExclamationCircle className="text-xs shrink-0" /> {saveError}
               </div>
             )}
@@ -409,9 +529,9 @@ function TeacherProfile() {
           {/* Submit Save Button */}
           <button 
             type="submit"
-            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-purple-650 hover:bg-purple-750 text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap select-none"
+            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-md shadow-purple-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap select-none active:scale-95"
           >
-            <FaCheck className="text-[10px]" /> Save Changes
+            <FaCheck className="text-xs" /> Save Profile Changes
           </button>
         </div>
 

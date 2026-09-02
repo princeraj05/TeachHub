@@ -12,6 +12,7 @@ import {
   FaTimes,
   FaSearch,
   FaExchangeAlt,
+  FaBook,
 } from "react-icons/fa";
 
 const C = {
@@ -94,6 +95,11 @@ export default function TeacherManagement() {
     employeeId: "TCH8821",
   });
 
+  // Assign Subject Modal State for Admin
+  const [showAssignSubjectModal, setShowAssignSubjectModal] = useState(false);
+  const [allSchoolSubjects, setAllSchoolSubjects] = useState([]);
+  const [assignSubjectId, setAssignSubjectId] = useState("");
+
   // Load list of all teachers in the school
   const loadTeachers = async () => {
     try {
@@ -107,6 +113,16 @@ export default function TeacherManagement() {
       console.log("Using cached teachers list");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Load all school subjects for assigning
+  const loadSchoolSubjects = async () => {
+    try {
+      const res = await axios.get(`${api}/api/admin/subjects`, { headers });
+      setAllSchoolSubjects(res.data || []);
+    } catch (err) {
+      console.error("Failed to load school subjects", err);
     }
   };
 
@@ -164,6 +180,26 @@ export default function TeacherManagement() {
     }
   };
 
+  // Assign Subject Submit for Admin
+  const handleAssignSubjectSubmit = async (e) => {
+    e.preventDefault();
+    if (!assignSubjectId || !selectedTeacherId) return;
+
+    try {
+      await axios.post(
+        `${api}/api/admin/assign/assign-subject-teacher`,
+        { subjectId: assignSubjectId, teacherId: selectedTeacherId },
+        { headers }
+      );
+      alert("Subject assigned to teacher successfully!");
+      setShowAssignSubjectModal(false);
+      setAssignSubjectId("");
+      loadTeacherProfile(selectedTeacherId);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to assign subject");
+    }
+  };
+
   // Upload local photo file
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
@@ -179,7 +215,6 @@ export default function TeacherManagement() {
     formData.append("image", file);
 
     try {
-      // 1. Upload to school generic static uploader
       const uploadRes = await axios.post(`${api}/api/schools/upload`, formData, {
         headers: {
           ...headers,
@@ -190,7 +225,6 @@ export default function TeacherManagement() {
       const uploadedUrl = uploadRes.data.url;
       const uploadedFilename = file.name;
 
-      // 2. Append to teacher's galleryPhotos
       const res = await axios.post(
         `${api}/api/admin/users/teachers/${selectedTeacherId}/photos`,
         { url: uploadedUrl, filename: uploadedFilename },
@@ -228,7 +262,6 @@ export default function TeacherManagement() {
     const targetIdx = index + direction;
     if (targetIdx < 0 || targetIdx >= list.length) return;
 
-    // Swap items
     const temp = list[index];
     list[index] = list[targetIdx];
     list[targetIdx] = temp;
@@ -306,9 +339,9 @@ export default function TeacherManagement() {
       {/* Main Header */}
       <div className="flex flex-wrap items-end justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-[26px] font-extrabold leading-tight">Teacher Photo Gallery</h1>
+          <h1 className="text-[26px] font-extrabold leading-tight">Teacher Management & Profile</h1>
           <p style={{ color: C.sub }} className="mt-0.5 text-[12.5px]">
-            Manage photos for {teacherData?.name}. You can upload, view, reorder or delete photos.
+            Manage teacher information, assigned subjects, and photo gallery for {teacherData?.name}.
           </p>
         </div>
         <button
@@ -316,13 +349,13 @@ export default function TeacherManagement() {
           style={{ borderColor: C.border }}
           className="flex items-center gap-2 border bg-slate-900 hover:bg-slate-850 px-4 py-2 rounded-xl text-xs font-bold text-white transition cursor-pointer"
         >
-          <FaArrowLeft size={12} /> Back to Teacher Profile
+          <FaArrowLeft size={12} /> Back to Dashboard
         </button>
       </div>
 
       <div className="flex flex-col gap-6 lg:flex-row">
         {/* Left Panel: Profile Summary Card */}
-        <div className="w-full lg:w-[320px] shrink-0 space-y-4">
+        <div className="w-full lg:w-[340px] shrink-0 space-y-4">
           <div style={{ background: C.card, borderColor: C.border }} className="rounded-2xl border p-5 shadow-xl">
             <div className="flex flex-col items-center text-center">
               {/* Circular Avatar */}
@@ -348,7 +381,7 @@ export default function TeacherManagement() {
                 </span>
               </h2>
               <p style={{ color: C.sub }} className="text-xs font-bold mt-1">
-                {subjects.length > 0 ? `${subjects[0].name} Teacher` : "Faculty Teacher"}
+                {subjects.length > 0 ? `${subjects.map(s => s.name).join(", ")} Teacher` : "Faculty Teacher"}
               </p>
 
               <div className="flex items-center gap-1 text-amber-500 text-xs font-black mt-2">
@@ -367,7 +400,7 @@ export default function TeacherManagement() {
                 <button
                   onClick={() => setShowEditModal(true)}
                   style={{ color: C.purple, background: C.purpleDim }}
-                  className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold transition hover:bg-purple-650/20"
+                  className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold transition hover:bg-purple-650/20 cursor-pointer"
                 >
                   <FaEdit size={10} /> Edit
                 </button>
@@ -384,20 +417,32 @@ export default function TeacherManagement() {
               <Row label="Status" value="Active" />
             </div>
 
-            {/* Subjects badge list */}
+            {/* Subjects badge list with Admin Assign trigger */}
             <div style={{ borderColor: C.borderSoft }} className="mt-4 border-t pt-4">
-              <span className="block text-[10px] font-black uppercase text-slate-500 tracking-wider mb-2">Subjects</span>
+              <div className="flex items-center justify-between mb-2">
+                <span className="block text-[10px] font-black uppercase text-slate-500 tracking-wider">Assigned Subjects</span>
+                <button
+                  onClick={() => {
+                    loadSchoolSubjects();
+                    setShowAssignSubjectModal(true);
+                  }}
+                  style={{ color: C.purple, background: C.purpleDim }}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9.5px] font-bold hover:bg-purple-650/20 cursor-pointer transition"
+                >
+                  <FaPlus size={8} /> Assign Subject
+                </button>
+              </div>
               <div className="flex flex-wrap gap-1.5">
                 {subjects.map((sub, idx) => (
                   <span
                     key={idx}
                     style={{ background: C.purpleDim, color: C.purple }}
-                    className="px-2.5 py-1 rounded-lg text-[11px] font-bold"
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-bold border border-purple-500/20"
                   >
                     {sub.name}
                   </span>
                 ))}
-                {subjects.length === 0 && <span style={{ color: C.faint }} className="text-xs">No subjects assigned</span>}
+                {subjects.length === 0 && <span style={{ color: C.faint }} className="text-xs">No subjects assigned yet</span>}
               </div>
             </div>
 
@@ -532,7 +577,7 @@ export default function TeacherManagement() {
         </div>
       </div>
 
-      {/* Edit Details Dialog Modal */}
+      {/* 1. Edit Details Dialog Modal */}
       {showEditModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div style={{ background: C.card, borderColor: C.border }} className="w-full max-w-lg rounded-2xl border p-6 shadow-2xl animate-scaleIn text-white">
@@ -653,6 +698,60 @@ export default function TeacherManagement() {
           </div>
         </div>
       )}
+
+      {/* 2. Assign Subject Modal for Admin */}
+      {showAssignSubjectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div style={{ background: C.card, borderColor: C.border }} className="w-full max-w-md rounded-2xl border p-6 shadow-2xl animate-scaleIn text-white">
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-4">
+              <h3 className="text-sm font-black uppercase text-slate-350 tracking-wider">Assign Subject to {teacherData?.name}</h3>
+              <button onClick={() => setShowAssignSubjectModal(false)} className="text-slate-450 hover:text-white transition">
+                <FaTimes size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleAssignSubjectSubmit} className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">Select Course Subject</label>
+                <select
+                  value={assignSubjectId}
+                  onChange={(e) => setAssignSubjectId(e.target.value)}
+                  required
+                  className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                >
+                  <option value="">Choose Course Subject...</option>
+                  {allSchoolSubjects.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {s.name} {s.class ? `(Class ${s.class.name}-${s.class.section})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+                Note: Admin can assign multiple subjects to a single teacher (e.g. Teacher Prince can be assigned Math, Science, Hindi, English). Assigned subjects will appear in the teacher's profile as read-only.
+              </p>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-800/80 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowAssignSubjectModal(false)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-md"
+                >
+                  Assign Subject
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
