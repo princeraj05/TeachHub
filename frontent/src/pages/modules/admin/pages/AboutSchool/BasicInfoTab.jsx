@@ -113,14 +113,18 @@ function BasicInfoTab({
           {/* School Logo (Left) */}
           <div className="lg:col-span-4 flex flex-col items-center justify-center">
             <div className="rounded-full overflow-hidden border-4 border-slate-800/80 w-36 h-36 bg-slate-900 flex items-center justify-center relative group shadow-xl">
-              <img
-                src={photo || "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=200&h=200&q=80"}
-                alt="School Logo"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.src = "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=200&h=200&q=80";
-                }}
-              />
+              {photo ? (
+                <img
+                  src={photo.startsWith("http") || photo.startsWith("data:") ? photo : `${API}${photo}`}
+                  alt="School Logo"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center text-slate-400 gap-1">
+                  <FaSchool className="text-4xl text-purple-500" />
+                  <span className="text-[9px] font-bold">No Logo</span>
+                </div>
+              )}
               {isEditing && (
                 <div className="absolute inset-0 bg-black/85 flex flex-col items-center justify-center p-3 text-center transition-opacity duration-200">
                   <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">School Logo</span>

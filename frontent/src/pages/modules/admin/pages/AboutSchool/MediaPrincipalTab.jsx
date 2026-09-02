@@ -8,7 +8,9 @@ import {
   FaPlus,
   FaChevronDown,
   FaUserTie,
-  FaInfoCircle
+  FaInfoCircle,
+  FaImage,
+  FaUpload
 } from "react-icons/fa";
 
 function MediaPrincipalTab({
@@ -51,6 +53,12 @@ function MediaPrincipalTab({
     autoSaveMedia({ schoolPhotos: updated });
   };
 
+  const triggerReplacePhotoUpload = (index) => {
+    setActiveReplaceIndex(index);
+    const inputEl = document.getElementById("replace-photo-file-input");
+    if (inputEl) inputEl.click();
+  };
+
   const handleCoverUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -78,7 +86,10 @@ function MediaPrincipalTab({
   const handleAddPhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (schoolPhotos.length >= 5) return;
+    if (schoolPhotos.length >= 5) {
+      alert("Maximum 5 photos allowed.");
+      return;
+    }
     
     const formData = new FormData();
     formData.append("image", file);
@@ -150,7 +161,7 @@ function MediaPrincipalTab({
         autoSaveMedia({ principalPhoto: res.data.url });
       }
     } catch (err) {
-      alert("Failed to upload image. Please try again.");
+      alert("Failed to upload principal photo. Please try again.");
     }
   };
 
@@ -200,9 +211,6 @@ function MediaPrincipalTab({
                   src={getMediaUrl(url)}
                   alt={`School Photo ${idx + 1}`}
                   className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.src = "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80";
-                  }}
                 />
                 <span className="absolute top-2 left-2 w-5 h-5 rounded-full bg-purple-600 text-white text-[10px] font-black flex items-center justify-center shadow-md">
                   {idx + 1}
@@ -251,15 +259,16 @@ function MediaPrincipalTab({
 
           {/* Empty slot placeholder */}
           {schoolPhotos.length === 0 && (
-            <div className="col-span-5 py-6 text-center border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl text-slate-500 dark:text-slate-400 text-xs">
-              No photos uploaded. Click "+ Add Photo" to start.
+            <div className="col-span-5 py-8 text-center border-2 border-dashed border-slate-300 dark:border-slate-800/80 rounded-2xl text-slate-500 dark:text-slate-400 text-xs flex flex-col items-center justify-center gap-2">
+              <FaImage className="text-2xl text-slate-400" />
+              <span>No school photos uploaded yet. Click "+ Add Photo" to upload photos.</span>
             </div>
           )}
         </div>
 
         <div className="bg-purple-50 dark:bg-[#0F172A] border border-purple-200 dark:border-slate-850 rounded-xl px-4 py-2.5 text-[9px] text-purple-600 dark:text-purple-400 mt-4 flex items-center gap-2">
           <FaInfoCircle className="text-[10px]" />
-          <span>Drag and drop to reorder photos. The first photo will be shown as the main image.</span>
+          <span>The first photo will be shown as the main school image for students and parents.</span>
         </div>
       </div>
 
@@ -283,7 +292,7 @@ function MediaPrincipalTab({
               onClick={() => document.getElementById("cover-photo-file-input").click()}
               className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-lg transition cursor-pointer"
             >
-              <FaSyncAlt /> Change Banner
+              <FaSyncAlt /> {coverImage ? "Change Banner" : "Upload Banner"}
             </button>
           </div>
         </div>
@@ -300,10 +309,6 @@ function MediaPrincipalTab({
                 src={getMediaUrl(coverImage)}
                 alt="School Widescreen Cover Banner"
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=1200&q=80";
-                }}
               />
               <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
                 <button
@@ -315,7 +320,10 @@ function MediaPrincipalTab({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setCoverImage("")}
+                  onClick={() => {
+                    setCoverImage("");
+                    autoSaveMedia({ coverImage: "" });
+                  }}
                   className="px-3.5 py-2 bg-rose-600/95 hover:bg-rose-500 text-white text-xs font-extrabold rounded-xl transition cursor-pointer flex items-center gap-1.5"
                 >
                   <FaTrashAlt /> Remove Cover
@@ -323,12 +331,13 @@ function MediaPrincipalTab({
               </div>
             </>
           ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500 gap-2 border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl">
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500 gap-2 border-2 border-dashed border-slate-300 dark:border-slate-800/80 rounded-2xl">
+              <FaImage className="text-3xl text-slate-400" />
               <span className="text-xs font-bold text-slate-600 dark:text-slate-400">No cover image uploaded</span>
               <button
                 type="button"
                 onClick={() => document.getElementById("cover-photo-file-input").click()}
-                className="px-4 py-2 bg-slate-100 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-850 rounded-xl text-[10px] text-slate-800 dark:text-white font-black transition cursor-pointer"
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-[10px] font-black transition cursor-pointer shadow-sm"
               >
                 Upload Cover Banner
               </button>
@@ -353,16 +362,20 @@ function MediaPrincipalTab({
 
             <div className="flex flex-col sm:flex-row items-center gap-5">
               
-              {/* Photo Box with overlay camera */}
-              <div className="relative w-28 h-28 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 group">
-                <img
-                  src={principalPhoto || "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=300&h=300&q=80"}
-                  alt="Principal"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.src = "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=300&h=300&q=80";
-                  }}
-                />
+              {/* Photo Box */}
+              <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 group flex items-center justify-center shrink-0">
+                {principalPhoto ? (
+                  <img
+                    src={getMediaUrl(principalPhoto)}
+                    alt="Principal"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-slate-400 gap-1 p-2 text-center">
+                    <FaUserTie className="text-4xl text-purple-500/70" />
+                    <span className="text-[8.5px] font-extrabold uppercase tracking-wide text-slate-400">No Photo</span>
+                  </div>
+                )}
                 <input
                   type="file"
                   id="principal-photo-file-input"
@@ -373,7 +386,8 @@ function MediaPrincipalTab({
                 <button
                   type="button"
                   onClick={() => document.getElementById("principal-photo-file-input").click()}
-                  className="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center cursor-pointer shadow-lg group-hover:scale-105 transition border-0 focus:outline-none"
+                  className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center cursor-pointer shadow-lg group-hover:scale-105 transition border-2 border-white dark:border-[#0D1326]"
+                  title="Upload Principal Photo"
                 >
                   <FaCamera className="text-xs" />
                 </button>
@@ -381,18 +395,33 @@ function MediaPrincipalTab({
 
               {/* Upload file selection */}
               <div className="flex-1 w-full space-y-3">
-                <span className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Change Principal Photo</span>
+                <span className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Principal Photo</span>
                 
-                <button
-                  type="button"
-                  onClick={() => document.getElementById("principal-photo-file-input").click()}
-                  className="px-4 py-2 bg-slate-100 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-850 rounded-xl text-xs text-slate-800 dark:text-white font-bold transition cursor-pointer select-none"
-                >
-                  Choose Image File
-                </button>
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById("principal-photo-file-input").click()}
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-extrabold transition cursor-pointer select-none flex items-center justify-center gap-1.5 shadow-sm"
+                  >
+                    <FaUpload className="text-[10px]" /> {principalPhoto ? "Change Photo" : "Upload Photo"}
+                  </button>
 
-                <span className="block text-[8px] text-slate-500">
-                  {principalPhoto ? "Current: File uploaded successfully" : "Select a JPG, PNG or WEBP from your computer, Max size 2MB."}
+                  {principalPhoto && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPrincipalPhoto("");
+                        autoSaveMedia({ principalPhoto: "" });
+                      }}
+                      className="px-4 py-1.5 border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 rounded-xl text-xs font-bold transition cursor-pointer select-none flex items-center justify-center gap-1.5"
+                    >
+                      <FaTrashAlt className="text-[10px]" /> Remove Photo
+                    </button>
+                  )}
+                </div>
+
+                <span className="block text-[8.5px] text-slate-400 font-semibold leading-relaxed">
+                  {principalPhoto ? "✓ Photo uploaded and saved" : "Select a JPG, PNG or WEBP from your computer, Max size 2MB."}
                 </span>
               </div>
 
@@ -489,7 +518,7 @@ function MediaPrincipalTab({
             >
               <FaTimes />
             </button>
-            <img src={activePhotoPreview} alt="Preview" className="max-w-full max-h-[75vh] object-contain rounded-lg" />
+            <img src={getMediaUrl(activePhotoPreview)} alt="Preview" className="max-w-full max-h-[75vh] object-contain rounded-lg" />
           </div>
         </div>
       )}
@@ -504,7 +533,6 @@ function MediaPrincipalTab({
   );
 }
 
-// Simple absolute icons for modal closer
 function FaTimes(props) {
   return (
     <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 352 512" height="1em" width="1em" {...props}>

@@ -76,9 +76,6 @@ exports.getMySchool = async (req, res) => {
     if (!school.registrationNumber) { school.registrationNumber = "GD/REG/2010/4125"; modified = true; }
     if (!school.category) { school.category = "Secondary"; modified = true; }
     if (!school.motto) { school.motto = "Learn • Grow • Succeed"; modified = true; }
-    if (!school.photo) { school.photo = "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=200&h=200&q=80"; modified = true; }
-    
-    // Categories / Facilities
     if (!school.academicLevel) { school.academicLevel = "Secondary"; modified = true; }
     if (!school.coEducational) { school.coEducational = "Co-Educational"; modified = true; }
     if (!school.schoolOperationType) { school.schoolOperationType = "Day School"; modified = true; }
@@ -87,24 +84,6 @@ exports.getMySchool = async (req, res) => {
     if (!school.hostelFacility) { school.hostelFacility = "Not Available"; modified = true; }
     if (!school.availableClasses) { school.availableClasses = "Class 1 to 10"; modified = true; }
 
-    if (!school.coverImage) {
-      school.coverImage = "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=1200&q=80";
-      modified = true;
-    }
-    if (!school.schoolPhotos) {
-      school.schoolPhotos = [
-        "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=400&q=80", // school front
-        "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=400&q=80", // campus garden
-        "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=400&q=80", // classroom
-        "https://images.unsplash.com/photo-1568667256549-094345857637?auto=format&fit=crop&w=400&q=80", // library
-        "https://images.unsplash.com/photo-1557223562-6c77ef16210f?auto=format&fit=crop&w=400&q=80"  // school bus
-      ];
-      modified = true;
-    }
-    if (!school.principalPhoto) {
-      school.principalPhoto = "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=300&h=300&q=80";
-      modified = true;
-    }
     if (!school.principalDesignation) { school.principalDesignation = "Head of Institution"; modified = true; }
     if (!school.principalEmail) { school.principalEmail = "banny.thapar@gdaccedmy.edu.in"; modified = true; }
     if (!school.principalPhone) { school.principalPhone = "+91 98765 43210"; modified = true; }

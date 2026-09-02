@@ -193,34 +193,7 @@ function SchoolDetails() {
           </div>
         );
       }
-      // Fallback: If no photos are uploaded at all, we show a nice placeholder gallery!
-      // This ensures no school (like Saraswati Vidya Niketan) has missing images on the UI.
-      const defaultPhotos = [
-        "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80",
-        "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=600&q=80",
-        "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=600&q=80",
-        "https://images.unsplash.com/photo-1568667256549-094345857637?auto=format&fit=crop&w=600&q=80",
-        "https://images.unsplash.com/photo-1557223562-6c77ef16210f?auto=format&fit=crop&w=600&q=80"
-      ];
-      const mainPhoto = defaultPhotos[0];
-      const rightPhotos = defaultPhotos.slice(1);
-      return (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3.5 h-auto md:h-[320px] select-none">
-          {/* Large Left Image */}
-          <div className="md:col-span-3 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 h-[200px] md:h-full relative group cursor-pointer" onClick={() => handleOpenPhotosList(defaultPhotos, 0)}>
-            <img src={mainPhoto} alt="Campus" className="w-full h-full object-cover transition duration-300 group-hover:scale-105" />
-          </div>
-          
-          {/* Right Grid */}
-          <div className="md:col-span-2 grid grid-cols-2 gap-3.5 h-[180px] md:h-full">
-            {rightPhotos.map((photoUrl, idx) => (
-              <div key={idx} className="rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 h-full relative group cursor-pointer" onClick={() => handleOpenPhotosList(defaultPhotos, idx + 1)}>
-                <img src={photoUrl} alt="Campus view" className="w-full h-full object-cover transition duration-300 group-hover:scale-105" />
-              </div>
-            ))}
-          </div>
-        </div>
-      );
+      return null;
     }
 
     if (photos.length === 1) {
