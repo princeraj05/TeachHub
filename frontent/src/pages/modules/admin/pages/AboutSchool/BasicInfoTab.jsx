@@ -111,13 +111,14 @@ function BasicInfoTab({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           {/* School Logo (Left) */}
-          <div className="lg:col-span-4 flex flex-col items-center justify-center">
+          <div className="lg:col-span-4 flex flex-col items-center justify-center gap-3">
             <div className="rounded-full overflow-hidden border-4 border-slate-800/80 w-36 h-36 bg-slate-900 flex items-center justify-center relative group shadow-xl">
               {photo ? (
                 <img
                   src={photo.startsWith("http") || photo.startsWith("data:") ? photo : `${API}${photo}`}
-                  alt="School Logo"
+                  alt="Official School Logo Badge"
                   className="w-full h-full object-cover"
+                  onError={() => setPhoto("")}
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center text-slate-400 gap-1">
@@ -125,28 +126,25 @@ function BasicInfoTab({
                   <span className="text-[9px] font-bold">No Logo</span>
                 </div>
               )}
-              {isEditing && (
-                <div className="absolute inset-0 bg-black/85 flex flex-col items-center justify-center p-3 text-center transition-opacity duration-200">
-                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">School Logo</span>
-                  <input
-                    type="file"
-                    id="main-logo-file-input"
-                    accept="image/*"
-                    onChange={handlePhotoUpload}
-                    className="hidden"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => document.getElementById("main-logo-file-input").click()}
-                    className="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-[9px] text-white font-extrabold transition cursor-pointer select-none"
-                  >
-                    Upload Logo
-                  </button>
-                  <span className="text-[7px] text-slate-500 mt-1.5">Square 1:1 Ratio</span>
-                </div>
-              )}
+              <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center p-2 text-center transition-opacity duration-200">
+                <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest mb-1.5">School Logo</span>
+                <input
+                  type="file"
+                  id="main-logo-file-input"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => document.getElementById("main-logo-file-input").click()}
+                  className="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-[9px] text-white font-extrabold transition cursor-pointer select-none"
+                >
+                  {photo ? "Change Logo" : "Upload Logo"}
+                </button>
+              </div>
             </div>
-            <span className="text-[10px] font-bold text-slate-400 mt-3 select-none">Official School Logo Badge</span>
+            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Official School Logo Badge</span>
           </div>
 
           {/* Profile Fields (Right) */}

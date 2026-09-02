@@ -206,7 +206,14 @@ function CreateTimetableTab({
               <select
                 name="day"
                 value={form.day}
-                onChange={(e) => setForm({ ...form, day: e.target.value })}
+                onChange={(e) => {
+                  const selectedDay = e.target.value;
+                  setForm({
+                    ...form,
+                    day: selectedDay,
+                    repeatDays: [selectedDay]
+                  });
+                }}
                 className="w-full px-3 py-2.5 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
               >
                 {DAYS_OF_WEEK.map(d => (

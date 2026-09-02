@@ -235,6 +235,9 @@ function MediaPrincipalTab({
                   src={getMediaUrl(url)}
                   alt={`School Photo ${idx + 1}`}
                   className="w-full h-full object-cover"
+                  onError={() => {
+                    handleDeletePhoto(idx);
+                  }}
                 />
                 <span className="absolute top-2 left-2 w-5 h-5 rounded-full bg-purple-600 text-white text-[10px] font-black flex items-center justify-center shadow-md">
                   {idx + 1}
