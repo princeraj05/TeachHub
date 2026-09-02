@@ -327,10 +327,41 @@ function AdmissionSettingsTab({
                     type="text"
                     value={lunchBreakStartTime || "12:30 PM"}
                     onChange={(e) => setLunchBreakStartTime(e.target.value)}
-                    className="w-full pl-3 pr-8 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none font-bold"
+                    className="w-full pl-3 pr-9 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none font-bold"
                     placeholder="12:30 PM"
                   />
-                  <FaClock className="absolute right-2.5 text-slate-400 text-xs pointer-events-none" />
+                  <input
+                    type="time"
+                    id="admission-lunch-picker"
+                    className="sr-only"
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        const [hStr, mStr] = e.target.value.split(":");
+                        let h = parseInt(hStr, 10);
+                        const ampm = h >= 12 ? "PM" : "AM";
+                        const displayH = h % 12 || 12;
+                        setLunchBreakStartTime(`${String(displayH).padStart(2, "0")}:${mStr} ${ampm}`);
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const picker = document.getElementById("admission-lunch-picker");
+                      if (picker) {
+                        if (typeof picker.showPicker === "function") {
+                          picker.showPicker();
+                        } else {
+                          picker.focus();
+                          picker.click();
+                        }
+                      }
+                    }}
+                    className="absolute right-2 text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 text-xs p-1 cursor-pointer transition"
+                    title="Click to select time"
+                  >
+                    <FaClock />
+                  </button>
                 </div>
                 <select
                   value={lunchBreakDuration || 60}

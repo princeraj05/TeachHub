@@ -23,13 +23,20 @@ const parseMins = (tStr) => {
   const match = clean.match(/^(\d+):(\d+)\s*(AM|PM)?$/);
   if (!match) {
     const parts = clean.split(":");
-    return (Number(parts[0]) || 0) * 60 + (Number(parts[1]) || 0);
+    let h = Number(parts[0]) || 0;
+    const m = Number(parts[1]) || 0;
+    if (h >= 1 && h <= 6) h += 12; // 01:00 -> 13:00 (1 PM) in school context
+    return h * 60 + m;
   }
   let h = parseInt(match[1], 10);
   const m = parseInt(match[2], 10);
   const ampm = match[3];
-  if (ampm === "PM" && h < 12) h += 12;
-  if (ampm === "AM" && h === 12) h = 0;
+  if (ampm) {
+    if (ampm === "PM" && h < 12) h += 12;
+    if (ampm === "AM" && h === 12) h = 0;
+  } else {
+    if (h >= 1 && h <= 6) h += 12;
+  }
   return h * 60 + m;
 };
 
@@ -60,26 +67,77 @@ const formatMinutesTo12h = (mins) => {
 };
 
 const buildTimeSlots = (lunchStartStr = "12:30 PM", lunchMins = 60) => {
-  const lunchStart = parseMins(lunchStartStr) || (12 * 60 + 30);
-  const lunchEnd = lunchStart + (Number(lunchMins) || 60);
+  let lunchStart = parseMins(lunchStartStr);
+  // Ensure lunch start is in a valid school daytime range (11:00 AM to 02:30 PM = 660 to 870 mins)
+  if (lunchStart < 660 || lunchStart > 870) {
+    lunchStart = 12 * 60 + 30; // default 12:30 PM (750 mins)
+  }
+  const lunchDuration = Number(lunchMins) || 60;
+  const lunchEnd = lunchStart + lunchDuration;
 
-  return [
-    { label: "08:00 - 09:00 AM", start: "08:00", end: "09:00", isBreak: false, type: "period" },
-    { label: "09:00 - 10:00 AM", start: "09:00", end: "10:00", isBreak: false, type: "period" },
-    { label: "10:00 - 11:00 AM", start: "10:00", end: "11:00", isBreak: false, type: "period" },
-    { label: `11:00 AM - ${formatMinutesTo12h(lunchStart)}`, start: "11:00 AM", end: formatMinutesTo12h(lunchStart), isBreak: false, type: "period" },
-    { 
-      label: `${formatMinutesTo12h(lunchStart)} - ${formatMinutesTo12h(lunchEnd)}`, 
-      start: formatMinutesTo12h(lunchStart), 
-      end: formatMinutesTo12h(lunchEnd), 
-      isBreak: true, 
-      type: "lunch", 
-      name: `Lunch Break (${lunchMins} Mins)` 
-    },
-    { label: `${formatMinutesTo12h(lunchEnd)} - 02:30 PM`, start: formatMinutesTo12h(lunchEnd), end: "02:30 PM", isBreak: false, type: "period" },
-    { label: "02:30 - 03:30 PM", start: "02:30", end: "03:30", isBreak: false, type: "period" },
-    { label: "03:30 - 04:30 PM", start: "03:30", end: "04:30", isBreak: false, type: "period" }
+  const slots = [
+    { label: "08:00 - 09:00 AM", start: "08:00 AM", end: "09:00 AM", isBreak: false, type: "period" },
+    { label: "09:00 - 10:00 AM", start: "09:00 AM", end: "10:00 AM", isBreak: false, type: "period" },
+    { label: "10:00 - 11:00 AM", start: "10:00 AM", end: "11:00 AM", isBreak: false, type: "period" }
   ];
+
+  // Fill morning period(s) up to Lunch
+  if (lunchStart > 660) {
+    if (lunchStart === 750) { // 12:30 PM
+      slots.push({ label: "11:00 - 12:00 PM", start: "11:00 AM", end: "12:00 PM", isBreak: false, type: "period" });
+      slots.push({ label: "12:00 - 12:30 PM", start: "12:00 PM", end: "12:30 PM", isBreak: false, type: "period" });
+    } else if (lunchStart === 720) { // 12:00 PM
+      slots.push({ label: "11:00 - 12:00 PM", start: "11:00 AM", end: "12:00 PM", isBreak: false, type: "period" });
+    } else {
+      slots.push({ 
+        label: `11:00 AM - ${formatMinutesTo12h(lunchStart)}`, 
+        start: "11:00 AM", 
+        end: formatMinutesTo12h(lunchStart), 
+        isBreak: false, 
+        type: "period" 
+      });
+    }
+  }
+
+  // Add Lunch Break
+  slots.push({
+    label: `${formatMinutesTo12h(lunchStart)} - ${formatMinutesTo12h(lunchEnd)}`,
+    start: formatMinutesTo12h(lunchStart),
+    end: formatMinutesTo12h(lunchEnd),
+    isBreak: true,
+    type: "lunch",
+    name: `Lunch Break (${lunchDuration} Mins)`
+  });
+
+  // After Lunch periods up to 04:30 PM
+  if (lunchEnd <= 810) { // 01:30 PM or earlier
+    if (lunchEnd < 810) {
+      slots.push({
+        label: `${formatMinutesTo12h(lunchEnd)} - 01:30 PM`,
+        start: formatMinutesTo12h(lunchEnd),
+        end: "01:30 PM",
+        isBreak: false,
+        type: "period"
+      });
+    }
+    slots.push({ label: "01:30 - 02:30 PM", start: "01:30 PM", end: "02:30 PM", isBreak: false, type: "period" });
+    slots.push({ label: "02:30 - 03:30 PM", start: "02:30 PM", end: "03:30 PM", isBreak: false, type: "period" });
+    slots.push({ label: "03:30 - 04:30 PM", start: "03:30 PM", end: "04:30 PM", isBreak: false, type: "period" });
+  } else {
+    if (lunchEnd < 870) {
+      slots.push({
+        label: `${formatMinutesTo12h(lunchEnd)} - 02:30 PM`,
+        start: formatMinutesTo12h(lunchEnd),
+        end: "02:30 PM",
+        isBreak: false,
+        type: "period"
+      });
+    }
+    slots.push({ label: "02:30 - 03:30 PM", start: "02:30 PM", end: "03:30 PM", isBreak: false, type: "period" });
+    slots.push({ label: "03:30 - 04:30 PM", start: "03:30 PM", end: "04:30 PM", isBreak: false, type: "period" });
+  }
+
+  return slots;
 };
 
 // Color mapping for subjects
@@ -255,11 +313,9 @@ function TimetableManagementTab({
       if (e.day !== day) return false;
       
       const entryStartMins = parseMins(e.startTime);
-      const entryEndMins = parseMins(e.endTime);
 
-      // Matches if entry starts in this slot or slot overlaps entry start
-      return (entryStartMins >= slotStartMins && entryStartMins < slotEndMins) ||
-             (slotStartMins >= entryStartMins && slotStartMins < entryEndMins);
+      // Period matches if its start time falls within this slot range [slotStartMins, slotEndMins)
+      return entryStartMins >= slotStartMins && entryStartMins < slotEndMins;
     });
   };
 
@@ -630,10 +686,41 @@ function TimetableManagementTab({
                         type="text"
                         value={lunchBreakStartTime}
                         onChange={(e) => setLunchBreakStartTime(e.target.value)}
-                        className="w-full pl-3 pr-8 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none font-bold"
+                        className="w-full pl-3 pr-9 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none font-bold"
                         placeholder="12:30 PM"
                       />
-                      <FaClock className="absolute right-2.5 text-slate-400 text-xs pointer-events-none" />
+                      <input
+                        type="time"
+                        id="lunch-time-picker"
+                        className="sr-only"
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            const [hStr, mStr] = e.target.value.split(":");
+                            let h = parseInt(hStr, 10);
+                            const ampm = h >= 12 ? "PM" : "AM";
+                            const displayH = h % 12 || 12;
+                            setLunchBreakStartTime(`${String(displayH).padStart(2, "0")}:${mStr} ${ampm}`);
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const picker = document.getElementById("lunch-time-picker");
+                          if (picker) {
+                            if (typeof picker.showPicker === "function") {
+                              picker.showPicker();
+                            } else {
+                              picker.focus();
+                              picker.click();
+                            }
+                          }
+                        }}
+                        className="absolute right-2 text-slate-400 hover:text-purple-400 text-xs p-1 cursor-pointer transition"
+                        title="Click to select time"
+                      >
+                        <FaClock />
+                      </button>
                     </div>
                   </div>
                   <div>
