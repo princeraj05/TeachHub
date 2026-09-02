@@ -71,11 +71,6 @@ function AboutYourSchool() {
   const [schoolCategoriesList, setSchoolCategoriesList] = useState([]);
   const [admissionProcess, setAdmissionProcess] = useState(["Direct Admission"]);
   const [schoolBoardType, setSchoolBoardType] = useState("Private");
-  const [teacherAppointmentBooking, setTeacherAppointmentBooking] = useState(true);
-  const [appointmentBookingType, setAppointmentBookingType] = useState("Online Booking");
-  const [appointmentAdvanceDays, setAppointmentAdvanceDays] = useState(7);
-  const [appointmentMaxPerDay, setAppointmentMaxPerDay] = useState(5);
-  const [appointmentDuration, setAppointmentDuration] = useState(30);
   const [workingDays, setWorkingDays] = useState(["Mon", "Tue", "Wed", "Thu", "Fri"]);
   const [openingTime, setOpeningTime] = useState("08:00 AM");
   const [closingTime, setClosingTime] = useState("04:00 PM");
@@ -140,11 +135,6 @@ function AboutYourSchool() {
         setSchoolCategoriesList(data.schoolCategoriesList || []);
         setAdmissionProcess(Array.isArray(data.admissionProcess) ? data.admissionProcess : (data.admissionProcess ? [data.admissionProcess] : ["Direct Admission"]));
         setSchoolBoardType(data.schoolBoardType || "Private");
-        setTeacherAppointmentBooking(data.teacherAppointmentBooking !== false);
-        setAppointmentBookingType(data.appointmentBookingType || "Online Booking");
-        setAppointmentAdvanceDays(data.appointmentAdvanceDays || 7);
-        setAppointmentMaxPerDay(data.appointmentMaxPerDay || 5);
-        setAppointmentDuration(data.appointmentDuration || 30);
         setWorkingDays(data.workingDays || ["Mon", "Tue", "Wed", "Thu", "Fri"]);
         setOpeningTime(data.openingTime || "08:00 AM");
         setClosingTime(data.closingTime || "04:00 PM");
@@ -202,11 +192,6 @@ function AboutYourSchool() {
         schoolCategoriesList,
         admissionProcess,
         schoolBoardType,
-        teacherAppointmentBooking,
-        appointmentBookingType,
-        appointmentAdvanceDays,
-        appointmentMaxPerDay,
-        appointmentDuration,
         workingDays,
         openingTime,
         closingTime,
@@ -363,14 +348,9 @@ function AboutYourSchool() {
             schoolCategoriesList={schoolCategoriesList} setSchoolCategoriesList={setSchoolCategoriesList}
             admissionProcess={admissionProcess} setAdmissionProcess={setAdmissionProcess}
             schoolBoardType={schoolBoardType} setSchoolBoardType={setSchoolBoardType}
-            teacherAppointmentBooking={teacherAppointmentBooking} setTeacherAppointmentBooking={setTeacherAppointmentBooking}
-            appointmentBookingType={appointmentBookingType} setAppointmentBookingType={setAppointmentBookingType}
-            appointmentAdvanceDays={appointmentAdvanceDays} setAppointmentAdvanceDays={setAppointmentAdvanceDays}
-            appointmentMaxPerDay={appointmentMaxPerDay} setAppointmentMaxPerDay={setAppointmentMaxPerDay}
-            appointmentDuration={appointmentDuration} setAppointmentDuration={setAppointmentDuration}
             workingDays={workingDays} setWorkingDays={setWorkingDays}
-            openingTime={openingTime} setOpeningTime={openingTime}
-            closingTime={closingTime} setClosingTime={closingTime}
+            openingTime={openingTime} setOpeningTime={setOpeningTime}
+            closingTime={closingTime} setClosingTime={setClosingTime}
             holidays={holidays} setHolidays={setHolidays}
           />
         )}

@@ -189,9 +189,6 @@ exports.updateMySchool = async (req, res) => {
       availableClasses,
       schoolTypes,
       schoolType,
-      teacherAppointmentBooking,
-      appointmentMode,
-      appointmentDetails,
       admissionExam,
       directAdmission,
       description,
@@ -229,10 +226,6 @@ exports.updateMySchool = async (req, res) => {
       schoolCategoriesList,
       admissionProcess,
       schoolBoardType,
-      appointmentBookingType,
-      appointmentAdvanceDays,
-      appointmentMaxPerDay,
-      appointmentDuration,
       workingDays,
       openingTime,
       closingTime,
@@ -243,10 +236,6 @@ exports.updateMySchool = async (req, res) => {
     if (availableClasses !== undefined) school.availableClasses = availableClasses;
     if (schoolTypes !== undefined) school.schoolTypes = schoolTypes;
     if (schoolType !== undefined) school.schoolType = schoolType;
-    
-    if (teacherAppointmentBooking !== undefined) school.teacherAppointmentBooking = Boolean(teacherAppointmentBooking);
-    if (appointmentMode !== undefined) school.appointmentMode = appointmentMode;
-    if (appointmentDetails !== undefined) school.appointmentDetails = String(appointmentDetails).slice(0, 1000);
     if (admissionExam !== undefined) school.admissionExam = admissionExam;
     if (directAdmission !== undefined) school.directAdmission = directAdmission;
     if (description !== undefined) school.description = description;
@@ -287,16 +276,6 @@ exports.updateMySchool = async (req, res) => {
     if (schoolCategoriesList !== undefined) school.schoolCategoriesList = schoolCategoriesList;
     if (admissionProcess !== undefined) school.admissionProcess = admissionProcess;
     if (schoolBoardType !== undefined) school.schoolBoardType = schoolBoardType;
-    if (appointmentBookingType !== undefined) school.appointmentBookingType = appointmentBookingType;
-    if (appointmentAdvanceDays !== undefined && appointmentAdvanceDays !== null && appointmentAdvanceDays !== "" && !isNaN(appointmentAdvanceDays)) {
-      school.appointmentAdvanceDays = Number(appointmentAdvanceDays);
-    }
-    if (appointmentMaxPerDay !== undefined && appointmentMaxPerDay !== null && appointmentMaxPerDay !== "" && !isNaN(appointmentMaxPerDay)) {
-      school.appointmentMaxPerDay = Number(appointmentMaxPerDay);
-    }
-    if (appointmentDuration !== undefined && appointmentDuration !== null && appointmentDuration !== "" && !isNaN(appointmentDuration)) {
-      school.appointmentDuration = Number(appointmentDuration);
-    }
     if (workingDays !== undefined) school.workingDays = workingDays;
     if (openingTime !== undefined) school.openingTime = openingTime;
     if (closingTime !== undefined) school.closingTime = closingTime;

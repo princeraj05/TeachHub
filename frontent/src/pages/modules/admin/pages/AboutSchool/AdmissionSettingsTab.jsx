@@ -25,11 +25,6 @@ function AdmissionSettingsTab({
   schoolCategoriesList, setSchoolCategoriesList,
   admissionProcess, setAdmissionProcess,
   schoolBoardType, setSchoolBoardType,
-  teacherAppointmentBooking, setTeacherAppointmentBooking,
-  appointmentBookingType, setAppointmentBookingType,
-  appointmentAdvanceDays, setAppointmentAdvanceDays,
-  appointmentMaxPerDay, setAppointmentMaxPerDay,
-  appointmentDuration, setAppointmentDuration,
   workingDays, setWorkingDays,
   openingTime, setOpeningTime,
   closingTime, setClosingTime,
@@ -106,13 +101,13 @@ function AdmissionSettingsTab({
         </div>
 
         {/* Admission Process */}
-        <div className="bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between">
+        <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
           <div>
-            <div className="flex items-center gap-2 border-b border-slate-200/60 dark:border-slate-800/60 pb-3 mb-4">
+            <div className="flex items-center gap-2 border-b border-slate-800/60 pb-3 mb-4">
               <FaClipboardList className="text-purple-500 text-sm" />
-              <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">Admission Process</h3>
+              <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">Admission Process</h3>
             </div>
-            <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium mb-4">Select all admission processes that apply to your school.</p>
+            <p className="text-[10px] text-slate-400 font-medium mb-4">Select all admission processes that apply to your school.</p>
 
             <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
               {[
@@ -134,17 +129,17 @@ function AdmissionSettingsTab({
 
                 return (
                   <label key={opt.title} className={`flex items-start gap-3 p-3.5 rounded-xl border transition cursor-pointer select-none ${
-                    checked ? "border-purple-600 bg-purple-50 dark:bg-purple-600/10" : "border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-[#131B35]/20 hover:bg-slate-100 dark:hover:bg-[#131B35]/40"
+                    checked ? "border-purple-600 bg-purple-600/10" : "border-slate-850 bg-[#131B35]/20 hover:bg-[#131B35]/40"
                   }`}>
                     <input
                       type="checkbox"
                       checked={checked}
                       onChange={toggleOption}
-                      className="mt-0.5 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-purple-600 focus:ring-purple-500/20"
+                      className="mt-0.5 rounded border-slate-700 bg-slate-900 text-purple-600 focus:ring-purple-500/20"
                     />
                     <div>
-                      <span className={`block text-xs font-bold ${checked ? "text-purple-600 dark:text-purple-400 font-extrabold" : "text-slate-900 dark:text-white"}`}>{opt.title}</span>
-                      <span className="block text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-normal">
+                      <span className={`block text-xs font-bold ${checked ? "text-purple-400 font-extrabold" : "text-white"}`}>{opt.title}</span>
+                      <span className="block text-[10px] text-slate-400 mt-0.5 leading-normal">
                         {opt.desc}
                       </span>
                     </div>
@@ -197,298 +192,207 @@ function AdmissionSettingsTab({
 
       </div>
 
-      {/* LOWER ROW: APPOINTMENT BOOKING & TIMING SETTINGS */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* Teacher Appointment Booking Card (7 Cols) */}
-        <div className="lg:col-span-7 bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl">
-          <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-slate-800/60 pb-3 mb-4">
-            <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">Teacher Appointment Booking</h3>
-            
-            {/* Custom iOS-style toggle switch */}
-            <label className="relative inline-flex items-center cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={teacherAppointmentBooking}
-                onChange={(e) => setTeacherAppointmentBooking(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-9 h-5 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
-            </label>
-          </div>
-          <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium mb-4">
-            Allow parents/students to book appointments with teachers.
-          </p>
-
-          <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 transition-opacity duration-300 ${
-            teacherAppointmentBooking ? "opacity-100" : "opacity-40 pointer-events-none"
-          }`}>
-            {/* Booking Type */}
-            <div>
-              <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Booking Type</label>
-              <select
-                value={appointmentBookingType}
-                onChange={(e) => setAppointmentBookingType(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none font-bold"
-              >
-                <option>Online Booking</option>
-                <option>Offline Booking</option>
-              </select>
-            </div>
-
-            {/* Advance Booking Days */}
-            <div>
-              <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Advance Booking Days</label>
-              <input
-                type="number"
-                min="1"
-                max="90"
-                value={appointmentAdvanceDays}
-                onChange={(e) => setAppointmentAdvanceDays(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none font-bold"
-              />
-              <span className="block text-[8px] text-slate-500 mt-1">How many days in advance a booking can be made.</span>
-            </div>
-
-            {/* Max Appointments per Day */}
-            <div>
-              <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Max Appointments / Day / Teacher</label>
-              <input
-                type="number"
-                min="1"
-                value={appointmentMaxPerDay}
-                onChange={(e) => setAppointmentMaxPerDay(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none font-bold"
-              />
-            </div>
-
-            {/* Appointment Duration */}
-            <div>
-              <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Appointment Duration (Minutes)</label>
-              <select
-                value={appointmentDuration}
-                onChange={(e) => setAppointmentDuration(Number(e.target.value))}
-                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none font-bold cursor-pointer"
-              >
-                <option value={15}>15 Minutes</option>
-                <option value={30}>30 Minutes</option>
-                <option value={45}>45 Minutes</option>
-                <option value={60}>60 Minutes</option>
-              </select>
-            </div>
-
-            {/* Bottom tooltip */}
-            <div className="sm:col-span-2 bg-purple-50 dark:bg-[#0F172A] border border-purple-200 dark:border-slate-850 rounded-xl px-4 py-2.5 text-[9px] text-purple-700 dark:text-purple-400 flex items-center gap-2">
-              <FaInfoCircle className="text-[10px]" />
-              <span>Parents will be able to view available slots and book appointments within the allowed limit.</span>
-            </div>
-
-          </div>
+      {/* LOWER ROW: AVAILABILITY SETTINGS */}
+      <div className="bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl">
+        <div className="flex items-center gap-2 border-b border-slate-200/60 dark:border-slate-800/60 pb-3 mb-4">
+          <FaClock className="text-purple-500 text-sm" />
+          <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">Availability Settings</h3>
         </div>
+        <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium mb-4">Set school availability and operational days.</p>
 
-        {/* Availability Settings Card (5 Cols) */}
-        <div className="lg:col-span-5 bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl">
-          <div className="flex items-center gap-2 border-b border-slate-200/60 dark:border-slate-800/60 pb-3 mb-4">
-            <FaClock className="text-purple-500 text-sm" />
-            <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">Availability Settings</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          {/* Working Days Checkboxes */}
+          <div>
+            <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">School Working Days</label>
+            <div className="flex flex-wrap gap-2">
+              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => {
+                const active = workingDays.includes(day);
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => handleDayToggle(day)}
+                    className={`px-3.5 py-2 rounded-xl border text-xs font-bold transition cursor-pointer select-none ${
+                      active ? "border-purple-600 bg-purple-600/10 text-purple-700 dark:text-white" : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0F172A] text-slate-500 dark:text-slate-400"
+                    }`}
+                  >
+                    {day}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium mb-4">Set school availability and operational days.</p>
 
-          <div className="space-y-4">
-            
-            {/* Working Days Checkboxes */}
+          {/* School Timings */}
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">School Working Days</label>
-              <div className="flex flex-wrap gap-2">
-                {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => {
-                  const active = workingDays.includes(day);
-                  return (
-                    <button
-                      key={day}
-                      type="button"
-                      onClick={() => handleDayToggle(day)}
-                      className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition cursor-pointer select-none ${
-                        active ? "border-purple-600 bg-purple-600/10 text-purple-700 dark:text-white" : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0F172A] text-slate-500 dark:text-slate-400"
-                      }`}
-                    >
-                      {day}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* School Timings */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Opening Time</label>
-                <div className="relative flex items-center">
-                  <FaClock className="pointer-events-none absolute left-3 text-slate-400 text-xs z-10" />
-                  <input
-                    type="text"
-                    value={openingTime}
-                    onChange={(e) => setOpeningTime(e.target.value)}
-                    className="w-full pl-8 pr-16 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 font-bold"
-                    placeholder="08:00 AM"
-                  />
-                  <div className="absolute right-1.5 flex gap-1 bg-slate-200/50 dark:bg-white/10 p-0.5 rounded-lg border border-slate-300/40 dark:border-white/10">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const raw = (openingTime || "08:00").replace(/am|pm/gi, "").trim();
-                        setOpeningTime(`${raw || "08:00"} AM`);
-                      }}
-                      className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold transition cursor-pointer ${
-                        (openingTime || "").toUpperCase().includes("AM")
-                          ? "bg-purple-600 text-white shadow-sm"
-                          : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
-                      }`}
-                    >
-                      AM
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const raw = (openingTime || "08:00").replace(/am|pm/gi, "").trim();
-                        setOpeningTime(`${raw || "08:00"} PM`);
-                      }}
-                      className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold transition cursor-pointer ${
-                        (openingTime || "").toUpperCase().includes("PM")
-                          ? "bg-purple-600 text-white shadow-sm"
-                          : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
-                      }`}
-                    >
-                      PM
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Closing Time</label>
-                <div className="relative flex items-center">
-                  <FaClock className="pointer-events-none absolute left-3 text-slate-400 text-xs z-10" />
-                  <input
-                    type="text"
-                    value={closingTime}
-                    onChange={(e) => setClosingTime(e.target.value)}
-                    className="w-full pl-8 pr-16 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 font-bold"
-                    placeholder="04:00 PM"
-                  />
-                  <div className="absolute right-1.5 flex gap-1 bg-slate-200/50 dark:bg-white/10 p-0.5 rounded-lg border border-slate-300/40 dark:border-white/10">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const raw = (closingTime || "04:00").replace(/am|pm/gi, "").trim();
-                        setClosingTime(`${raw || "04:00"} AM`);
-                      }}
-                      className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold transition cursor-pointer ${
-                        (closingTime || "").toUpperCase().includes("AM")
-                          ? "bg-purple-600 text-white shadow-sm"
-                          : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
-                      }`}
-                    >
-                      AM
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const raw = (closingTime || "04:00").replace(/am|pm/gi, "").trim();
-                        setClosingTime(`${raw || "04:00"} PM`);
-                      }}
-                      className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold transition cursor-pointer ${
-                        (closingTime || "").toUpperCase().includes("PM")
-                          ? "bg-purple-600 text-white shadow-sm"
-                          : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
-                      }`}
-                    >
-                      PM
-                    </button>
-                  </div>
+              <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Opening Time</label>
+              <div className="relative flex items-center">
+                <FaClock className="pointer-events-none absolute left-3 text-slate-400 text-xs z-10" />
+                <input
+                  type="text"
+                  value={openingTime}
+                  onChange={(e) => setOpeningTime(e.target.value)}
+                  className="w-full pl-8 pr-16 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 font-bold"
+                  placeholder="08:00 AM"
+                />
+                <div className="absolute right-1.5 flex gap-1 bg-slate-200/50 dark:bg-white/10 p-0.5 rounded-lg border border-slate-300/40 dark:border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const raw = (openingTime || "08:00").replace(/am|pm/gi, "").trim();
+                      setOpeningTime(`${raw || "08:00"} AM`);
+                    }}
+                    className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold transition cursor-pointer ${
+                      (openingTime || "").toUpperCase().includes("AM")
+                        ? "bg-purple-600 text-white shadow-sm"
+                        : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                    }`}
+                  >
+                    AM
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const raw = (openingTime || "08:00").replace(/am|pm/gi, "").trim();
+                      setOpeningTime(`${raw || "08:00"} PM`);
+                    }}
+                    className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold transition cursor-pointer ${
+                      (openingTime || "").toUpperCase().includes("PM")
+                        ? "bg-purple-600 text-white shadow-sm"
+                        : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                    }`}
+                  >
+                    PM
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* Holidays List */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Holidays</label>
-                <button
-                  type="button"
-                  onClick={() => setShowAddHoliday(!showAddHoliday)}
-                  className="flex items-center gap-1 text-[8px] font-extrabold text-purple-600 dark:text-purple-400 hover:underline cursor-pointer"
-                >
-                  <FaPlus /> Add Holiday
-                </button>
-              </div>
-
-              {/* Holiday inputs toggle */}
-              {showAddHoliday && (
-                <div className="bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 p-3 rounded-xl space-y-3 mb-3">
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      type="text"
-                      placeholder="e.g. 15 Aug"
-                      value={newHolidayDate}
-                      onChange={(e) => setNewHolidayDate(e.target.value)}
-                      className="px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-[10px] text-slate-900 dark:text-white focus:outline-none"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Holiday Name"
-                      value={newHolidayName}
-                      onChange={(e) => setNewHolidayName(e.target.value)}
-                      className="px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-[10px] text-slate-900 dark:text-white focus:outline-none"
-                    />
-                  </div>
-                  <div className="flex justify-end gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setShowAddHoliday(false)}
-                      className="px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-800 text-[9px] text-slate-600 dark:text-slate-400 cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleAddHoliday}
-                      className="px-2.5 py-1 rounded bg-purple-600 text-[9px] text-white cursor-pointer"
-                    >
-                      Add
-                    </button>
-                  </div>
+              <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Closing Time</label>
+              <div className="relative flex items-center">
+                <FaClock className="pointer-events-none absolute left-3 text-slate-400 text-xs z-10" />
+                <input
+                  type="text"
+                  value={closingTime}
+                  onChange={(e) => setClosingTime(e.target.value)}
+                  className="w-full pl-8 pr-16 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 font-bold"
+                  placeholder="04:00 PM"
+                />
+                <div className="absolute right-1.5 flex gap-1 bg-slate-200/50 dark:bg-white/10 p-0.5 rounded-lg border border-slate-300/40 dark:border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const raw = (closingTime || "04:00").replace(/am|pm/gi, "").trim();
+                      setClosingTime(`${raw || "04:00"} AM`);
+                    }}
+                    className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold transition cursor-pointer ${
+                      (closingTime || "").toUpperCase().includes("AM")
+                        ? "bg-purple-600 text-white shadow-sm"
+                        : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                    }`}
+                  >
+                    AM
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const raw = (closingTime || "04:00").replace(/am|pm/gi, "").trim();
+                      setClosingTime(`${raw || "04:00"} PM`);
+                    }}
+                    className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold transition cursor-pointer ${
+                      (closingTime || "").toUpperCase().includes("PM")
+                        ? "bg-purple-600 text-white shadow-sm"
+                        : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                    }`}
+                  >
+                    PM
+                  </button>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Holidays List */}
+          <div className="md:col-span-2">
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Holidays</label>
+              <button
+                type="button"
+                onClick={() => setShowAddHoliday(!showAddHoliday)}
+                className="flex items-center gap-1 text-[8px] font-extrabold text-purple-600 dark:text-purple-400 hover:underline cursor-pointer"
+              >
+                <FaPlus /> Add Holiday
+              </button>
+            </div>
+
+            {/* Holiday inputs toggle */}
+            {showAddHoliday && (
+              <div className="bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 p-3 rounded-xl space-y-3 mb-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    placeholder="e.g. 15 Aug"
+                    value={newHolidayDate}
+                    onChange={(e) => setNewHolidayDate(e.target.value)}
+                    className="px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-[10px] text-slate-900 dark:text-white focus:outline-none"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Holiday Name"
+                    value={newHolidayName}
+                    onChange={(e) => setNewHolidayName(e.target.value)}
+                    className="px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-[10px] text-slate-900 dark:text-white focus:outline-none"
+                  />
+                </div>
+                <div className="flex justify-end gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddHoliday(false)}
+                    className="px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-800 text-[9px] text-slate-600 dark:text-slate-400 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddHoliday}
+                    className="px-2.5 py-1 rounded bg-purple-600 text-[9px] text-white cursor-pointer"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Tag items */}
+            <div className="flex flex-wrap gap-2">
+              {holidays.map((h, i) => (
+                <span key={i} className="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 text-slate-800 dark:text-slate-200 text-[9px] font-bold px-2.5 py-1 rounded-lg">
+                  {h.date} ({h.name})
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveHoliday(i)}
+                    className="text-slate-450 hover:text-rose-500 cursor-pointer transition text-[8px]"
+                  >
+                    ✕
+                  </button>
+                </span>
+              ))}
+              {holidays.length === 0 && (
+                <span className="text-[10px] text-slate-500 italic">No holidays configured.</span>
               )}
-
-              {/* Tag items */}
-              <div className="flex flex-wrap gap-2">
-                {holidays.map((h, i) => (
-                  <span key={i} className="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 text-slate-800 dark:text-slate-200 text-[9px] font-bold px-2.5 py-1 rounded-lg">
-                    {h.date} ({h.name})
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveHoliday(i)}
-                      className="text-slate-450 hover:text-rose-500 cursor-pointer transition text-[8px]"
-                    >
-                      ✕
-                    </button>
-                  </span>
-                ))}
-                {holidays.length === 0 && (
-                  <span className="text-[10px] text-slate-500 italic">No holidays configured.</span>
-                )}
-              </div>
             </div>
-
           </div>
-        </div>
 
+        </div>
       </div>
 
       {/* Info warning banner */}
       <div className="bg-purple-50 dark:bg-[#0F172A] border border-purple-200 dark:border-slate-850 rounded-xl px-4 py-3.5 text-xs text-slate-700 dark:text-slate-350 mt-4 flex items-center gap-2.5">
         <FaInfoCircle className="text-purple-500 text-base" />
-        <span>These settings will be visible to parents and students on the admission and booking pages.</span>
+        <span>These settings will be visible to parents and students on the admission and school profile pages.</span>
       </div>
 
     </div>

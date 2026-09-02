@@ -70,21 +70,12 @@ function SchoolDirectory() {
       return;
     }
 
-    if (requestedRole === "teacher" && selectedSchoolDetails?.teacherAppointmentBooking && (!appointmentDate || !appointmentTime)) {
-      alert("Choose an appointment date and time to continue.");
-      return;
-    }
-
     setSubmitting(true);
-    const bookingRequest = requestedRole === "teacher" && selectedSchoolDetails?.teacherAppointmentBooking
-      ? axios.post(`${API}/api/appointments`, { schoolName: selectedSchool, date: appointmentDate, time: appointmentTime, notes: appointmentNotes }, { headers: { Authorization: `Bearer ${token}` } })
-      : Promise.resolve();
-    bookingRequest
-      .then(() => axios.put(
-        `${API}/api/auth/join-request`,
-        { schoolName: selectedSchool, role: requestedRole },
-        { headers: { Authorization: `Bearer ${token}` } }
-      ))
+    axios.put(
+      `${API}/api/auth/join-request`,
+      { schoolName: selectedSchool, role: requestedRole },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
       .then((res) => {
         setUser((prev) => ({
           ...prev,
@@ -93,7 +84,6 @@ function SchoolDirectory() {
           requestStatus: "pending"
         }));
         setShowJoinModal(false);
-        // Refresh profile state
         fetchData();
       })
       .catch((err) => {
@@ -422,27 +412,13 @@ function SchoolDirectory() {
                 </div>
               </div>
 
-              {requestedRole === "teacher" && selectedSchoolDetails?.teacherAppointmentBooking && (
-                <div className="space-y-3 rounded-2xl border border-violet-200 dark:border-[#38BDF8]/20 bg-[#7C3AED]/5 dark:bg-[#38BDF8]/5 p-4">
-                  <div>
-                    <p className="text-sm font-black text-[#7C3AED] dark:text-[#38BDF8]">Book Appointment</p>
-                    <p className="text-xs text-slate-555 mt-1">Mode: {selectedSchoolDetails.appointmentMode || "Offline"}{selectedSchoolDetails.appointmentDetails ? ` · ${selectedSchoolDetails.appointmentDetails}` : ""}</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <input required type="date" min={new Date().toISOString().slice(0, 10)} value={appointmentDate} onChange={(event) => setAppointmentDate(event.target.value)} className="rounded-xl border border-slate-200/60 dark:border-white/10 dark:bg-[#0B132A] p-3 text-xs" />
-                    <input required type="time" value={appointmentTime} onChange={(event) => setAppointmentTime(event.target.value)} className="rounded-xl border border-slate-200/60 dark:border-white/10 dark:bg-[#0B132A] p-3 text-xs" />
-                  </div>
-                  <textarea value={appointmentNotes} onChange={(event) => setAppointmentNotes(event.target.value)} maxLength="1000" placeholder="Notes (optional)" className="w-full rounded-xl border border-slate-200/60 dark:border-white/10 dark:bg-[#0B132A] p-3 text-xs" />
-                </div>
-              )}
-
               <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
                   disabled={submitting}
                   className="flex-1 bg-gradient-to-r from-[#7C3AED] to-[#312E81] hover:opacity-90 active:scale-[0.99] text-white py-3.5 rounded-2xl text-xs font-bold shadow-md shadow-[#7C3AED]/15 transition-all cursor-pointer disabled:opacity-50"
                 >
-                  {submitting ? "Sending..." : requestedRole === "teacher" && selectedSchoolDetails?.teacherAppointmentBooking ? "Book Appointment & Submit" : "Submit Request"}
+                  {submitting ? "Sending..." : "Submit Request"}
                 </button>
                 <button
                   type="button"

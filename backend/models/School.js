@@ -39,9 +39,6 @@ const schoolSchema = new mongoose.Schema({
     default: []
   },
   schoolType: { type: String, enum: ["Private", "Government", ""], default: "" },
-  teacherAppointmentBooking: { type: Boolean, default: false },
-  appointmentMode: { type: String, enum: ["Online", "Offline", ""], default: "" },
-  appointmentDetails: { type: String, default: "" },
   admissionExam: {
     type: Boolean,
     default: null
@@ -92,10 +89,6 @@ const schoolSchema = new mongoose.Schema({
   schoolCategoriesList: { type: [String], default: [] },
   admissionProcess: { type: mongoose.Schema.Types.Mixed, default: ["Direct Admission"] },
   schoolBoardType: { type: String, default: "Private" },
-  appointmentBookingType: { type: String, default: "Online Booking" },
-  appointmentAdvanceDays: { type: Number, default: 7 },
-  appointmentMaxPerDay: { type: Number, default: 5 },
-  appointmentDuration: { type: Number, default: 30 },
   workingDays: { type: [String], default: ["Mon", "Tue", "Wed", "Thu", "Fri"] },
   openingTime: { type: String, default: "08:00 AM" },
   closingTime: { type: String, default: "04:00 PM" },
