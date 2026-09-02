@@ -69,17 +69,12 @@ export default function TodayTimetableWidget() {
   }, [entries]);
 
   return (
-    <section className="my-5 select-none">
+    <section className="my-5 select-none text-left">
       {/* Header Row */}
       <div className="flex items-center justify-between gap-3 mb-3">
         <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
           Today's Timetable
         </h2>
-        
-        {/* Your Dost Button */}
-        <button className="bg-gradient-to-r from-[#FF7A59] via-[#FF8A65] to-[#FFC850] text-[#2C2C2E] font-bold px-3.5 py-1.5 rounded-lg text-xs shadow-xs hover:opacity-95 transition cursor-pointer">
-          Your Dost
-        </button>
       </div>
 
       {/* Horizontally Scrollable Today Timetable Cards */}
@@ -122,13 +117,6 @@ export default function TodayTimetableWidget() {
             </div>
           );
         })}
-      </div>
-
-      {/* PEP Class Undertaking Button */}
-      <div className="flex justify-center mt-4 mb-2">
-        <button className="bg-gradient-to-r from-[#FF7A59] via-[#FF8A65] to-[#FFC850] text-[#2C2C2E] font-bold px-6 py-2.5 rounded-lg text-xs shadow-xs hover:opacity-95 transition cursor-pointer">
-          PEP Class Undertaking
-        </button>
       </div>
     </section>
   );
