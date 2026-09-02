@@ -75,31 +75,27 @@ const buildTimeSlots = (lunchStartStr = "12:30 PM", lunchMins = 60) => {
   const lunchDuration = Number(lunchMins) || 60;
   const lunchEnd = lunchStart + lunchDuration;
 
-  const slots = [
-    { label: "08:00 - 09:00 AM", start: "08:00 AM", end: "09:00 AM", isBreak: false, type: "period" },
-    { label: "09:00 - 10:00 AM", start: "09:00 AM", end: "10:00 AM", isBreak: false, type: "period" },
-    { label: "10:00 - 11:00 AM", start: "10:00 AM", end: "11:00 AM", isBreak: false, type: "period" }
-  ];
+  const slots = [];
 
-  // Fill morning period(s) up to Lunch
-  if (lunchStart > 660) {
-    if (lunchStart === 750) { // 12:30 PM
-      slots.push({ label: "11:00 - 12:00 PM", start: "11:00 AM", end: "12:00 PM", isBreak: false, type: "period" });
-      slots.push({ label: "12:00 - 12:30 PM", start: "12:00 PM", end: "12:30 PM", isBreak: false, type: "period" });
-    } else if (lunchStart === 720) { // 12:00 PM
-      slots.push({ label: "11:00 - 12:00 PM", start: "11:00 AM", end: "12:00 PM", isBreak: false, type: "period" });
-    } else {
-      slots.push({ 
-        label: `11:00 AM - ${formatMinutesTo12h(lunchStart)}`, 
-        start: "11:00 AM", 
-        end: formatMinutesTo12h(lunchStart), 
-        isBreak: false, 
-        type: "period" 
-      });
+  // 1. Morning period slots up to Lunch Break (starting from 08:00 AM)
+  let currentMins = 8 * 60; // 480 mins
+
+  while (currentMins < lunchStart) {
+    let nextMins = currentMins + 60;
+    if (nextMins > lunchStart) {
+      nextMins = lunchStart; // exact boundary before lunch break
     }
+    slots.push({
+      label: `${formatMinutesTo12h(currentMins)} - ${formatMinutesTo12h(nextMins)}`,
+      start: formatMinutesTo12h(currentMins),
+      end: formatMinutesTo12h(nextMins),
+      isBreak: false,
+      type: "period"
+    });
+    currentMins = nextMins;
   }
 
-  // Add Lunch Break
+  // 2. Add Lunch Break
   slots.push({
     label: `${formatMinutesTo12h(lunchStart)} - ${formatMinutesTo12h(lunchEnd)}`,
     start: formatMinutesTo12h(lunchStart),
@@ -109,32 +105,23 @@ const buildTimeSlots = (lunchStartStr = "12:30 PM", lunchMins = 60) => {
     name: `Lunch Break (${lunchDuration} Mins)`
   });
 
-  // After Lunch periods up to 04:30 PM
-  if (lunchEnd <= 810) { // 01:30 PM or earlier
-    if (lunchEnd < 810) {
-      slots.push({
-        label: `${formatMinutesTo12h(lunchEnd)} - 01:30 PM`,
-        start: formatMinutesTo12h(lunchEnd),
-        end: "01:30 PM",
-        isBreak: false,
-        type: "period"
-      });
+  // 3. Afternoon period slots after Lunch Break up to 04:30 PM (990 mins)
+  currentMins = lunchEnd;
+  const maxDayEndMins = 16 * 60 + 30; // 04:30 PM
+
+  while (currentMins < maxDayEndMins) {
+    let nextMins = currentMins + 60;
+    if (nextMins > maxDayEndMins) {
+      nextMins = maxDayEndMins;
     }
-    slots.push({ label: "01:30 - 02:30 PM", start: "01:30 PM", end: "02:30 PM", isBreak: false, type: "period" });
-    slots.push({ label: "02:30 - 03:30 PM", start: "02:30 PM", end: "03:30 PM", isBreak: false, type: "period" });
-    slots.push({ label: "03:30 - 04:30 PM", start: "03:30 PM", end: "04:30 PM", isBreak: false, type: "period" });
-  } else {
-    if (lunchEnd < 870) {
-      slots.push({
-        label: `${formatMinutesTo12h(lunchEnd)} - 02:30 PM`,
-        start: formatMinutesTo12h(lunchEnd),
-        end: "02:30 PM",
-        isBreak: false,
-        type: "period"
-      });
-    }
-    slots.push({ label: "02:30 - 03:30 PM", start: "02:30 PM", end: "03:30 PM", isBreak: false, type: "period" });
-    slots.push({ label: "03:30 - 04:30 PM", start: "03:30 PM", end: "04:30 PM", isBreak: false, type: "period" });
+    slots.push({
+      label: `${formatMinutesTo12h(currentMins)} - ${formatMinutesTo12h(nextMins)}`,
+      start: formatMinutesTo12h(currentMins),
+      end: formatMinutesTo12h(nextMins),
+      isBreak: false,
+      type: "period"
+    });
+    currentMins = nextMins;
   }
 
   return slots;
