@@ -229,6 +229,10 @@ exports.updateMySchool = async (req, res) => {
       workingDays,
       openingTime,
       closingTime,
+      shortBreakStartTime,
+      shortBreakDuration,
+      lunchBreakStartTime,
+      lunchBreakDuration,
       holidays
     } = req.body;
 
@@ -279,6 +283,10 @@ exports.updateMySchool = async (req, res) => {
     if (workingDays !== undefined) school.workingDays = workingDays;
     if (openingTime !== undefined) school.openingTime = openingTime;
     if (closingTime !== undefined) school.closingTime = closingTime;
+    if (shortBreakStartTime !== undefined) school.shortBreakStartTime = shortBreakStartTime;
+    if (shortBreakDuration !== undefined && !isNaN(shortBreakDuration)) school.shortBreakDuration = Number(shortBreakDuration);
+    if (lunchBreakStartTime !== undefined) school.lunchBreakStartTime = lunchBreakStartTime;
+    if (lunchBreakDuration !== undefined && !isNaN(lunchBreakDuration)) school.lunchBreakDuration = Number(lunchBreakDuration);
     if (holidays !== undefined) school.holidays = holidays;
 
     await school.save();

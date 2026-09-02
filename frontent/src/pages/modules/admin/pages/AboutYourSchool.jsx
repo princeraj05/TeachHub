@@ -74,6 +74,10 @@ function AboutYourSchool() {
   const [workingDays, setWorkingDays] = useState(["Mon", "Tue", "Wed", "Thu", "Fri"]);
   const [openingTime, setOpeningTime] = useState("08:00 AM");
   const [closingTime, setClosingTime] = useState("04:00 PM");
+  const [shortBreakStartTime, setShortBreakStartTime] = useState("11:00 AM");
+  const [shortBreakDuration, setShortBreakDuration] = useState(30);
+  const [lunchBreakStartTime, setLunchBreakStartTime] = useState("12:30 PM");
+  const [lunchBreakDuration, setLunchBreakDuration] = useState(60);
   const [holidays, setHolidays] = useState([]);
 
   // Tab 4: Description state
@@ -138,6 +142,10 @@ function AboutYourSchool() {
         setWorkingDays(data.workingDays || ["Mon", "Tue", "Wed", "Thu", "Fri"]);
         setOpeningTime(data.openingTime || "08:00 AM");
         setClosingTime(data.closingTime || "04:00 PM");
+        setShortBreakStartTime(data.shortBreakStartTime || "11:00 AM");
+        setShortBreakDuration(data.shortBreakDuration || 30);
+        setLunchBreakStartTime(data.lunchBreakStartTime || "12:30 PM");
+        setLunchBreakDuration(data.lunchBreakDuration || 60);
         setHolidays(data.holidays || []);
 
         // Tab 4 fields
@@ -195,6 +203,10 @@ function AboutYourSchool() {
         workingDays,
         openingTime,
         closingTime,
+        shortBreakStartTime,
+        shortBreakDuration,
+        lunchBreakStartTime,
+        lunchBreakDuration,
         holidays,
 
         // Tab 4 fields
@@ -351,6 +363,10 @@ function AboutYourSchool() {
             workingDays={workingDays} setWorkingDays={setWorkingDays}
             openingTime={openingTime} setOpeningTime={setOpeningTime}
             closingTime={closingTime} setClosingTime={setClosingTime}
+            shortBreakStartTime={shortBreakStartTime} setShortBreakStartTime={setShortBreakStartTime}
+            shortBreakDuration={shortBreakDuration} setShortBreakDuration={setShortBreakDuration}
+            lunchBreakStartTime={lunchBreakStartTime} setLunchBreakStartTime={setLunchBreakStartTime}
+            lunchBreakDuration={lunchBreakDuration} setLunchBreakDuration={setLunchBreakDuration}
             holidays={holidays} setHolidays={setHolidays}
           />
         )}

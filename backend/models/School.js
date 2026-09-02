@@ -92,6 +92,10 @@ const schoolSchema = new mongoose.Schema({
   workingDays: { type: [String], default: ["Mon", "Tue", "Wed", "Thu", "Fri"] },
   openingTime: { type: String, default: "08:00 AM" },
   closingTime: { type: String, default: "04:00 PM" },
+  shortBreakStartTime: { type: String, default: "11:00 AM" },
+  shortBreakDuration: { type: Number, default: 30 },
+  lunchBreakStartTime: { type: String, default: "12:30 PM" },
+  lunchBreakDuration: { type: Number, default: 60 },
   holidays: [{ date: String, name: String }]
 }, { timestamps: true });
 

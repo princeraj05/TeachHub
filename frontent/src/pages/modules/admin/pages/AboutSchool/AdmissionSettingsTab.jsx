@@ -28,6 +28,10 @@ function AdmissionSettingsTab({
   workingDays, setWorkingDays,
   openingTime, setOpeningTime,
   closingTime, setClosingTime,
+  shortBreakStartTime, setShortBreakStartTime,
+  shortBreakDuration, setShortBreakDuration,
+  lunchBreakStartTime, setLunchBreakStartTime,
+  lunchBreakDuration, setLunchBreakDuration,
   holidays, setHolidays
 }) {
 
@@ -224,7 +228,7 @@ function AdmissionSettingsTab({
             </div>
           </div>
 
-          {/* School Timings */}
+          {/* School Timings & Breaks */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Opening Time</label>
@@ -311,6 +315,54 @@ function AdmissionSettingsTab({
                     PM
                   </button>
                 </div>
+              </div>
+            </div>
+
+            {/* Short Break Settings */}
+            <div>
+              <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Short Break Start & Duration</label>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  value={shortBreakStartTime || "11:00 AM"}
+                  onChange={(e) => setShortBreakStartTime(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none font-bold"
+                  placeholder="11:00 AM"
+                />
+                <select
+                  value={shortBreakDuration || 30}
+                  onChange={(e) => setShortBreakDuration(Number(e.target.value))}
+                  className="w-full px-2.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none font-bold cursor-pointer"
+                >
+                  <option value={10}>10 Mins</option>
+                  <option value={15}>15 Mins</option>
+                  <option value={20}>20 Mins</option>
+                  <option value={30}>30 Mins</option>
+                  <option value={45}>45 Mins</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Lunch Break Settings */}
+            <div>
+              <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Lunch Break Start & Duration</label>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  value={lunchBreakStartTime || "12:30 PM"}
+                  onChange={(e) => setLunchBreakStartTime(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none font-bold"
+                  placeholder="12:30 PM"
+                />
+                <select
+                  value={lunchBreakDuration || 60}
+                  onChange={(e) => setLunchBreakDuration(Number(e.target.value))}
+                  className="w-full px-2.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none font-bold cursor-pointer"
+                >
+                  <option value={30}>30 Mins</option>
+                  <option value={45}>45 Mins</option>
+                  <option value={60}>60 Mins</option>
+                </select>
               </div>
             </div>
           </div>

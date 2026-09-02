@@ -48,18 +48,55 @@ const formatTime12h = (timeStr) => {
   return `${String(displayH).padStart(2, "0")}:${displayM} ${ampm}`;
 };
 
-// Define standard Time Slots
-const TIME_SLOTS = [
-  { label: "08:00 - 09:00 AM", start: "08:00", end: "09:00", isBreak: false, type: "period" },
-  { label: "09:00 - 10:00 AM", start: "09:00", end: "10:00", isBreak: false, type: "period" },
-  { label: "10:00 - 11:00 AM", start: "10:00", end: "11:00", isBreak: false, type: "period" },
-  { label: "11:00 - 11:30 AM", start: "11:00", end: "11:30", isBreak: true, type: "break", name: "Short Break" },
-  { label: "11:30 - 12:30 PM", start: "11:30", end: "12:30", isBreak: false, type: "period" },
-  { label: "12:30 - 01:30 PM", start: "12:30", end: "01:30", isBreak: true, type: "lunch", name: "Lunch Break" },
-  { label: "01:30 - 02:30 PM", start: "01:30", end: "02:30", isBreak: false, type: "period" },
-  { label: "02:30 - 03:30 PM", start: "02:30", end: "03:30", isBreak: false, type: "period" },
-  { label: "03:30 - 04:30 PM", start: "03:30", end: "04:30", isBreak: false, type: "period" }
-];
+import axios from "axios";
+
+const formatMinutesTo12h = (mins) => {
+  const h = Math.floor(mins / 60) % 24;
+  const m = mins % 60;
+  const ampm = h >= 12 ? "PM" : "AM";
+  const displayH = h % 12 || 12;
+  const displayM = String(m).padStart(2, "0");
+  return `${String(displayH).padStart(2, "0")}:${displayM} ${ampm}`;
+};
+
+const buildTimeSlots = (shortStartStr = "11:00 AM", shortMins = 30, lunchStartStr = "12:30 PM", lunchMins = 60) => {
+  const shortStart = parseMins(shortStartStr) || (11 * 60);
+  const shortEnd = shortStart + (Number(shortMins) || 30);
+  const lunchStart = parseMins(lunchStartStr) || (12 * 60 + 30);
+  const lunchEnd = lunchStart + (Number(lunchMins) || 60);
+
+  return [
+    { label: "08:00 - 09:00 AM", start: "08:00", end: "09:00", isBreak: false, type: "period" },
+    { label: "09:00 - 10:00 AM", start: "09:00", end: "10:00", isBreak: false, type: "period" },
+    { label: "10:00 - 11:00 AM", start: "10:00", end: "11:00", isBreak: false, type: "period" },
+    { 
+      label: `${formatMinutesTo12h(shortStart)} - ${formatMinutesTo12h(shortEnd)}`, 
+      start: formatMinutesTo12h(shortStart), 
+      end: formatMinutesTo12h(shortEnd), 
+      isBreak: true, 
+      type: "break", 
+      name: `Short Break (${shortMins} Mins)` 
+    },
+    { 
+      label: `${formatMinutesTo12h(shortEnd)} - ${formatMinutesTo12h(lunchStart)}`, 
+      start: formatMinutesTo12h(shortEnd), 
+      end: formatMinutesTo12h(lunchStart), 
+      isBreak: false, 
+      type: "period" 
+    },
+    { 
+      label: `${formatMinutesTo12h(lunchStart)} - ${formatMinutesTo12h(lunchEnd)}`, 
+      start: formatMinutesTo12h(lunchStart), 
+      end: formatMinutesTo12h(lunchEnd), 
+      isBreak: true, 
+      type: "lunch", 
+      name: `Lunch Break (${lunchMins} Mins)` 
+    },
+    { label: `${formatMinutesTo12h(lunchEnd)} - 02:30 PM`, start: formatMinutesTo12h(lunchEnd), end: "02:30 PM", isBreak: false, type: "period" },
+    { label: "02:30 - 03:30 PM", start: "02:30", end: "03:30", isBreak: false, type: "period" },
+    { label: "03:30 - 04:30 PM", start: "03:30", end: "04:30", isBreak: false, type: "period" }
+  ];
+};
 
 // Color mapping for subjects
 const SUBJECT_COLORS = {
@@ -103,6 +140,56 @@ function TimetableManagementTab({
   const [filterTeacher, setFilterTeacher] = useState("All");
   const [filterSubject, setFilterSubject] = useState("All");
   const [showBreaks, setShowBreaks] = useState(true);
+
+  // Break duration and timing states (configurable by Admin)
+  const [shortBreakStartTime, setShortBreakStartTime] = useState("11:00 AM");
+  const [shortBreakDuration, setShortBreakDuration] = useState(30);
+  const [lunchBreakStartTime, setLunchBreakStartTime] = useState("12:30 PM");
+  const [lunchBreakDuration, setLunchBreakDuration] = useState(60);
+  const [showBreakModal, setShowBreakModal] = useState(false);
+  const [savingBreaks, setSavingBreaks] = useState(false);
+
+  // Load school break settings on mount
+  React.useEffect(() => {
+    const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const token = localStorage.getItem("token");
+    if (token) {
+      axios.get(`${API}/api/schools/my-school`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(res => {
+          if (res.data) {
+            if (res.data.shortBreakStartTime) setShortBreakStartTime(res.data.shortBreakStartTime);
+            if (res.data.shortBreakDuration) setShortBreakDuration(res.data.shortBreakDuration);
+            if (res.data.lunchBreakStartTime) setLunchBreakStartTime(res.data.lunchBreakStartTime);
+            if (res.data.lunchBreakDuration) setLunchBreakDuration(res.data.lunchBreakDuration);
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
+
+  const handleSaveBreakSettings = async (e) => {
+    e.preventDefault();
+    setSavingBreaks(true);
+    try {
+      const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const token = localStorage.getItem("token");
+      await axios.put(`${API}/api/schools/my-school`, {
+        shortBreakStartTime,
+        shortBreakDuration: Number(shortBreakDuration),
+        lunchBreakStartTime,
+        lunchBreakDuration: Number(lunchBreakDuration)
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      setShowBreakModal(false);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to save break settings");
+    } finally {
+      setSavingBreaks(false);
+    }
+  };
+
+  const TIME_SLOTS = useMemo(() => {
+    return buildTimeSlots(shortBreakStartTime, shortBreakDuration, lunchBreakStartTime, lunchBreakDuration);
+  }, [shortBreakStartTime, shortBreakDuration, lunchBreakStartTime, lunchBreakDuration]);
 
   // Filter local state
   const [activeFilters, setActiveFilters] = useState({
@@ -336,6 +423,14 @@ function TimetableManagementTab({
               </label>
 
               <button
+                type="button"
+                onClick={() => setShowBreakModal(true)}
+                className="px-3 py-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
+              >
+                <FaClock className="text-[10px]" /> Break Settings
+              </button>
+
+              <button
                 onClick={() => setActiveTab("basic")}
                 className="flex items-center gap-1.5 text-purple-500 hover:underline cursor-pointer"
               >
@@ -512,8 +607,118 @@ function TimetableManagementTab({
       {/* Footer hint */}
       <div className="bg-[#0F172A] border border-slate-850 rounded-xl px-4 py-3 text-xs text-slate-350 mt-4 flex items-center gap-2.5 select-none shadow-md">
         <FaInfoCircle className="text-purple-500 text-base" />
-        <span>Note: Click on any period to edit or delete. Drag and drop to reschedule periods.</span>
+        <span>Note: Click on any period to edit or delete. Break duration and timings can be configured using Break Settings.</span>
       </div>
+
+      {/* Break Settings Modal */}
+      {showBreakModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowBreakModal(false)} />
+          <div className="bg-[#0D1326] rounded-3xl border border-slate-800 w-full max-w-md p-6 relative z-10 shadow-2xl text-left animate-fadeIn">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-purple-600/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
+                  <FaClock className="text-base" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-white">Configure School Breaks</h3>
+                  <p className="text-[10px] text-slate-400 font-bold">Set break duration & start timings for timetable</p>
+                </div>
+              </div>
+              <button onClick={() => setShowBreakModal(false)} className="text-slate-400 hover:text-white font-black text-sm cursor-pointer p-1">
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveBreakSettings} className="space-y-4">
+              
+              {/* Short Break Settings */}
+              <div className="p-4 rounded-2xl bg-[#0F172A] border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-purple-400 uppercase tracking-wider">🍴 Short Break</span>
+                  <span className="text-[10px] text-slate-400 font-bold">Default: 30 Mins</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Start Time</label>
+                    <input
+                      type="text"
+                      value={shortBreakStartTime}
+                      onChange={(e) => setShortBreakStartTime(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none font-bold"
+                      placeholder="11:00 AM"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Break Duration</label>
+                    <select
+                      value={shortBreakDuration}
+                      onChange={(e) => setShortBreakDuration(Number(e.target.value))}
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none font-bold cursor-pointer"
+                    >
+                      <option value={10}>10 Minutes</option>
+                      <option value={15}>15 Minutes</option>
+                      <option value={20}>20 Minutes</option>
+                      <option value={30}>30 Minutes</option>
+                      <option value={45}>45 Minutes</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Lunch Break Settings */}
+              <div className="p-4 rounded-2xl bg-[#0F172A] border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-amber-400 uppercase tracking-wider">🍱 Lunch Break</span>
+                  <span className="text-[10px] text-slate-400 font-bold">Default: 60 Mins</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Start Time</label>
+                    <input
+                      type="text"
+                      value={lunchBreakStartTime}
+                      onChange={(e) => setLunchBreakStartTime(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none font-bold"
+                      placeholder="12:30 PM"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Lunch Duration</label>
+                    <select
+                      value={lunchBreakDuration}
+                      onChange={(e) => setLunchBreakDuration(Number(e.target.value))}
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none font-bold cursor-pointer"
+                    >
+                      <option value={30}>30 Minutes</option>
+                      <option value={45}>45 Minutes</option>
+                      <option value={60}>60 Minutes</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-3">
+                <button
+                  type="submit"
+                  disabled={savingBreaks}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl text-xs transition cursor-pointer disabled:opacity-50"
+                >
+                  {savingBreaks ? "Saving..." : "Save & Apply Breaks"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowBreakModal(false)}
+                  className="px-5 py-3 rounded-xl border border-slate-800 bg-slate-900 text-slate-400 text-xs font-bold hover:text-white cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );
