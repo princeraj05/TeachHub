@@ -32,8 +32,21 @@ function MediaPrincipalTab({
 
   const getMediaUrl = (url) => {
     if (!url) return "";
-    if (url.startsWith("http") || url.startsWith("data:") || url.startsWith("blob:")) return url;
-    return `${API}${url}`;
+    if (url.startsWith("data:") || url.startsWith("blob:")) return url;
+    const base = API || "http://localhost:5000";
+    const cleanBase = base.replace(/\/+$/, "");
+
+    if (url.includes("/uploads/")) {
+      const path = url.substring(url.indexOf("/uploads/"));
+      return `${cleanBase}${path}`;
+    }
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      return url;
+    }
+    if (url.startsWith("/")) {
+      return `${cleanBase}${url}`;
+    }
+    return `${cleanBase}/${url}`;
   };
 
   const autoSaveMedia = async (updatedPayload) => {
@@ -336,6 +349,10 @@ function MediaPrincipalTab({
                 src={getMediaUrl(coverImage)}
                 alt="School Widescreen Cover Banner"
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
+                onError={() => {
+                  setCoverImage("");
+                  autoSaveMedia({ coverImage: "" });
+                }}
               />
               <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
                 <button
