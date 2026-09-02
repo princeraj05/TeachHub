@@ -273,14 +273,17 @@ export default function PaymentCenter({ role }) {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
-                      Razorpay Key Secret
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 flex justify-between">
+                      <span>Razorpay Key Secret</span>
+                      {settings?.secretConfigured && (
+                        <span className="text-emerald-500 font-extrabold normal-case">✓ Saved on Server</span>
+                      )}
                     </label>
                     <input
                       type="password"
                       value={modalData.keySecret}
                       onChange={(e) => setModalData({ ...modalData, keySecret: e.target.value })}
-                      placeholder="Leave blank to keep existing"
+                      placeholder={settings?.secretConfigured ? "•••••••• (Leave blank to keep existing)" : "Enter Razorpay Key Secret"}
                       className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold text-slate-800 dark:text-white"
                     />
                   </div>

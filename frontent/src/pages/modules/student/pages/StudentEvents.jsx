@@ -52,7 +52,8 @@ function StudentEvents() {
 
   const getMediaUrl = (url) => {
     if (!url) return "";
-    return url.startsWith("http") ? url : `${API}${url}`;
+    if (url.startsWith("http") || url.startsWith("data:") || url.startsWith("blob:")) return url;
+    return `${API}${url}`;
   };
 
   const openLightbox = (type, url, filename) => {
@@ -613,7 +614,15 @@ function StudentEvents() {
                       onClick={() => openLightbox('photo', photo.url, photo.filename)}
                       className="aspect-square rounded-2.5xl overflow-hidden border border-slate-200/65 dark:border-white/10 cursor-zoom-in relative group bg-slate-100 dark:bg-white/5"
                     >
-                      <img src={getMediaUrl(photo.url)} alt={photo.filename} className="w-full h-full object-cover group-hover:scale-105 transition-all duration-305" />
+                      <img 
+                        src={getMediaUrl(photo.url)} 
+                        alt={photo.filename || `Event photo ${index + 1}`} 
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=400&q=80";
+                        }}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-all duration-305" 
+                      />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[10px] font-black uppercase tracking-wider transition">
                         View Photo
                       </div>
