@@ -38,9 +38,20 @@ function MediaPrincipalTab({
   const autoSaveMedia = async (updatedPayload) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.put(`${API}/api/schools/my-school`, updatedPayload, {
+      const res = await axios.put(`${API}/api/schools/my-school`, updatedPayload, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      if (res.data?.school) {
+        if (updatedPayload.principalPhoto !== undefined) {
+          setPrincipalPhoto(res.data.school.principalPhoto || "");
+        }
+        if (updatedPayload.schoolPhotos !== undefined) {
+          setSchoolPhotos(res.data.school.schoolPhotos || []);
+        }
+        if (updatedPayload.coverImage !== undefined) {
+          setCoverImage(res.data.school.coverImage || "");
+        }
+      }
     } catch (err) {
       console.error("Auto-save media failed:", err);
     }
@@ -369,6 +380,10 @@ function MediaPrincipalTab({
                     src={getMediaUrl(principalPhoto)}
                     alt="Principal"
                     className="w-full h-full object-cover"
+                    onError={() => {
+                      setPrincipalPhoto("");
+                      autoSaveMedia({ principalPhoto: "" });
+                    }}
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center text-slate-400 gap-1 p-2 text-center">

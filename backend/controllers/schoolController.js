@@ -287,9 +287,15 @@ exports.updateMySchool = async (req, res) => {
     if (admissionProcess !== undefined) school.admissionProcess = admissionProcess;
     if (schoolBoardType !== undefined) school.schoolBoardType = schoolBoardType;
     if (appointmentBookingType !== undefined) school.appointmentBookingType = appointmentBookingType;
-    if (appointmentAdvanceDays !== undefined) school.appointmentAdvanceDays = Number(appointmentAdvanceDays);
-    if (appointmentMaxPerDay !== undefined) school.appointmentMaxPerDay = Number(appointmentMaxPerDay);
-    if (appointmentDuration !== undefined) school.appointmentDuration = Number(appointmentDuration);
+    if (appointmentAdvanceDays !== undefined && appointmentAdvanceDays !== null && appointmentAdvanceDays !== "" && !isNaN(appointmentAdvanceDays)) {
+      school.appointmentAdvanceDays = Number(appointmentAdvanceDays);
+    }
+    if (appointmentMaxPerDay !== undefined && appointmentMaxPerDay !== null && appointmentMaxPerDay !== "" && !isNaN(appointmentMaxPerDay)) {
+      school.appointmentMaxPerDay = Number(appointmentMaxPerDay);
+    }
+    if (appointmentDuration !== undefined && appointmentDuration !== null && appointmentDuration !== "" && !isNaN(appointmentDuration)) {
+      school.appointmentDuration = Number(appointmentDuration);
+    }
     if (workingDays !== undefined) school.workingDays = workingDays;
     if (openingTime !== undefined) school.openingTime = openingTime;
     if (closingTime !== undefined) school.closingTime = closingTime;
@@ -311,7 +317,8 @@ exports.updateMySchool = async (req, res) => {
 
     res.json({ message: "School information updated successfully", school: schoolObj });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error updating school profile:", error);
+    res.status(500).json({ message: error.message || "Failed to update school profile" });
   }
 };
 
