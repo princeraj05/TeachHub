@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { compressImage } from "../../../../../utils/mediaCompression";
 import {
   FaCamera,
   FaEye,
@@ -74,8 +75,11 @@ function MediaPrincipalTab({
     const file = e.target.files?.[0];
     if (!file) return;
     
+    let uploadFile = file;
+    try { uploadFile = await compressImage(file); } catch (cErr) {}
+
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("image", uploadFile);
     
     try {
       const token = localStorage.getItem("token");
@@ -102,8 +106,11 @@ function MediaPrincipalTab({
       return;
     }
     
+    let uploadFile = file;
+    try { uploadFile = await compressImage(file); } catch (cErr) {}
+
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("image", uploadFile);
     
     try {
       const token = localStorage.getItem("token");
@@ -128,8 +135,11 @@ function MediaPrincipalTab({
     const file = e.target.files?.[0];
     if (!file) return;
     
+    let uploadFile = file;
+    try { uploadFile = await compressImage(file); } catch (cErr) {}
+
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("image", uploadFile);
     
     try {
       const token = localStorage.getItem("token");
@@ -156,8 +166,11 @@ function MediaPrincipalTab({
     const file = e.target.files?.[0];
     if (!file) return;
     
+    let uploadFile = file;
+    try { uploadFile = await compressImage(file); } catch (cErr) {}
+
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("image", uploadFile);
     
     try {
       const token = localStorage.getItem("token");

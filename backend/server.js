@@ -230,54 +230,12 @@ mongoose
           await School.create({
             name: trimmed,
             normalizedName: normalized,
-            photo: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80",
-            schoolPhotos: [
-              "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80",
-              "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=600&q=80",
-              "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=600&q=80",
-              "https://images.unsplash.com/photo-1568667256549-094345857637?auto=format&fit=crop&w=600&q=80",
-              "https://images.unsplash.com/photo-1557223562-6c77ef16210f?auto=format&fit=crop&w=600&q=80"
-            ],
+            photo: "",
+            schoolPhotos: [],
             principalName: "Banny Thapar",
-            principalPhoto: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=300&h=300&q=80",
+            principalPhoto: "",
             description: `<h3><strong>${trimmed}</strong></h3><p>${trimmed} is a reputed educational institution committed to providing quality education in a safe, supportive, and engaging learning environment.</p>`
           });
-        }
-      }
-
-      // Non-destructive check to fill empty fields/photos for existing schools in the database
-      const schools = await School.find({});
-      for (const s of schools) {
-        let modified = false;
-        if (!s.photo) {
-          s.photo = "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80";
-          modified = true;
-        }
-        if (!s.schoolPhotos || s.schoolPhotos.length === 0) {
-          s.schoolPhotos = [
-            "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80",
-            "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=600&q=80",
-            "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=600&q=80",
-            "https://images.unsplash.com/photo-1568667256549-094345857637?auto=format&fit=crop&w=600&q=80",
-            "https://images.unsplash.com/photo-1557223562-6c77ef16210f?auto=format&fit=crop&w=600&q=80"
-          ];
-          modified = true;
-        }
-        if (!s.principalName) {
-          s.principalName = "Banny Thapar";
-          modified = true;
-        }
-        if (!s.principalPhoto) {
-          s.principalPhoto = "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=300&h=300&q=80";
-          modified = true;
-        }
-        if (!s.description) {
-          s.description = `<h3><strong>${s.name}</strong></h3><p>${s.name} is a reputed educational institution committed to providing quality education in a safe, supportive, and engaging learning environment.</p><p>Our school focuses on the overall development of students by combining strong academic foundations with discipline, creativity, sports, and extracurricular activities.</p><p>With dedicated and experienced teachers, modern learning facilities, and a student-centered approach, we encourage students to develop confidence, critical thinking, communication skills, and strong moral values.</p>`;
-          modified = true;
-        }
-        if (modified) {
-          await s.save();
-          console.log(`Database Migration: Updated missing fields/photos for school '${s.name}'`);
         }
       }
 

@@ -52,12 +52,13 @@ exports.getMySchool = async (req, res) => {
       ]
     });
     if (!school) {
-      school = new School({
+      school = await School.create({
         name: schoolName.trim(),
         normalizedName: normalized
       });
     } else if (!school.normalizedName) {
       school.normalizedName = normalized;
+      await school.save();
     }
 
     // Auto-seed example data if not filled (matching the mockup images exactly)
@@ -390,21 +391,14 @@ exports.uploadSchoolPhoto = async (req, res) => {
         }
         return res.json({ url: result.secure_url });
       } catch (cErr) {
-        console.error("Cloudinary upload failed, falling back to static URL/base64:", cErr.message);
+        console.error("Cloudinary upload failed, falling back to static server URL:", cErr.message);
       }
     }
 
-    let fileUrl = "";
-    if (fs.existsSync(req.file.path)) {
-      const fileBuffer = fs.readFileSync(req.file.path);
-      const base64Str = fileBuffer.toString("base64");
-      fileUrl = `data:${req.file.mimetype};base64,${base64Str}`;
-      try { fs.unlinkSync(req.file.path); } catch (e) {}
-    } else {
-      const host = req.get("host");
-      const protocol = req.protocol;
-      fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
-    }
+    // Return static URL instead of giant base64 data URI to protect MongoDB 16MB BSON limit
+    const host = req.get("host");
+    const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+    const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
     return res.json({ url: fileUrl });
   } catch (error) {
     const fs = require("fs");
