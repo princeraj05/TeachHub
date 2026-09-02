@@ -305,12 +305,17 @@ exports.uploadPhotos = async (req, res) => {
     }
     if ((event.photos?.length || 0) + req.files.length > 10) return res.status(400).json({ message: "An event can contain a maximum of 10 photos" });
 
+    const hasCloudinary = process.env.CLOUDINARY_URL ||
+      ( (process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_NAME) && 
+        (process.env.CLOUDINARY_API_KEY || process.env.CLOUDINARY_KEY) && 
+        (process.env.CLOUDINARY_API_SECRET || process.env.CLOUDINARY_SECRET) );
+
     const newPhotos = [];
     for (const file of req.files) {
       let photoUrl = `/uploads/${file.filename}`;
       let filename = file.filename;
 
-      if (process.env.CLOUDINARY_URL || process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_NAME) {
+      if (hasCloudinary) {
         try {
           const result = await cloudinary.uploader.upload(file.path, {
             folder: "teachhub/events/photos",
@@ -385,12 +390,17 @@ exports.uploadVideos = async (req, res) => {
     }
     if ((event.videos?.length || 0) + req.files.length > 5) return res.status(400).json({ message: "An event can contain a maximum of 5 videos" });
 
+    const hasCloudinary = process.env.CLOUDINARY_URL ||
+      ( (process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_NAME) && 
+        (process.env.CLOUDINARY_API_KEY || process.env.CLOUDINARY_KEY) && 
+        (process.env.CLOUDINARY_API_SECRET || process.env.CLOUDINARY_SECRET) );
+
     const newVideos = [];
     for (const file of req.files) {
       let videoUrl = `/uploads/${file.filename}`;
       let filename = file.filename;
 
-      if (process.env.CLOUDINARY_URL || process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_NAME) {
+      if (hasCloudinary) {
         try {
           const result = await cloudinary.uploader.upload(file.path, {
             folder: "teachhub/events/videos",
