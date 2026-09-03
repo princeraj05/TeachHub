@@ -14,8 +14,11 @@ exports.getTeacherDashboard = async (req, res) => {
     const teacherId = req.user.id;
     const schoolName = req.user.schoolName || "";
 
-    // 1. Fetch teacher classes
-    const classes = await Class.find({ teacher: teacherId }).populate("students", "name email");
+    // 1. Fetch teacher classes (both direct & timetable assignment)
+    const timetableClassIds = await Timetable.distinct("class", { teacher: teacherId });
+    const classes = await Class.find({
+      $or: [{ teacher: teacherId }, { _id: { $in: timetableClassIds } }]
+    }).populate("students", "name email");
 
     // Extract student IDs and sections
     let studentIds = [];
@@ -33,8 +36,11 @@ exports.getTeacherDashboard = async (req, res) => {
     const classesCount = classes.length;
     const sectionsCount = sectionsSet.size;
 
-    // 2. Fetch subjects count
-    const subjects = await Subject.find({ teacher: teacherId });
+    // 2. Fetch subjects count (both direct & timetable assignment)
+    const timetableSubjectIds = await Timetable.distinct("subject", { teacher: teacherId });
+    const subjects = await Subject.find({
+      $or: [{ teacher: teacherId }, { _id: { $in: timetableSubjectIds } }]
+    });
     const subjectsCount = subjects.length;
 
     // 3. Fetch today's attendance stats for teacher's students
@@ -269,13 +275,25 @@ exports.getTeacherDashboard = async (req, res) => {
 exports.getMyClasses = async (req, res) => {
   try {
     const teacherId = req.user.id;
-    const classes = await Class.find({ teacher: teacherId }).populate("students", "name email gender");
+    const timetableClassIds = await Timetable.distinct("class", { teacher: teacherId });
+    const classes = await Class.find({
+      $or: [{ teacher: teacherId }, { _id: { $in: timetableClassIds } }]
+    }).populate("students", "name email gender");
 
     const detailedClasses = [];
     for (const c of classes) {
       // Find subject name taught by the teacher in this class
-      const subject = await Subject.findOne({ class: c._id, teacher: teacherId });
-      const subjectName = subject ? subject.name : "Mathematics"; // fallback to Math
+      let subject = await Subject.findOne({
+        $or: [{ class: c._id }, { classes: c._id }],
+        teacher: teacherId
+      });
+      if (!subject) {
+        const ttSubjectEntry = await Timetable.findOne({ class: c._id, teacher: teacherId }).populate("subject", "name");
+        if (ttSubjectEntry && ttSubjectEntry.subject) {
+          subject = ttSubjectEntry.subject;
+        }
+      }
+      const subjectName = subject ? subject.name : "General Class";
 
       // Find timings from timetable
       const timetableEntry = await Timetable.findOne({ class: c._id, teacher: teacherId });
@@ -611,8 +629,11 @@ exports.getMyStudents = async (req, res) => {
   try {
     const teacherId = req.user.id;
     
-    // Find all classes taught by teacher
-    const classes = await Class.find({ teacher: teacherId }).populate("students", "name email avatar gender classId");
+    // Find all classes taught by teacher (both direct & timetable assignment)
+    const timetableClassIds = await Timetable.distinct("class", { teacher: teacherId });
+    const classes = await Class.find({
+      $or: [{ teacher: teacherId }, { _id: { $in: timetableClassIds } }]
+    }).populate("students", "name email avatar gender classId");
     
     const detailedStudents = [];
     

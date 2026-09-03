@@ -2,6 +2,7 @@ const User = require("../models/User");
 const Class = require("../models/Class");
 const Subject = require("../models/Subject");
 const AdmissionExam = require("../models/AdmissionExam");
+const Timetable = require("../models/Timetable");
 
 
 const escapeRegex = (str) => (str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -16,22 +17,9 @@ if (!req.user || !req.user.schoolName) {
   return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
 }
 
-const school = req.user.schoolName;
-const schoolRegex = new RegExp("^" + escapeRegex(school) + "$", "i");
+const schoolRegex = new RegExp(`^${escapeRegex(req.user.schoolName)}$`, "i");
 
-// Auto-restore teachers if role was wrongly set to unassigned
-await User.updateMany(
-  {
-    $or: [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }],
-    role: "unassigned",
-    requestedRole: "teacher",
-    requestStatus: "approved"
-  },
-  { $set: { role: "teacher" } }
-);
-
-const teachers = await User
-.find({
+const teachers = await User.find({
   role: { $regex: /^teacher$/i },
   $or: [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }]
 })
@@ -39,8 +27,18 @@ const teachers = await User
 .lean();
 
 for (let teacher of teachers) {
-  const classes = await Class.find({ teacher: teacher._id, schoolName: schoolRegex }).select("name section");
-  const subjects = await Subject.find({ teacher: teacher._id, schoolName: schoolRegex }).select("name");
+  const timetableClassIds = await Timetable.distinct("class", { teacher: teacher._id });
+  const classes = await Class.find({
+    $or: [{ teacher: teacher._id }, { _id: { $in: timetableClassIds } }],
+    schoolName: schoolRegex
+  }).select("name section");
+
+  const timetableSubjectIds = await Timetable.distinct("subject", { teacher: teacher._id });
+  const subjects = await Subject.find({
+    $or: [{ teacher: teacher._id }, { _id: { $in: timetableSubjectIds } }],
+    schoolName: schoolRegex
+  }).select("name");
+
   teacher.classes = classes;
   teacher.subjects = subjects;
 }
@@ -411,8 +409,17 @@ exports.getTeacherProfile = async (req, res) => {
     const teacher = await User.findOne({ _id: req.params.id, role: "teacher", schoolName: req.user.schoolName }).select("-password");
     if (!teacher) return res.status(404).json({ message: "Teacher not found" });
     
-    const classes = await Class.find({ teacher: teacher._id, schoolName: req.user.schoolName }).select("name section");
-    const subjects = await Subject.find({ teacher: teacher._id, schoolName: req.user.schoolName }).select("name");
+    const timetableClassIds = await Timetable.distinct("class", { teacher: teacher._id });
+    const classes = await Class.find({
+      $or: [{ teacher: teacher._id }, { _id: { $in: timetableClassIds } }],
+      schoolName: req.user.schoolName
+    }).select("name section");
+
+    const timetableSubjectIds = await Timetable.distinct("subject", { teacher: teacher._id });
+    const subjects = await Subject.find({
+      $or: [{ teacher: teacher._id }, { _id: { $in: timetableSubjectIds } }],
+      schoolName: req.user.schoolName
+    }).select("name");
     
     res.json({
       ...teacher.toObject(),

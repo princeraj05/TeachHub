@@ -3,13 +3,17 @@ const Class = require("../models/Class");
 const Subject = require("../models/Subject");
 const User = require("../models/User");
 const ExamSubmission = require("../models/ExamSubmission");
+const Timetable = require("../models/Timetable");
 
 // ================= GET TEACHER EXAMS =================
 
 exports.getTeacherExams = async (req, res) => {
   try {
     const teacherId = req.user.id;
-    const subjects = await Subject.find({ teacher: teacherId });
+    const timetableSubjectIds = await Timetable.distinct("subject", { teacher: teacherId });
+    const subjects = await Subject.find({
+      $or: [{ teacher: teacherId }, { _id: { $in: timetableSubjectIds } }]
+    });
     const subjectIds = subjects.map(s => s._id);
 
     const exams = await Exam.find({ subject: { $in: subjectIds } })

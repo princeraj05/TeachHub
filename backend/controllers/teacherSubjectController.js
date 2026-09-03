@@ -10,7 +10,10 @@ const ExamSubmission = require("../models/ExamSubmission");
 exports.getMySubjectsDetailed = async (req, res) => {
   try {
     const teacherId = req.user.id;
-    const subjects = await Subject.find({ teacher: teacherId }).populate({
+    const timetableSubjectIds = await Timetable.distinct("subject", { teacher: teacherId });
+    const subjects = await Subject.find({
+      $or: [{ teacher: teacherId }, { _id: { $in: timetableSubjectIds } }]
+    }).populate({
       path: "classes",
       select: "name section students"
     });
@@ -25,14 +28,23 @@ exports.getMySubjectsDetailed = async (req, res) => {
 
     const detailedSubjects = [];
     for (const sub of subjects) {
-      let totalStudents = 0;
+      // Get all classes for this subject via Timetable as well
+      const ttClassIds = await Timetable.distinct("class", { subject: sub._id, teacher: teacherId });
+      const ttClasses = await Class.find({ _id: { $in: ttClassIds } }).select("name section students");
+
+      const classMap = new Map();
       if (sub.classes && Array.isArray(sub.classes)) {
-        sub.classes.forEach(c => {
-          if (c.students && Array.isArray(c.students)) {
-            totalStudents += c.students.length;
-          }
-        });
+        sub.classes.forEach(c => classMap.set(String(c._id), c));
       }
+      ttClasses.forEach(c => classMap.set(String(c._id), c));
+      const mergedClasses = Array.from(classMap.values());
+
+      let totalStudents = 0;
+      mergedClasses.forEach(c => {
+        if (c.students && Array.isArray(c.students)) {
+          totalStudents += c.students.length;
+        }
+      });
 
       const nameKey = sub.name.toLowerCase().trim();
       let meta = { code: "SUB101", chapters: 10, progress: 70, dept: "Science" };
@@ -46,7 +58,7 @@ exports.getMySubjectsDetailed = async (req, res) => {
         _id: sub._id,
         name: sub.name,
         schoolName: sub.schoolName,
-        classes: sub.classes.map(c => ({ _id: c._id, name: c.name, section: c.section })),
+        classes: mergedClasses.map(c => ({ _id: c._id, name: c.name, section: c.section })),
         studentsCount: totalStudents || 32,
         chapters: meta.chapters,
         progress: meta.progress,
@@ -69,7 +81,11 @@ exports.getSubjectDetails = async (req, res) => {
     const teacherId = req.user.id;
     const schoolName = req.user.schoolName;
 
-    const subject = await Subject.findOne({ _id: subjectId, teacher: teacherId }).populate({
+    const timetableSubjectIds = await Timetable.distinct("subject", { teacher: teacherId });
+    const subject = await Subject.findOne({
+      _id: subjectId,
+      $or: [{ teacher: teacherId }, { _id: { $in: timetableSubjectIds } }]
+    }).populate({
       path: "classes",
       populate: { path: "students", select: "name email avatar gender" }
     });

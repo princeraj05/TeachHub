@@ -208,6 +208,16 @@ exports.createTimetable = async (req, res) => {
       createdEntries.push(entry);
     }
 
+    // Auto-assign teacher to class and subject in DB
+    try {
+      await Promise.allSettled([
+        Class.findByIdAndUpdate(classId, { teacher: teacherId }),
+        Subject.findByIdAndUpdate(subjectId, { teacher: teacherId, $addToSet: { classes: classId, class: classId } })
+      ]);
+    } catch (assignErr) {
+      console.error("Error auto-assigning class/subject on timetable create:", assignErr);
+    }
+
     const populated = await Timetable.populate(createdEntries, ["class", "subject", "teacher"]);
     res.status(201).json(populated);
   } catch (error) {
