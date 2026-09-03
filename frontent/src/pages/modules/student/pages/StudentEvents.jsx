@@ -285,6 +285,7 @@ function StudentEvents() {
             // Render upcoming card
             if (activeTab === "upcoming") {
               const daysLeft = getDaysLeft(ev.eventDate, ev.daysLeftStatic);
+              const coverUrl = ev.coverPhoto || (ev.photos && ev.photos.length > 0 ? getMediaUrl(ev.photos[0].url) : null);
               let dotBg = "bg-purple-500";
               let cardGlow = "hover:border-purple-550/30";
               if (ev.themeColor === "emerald") {
@@ -301,52 +302,61 @@ function StudentEvents() {
               return (
                 <div 
                   key={ev._id}
-                  className={`bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] ${cardGlow} rounded-2.5xl p-5 flex items-center justify-between transition-all duration-200 shadow-sm relative`}
+                  className={`bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] ${cardGlow} rounded-2.5xl overflow-hidden flex flex-col transition-all duration-200 shadow-sm relative`}
                 >
-                  <div className="flex items-center gap-4 min-w-0">
-                    {/* Illustration box */}
-                    <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2.5xl flex items-center justify-center shrink-0 ${
-                      ev.avatarBg || "bg-purple-950/15 border border-purple-500/20 text-purple-500"
+                  {coverUrl && (
+                    <div className="h-44 w-full bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b border-slate-150 dark:border-white/5">
+                      <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+
+                  <div className="p-5 flex items-center justify-between">
+                    <div className="flex items-center gap-4 min-w-0">
+                      {!coverUrl && (
+                        <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2.5xl flex items-center justify-center shrink-0 ${
+                          ev.avatarBg || "bg-purple-950/15 border border-purple-500/20 text-purple-500"
+                        }`}>
+                          {ev.illustration || <FaCalendarAlt className="text-xl" />}
+                        </div>
+                      )}
+
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 select-none">
+                          <span className={`w-2 h-2 rounded-full ${dotBg}`} />
+                          <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-tight truncate">
+                            {ev.title}
+                          </h3>
+                        </div>
+                        
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold leading-relaxed mt-1 line-clamp-2">
+                          {ev.description || "No description provided."}
+                        </p>
+
+                        {/* Badges row */}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10px] text-slate-455 dark:text-slate-400 font-extrabold mt-3 select-none">
+                          <span className="flex items-center gap-1.5">
+                            <FaCalendarAlt className="text-slate-400 text-[11px]" />
+                            {getFormattedDate(ev.eventDate)}
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <FaClock className="text-slate-400 text-[11px]" />
+                            {ev.eventTime}
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <FaMapMarkerAlt className="text-slate-400 text-[11px]" />
+                            {ev.location || "School Ground"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Countdown Badge (Right) */}
+                    <div className={`shrink-0 ml-3 py-3 px-4.5 rounded-2xl flex flex-col items-center justify-center text-center border select-none ${
+                      ev.badgeBg || "bg-purple-955/20 text-purple-400 border border-purple-500/20"
                     }`}>
-                      {ev.illustration || <FaCalendarAlt className="text-xl" />}
+                      <span className="text-lg font-black tracking-tight">{daysLeft}</span>
+                      <span className="text-[8px] font-black uppercase tracking-widest mt-0.5">Days Left</span>
                     </div>
-
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 select-none">
-                        <span className={`w-2 h-2 rounded-full ${dotBg}`} />
-                        <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-tight truncate">
-                          {ev.title}
-                        </h3>
-                      </div>
-                      
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold leading-relaxed mt-1 line-clamp-2">
-                        {ev.description || "No description provided."}
-                      </p>
-
-                      {/* Badges row */}
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10px] text-slate-455 dark:text-slate-400 font-extrabold mt-3 select-none">
-                        <span className="flex items-center gap-1.5">
-                          <FaCalendarAlt className="text-slate-400 text-[11px]" />
-                          {getFormattedDate(ev.eventDate)}
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <FaClock className="text-slate-400 text-[11px]" />
-                          {ev.eventTime}
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <FaMapMarkerAlt className="text-slate-400 text-[11px]" />
-                          {ev.location || "School Ground"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Countdown Badge (Right) */}
-                  <div className={`shrink-0 ml-3 py-3 px-4.5 rounded-2xl flex flex-col items-center justify-center text-center border select-none ${
-                    ev.badgeBg || "bg-purple-955/20 text-purple-400 border border-purple-500/20"
-                  }`}>
-                    <span className="text-lg font-black tracking-tight">{daysLeft}</span>
-                    <span className="text-[8px] font-black uppercase tracking-widest mt-0.5">Days Left</span>
                   </div>
                 </div>
               );
