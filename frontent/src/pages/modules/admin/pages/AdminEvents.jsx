@@ -220,11 +220,11 @@ function AdminEvents() {
     setUploadError("");
     if ((selectedEvent.photos?.length || 0) + files.length > 10) { setUploadError("An event can contain a maximum of 10 photos."); setUploading(false); return; }
     try {
-      const compressed = await Promise.all([...files].map(compressImage));
-      const original = [...files].reduce((sum, file) => sum + file.size, 0), final = compressed.reduce((sum, file) => sum + file.size, 0);
-      const compressionSummary = `Original size: ${(original / 1048576).toFixed(2)} MB · Compressed size: ${(final / 1048576).toFixed(2)} MB · ${original ? Math.max(0, ((1 - final / original) * 100)).toFixed(0) : 0}% saved`;
-      setCompressionInfo(compressionSummary);
-      const formData = new FormData(); compressed.forEach(file => formData.append("photos", file));
+      const sourceFiles = [...files];
+      const totalMB = (sourceFiles.reduce((sum, f) => sum + f.size, 0) / 1048576).toFixed(2);
+      setCompressionInfo(`Uploading ${sourceFiles.length} photo(s) (${totalMB} MB)...`);
+      const formData = new FormData(); 
+      sourceFiles.forEach(file => formData.append("photos", file));
 
       const res = await axios.post(
         `${API}/api/events/${selectedEvent._id}/photos`,
@@ -235,12 +235,11 @@ function AdminEvents() {
             "Content-Type": "multipart/form-data" 
           },
           onUploadProgress: (progress) => {
-            if (progress.total) setCompressionInfo(`Uploading photos… ${Math.round((progress.loaded / progress.total) * 100)}% · ${compressionSummary}`);
+            if (progress.total) setCompressionInfo(`Uploading photos… ${Math.round((progress.loaded / progress.total) * 100)}% (${totalMB} MB)`);
           }
         }
       );
       setSelectedEvent(res.data);
-      // Update local event in state
       setEvents(prev => prev.map(ev => ev._id === res.data._id ? res.data : ev));
     } catch (err) {
       setUploadError(err.response?.data?.message || "Failed to upload photo(s)");
@@ -259,15 +258,11 @@ function AdminEvents() {
     try {
       const sourceFiles = [...files];
       const durations = await Promise.all(sourceFiles.map(videoDuration));
-      if (durations.some(duration => duration > 60)) { setUploadError("Each video must be 1 minute or shorter."); return; }
-      setCompressionInfo("Compressing video before upload…");
-      const compressed = await Promise.all(sourceFiles.map(compressVideo));
-      const originalSize = sourceFiles.reduce((sum, file) => sum + file.size, 0);
-      const compressedSize = compressed.reduce((sum, file) => sum + file.size, 0);
-      const saved = originalSize ? Math.max(0, (1 - compressedSize / originalSize) * 100).toFixed(0) : 0;
-      const compressionSummary = `Original size: ${(originalSize / 1048576).toFixed(2)} MB · Compressed size: ${(compressedSize / 1048576).toFixed(2)} MB · ${saved}% saved`;
-      setCompressionInfo(compressionSummary);
-      const formData = new FormData(); compressed.forEach(file => formData.append("videos", file));
+      if (durations.some(duration => duration > 60)) { setUploadError("Each video must be 1 minute or shorter."); setUploading(false); return; }
+      const totalMB = (sourceFiles.reduce((sum, f) => sum + f.size, 0) / 1048576).toFixed(2);
+      setCompressionInfo(`Preparing ${sourceFiles.length} video(s) (${totalMB} MB) for original quality upload...`);
+      const formData = new FormData(); 
+      sourceFiles.forEach(file => formData.append("videos", file));
 
       const res = await axios.post(
         `${API}/api/events/${selectedEvent._id}/videos`,
@@ -278,7 +273,7 @@ function AdminEvents() {
             "Content-Type": "multipart/form-data" 
           },
           onUploadProgress: (progress) => {
-            if (progress.total) setCompressionInfo(`Uploading video… ${Math.round((progress.loaded / progress.total) * 100)}% · ${compressionSummary}`);
+            if (progress.total) setCompressionInfo(`Uploading original quality video… ${Math.round((progress.loaded / progress.total) * 100)}% (${totalMB} MB)`);
           }
         }
       );
@@ -623,10 +618,10 @@ function AdminEvents() {
 
       {/* 1. ADD EVENT MODAL */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-[#070b13]/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 select-none">
-          <form onSubmit={handleAddEvent} className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative animate-slideUp">
-            <div className="h-1 bg-gradient-to-r from-[#7C3AED] to-[#38BDF8]" />
-            <div className="p-6">
+        <div className="fixed inset-0 bg-[#070b13]/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto select-none">
+          <form onSubmit={handleAddEvent} className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-md max-h-[92vh] flex flex-col overflow-hidden shadow-2xl relative animate-slideUp my-auto">
+            <div className="h-1 bg-gradient-to-r from-[#7C3AED] to-[#38BDF8] shrink-0" />
+            <div className="p-6 overflow-y-auto flex-1">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-3 mb-5">
                 <h3 className="font-extrabold text-sm text-slate-800 dark:text-white">Create School Event</h3>
                 <button type="button" onClick={() => setShowAddModal(false)} className="text-slate-450 hover:text-slate-700 bg-slate-50 dark:bg-white/5 p-1.5 rounded-lg"><FaTimes /></button>
@@ -773,10 +768,10 @@ function AdminEvents() {
 
       {/* 2. EDIT EVENT MODAL */}
       {showEditModal && selectedEvent && (
-        <div className="fixed inset-0 bg-[#070b13]/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 select-none">
-          <form onSubmit={handleEditEvent} className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative animate-slideUp">
-            <div className="h-1 bg-gradient-to-r from-[#7C3AED] to-[#38BDF8]" />
-            <div className="p-6">
+        <div className="fixed inset-0 bg-[#070b13]/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto select-none">
+          <form onSubmit={handleEditEvent} className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-md max-h-[92vh] flex flex-col overflow-hidden shadow-2xl relative animate-slideUp my-auto">
+            <div className="h-1 bg-gradient-to-r from-[#7C3AED] to-[#38BDF8] shrink-0" />
+            <div className="p-6 overflow-y-auto flex-1">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-3 mb-5">
                 <h3 className="font-extrabold text-sm text-slate-800 dark:text-white">Edit Event Details</h3>
                 <button type="button" onClick={() => setShowEditModal(false)} className="text-slate-450 hover:text-slate-700 bg-slate-50 dark:bg-white/5 p-1.5 rounded-lg"><FaTimes /></button>
@@ -926,10 +921,10 @@ function AdminEvents() {
 
       {/* 3. MARK COMPLETED / COMPLETE EVENT MODAL */}
       {showCompleteModal && selectedEvent && (
-        <div className="fixed inset-0 bg-[#070b13]/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 select-none">
-          <form onSubmit={handleCompleteEvent} className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative animate-slideUp">
-            <div className="h-1 bg-gradient-to-r from-green-500 to-[#7C3AED]" />
-            <div className="p-6">
+        <div className="fixed inset-0 bg-[#070b13]/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto select-none">
+          <form onSubmit={handleCompleteEvent} className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-md max-h-[92vh] flex flex-col overflow-hidden shadow-2xl relative animate-slideUp my-auto">
+            <div className="h-1 bg-gradient-to-r from-green-500 to-[#7C3AED] shrink-0" />
+            <div className="p-6 overflow-y-auto flex-1">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-3 mb-5">
                 <h3 className="font-extrabold text-sm text-slate-800 dark:text-white">Transition Event to Completed</h3>
                 <button type="button" onClick={() => setShowCompleteModal(false)} className="text-slate-450 hover:text-slate-700 bg-slate-50 dark:bg-white/5 p-1.5 rounded-lg"><FaTimes /></button>
@@ -992,10 +987,10 @@ function AdminEvents() {
 
       {/* 4. COMPLETED EVENT GALLERY / MEDIA ADD AND VIEW MODAL */}
       {showGalleryModal && selectedEvent && (
-        <div className="fixed inset-0 bg-[#070b13]/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 select-none">
-          <div className="bg-white dark:bg-[#0F172A] border border-slate-200/60 dark:border-white/10 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl relative animate-slideUp">
-            <div className="h-1.5 bg-gradient-to-r from-[#7C3AED] to-[#38BDF8] w-full" />
-            <div className="p-8">
+        <div className="fixed inset-0 bg-[#070b13]/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto select-none">
+          <div className="bg-white dark:bg-[#0F172A] border border-slate-200/60 dark:border-white/10 rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl relative animate-slideUp my-auto">
+            <div className="h-1.5 bg-gradient-to-r from-[#7C3AED] to-[#38BDF8] w-full shrink-0" />
+            <div className="p-5 sm:p-8 overflow-y-auto flex-1">
               {/* Modal Header */}
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-4 mb-6">
                 <div>

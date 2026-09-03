@@ -229,10 +229,10 @@ function SuperAdminEvents() {
 
       {/* ================= GALLERY DISPLAY MODAL ================= */}
       {showGalleryModal && selectedEvent && (
-        <div className="fixed inset-0 bg-[#070b13]/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 select-none">
-          <div className="bg-white dark:bg-[#0F172A] border border-slate-200/60 dark:border-white/10 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl relative animate-slideUp">
-            <div className="h-1.5 bg-gradient-to-r from-[#7C3AED] to-[#38BDF8] w-full" />
-            <div className="p-8">
+        <div className="fixed inset-0 bg-[#070b13]/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto select-none">
+          <div className="bg-white dark:bg-[#0F172A] border border-slate-200/60 dark:border-white/10 rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl relative animate-slideUp my-auto">
+            <div className="h-1.5 bg-gradient-to-r from-[#7C3AED] to-[#38BDF8] w-full shrink-0" />
+            <div className="p-5 sm:p-8 overflow-y-auto flex-1">
               {/* Header */}
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-4 mb-6">
                 <div>

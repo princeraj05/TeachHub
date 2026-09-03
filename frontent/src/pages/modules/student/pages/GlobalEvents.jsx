@@ -308,8 +308,9 @@ function GlobalEvents() {
       </div>
 
       {selectedEvent && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl relative animate-scaleUp text-slate-800 dark:text-white p-5 sm:p-6 text-left">
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fadeIn">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl relative animate-scaleUp text-slate-800 dark:text-white my-auto">
+            <div className="p-5 sm:p-6 overflow-y-auto flex-1 text-left relative">
             <button
               onClick={() => setSelectedEvent(null)}
               className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all cursor-pointer"
@@ -333,6 +334,7 @@ function GlobalEvents() {
 
             <div className="border-t border-slate-150 dark:border-white/5 pt-4">
               <EventGallery event={selectedEvent} api={API} />
+            </div>
             </div>
           </div>
         </div>

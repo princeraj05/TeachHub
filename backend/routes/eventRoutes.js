@@ -43,7 +43,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
-  limits: { fileSize: 50 * 1024 * 1024 } // 50MB per compressed upload
+  limits: { fileSize: 100 * 1024 * 1024 } // 100MB limit for original quality media
 });
 
 const uploadPhotosMiddleware = (req, res, next) => {
