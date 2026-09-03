@@ -101,34 +101,22 @@ function SchoolDirectory() {
 
   const getSchoolDetails = (schoolName, field, dbValue) => {
     if (dbValue !== undefined && dbValue !== null) {
-      return `${dbValue.toLocaleString()}+`;
+      return `${dbValue.toLocaleString()}`;
     }
     
-    const name = schoolName.toLowerCase();
+    const name = (schoolName || "").toLowerCase();
     if (name.includes("prince")) {
-      if (field === "students") return "980+";
-      if (field === "teachers") return "38+";
-      if (field === "classes") return "28+";
-      if (field === "events") return "18+";
       if (field === "location") return "Noida, U.P.";
       if (field === "color") return "from-purple-600 to-indigo-800";
     }
     if (name.includes("bright")) {
-      if (field === "students") return "750+";
-      if (field === "teachers") return "30+";
-      if (field === "classes") return "22+";
-      if (field === "events") return "15+";
       if (field === "location") return "Patna, Bihar";
       if (field === "color") return "from-emerald-500 to-teal-700";
     }
     
-    // G.D Academy or default fallback
-    if (field === "students") return "1,250+";
-    if (field === "teachers") return "45+";
-    if (field === "classes") return "32+";
-    if (field === "events") return "20+";
     if (field === "location") return "Siwan, Bihar";
     if (field === "color") return "from-sky-400 to-blue-600";
+    return "0";
   };
 
   const filteredSchools = schools.filter((school) => {
@@ -294,7 +282,7 @@ function SchoolDirectory() {
                       <FaCalendarAlt className="text-xs" />
                     </div>
                     <div>
-                      <p className="text-xs font-extrabold text-slate-950 dark:text-white leading-none">{getSchoolDetails(school.name, "events")}</p>
+                      <p className="text-xs font-extrabold text-slate-950 dark:text-white leading-none">{getSchoolDetails(school.name, "events", school.totalEvents)}</p>
                       <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1.5 uppercase tracking-wider">Events</p>
                     </div>
                   </div>

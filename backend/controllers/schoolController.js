@@ -12,6 +12,8 @@ const normalizeName = (name) => {
 // GET /api/schools
 exports.getSchools = async (req, res) => {
   try {
+    const Event = require("../models/Event");
+
     // Self-cleaning duplicate check: Clean up misspelled G.D Accedmy and migrate to correct G.D Academy
     await School.deleteOne({ name: { $in: ["G.D Accedmy", "G.D Accedmy ", "G.D Accedmy"] } });
     await School.deleteOne({ normalizedName: "g.d accedmy" });
@@ -22,7 +24,32 @@ exports.getSchools = async (req, res) => {
     await Class.updateMany({ schoolName: { $in: ["G.D Accedmy", "G.D Accedmy "] } }, { schoolName: "G.D Academy" });
     await Subject.updateMany({ schoolName: { $in: ["G.D Accedmy", "G.D Accedmy "] } }, { schoolName: "G.D Academy" });
 
-    const schools = await School.find({}).sort({ name: 1 });
+    const rawSchools = await School.find({}).sort({ name: 1 }).lean();
+
+    const schools = await Promise.all(
+      rawSchools.map(async (school) => {
+        const escName = escapeRegex(school.name);
+        const schoolRegex = new RegExp("^" + escName + "$", "i");
+
+        const [totalStudents, totalTeachers, totalClasses, totalEvents, totalSubjects] = await Promise.all([
+          User.countDocuments({ schoolName: schoolRegex, role: "student" }),
+          User.countDocuments({ schoolName: schoolRegex, role: "teacher" }),
+          Class.countDocuments({ schoolName: schoolRegex }),
+          Event.countDocuments({ schoolName: schoolRegex }),
+          Subject.countDocuments({ schoolName: schoolRegex })
+        ]);
+
+        return {
+          ...school,
+          totalStudents,
+          totalTeachers,
+          totalClasses,
+          totalEvents,
+          totalSubjects
+        };
+      })
+    );
+
     res.json(schools);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -334,13 +361,39 @@ exports.updateMySchool = async (req, res) => {
 // GET /api/schools/:name
 exports.getSchoolDetails = async (req, res) => {
   try {
+    const Event = require("../models/Event");
     const searchName = req.params.name;
     const normalized = normalizeName(searchName);
-    const school = await School.findOne({ normalizedName: normalized });
+    const escName = escapeRegex(searchName);
+    const schoolRegex = new RegExp("^" + escName + "$", "i");
+
+    let school = await School.findOne({
+      $or: [
+        { normalizedName: normalized },
+        { name: schoolRegex }
+      ]
+    });
     if (!school) {
       return res.status(404).json({ message: "School not found" });
     }
-    res.json(school);
+
+    const exactRegex = new RegExp("^" + escapeRegex(school.name) + "$", "i");
+    const [totalStudents, totalTeachers, totalClasses, totalEvents, totalSubjects] = await Promise.all([
+      User.countDocuments({ schoolName: exactRegex, role: "student" }),
+      User.countDocuments({ schoolName: exactRegex, role: "teacher" }),
+      Class.countDocuments({ schoolName: exactRegex }),
+      Event.countDocuments({ schoolName: exactRegex }),
+      Subject.countDocuments({ schoolName: exactRegex })
+    ]);
+
+    const schoolObj = school.toObject();
+    schoolObj.totalStudents = totalStudents;
+    schoolObj.totalTeachers = totalTeachers;
+    schoolObj.totalClasses = totalClasses;
+    schoolObj.totalEvents = totalEvents;
+    schoolObj.totalSubjects = totalSubjects;
+
+    res.json(schoolObj);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
