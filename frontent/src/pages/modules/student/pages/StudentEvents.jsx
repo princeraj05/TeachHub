@@ -21,7 +21,7 @@ const MOCK_UPCOMING = [];
 const MOCK_COMPLETED = [];
 
 function StudentEvents() {
-  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
   const token = localStorage.getItem("token");
   const name = localStorage.getItem("name") || "Student";
   const { theme, toggleTheme } = useTheme();

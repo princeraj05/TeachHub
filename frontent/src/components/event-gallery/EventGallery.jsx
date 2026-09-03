@@ -7,7 +7,13 @@ export default function EventGallery({ event, api = "", onDeletePhoto, onDeleteV
   const photos = event?.photos || [];
   const videos = event?.videos || [];
   const [activeTab, setActiveTab] = useState(photos.length ? "photos" : "videos");
-  const getMediaUrl = (url) => (url?.startsWith("http") || url?.startsWith("data:") || url?.startsWith("blob:")) ? url : `${api}${url || ""}`;
+  const defaultApi = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
+  const effectiveApi = api || defaultApi;
+  const getMediaUrl = (url) => {
+    if (!url) return "";
+    if (url.startsWith("http") || url.startsWith("data:") || url.startsWith("blob:")) return url;
+    return `${effectiveApi}${url.startsWith("/") ? "" : "/"}${url}`;
+  };
 
   if (!photos.length && !videos.length) return <div className="rounded-2xl border border-dashed border-slate-200 p-10 text-center text-xs font-bold text-slate-400 dark:border-white/10">No media has been uploaded to this event yet.</div>;
 

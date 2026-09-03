@@ -355,8 +355,7 @@ exports.uploadPhotos = async (req, res) => {
 
     const isCover = req.query.isCover === "true" || req.body.isCover === "true";
     if (isCover) {
-      const cleanExisting = (event.photos || []).filter(p => p.url && !p.url.includes("/uploads/"));
-      event.photos = [...newPhotos, ...cleanExisting];
+      event.photos = [...newPhotos, ...(event.photos || [])];
     } else {
       event.photos.push(...newPhotos);
     }

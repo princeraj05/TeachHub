@@ -10,13 +10,13 @@ import EventGallery from "../../../../components/EventGallery";
 const SORA = "'Sora', sans-serif";
 
 function AdminEvents() {
-  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
   const token = localStorage.getItem("token");
 
   const getMediaUrl = (url) => {
     if (!url) return "";
     if (url.startsWith("http") || url.startsWith("data:") || url.startsWith("blob:")) return url;
-    return `${API}${url}`;
+    return `${API}${url.startsWith("/") ? "" : "/"}${url}`;
   };
 
   const openLightbox = (type, url, filename) => {
