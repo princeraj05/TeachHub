@@ -26,18 +26,22 @@ const paymentPeriod = (cycle = "MONTHLY", date = new Date()) => {
 };
 const audit = (req, action, previousValue, newValue, reason = "") => PaymentAuditLog.create({ actor: req.user.id, role: req.user.role, schoolName: newValue?.schoolName || previousValue?.schoolName || req.user.schoolName || "", action, previousValue, newValue, reason });
 
+const escapeRegexStr = (str) => (str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 async function getSettingsForReceiver(receiverId, purpose, schoolName) {
   let query = {};
   if (purpose === "SCHOOL_SUBSCRIPTION") {
     query = { role: "superadmin" };
   } else if (purpose === "STUDENT_SCHOOL_FEE" && schoolName) {
-    query = { role: "admin", schoolName };
+    query = { role: "admin", schoolName: new RegExp("^" + escapeRegexStr(schoolName) + "$", "i") };
+  } else if (schoolName) {
+    query = { role: "admin", schoolName: new RegExp("^" + escapeRegexStr(schoolName) + "$", "i") };
   } else if (receiverId) {
     query = { userId: receiverId };
   } else {
     query = { role: "superadmin" };
   }
-  let s = await PaymentSettings.findOne(query).select("+razorpayKeySecret +razorpayWebhookSecret");
+  let s = await PaymentSettings.findOne(query).select("+razorpayKeySecret +razorpayWebhookSecret +liveRazorpayKeySecret +testRazorpayKeySecret");
   if (!s && query.role === "superadmin") {
     const sa = await User.findOne({ role: "superadmin" }).select("_id");
     if (sa) {
@@ -55,12 +59,21 @@ async function getSettingsForReceiver(receiverId, purpose, schoolName) {
   if (!s) {
     return { environment: "test", onlineEnabled: false, offlineEnabled: true, keyId: "", keySecret: "", webhookSecret: "" };
   }
+
+  const isLive = s.environment === "live";
+  const activeKeyId = isLive
+    ? (s.liveRazorpayKeyId || s.razorpayKeyId || "")
+    : (s.testRazorpayKeyId || s.razorpayKeyId || "");
+  const activeKeySecret = isLive
+    ? (s.liveRazorpayKeySecret || s.razorpayKeySecret || "")
+    : (s.testRazorpayKeySecret || s.razorpayKeySecret || "");
+
   return {
     environment: s.environment,
     onlineEnabled: s.onlineEnabled,
     offlineEnabled: s.offlineEnabled,
-    keyId: s.razorpayKeyId || (s.role === "superadmin" ? process.env.RAZORPAY_KEY_ID : ""),
-    keySecret: s.razorpayKeySecret || (s.role === "superadmin" ? process.env.RAZORPAY_KEY_SECRET : ""),
+    keyId: activeKeyId || (s.role === "superadmin" ? process.env.RAZORPAY_KEY_ID : ""),
+    keySecret: activeKeySecret || (s.role === "superadmin" ? process.env.RAZORPAY_KEY_SECRET : ""),
     webhookSecret: s.razorpayWebhookSecret || (s.role === "superadmin" ? process.env.RAZORPAY_WEBHOOK_SECRET : "")
   };
 }
@@ -139,9 +152,161 @@ exports.rejectOffline = async (req, res) => { try { const payment = await Paymen
 exports.createOfflineTeacherRequest = async (req, res) => { try { const admin = await User.findOne({ _id: req.user.id, role: "admin" }); const [teacher, pay] = await Promise.all([User.findOne({ _id: req.params.teacherId, role: "teacher", schoolName: admin?.schoolName }), TeacherCompensation.findOne({ teacher: req.params.teacherId, schoolName: admin?.schoolName, active: true })]); const mode = await getSettingsForReceiver(teacher?._id, "TEACHER_SALARY", admin?.schoolName); if (!mode.offlineEnabled) throw Object.assign(new Error("Offline payments are currently unavailable"), { status: 409 }); const method = String(req.body.method || "").toUpperCase(); const reference = String(req.body.reference || "").trim(); if (!["CASH", "BANK_TRANSFER", "MANUAL_UPI", "CHEQUE"].includes(method) || !reference) throw invalid("A valid payment method and reference are required"); if (!admin?.schoolName || !teacher || !pay) throw Object.assign(new Error("Teacher salary configuration was not found"), { status: 404 }); const period = paymentPeriod(pay.paymentCycle); const existing = await Payment.exists({ receiver: teacher._id, purpose: "TEACHER_SALARY", "metadata.paymentPeriod.key": period.key, status: { $in: ["Pending", "Processing", "PendingVerification", "Successful"] } }); if (existing) throw Object.assign(new Error("A teacher payment already exists for this payment cycle"), { status: 409 }); const payment = await Payment.create({ payer: admin._id, receiver: teacher._id, schoolName: admin.schoolName, purpose: "TEACHER_SALARY", amount: pay.salary, currency: pay.currency, gateway: "offline", paymentMethod: method, status: "PendingVerification", offlineReference: reference, metadata: { teacher: teacher._id, paymentCycle: pay.paymentCycle, dueDate: pay.dueDate, paymentPeriod: period } }); res.status(201).json({ paymentId: payment._id, status: payment.status }); } catch (e) { fail(res, e); } };
 exports.listPayments = async (req, res) => { try { const u = await User.findById(req.user.id); const q = u.role === "superadmin" ? { purpose: "SCHOOL_SUBSCRIPTION" } : u.role === "admin" ? { schoolName: u.schoolName } : u.role === "teacher" ? { receiver: u._id, purpose: "TEACHER_SALARY" } : { payer: u._id }; res.json(await Payment.find(q).populate("payer receiver", "name email role").sort({ createdAt: -1 }).limit(100)); } catch (e) { fail(res, e); } };
 exports.getReceipt = async (req, res) => { try { const u = await User.findById(req.user.id); const q = u.role === "superadmin" ? { _id: req.params.id } : u.role === "admin" ? { _id: req.params.id, schoolName: u.schoolName } : { _id: req.params.id, $or: [{ payer: u._id }, { receiver: u._id }] }; const p = await Payment.findOne(q).populate("payer receiver", "name email role"); if (!p || !["Successful", "Refunded", "Partially Refunded"].includes(p.status)) throw Object.assign(new Error("Receipt not found"), { status: 404 }); const data = { receiptNumber: p.receiptNumber, payer: p.payer, receiver: p.receiver, school: p.schoolName, amount: p.amount, currency: p.currency, date: p.paidAt || p.verifiedAt, paymentMethod: p.paymentMethod, transactionId: p.transactionReference || p.razorpayPaymentId || p.offlineReference, purpose: p.purpose, status: p.status }; if (req.query.download === "1") { const formatPurpose = (purp) => { if (purp === "STUDENT_SCHOOL_FEE") return "School Fee"; if (purp === "SCHOOL_SUBSCRIPTION") return "School Subscription"; if (purp === "TEACHER_SALARY") return "Teacher Salary"; return purp.replaceAll("_", " "); }; const rows = [["Receipt", data.receiptNumber], ["Payer", data.payer?.name], ["Receiver", data.receiver?.name], ["School", data.school], ["Amount", `${data.currency} ${(data.amount / 100).toFixed(2)}`], ["Date", data.date ? new Date(data.date).toLocaleString("en-IN") : ""], ["Method", data.paymentMethod], ["Transaction ID", data.transactionId], ["Purpose", formatPurpose(data.purpose)], ["Status", data.status]].map(([label, value]) => `<tr><th>${escapeHtml(label)}</th><td>${escapeHtml(value)}</td></tr>`).join(""); res.set({ "Content-Type": "text/html; charset=utf-8", "Content-Disposition": `attachment; filename=receipt-${p.receiptNumber}.html` }); return res.send(`<!doctype html><html><head><title>Receipt ${escapeHtml(p.receiptNumber)}</title><style>body{font-family:Arial;margin:40px;color:#172033}table{border-collapse:collapse;width:100%;max-width:650px}th,td{border:1px solid #dbe1ea;padding:12px;text-align:left}th{width:35%;background:#f5f3ff}h1{color:#5b21b6}</style></head><body><h1>TeachHub Payment Receipt</h1><table>${rows}</table></body></html>`); } res.json(data); } catch (e) { fail(res, e); } };
-exports.getSettings = async (req, res) => { try { let s = await PaymentSettings.findOne({ userId: req.user.id }); if (!s && req.user.role === "admin" && req.user.schoolName) { s = await PaymentSettings.findOne({ role: "admin", schoolName: new RegExp("^" + (req.user.schoolName || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "$", "i") }); } if (!s && req.user.role === "superadmin") { s = await PaymentSettings.create({ userId: req.user.id, role: req.user.role, environment: "test", onlineEnabled: true, offlineEnabled: true, razorpayKeyId: process.env.RAZORPAY_KEY_ID || "", razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET || "" }); } if (!s) { return res.json({ gateway: "razorpay", environment: "test", onlineEnabled: false, offlineEnabled: true, keyId: "", secretConfigured: false }); } res.json({ gateway: "razorpay", environment: s.environment, onlineEnabled: s.onlineEnabled, offlineEnabled: s.offlineEnabled, keyId: s.razorpayKeyId || "", secretConfigured: Boolean(s.razorpayKeySecret) }); } catch (e) { fail(res, e); } };
+exports.getSettings = async (req, res) => {
+  try {
+    let query = { userId: req.user.id };
+    if (req.user.role === "admin" && req.user.schoolName) {
+      query = { role: "admin", schoolName: new RegExp("^" + escapeRegexStr(req.user.schoolName) + "$", "i") };
+    } else if (req.user.role === "superadmin") {
+      query = { role: "superadmin" };
+    }
+
+    let s = await PaymentSettings.findOne(query).select("+razorpayKeySecret +liveRazorpayKeySecret +testRazorpayKeySecret");
+    if (!s && req.user.role === "superadmin") {
+      s = await PaymentSettings.create({
+        userId: req.user.id,
+        role: req.user.role,
+        environment: "test",
+        onlineEnabled: true,
+        offlineEnabled: true,
+        razorpayKeyId: process.env.RAZORPAY_KEY_ID || "",
+        razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET || ""
+      });
+    }
+    if (!s) {
+      return res.json({
+        gateway: "razorpay",
+        environment: "test",
+        onlineEnabled: false,
+        offlineEnabled: true,
+        keyId: "",
+        secretConfigured: false,
+        testKeyId: "",
+        testSecretConfigured: false,
+        liveKeyId: "",
+        liveSecretConfigured: false
+      });
+    }
+
+    const testKeyId = s.testRazorpayKeyId || (s.environment === "test" ? s.razorpayKeyId : "");
+    const testSecretConfigured = Boolean(s.testRazorpayKeySecret || (s.environment === "test" && s.razorpayKeySecret));
+    const liveKeyId = s.liveRazorpayKeyId || (s.environment === "live" ? s.razorpayKeyId : "");
+    const liveSecretConfigured = Boolean(s.liveRazorpayKeySecret || (s.environment === "live" && s.razorpayKeySecret));
+
+    const activeKeyId = s.environment === "live"
+      ? (liveKeyId || s.razorpayKeyId || "")
+      : (testKeyId || s.razorpayKeyId || "");
+    const activeSecretConfigured = s.environment === "live"
+      ? (liveSecretConfigured || Boolean(s.razorpayKeySecret))
+      : (testSecretConfigured || Boolean(s.razorpayKeySecret));
+
+    res.json({
+      gateway: "razorpay",
+      environment: s.environment,
+      onlineEnabled: s.onlineEnabled,
+      offlineEnabled: s.offlineEnabled,
+      keyId: activeKeyId,
+      secretConfigured: activeSecretConfigured,
+      testKeyId,
+      testSecretConfigured,
+      liveKeyId,
+      liveSecretConfigured
+    });
+  } catch (e) {
+    fail(res, e);
+  }
+};
 exports.getPaymentOptions = async (req, res) => { try { let schoolName = req.user.schoolName; let purpose = "OTHER"; if (req.user.role === "student") { const student = await User.findOne({ _id: req.user.id, role: "student" }); schoolName = student?.schoolName || ""; purpose = "STUDENT_SCHOOL_FEE"; } const c = await getSettingsForReceiver(null, purpose, schoolName); res.json({ onlineEnabled: Boolean(c.onlineEnabled), offlineEnabled: Boolean(c.offlineEnabled), available: Boolean(c.onlineEnabled || c.offlineEnabled) }); } catch (e) { fail(res, e); } };
-exports.updateSettings = async (req, res) => { try { if (!["test", "live"].includes(req.body.environment)) throw invalid("Invalid payment environment"); const onlineEnabled = req.body.onlineEnabled !== false, offlineEnabled = req.body.offlineEnabled !== false; if (!onlineEnabled && !offlineEnabled) throw invalid("At least one payment mode must be enabled"); const old = await PaymentSettings.findOne({ userId: req.user.id }).lean(); const updateData = { environment: req.body.environment, onlineEnabled, offlineEnabled, role: req.user.role, schoolName: req.user.schoolName || "", updatedBy: req.user.id }; if (req.body.razorpayKeyId !== undefined) updateData.razorpayKeyId = req.body.razorpayKeyId; if (req.body.razorpayKeySecret) updateData.razorpayKeySecret = req.body.razorpayKeySecret; if (req.body.razorpayWebhookSecret) updateData.razorpayWebhookSecret = req.body.razorpayWebhookSecret; const s = await PaymentSettings.findOneAndUpdate({ userId: req.user.id }, { $set: updateData }, { new: true, upsert: true }); await audit(req, "PAYMENT_SETTINGS_CHANGED", old, s.toObject()); res.json({ gateway: s.gateway, environment: s.environment, onlineEnabled: s.onlineEnabled, offlineEnabled: s.offlineEnabled, keyId: s.razorpayKeyId || "", secretConfigured: Boolean(s.razorpayKeySecret || (old && old.razorpayKeySecret)) }); } catch (e) { fail(res, e); } };
+exports.updateSettings = async (req, res) => {
+  try {
+    if (!["test", "live"].includes(req.body.environment)) throw invalid("Invalid payment environment");
+    const onlineEnabled = req.body.onlineEnabled !== false, offlineEnabled = req.body.offlineEnabled !== false;
+    if (!onlineEnabled && !offlineEnabled) throw invalid("At least one payment mode must be enabled");
+
+    let query = { userId: req.user.id };
+    if (req.user.role === "admin" && req.user.schoolName) {
+      query = { role: "admin", schoolName: new RegExp("^" + escapeRegexStr(req.user.schoolName) + "$", "i") };
+    } else if (req.user.role === "superadmin") {
+      query = { role: "superadmin" };
+    }
+
+    const old = await PaymentSettings.findOne(query).select("+razorpayKeySecret +liveRazorpayKeySecret +testRazorpayKeySecret").lean();
+    const isLive = req.body.environment === "live";
+
+    const updateData = {
+      userId: req.user.id,
+      environment: req.body.environment,
+      onlineEnabled,
+      offlineEnabled,
+      role: req.user.role,
+      schoolName: req.user.schoolName || "",
+      updatedBy: req.user.id
+    };
+
+    if (req.body.razorpayKeyId !== undefined) {
+      updateData.razorpayKeyId = req.body.razorpayKeyId;
+      if (isLive) {
+        updateData.liveRazorpayKeyId = req.body.razorpayKeyId;
+      } else {
+        updateData.testRazorpayKeyId = req.body.razorpayKeyId;
+      }
+    }
+
+    if (req.body.razorpayKeySecret) {
+      updateData.razorpayKeySecret = req.body.razorpayKeySecret;
+      if (isLive) {
+        updateData.liveRazorpayKeySecret = req.body.razorpayKeySecret;
+      } else {
+        updateData.testRazorpayKeySecret = req.body.razorpayKeySecret;
+      }
+    }
+
+    if (req.body.razorpayWebhookSecret) {
+      updateData.razorpayWebhookSecret = req.body.razorpayWebhookSecret;
+    }
+
+    const s = await PaymentSettings.findOneAndUpdate(
+      query,
+      { $set: updateData },
+      { new: true, upsert: true }
+    ).select("+razorpayKeySecret +liveRazorpayKeySecret +testRazorpayKeySecret");
+
+    if (req.user.role === "admin" && req.user.schoolName) {
+      await PaymentSettings.deleteMany({
+        role: "admin",
+        schoolName: new RegExp("^" + escapeRegexStr(req.user.schoolName) + "$", "i"),
+        _id: { $ne: s._id }
+      });
+    }
+
+    await audit(req, "PAYMENT_SETTINGS_CHANGED", old, s.toObject());
+
+    const testKeyId = s.testRazorpayKeyId || (s.environment === "test" ? s.razorpayKeyId : "");
+    const testSecretConfigured = Boolean(s.testRazorpayKeySecret || (s.environment === "test" && s.razorpayKeySecret));
+    const liveKeyId = s.liveRazorpayKeyId || (s.environment === "live" ? s.razorpayKeyId : "");
+    const liveSecretConfigured = Boolean(s.liveRazorpayKeySecret || (s.environment === "live" && s.razorpayKeySecret));
+
+    const activeKeyId = isLive ? (liveKeyId || s.razorpayKeyId || "") : (testKeyId || s.razorpayKeyId || "");
+    const activeSecretConfigured = isLive
+      ? (liveSecretConfigured || Boolean(s.razorpayKeySecret))
+      : (testSecretConfigured || Boolean(s.razorpayKeySecret));
+
+    res.json({
+      gateway: s.gateway,
+      environment: s.environment,
+      onlineEnabled: s.onlineEnabled,
+      offlineEnabled: s.offlineEnabled,
+      keyId: activeKeyId,
+      secretConfigured: activeSecretConfigured,
+      testKeyId,
+      testSecretConfigured,
+      liveKeyId,
+      liveSecretConfigured
+    });
+  } catch (e) {
+    fail(res, e);
+  }
+};
 exports.setFeePlan = async (req, res) => { try { const monthlyFee = Number(req.body.monthlyFee), validityDays = Number(req.body.validityDays || 30); if (!Number.isSafeInteger(monthlyFee) || monthlyFee < 1) throw invalid("Fee must be a positive integer in paise"); if (!Number.isSafeInteger(validityDays) || validityDays < 1) throw invalid("Validity period must be a positive integer of days"); const old = await FeePlan.findOne({ schoolName: req.user.schoolName }).lean(); const plan = await FeePlan.findOneAndUpdate({ schoolName: req.user.schoolName }, { $set: { monthlyFee, validityDays, active: req.body.active !== false, updatedBy: req.user.id } }, { new: true, upsert: true }); await audit(req, "STUDENT_FEE_CHANGED", old, plan.toObject()); res.json(plan); } catch (e) { fail(res, e); } };
 exports.getFeePlan = async (req, res) => { try { res.json(await FeePlan.findOne({ schoolName: req.user.schoolName }).select("monthlyFee validityDays currency active updatedAt") || null); } catch (e) { fail(res, e); } };
 exports.getMyCompensation = async (req, res) => { try { const teacher = await User.findOne({ _id: req.user.id, role: "teacher" }); if (!teacher?.schoolName) throw Object.assign(new Error("Teacher is not assigned to a school"), { status: 403 }); res.json(await TeacherCompensation.findOne({ teacher: teacher._id, schoolName: teacher.schoolName, active: true }).select("salary currency paymentCycle dueDate updatedAt") || null); } catch (e) { fail(res, e); } };

@@ -88,11 +88,15 @@ export default function PaymentCenter({ role }) {
 
   const changeSettings = () => {
     setActiveModal("settings");
+    const currentEnv = settings?.environment || "test";
+    const keyForEnv = currentEnv === "live"
+      ? (settings?.liveKeyId || (settings?.environment === "live" ? settings?.keyId : ""))
+      : (settings?.testKeyId || (settings?.environment === "test" ? settings?.keyId : ""));
     setModalData({
-      environment: settings?.environment || "test",
+      environment: currentEnv,
       onlineEnabled: settings?.onlineEnabled !== false,
       offlineEnabled: settings?.offlineEnabled !== false,
-      keyId: settings?.keyId || "",
+      keyId: keyForEnv || settings?.keyId || "",
       keySecret: "",
       webhookSecret: ""
     });
@@ -222,7 +226,17 @@ export default function PaymentCenter({ role }) {
                 </label>
                 <select
                   value={modalData.environment}
-                  onChange={(e) => setModalData({ ...modalData, environment: e.target.value })}
+                  onChange={(e) => {
+                    const nextEnv = e.target.value;
+                    const keyForEnv = nextEnv === "live"
+                      ? (settings?.liveKeyId || (settings?.environment === "live" ? settings?.keyId : ""))
+                      : (settings?.testKeyId || (settings?.environment === "test" ? settings?.keyId : ""));
+                    setModalData({
+                      ...modalData,
+                      environment: nextEnv,
+                      keyId: keyForEnv || ""
+                    });
+                  }}
                   className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold text-slate-800 dark:text-white"
                 >
                   <option value="test">Test</option>
@@ -267,7 +281,7 @@ export default function PaymentCenter({ role }) {
                       required
                       value={modalData.keyId}
                       onChange={(e) => setModalData({ ...modalData, keyId: e.target.value })}
-                      placeholder="rzp_test_..."
+                      placeholder={modalData.environment === "live" ? "rzp_live_..." : "rzp_test_..."}
                       className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold text-slate-800 dark:text-white"
                     />
                   </div>
@@ -275,7 +289,7 @@ export default function PaymentCenter({ role }) {
                   <div>
                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 flex justify-between">
                       <span>Razorpay Key Secret</span>
-                      {settings?.secretConfigured && (
+                      {((modalData.environment === "live" ? settings?.liveSecretConfigured : settings?.testSecretConfigured) || settings?.secretConfigured) && (
                         <span className="text-emerald-500 font-extrabold normal-case">✓ Saved on Server</span>
                       )}
                     </label>
@@ -283,7 +297,7 @@ export default function PaymentCenter({ role }) {
                       type="password"
                       value={modalData.keySecret}
                       onChange={(e) => setModalData({ ...modalData, keySecret: e.target.value })}
-                      placeholder={settings?.secretConfigured ? "•••••••• (Leave blank to keep existing)" : "Enter Razorpay Key Secret"}
+                      placeholder={((modalData.environment === "live" ? settings?.liveSecretConfigured : settings?.testSecretConfigured) || settings?.secretConfigured) ? "•••••••• (Leave blank to keep existing)" : "Enter Razorpay Key Secret"}
                       className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold text-slate-800 dark:text-white"
                     />
                   </div>
