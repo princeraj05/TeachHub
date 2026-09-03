@@ -429,24 +429,7 @@ function StudentSubjects() {
         </div>
       )}
 
-      {/* Explore More Subjects bottom card banner */}
-      <div className="bg-[#0B132A] border border-white/[0.08] rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs select-none">
-        <div className="flex items-center gap-3 text-slate-655 dark:text-slate-400">
-          <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 border border-purple-500/20 flex items-center justify-center shrink-0 text-base">
-            <FaGraduationCap className="text-sm shrink-0" />
-          </div>
-          <div className="text-left">
-            <h4 className="text-xs font-black text-white">Explore More Subjects</h4>
-            <p className="text-[10px] text-slate-450 dark:text-slate-500 font-semibold mt-0.5">Want to add more subjects? Contact your academic advisor.</p>
-          </div>
-        </div>
-        
-        <button
-          className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-black text-xs px-4 py-3 rounded-xl transition-all shadow-md shadow-[#7C3AED]/15 cursor-pointer flex items-center gap-1.5"
-        >
-          Request Subject <FaChevronRight className="text-[9px]" />
-        </button>
-      </div>
+
 
     </div>
   );
