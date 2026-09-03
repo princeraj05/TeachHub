@@ -102,6 +102,19 @@ export default function CreateTimetable() {
     load();
   }, []);
 
+  // Helper to calculate next start time after submitting a slot
+  const getNextStartTime = (currentStartTime, durationMins) => {
+    if (!currentStartTime) return "10:00";
+    let [h, m] = currentStartTime.split(":").map(Number);
+    if (isNaN(h) || isNaN(m)) return "10:00";
+
+    let totalMins = h * 60 + m + Number(durationMins || 60);
+    let nextH = Math.floor(totalMins / 60) % 24;
+    let nextM = totalMins % 60;
+
+    return `${String(nextH).padStart(2, "0")}:${String(nextM).padStart(2, "0")}`;
+  };
+
   // Form Reset
   const resetForm = () => {
     setForm({
@@ -155,14 +168,20 @@ export default function CreateTimetable() {
         { headers: getHeaders() }
       );
       
-      setMessage("Timetable entry created successfully.");
-      resetForm();
+      const nextStartTime = getNextStartTime(form.startTime, form.durationMinutes);
+      setMessage(`Timetable entry created successfully. Next start time auto-set to ${nextStartTime}!`);
       
+      // Auto-increment start time for next entry, reset subject/teacher/notes while preserving class & repeat days
+      setForm((prev) => ({
+        ...prev,
+        subjectId: "",
+        teacherId: "",
+        startTime: nextStartTime,
+        notes: ""
+      }));
+
       // Update entries in background instantly without blanking the screen
       fetchEntriesOnly();
-      
-      // Switch immediately to management tab so user sees their new entry without delay!
-      setActiveTab("management");
       
     } catch (error) {
       setErrorMsg(error.response?.data?.message || "Could not create timetable entry.");
