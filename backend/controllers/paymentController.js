@@ -468,7 +468,27 @@ exports.dashboard = async (req, res) => { try {
   const payments = await Payment.find(q).sort({ createdAt: -1 }); const successful = payments.filter(p => p.status === "Successful");
   const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
   const monthly = successful.filter(p => (p.paidAt || p.verifiedAt || p.createdAt) >= monthStart);
-  const base = { totalReceived: successful.reduce((sum, p) => sum + p.amount, 0), monthlyReceived: monthly.reduce((sum, p) => sum + p.amount, 0), pendingPayments: payments.filter(p => ["Pending", "Processing", "PendingVerification"].includes(p.status)).length, paymentCount: payments.length, recentPayments: payments.slice(0, 10) };
+
+  let totalReceived = 0;
+  let monthlyReceived = 0;
+  let totalPaid = 0;
+  let subscriptionPaid = 0;
+
+  if (u.role === "admin") {
+    const studentReceivedPayments = successful.filter(p => p.purpose === "STUDENT_SCHOOL_FEE");
+    const monthlyStudentPayments = monthly.filter(p => p.purpose === "STUDENT_SCHOOL_FEE");
+    const schoolPaidPayments = successful.filter(p => p.purpose === "SCHOOL_SUBSCRIPTION");
+
+    totalReceived = studentReceivedPayments.reduce((sum, p) => sum + p.amount, 0);
+    monthlyReceived = monthlyStudentPayments.reduce((sum, p) => sum + p.amount, 0);
+    subscriptionPaid = schoolPaidPayments.reduce((sum, p) => sum + p.amount, 0);
+    totalPaid = successful.filter(p => ["SCHOOL_SUBSCRIPTION", "TEACHER_SALARY"].includes(p.purpose)).reduce((sum, p) => sum + p.amount, 0);
+  } else {
+    totalReceived = successful.reduce((sum, p) => sum + p.amount, 0);
+    monthlyReceived = monthly.reduce((sum, p) => sum + p.amount, 0);
+  }
+
+  const base = { totalReceived, monthlyReceived, totalPaid, subscriptionPaid, pendingPayments: payments.filter(p => ["Pending", "Processing", "PendingVerification"].includes(p.status)).length, paymentCount: payments.length, recentPayments: payments.slice(0, 10) };
   if (u.role === "superadmin") {
     const subscriptions = await SchoolSubscription.find(); const billed = await Promise.all(subscriptions.map(async sub => ({ sub, state: await subscriptionState(sub) })));
     const freePeriodsEndingSoon = await FreePeriod.find({ status: "Active", endDate: { $gte: new Date(), $lte: new Date(Date.now() + 7 * 86400000) } }).sort({ endDate: 1 }).limit(20);
