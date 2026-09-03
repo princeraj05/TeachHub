@@ -57,6 +57,12 @@ function SchoolDetails() {
   // Selected teacher for detail modal
   const [selectedTeacher, setSelectedTeacher] = useState(null);
 
+  // Join school request state
+  const [user, setUser] = useState(null);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [requestedRole, setRequestedRole] = useState("student");
+  const [submitting, setSubmitting] = useState(false);
+
   // Lightbox slider state
   const [lightboxImages, setLightboxImages] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(null);
@@ -95,8 +101,8 @@ function SchoolDetails() {
       });
       setSchool(schoolRes.data);
 
-      // Fetch events & teachers list in parallel
-      const [upRes, compRes, teachersRes] = await Promise.all([
+      // Fetch events, teachers, and profile in parallel
+      const [upRes, compRes, teachersRes, profileRes] = await Promise.all([
         axios.get(`${API}/api/events/upcoming?schoolName=${encodeURIComponent(name)}`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
@@ -108,12 +114,18 @@ function SchoolDetails() {
         }).catch(err => {
           console.error("Error loading school teachers:", err);
           return { data: [] };
-        })
+        }),
+        axios.get(`${API}/api/auth/profile`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(err => null)
       ]);
 
       setUpcomingEvents(upRes.data || []);
       setCompletedEvents(compRes.data || []);
       setTeachers(teachersRes.data || []);
+      if (profileRes && profileRes.data) {
+        setUser(profileRes.data);
+      }
 
     } catch (err) {
       console.error("Error loading school details:", err);
@@ -130,6 +142,51 @@ function SchoolDetails() {
   const handleBack = () => {
     const basePath = location.pathname.startsWith("/pending") ? "/pending" : "/student";
     navigate(`${basePath}/schools`);
+  };
+
+  const handleApplyClick = () => {
+    const hasActiveRequest = user && (["pending", "scheduled", "exam_completed"].includes(user.requestStatus) || user.requestedSchool);
+    if (hasActiveRequest) {
+      alert("You already have an active or pending join request.");
+      return;
+    }
+    setShowJoinModal(true);
+  };
+
+  const handleJoinSubmit = (e) => {
+    e.preventDefault();
+    if (!user) return;
+
+    const hasActiveRequest = ["pending", "scheduled", "exam_completed"].includes(user.requestStatus) || user.requestedSchool;
+    if (hasActiveRequest) {
+      alert("You already have an active or pending join request.");
+      return;
+    }
+
+    setSubmitting(true);
+    axios.put(
+      `${API}/api/auth/join-request`,
+      { schoolName: school.name, role: requestedRole },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+      .then((res) => {
+        setUser((prev) => ({
+          ...prev,
+          requestedSchool: school.name,
+          requestedRole: requestedRole,
+          requestStatus: "pending"
+        }));
+        setShowJoinModal(false);
+        alert(`Request to join ${school.name} submitted successfully!`);
+        const basePath = location.pathname.startsWith("/pending") ? "/pending" : "/student";
+        navigate(`${basePath}`);
+      })
+      .catch((err) => {
+        alert(err.response?.data?.message || "Failed to submit request");
+      })
+      .finally(() => {
+        setSubmitting(false);
+      });
   };
 
   if (loading) {
@@ -349,7 +406,7 @@ function SchoolDetails() {
             {/* Actions Panel */}
             <div className="flex flex-row md:flex-col gap-3.5 self-stretch justify-end md:justify-start shrink-0">
               <button
-                onClick={handleBack}
+                onClick={handleApplyClick}
                 className="flex-1 bg-[#7C3AED] hover:bg-[#6D28D9] text-white py-2.5 px-5 rounded-xl text-xs font-bold transition shadow-md shadow-[#7C3AED]/20 cursor-pointer text-center"
               >
                 Apply for Admission
@@ -591,7 +648,7 @@ function SchoolDetails() {
               <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">Begin your admission journey today and give your child the best start.</p>
             </div>
             <button
-              onClick={handleBack}
+              onClick={handleApplyClick}
               className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white py-3 px-6 rounded-2xl text-xs font-extrabold transition shadow-md shadow-[#7C3AED]/20 cursor-pointer w-full sm:w-auto text-center shrink-0"
             >
               Apply for Admission
@@ -931,6 +988,71 @@ function SchoolDetails() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Join Request Modal */}
+      {showJoinModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 select-none">
+          <div className="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowJoinModal(false)} />
+          <div className="bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 w-full max-w-md p-6 relative z-10 shadow-2xl transition-all duration-200 text-left">
+            <div className="mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-[#7C3AED]/10 dark:bg-[#38BDF8]/10 flex items-center justify-center text-[#7C3AED] dark:text-[#38BDF8] mb-4">
+                <FaSchool className="text-2xl" />
+              </div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Apply to Join</h3>
+              <p className="text-xs text-slate-400 font-semibold mt-0.5">Submit request to join {school?.name}</p>
+            </div>
+
+            <form onSubmit={handleJoinSubmit} className="space-y-5">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-widest mb-2">Select Role</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setRequestedRole("student")}
+                    className={`p-4 rounded-2xl border text-center flex flex-col items-center gap-2 transition cursor-pointer ${
+                      requestedRole === "student"
+                        ? "border-[#7C3AED] bg-[#7C3AED]/5 text-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8]/5 dark:text-[#38BDF8] font-bold"
+                        : "border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] text-slate-500 dark:text-slate-400"
+                    }`}
+                  >
+                    <span className="text-xl">🎓</span>
+                    <span className="text-xs font-black">Student</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRequestedRole("teacher")}
+                    className={`p-4 rounded-2xl border text-center flex flex-col items-center gap-2 transition cursor-pointer ${
+                      requestedRole === "teacher"
+                        ? "border-[#7C3AED] bg-[#7C3AED]/5 text-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8]/5 dark:text-[#38BDF8] font-bold"
+                        : "border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] text-slate-500 dark:text-slate-400"
+                    }`}
+                  >
+                    <span className="text-xl">💼</span>
+                    <span className="text-xs font-black">Teacher</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 bg-gradient-to-r from-[#7C3AED] to-[#312E81] hover:opacity-90 active:scale-[0.99] text-white py-3.5 rounded-2xl text-xs font-bold shadow-md shadow-[#7C3AED]/15 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {submitting ? "Sending..." : "Submit Request"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowJoinModal(false)}
+                  className="bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 px-5 py-3.5 rounded-2xl text-xs font-bold border border-slate-200/60 dark:border-white/10 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
