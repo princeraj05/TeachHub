@@ -3,6 +3,7 @@ import axios from "axios";
 import { FaCheck, FaCog, FaHistory, FaMoneyBillWave, FaReceipt } from "react-icons/fa";
 import { startBackendPayment } from "../utils/razorpayCheckout";
 import PaymentManagement from "./PaymentManagement";
+import socket from "../socket";
 
 const rupees = value => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format((value || 0) / 100);
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
@@ -38,6 +39,36 @@ export default function PaymentCenter({ role }) {
 
   useEffect(() => {
     load();
+
+    try {
+      socket.connect();
+    } catch (err) {
+      console.error("Socket connect error:", err);
+    }
+
+    const handleRealtimeUpdate = () => {
+      load();
+    };
+
+    socket.on("payment:updated", handleRealtimeUpdate);
+    socket.on("payment:created", handleRealtimeUpdate);
+    socket.on("subscription:updated", handleRealtimeUpdate);
+
+    // 3-second background polling fallback to guarantee real-time updates even if WebSockets are blocked
+    const intervalId = setInterval(load, 3000);
+
+    const handleFocus = () => load();
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
+
+    return () => {
+      socket.off("payment:updated", handleRealtimeUpdate);
+      socket.off("payment:created", handleRealtimeUpdate);
+      socket.off("subscription:updated", handleRealtimeUpdate);
+      clearInterval(intervalId);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
+    };
   }, [load]);
 
   const paySubscription = async () => {
