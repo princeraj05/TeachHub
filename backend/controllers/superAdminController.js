@@ -298,23 +298,29 @@ exports.getSchoolsDetail = async (req, res) => {
 
       const subscription = await SchoolSubscription.findOne({ schoolName: name });
       
-      let plan = school.plan || "yet not set";
-      let price = "yet not set";
-      let validTill = "yet not set";
-      
-      if (subscription) {
-        plan = "Configured";
-        price = `₹${subscription.monthlyFee / 100} / Month`;
+      let configuredPlan = null;
+      if (subscription && subscription.monthlyFee) {
+        const feeStr = (subscription.monthlyFee / 100).toFixed(2);
+        configuredPlan = `Paid Subscription (₹${feeStr}/mo)`;
+      }
+
+      let plan = school.plan;
+      if (!plan || plan === "Configured" || plan === "Pro" || plan === "Enterprise" || plan.includes("Pro") || plan.includes("Enterprise")) {
+        plan = configuredPlan || "Free Plan (Trial)";
+      }
+
+      let price = "Free / Trial";
+      let validTill = "Unlimited";
+      if (subscription && subscription.monthlyFee) {
+        price = `₹${(subscription.monthlyFee / 100).toFixed(2)} / Month`;
         const nextDate = subscription.nextBillingDate || subscription.billingStartDate;
         if (nextDate) {
-          validTill = new Date(nextDate).toLocaleDateString("en-US", {
+          validTill = new Date(nextDate).toLocaleDateString("en-IN", {
             month: "short",
             day: "numeric",
             year: "numeric"
           });
         }
-      } else if (plan === "Free Plan (Trial)") {
-        price = "Free / Trial";
       }
 
       const status = school.status || "Active";
@@ -327,6 +333,8 @@ exports.getSchoolsDetail = async (req, res) => {
         email: emailToShow,
         location: school.address || "Patna, Bihar",
         plan,
+        configuredPlan: configuredPlan || "Paid Subscription",
+        hasSubscription: Boolean(subscription && subscription.monthlyFee),
         status,
         price,
         validTill,

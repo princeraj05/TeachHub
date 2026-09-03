@@ -218,8 +218,7 @@ function SuperAdminSchools() {
   };
 
   const getPlanBadgeStyle = (plan) => {
-    if (plan?.includes("Enterprise")) return "bg-purple-500/20 text-purple-300 border border-purple-500/30";
-    if (plan?.includes("Configured") || plan?.includes("Pro")) return "bg-blue-500/20 text-blue-400 border border-blue-500/30";
+    if (plan?.includes("Paid") || plan?.includes("Configured")) return "bg-blue-500/20 text-blue-400 border border-blue-500/30";
     return "bg-slate-700/60 text-slate-300 border border-slate-600/40";
   };
 
@@ -510,8 +509,7 @@ function SuperAdminSchools() {
                   className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
                 >
                   <option value="Free Plan (Trial)">Free Plan (Trial)</option>
-                  <option value="Pro">Pro Plan</option>
-                  <option value="Enterprise">Enterprise Plan</option>
+                  <option value="Paid Subscription">Paid Subscription</option>
                 </select>
               </div>
 
@@ -620,9 +618,21 @@ function SuperAdminSchools() {
                     onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
                     className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
                   >
-                    <option value="Free Plan (Trial)">Free Plan (Trial)</option>
-                    <option value="Pro">Pro Plan</option>
-                    <option value="Enterprise">Enterprise Plan</option>
+                    {editSchool?.hasSubscription || editSchool?.plan?.includes("Paid") || editSchool?.plan?.includes("Configured") ? (
+                      <>
+                        <option value={editSchool.configuredPlan || editSchool.plan || "Paid Subscription"}>
+                          {editSchool.configuredPlan || editSchool.plan || "Paid Subscription"}
+                        </option>
+                        <option value="Free Plan (Trial)">Free Plan (Trial)</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="Free Plan (Trial)">Free Plan (Trial)</option>
+                        <option value={editSchool?.configuredPlan || "Paid Subscription"}>
+                          {editSchool?.configuredPlan || "Paid Subscription"}
+                        </option>
+                      </>
+                    )}
                   </select>
                 </div>
 
