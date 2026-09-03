@@ -260,33 +260,15 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
             </label>
             <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">
               Validity cycle (Days)
-              <div className="mt-1 flex items-center gap-2 flex-wrap">
-                <input
-                  value={validityDays}
-                  onChange={(e) => setValidityDays(e.target.value)}
-                  type="number"
-                  min="1"
-                  required
-                  placeholder="30"
-                  className="block rounded-lg border p-2 bg-slate-50 dark:bg-[#0F172A] border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 w-24"
-                />
-                <div className="flex gap-1 flex-wrap">
-                  {[30, 31, 35, 45, 60].map(days => (
-                    <button
-                      type="button"
-                      key={days}
-                      onClick={() => setValidityDays(String(days))}
-                      className={`px-2.5 py-1.5 text-xs font-bold rounded-lg border cursor-pointer transition-all ${
-                        String(validityDays) === String(days)
-                          ? "bg-purple-600 text-white border-purple-600 shadow-sm"
-                          : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
-                      }`}
-                    >
-                      {days} Days
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <input
+                value={validityDays}
+                onChange={(e) => setValidityDays(e.target.value)}
+                type="number"
+                min="1"
+                required
+                placeholder="30"
+                className="mt-1 block rounded-lg border p-2 bg-slate-50 dark:bg-[#0F172A] border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 w-28"
+              />
             </label>
             <button className="rounded-lg bg-[#7C3AED] px-4 py-2 text-sm font-bold text-white cursor-pointer hover:bg-purple-700">Save fee plan</button>
           </form>
@@ -432,32 +414,14 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
                   Validity Cycle (Days)
                 </label>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <input
-                    type="number"
-                    min="1"
-                    value={modalData.validityDays || "30"}
-                    onChange={(e) => setModalData({ ...modalData, validityDays: e.target.value })}
-                    placeholder="30"
-                    className="w-24 px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold text-slate-800 dark:text-white"
-                  />
-                  <div className="flex gap-1 flex-wrap">
-                    {[30, 31, 35, 45, 60].map((days) => (
-                      <button
-                        type="button"
-                        key={days}
-                        onClick={() => setModalData({ ...modalData, validityDays: String(days) })}
-                        className={`px-2.5 py-1.5 text-xs font-bold rounded-lg border cursor-pointer transition-all ${
-                          String(modalData.validityDays || "30") === String(days)
-                            ? "bg-purple-600 text-white border-purple-600 shadow-sm"
-                            : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
-                        }`}
-                      >
-                        {days}d
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <input
+                  type="number"
+                  min="1"
+                  value={modalData.validityDays || "30"}
+                  onChange={(e) => setModalData({ ...modalData, validityDays: e.target.value })}
+                  placeholder="30"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold text-slate-800 dark:text-white"
+                />
               </div>
 
               <div>
@@ -767,32 +731,14 @@ export default function PaymentManagement({ role, apiBase, onChange }) {
                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
                   Validity Cycle (Days)
                 </label>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <input
-                    type="number"
-                    min="1"
-                    value={modalData.validityDays || "30"}
-                    onChange={(e) => setModalData({ ...modalData, validityDays: e.target.value })}
-                    placeholder="30"
-                    className="w-24 px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold text-slate-800 dark:text-white"
-                  />
-                  <div className="flex gap-1 flex-wrap">
-                    {[30, 31, 35, 45, 60].map((days) => (
-                      <button
-                        type="button"
-                        key={days}
-                        onClick={() => setModalData({ ...modalData, validityDays: String(days) })}
-                        className={`px-2.5 py-1.5 text-xs font-bold rounded-lg border cursor-pointer transition-all ${
-                          String(modalData.validityDays || "30") === String(days)
-                            ? "bg-purple-600 text-white border-purple-600 shadow-sm"
-                            : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
-                        }`}
-                      >
-                        {days}d
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <input
+                  type="number"
+                  min="1"
+                  value={modalData.validityDays || "30"}
+                  onChange={(e) => setModalData({ ...modalData, validityDays: e.target.value })}
+                  placeholder="30"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold text-slate-800 dark:text-white"
+                />
               </div>
 
               <div>
