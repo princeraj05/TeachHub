@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { FaClock } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 // Helper to format time range e.g. "12:00-12:50 PM"
 const formatTimeRange = (startTime, endTime) => {
@@ -30,6 +31,7 @@ const formatTimeRange = (startTime, endTime) => {
 export default function TodayTimetableWidget() {
   const API = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -91,7 +93,8 @@ export default function TodayTimetableWidget() {
           return (
             <div
               key={card._id}
-              className="w-48 sm:w-56 shrink-0 rounded-2xl shadow-sm dark:shadow-xl border border-purple-500/30 dark:border-purple-500/25 overflow-hidden flex flex-col bg-white dark:bg-[#0D1326] hover:border-purple-500/60 transition-all duration-200 group"
+              onClick={() => navigate("/student/showtimetable")}
+              className="w-48 sm:w-56 shrink-0 rounded-2xl shadow-sm dark:shadow-xl border border-purple-500/30 dark:border-purple-500/25 overflow-hidden flex flex-col bg-white dark:bg-[#0D1326] hover:border-purple-500/60 transition-all duration-200 group cursor-pointer active:scale-[0.98]"
             >
               {/* Top Card Section - App Theme Matching Gradient */}
               <div className="bg-gradient-to-br from-[#7C3AED]/20 via-[#131B35] to-[#0B132A] p-4 flex flex-col gap-1.5 text-left border-b border-purple-500/20">
