@@ -64,37 +64,42 @@ res.status(500).json({error:err.message});
 
 
 
-// ================= ASSIGN TEACHER TO CLASS & SUBJECT(S) =================
+// ================= ASSIGN TEACHER TO CLASS(ES) & SUBJECT(S) =================
 
 exports.assignTeacherToClass = async (req,res)=>{
 try{
 
-const { teacherId, classId, subjectId, subjectIds } = req.body;
+const { teacherId, classId, classIds, subjectId, subjectIds } = req.body;
 
 if (!req.user || !req.user.schoolName) {
   return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
 }
 
-// 1. Verify class belongs to this school
-const classData = await Class.findOne({ _id: classId, schoolName: req.user.schoolName });
-if (!classData) {
-  return res.status(403).json({ message: "Class not found or does not belong to your school" });
-}
-
-// 2. Verify teacher belongs to this school
+// 1. Verify teacher belongs to this school
 const teacherUser = await User.findOne({ _id: teacherId, role: "teacher", schoolName: req.user.schoolName });
 if (!teacherUser) {
   return res.status(403).json({ message: "Teacher not found or does not belong to your school" });
 }
 
-// 3. Assign teacher to class
-const updatedClass = await Class.findByIdAndUpdate(
-classId,
-{ teacher: teacherId },
-{ new:true }
+// 2. Normalize class IDs
+let targetClassIds = [];
+if (Array.isArray(classIds) && classIds.length > 0) {
+  targetClassIds = classIds;
+} else if (classId) {
+  targetClassIds = [classId];
+}
+
+if (targetClassIds.length === 0) {
+  return res.status(400).json({ message: "At least one Class must be selected" });
+}
+
+// 3. Assign teacher to classes
+await Class.updateMany(
+  { _id: { $in: targetClassIds }, schoolName: req.user.schoolName },
+  { teacher: teacherId }
 );
 
-// 4. Handle multiple or single subject assignment
+// 4. Normalize subject IDs & assign to teacher & classes
 let targetSubjectIds = [];
 if (Array.isArray(subjectIds) && subjectIds.length > 0) {
   targetSubjectIds = subjectIds;
@@ -105,13 +110,12 @@ if (Array.isArray(subjectIds) && subjectIds.length > 0) {
 if (targetSubjectIds.length > 0) {
   await Subject.updateMany(
     { _id: { $in: targetSubjectIds }, schoolName: req.user.schoolName },
-    { teacher: teacherId, $addToSet: { classes: classId, class: classId } }
+    { teacher: teacherId, $addToSet: { classes: { $each: targetClassIds }, class: targetClassIds[0] } }
   );
 }
 
 res.json({
-message: targetSubjectIds.length > 0 ? "Teacher, Class & Subject(s) assigned successfully" : "Teacher assigned to class successfully",
-data:updatedClass
+  message: "Teacher, Class(es) & Subject(s) assigned successfully"
 });
 
 }catch(err){
