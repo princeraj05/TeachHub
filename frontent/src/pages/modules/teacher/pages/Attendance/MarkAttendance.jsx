@@ -105,13 +105,8 @@ function MarkAttendance() {
         // Sort chronologically by start time
         rawEntries.sort((a, b) => parseTimeToMinutes(a.startTime) - parseTimeToMinutes(b.startTime));
 
-        // Filter subjects belonging to selected class
-        const classFilteredSubs = subjects.filter(subject => {
-          if (subject.classes && Array.isArray(subject.classes)) {
-            return subject.classes.some(c => c._id === selectedClassId);
-          }
-          return false;
-        });
+        // Get Set of IDs of subjects assigned to this teacher
+        const myTeacherSubjectIds = new Set(subjects.map(s => String(s._id)));
 
         const orderedList = [];
         const seenSubIds = new Set();
@@ -120,27 +115,18 @@ function MarkAttendance() {
           const subObj = e.subject;
           const subId = typeof subObj === 'object' ? subObj?._id : subObj;
           const subName = typeof subObj === 'object' ? subObj?.name : "Subject";
-          if (subId && !seenSubIds.has(String(subId))) {
-            seenSubIds.add(String(subId));
-            orderedList.push({
-              _id: String(subId),
-              name: subName,
-              startTime: e.startTime || "",
-              endTime: e.endTime || ""
-            });
-          }
-        });
-
-        // Append remaining subjects for this class
-        classFilteredSubs.forEach(sub => {
-          if (!seenSubIds.has(String(sub._id))) {
-            seenSubIds.add(String(sub._id));
-            orderedList.push({
-              _id: String(sub._id),
-              name: sub.name,
-              startTime: "",
-              endTime: ""
-            });
+          
+          // Only include if scheduled today AND assigned to this teacher
+          if (subId && (myTeacherSubjectIds.size === 0 || myTeacherSubjectIds.has(String(subId)))) {
+            if (!seenSubIds.has(String(subId))) {
+              seenSubIds.add(String(subId));
+              orderedList.push({
+                _id: String(subId),
+                name: subName,
+                startTime: e.startTime || "",
+                endTime: e.endTime || ""
+              });
+            }
           }
         });
 
