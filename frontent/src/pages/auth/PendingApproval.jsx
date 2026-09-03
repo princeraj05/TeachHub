@@ -95,6 +95,9 @@ function PendingApproval() {
   };
 
   const getSchoolLocation = (schoolName) => {
+    if (requestedSchoolData && requestedSchoolData.address && requestedSchoolData.address.trim()) {
+      return requestedSchoolData.address;
+    }
     if (!schoolName) return "Siwan, Bihar";
     const name = schoolName.toLowerCase();
     if (name.includes("prince")) return "Noida, U.P.";
