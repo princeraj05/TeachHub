@@ -371,7 +371,12 @@ function SuperAdminSchools() {
                         <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-xs">
                           <FaSchool />
                         </div>
-                        <span className="font-semibold text-white text-sm">{school.name}</span>
+                        <div>
+                          <span className="font-semibold text-white text-sm block">{school.name}</span>
+                          <span className="text-[11px] text-slate-400 block mt-0.5">
+                            Student Fee: {school.financials?.studentMonthlyFee ? `₹${school.financials.studentMonthlyFee.toFixed(2)}/mo` : "Not set"} · Recv: ₹{(school.financials?.totalStudentReceived || 0).toFixed(2)} · Paid: ₹{(school.financials?.totalSubscriptionPaid || 0).toFixed(2)}
+                          </span>
+                        </div>
                       </div>
                     </td>
 
@@ -396,7 +401,7 @@ function SuperAdminSchools() {
 
                     <td className="py-3.5 px-5">
                       <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${getPlanBadgeStyle(school.plan)}`}>
-                        {school.plan || "yet not set"}
+                        {school.plan && school.plan !== "yet not set" && school.plan !== "Configured" ? school.plan : (school.configuredPlan || "Free Plan (Trial)")}
                       </span>
                     </td>
 
@@ -424,7 +429,7 @@ function SuperAdminSchools() {
                               name: school.name,
                               email: school.email || "",
                               address: school.location || "",
-                              plan: school.plan || "Free Plan (Trial)",
+                              plan: school.plan && school.plan !== "yet not set" ? school.plan : (school.configuredPlan || "Free Plan (Trial)"),
                               status: school.status || "Active"
                             });
                           }}
@@ -448,7 +453,6 @@ function SuperAdminSchools() {
             </tbody>
           </table>
         </div>
-
         <div className="p-4 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between">
           <span>Showing {filteredSchools.length} of {schools.length} schools</span>
           <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
@@ -472,7 +476,7 @@ function SuperAdminSchools() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. G.D Academy"
+                  placeholder="e.g. St. Xavier High School"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
@@ -494,7 +498,7 @@ function SuperAdminSchools() {
                 <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Address / Location</label>
                 <input
                   type="text"
-                  placeholder="New Delhi, India"
+                  placeholder="City, State"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
@@ -541,7 +545,7 @@ function SuperAdminSchools() {
                 <h4 className="text-base font-bold text-white">{viewSchool.name}</h4>
                 <p className="text-xs text-slate-400">{viewSchool.location || "Patna, Bihar"}</p>
                 <span className={`inline-block mt-2 px-2.5 py-0.5 text-xs font-semibold rounded-full ${getPlanBadgeStyle(viewSchool.plan)}`}>
-                  {viewSchool.plan || "Free"}
+                  {viewSchool.plan && viewSchool.plan !== "yet not set" ? viewSchool.plan : (viewSchool.configuredPlan || "Free Plan (Trial)")}
                 </span>
               </div>
             </div>
@@ -561,6 +565,26 @@ function SuperAdminSchools() {
               <div className="flex justify-between">
                 <span className="text-slate-500">Total Students:</span>
                 <span className="text-slate-200 font-bold">{viewSchool.stats?.students || 0}</span>
+              </div>
+
+              <div className="border-t border-slate-800 pt-3 mt-3 space-y-2">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Financial Overview</p>
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-400">Student Monthly Fee Set:</span>
+                  <span className="text-purple-400 font-bold">{viewSchool.financials?.studentMonthlyFee ? `₹${viewSchool.financials.studentMonthlyFee.toFixed(2)}` : "Not Configured"}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-400">Total Revenue Received (Students):</span>
+                  <span className="text-emerald-400 font-bold">₹{(viewSchool.financials?.totalStudentReceived || 0).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-400">Subscription Paid (to Super Admin):</span>
+                  <span className="text-blue-400 font-bold">₹{(viewSchool.financials?.totalSubscriptionPaid || 0).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-400">Teacher Salary Configured:</span>
+                  <span className="text-amber-400 font-bold">₹{(viewSchool.financials?.teacherSalariesTotal || 0).toFixed(2)} ({viewSchool.financials?.teacherSalaryCount || 0} teachers set)</span>
+                </div>
               </div>
             </div>
             <div className="mt-6 flex justify-end">

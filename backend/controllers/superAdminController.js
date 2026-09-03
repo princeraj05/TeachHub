@@ -282,6 +282,9 @@ exports.getSchoolsDetail = async (req, res) => {
     const School = require("../models/School");
     const User = require("../models/User");
     const SchoolSubscription = require("../models/SchoolSubscription");
+    const FeePlan = require("../models/FeePlan");
+    const Payment = require("../models/Payment");
+    const TeacherCompensation = require("../models/TeacherCompensation");
 
     let schoolDocs = await School.find({}).lean();
     if (schoolDocs.length === 0) {
@@ -297,7 +300,11 @@ exports.getSchoolsDetail = async (req, res) => {
       const studentCount = await User.countDocuments({ schoolName: name, role: "student" });
 
       const subscription = await SchoolSubscription.findOne({ schoolName: name });
-      
+      const feePlan = await FeePlan.findOne({ schoolName: name, active: true });
+      const studentPayments = await Payment.find({ schoolName: name, purpose: "STUDENT_SCHOOL_FEE", status: "Successful" }).select("amount");
+      const subPayments = await Payment.find({ schoolName: name, purpose: "SCHOOL_SUBSCRIPTION", status: "Successful" }).select("amount");
+      const teacherComps = await TeacherCompensation.find({ schoolName: name, active: true }).select("salary teacher");
+
       let configuredPlan = null;
       if (subscription && subscription.monthlyFee) {
         const feeStr = (subscription.monthlyFee / 100).toFixed(2);
@@ -305,7 +312,7 @@ exports.getSchoolsDetail = async (req, res) => {
       }
 
       let plan = school.plan;
-      if (!plan || plan === "Configured" || plan === "Pro" || plan === "Enterprise" || plan.includes("Pro") || plan.includes("Enterprise")) {
+      if (!plan || plan === "yet not set" || plan === "Configured" || plan === "Pro" || plan === "Enterprise" || plan.includes("Pro") || plan.includes("Enterprise")) {
         plan = configuredPlan || "Free Plan (Trial)";
       }
 
@@ -327,6 +334,12 @@ exports.getSchoolsDetail = async (req, res) => {
       const adminUser = await User.findOne({ schoolName: name, role: "admin" });
       const emailToShow = adminUser ? adminUser.email : (school.email || `${name.toLowerCase().replace(/\s+/g, "")}@gmail.com`);
 
+      const totalStudentReceived = studentPayments.reduce((sum, p) => sum + (p.amount || 0), 0) / 100;
+      const totalSubscriptionPaid = subPayments.reduce((sum, p) => sum + (p.amount || 0), 0) / 100;
+      const studentMonthlyFee = feePlan?.monthlyFee ? feePlan.monthlyFee / 100 : 0;
+      const teacherSalaryCount = teacherComps.length;
+      const teacherSalariesTotal = teacherComps.reduce((sum, c) => sum + (c.salary || 0), 0) / 100;
+
       schoolsList.push({
         _id: school._id,
         name,
@@ -338,6 +351,13 @@ exports.getSchoolsDetail = async (req, res) => {
         status,
         price,
         validTill,
+        financials: {
+          studentMonthlyFee,
+          totalStudentReceived,
+          totalSubscriptionPaid,
+          teacherSalaryCount,
+          teacherSalariesTotal
+        },
         stats: {
           admins: adminCount,
           teachers: teacherCount,
