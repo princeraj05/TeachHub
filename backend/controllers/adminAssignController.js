@@ -64,12 +64,12 @@ res.status(500).json({error:err.message});
 
 
 
-// ================= ASSIGN TEACHER TO CLASS =================
+// ================= ASSIGN TEACHER TO CLASS & SUBJECT =================
 
 exports.assignTeacherToClass = async (req,res)=>{
 try{
 
-const { teacherId, classId } = req.body;
+const { teacherId, classId, subjectId } = req.body;
 
 if (!req.user || !req.user.schoolName) {
   return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
@@ -94,8 +94,17 @@ classId,
 { new:true }
 );
 
+// 4. If subjectId is provided, also assign subject to teacher & class
+if (subjectId) {
+  await Subject.findOneAndUpdate(
+    { _id: subjectId, schoolName: req.user.schoolName },
+    { teacher: teacherId, $addToSet: { classes: classId, class: classId } },
+    { new: true }
+  );
+}
+
 res.json({
-message:"Teacher assigned to class",
+message: subjectId ? "Teacher, Class & Subject assigned successfully" : "Teacher assigned to class successfully",
 data:updatedClass
 });
 
