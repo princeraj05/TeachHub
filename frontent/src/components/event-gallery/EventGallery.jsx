@@ -11,8 +11,13 @@ export default function EventGallery({ event, api = "", onDeletePhoto, onDeleteV
   const effectiveApi = api || defaultApi;
   const getMediaUrl = (url) => {
     if (!url) return "";
-    if (url.startsWith("http") || url.startsWith("data:") || url.startsWith("blob:")) return url;
-    return `${effectiveApi}${url.startsWith("/") ? "" : "/"}${url}`;
+    let fullUrl = (url.startsWith("http") || url.startsWith("data:") || url.startsWith("blob:"))
+      ? url
+      : `${effectiveApi}${url.startsWith("/") ? "" : "/"}${url}`;
+    if (fullUrl.startsWith("http")) {
+      return encodeURI(fullUrl);
+    }
+    return fullUrl;
   };
 
   if (!photos.length && !videos.length) return <div className="rounded-2xl border border-dashed border-slate-200 p-10 text-center text-xs font-bold text-slate-400 dark:border-white/10">No media has been uploaded to this event yet.</div>;

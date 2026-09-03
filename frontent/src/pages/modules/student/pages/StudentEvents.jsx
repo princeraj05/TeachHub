@@ -53,8 +53,13 @@ function StudentEvents() {
 
   const getMediaUrl = (url) => {
     if (!url) return "";
-    if (url.startsWith("http") || url.startsWith("data:") || url.startsWith("blob:")) return url;
-    return `${API}${url}`;
+    let fullUrl = (url.startsWith("http") || url.startsWith("data:") || url.startsWith("blob:"))
+      ? url
+      : `${API}${url.startsWith("/") ? "" : "/"}${url}`;
+    if (fullUrl.startsWith("http")) {
+      return encodeURI(fullUrl);
+    }
+    return fullUrl;
   };
 
   const openLightbox = (type, url, filename) => {
