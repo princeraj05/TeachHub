@@ -35,10 +35,101 @@ function CreateTimetableTab({
   belongsToClass
 }) {
 
-  // Filter subjects for the selected class
+  // 1. Bi-directional filtering for Teachers based on selected Subject
+  const availableTeachers = useMemo(() => {
+    if (!form.subjectId) return teachers;
+    const targetSubject = subjects.find(s => s._id === form.subjectId);
+    if (!targetSubject) return teachers;
+
+    const targetName = (targetSubject.name || "").toLowerCase().trim();
+
+    const matchingTeachers = teachers.filter(t => {
+      // Direct subject teacher check
+      if (targetSubject.teacher) {
+        const teacherObjId = typeof targetSubject.teacher === 'object' ? targetSubject.teacher._id : targetSubject.teacher;
+        if (String(teacherObjId) === String(t._id)) return true;
+      }
+      // Teacher's assigned subjects array check
+      if (Array.isArray(t.subjects)) {
+        const hasSub = t.subjects.some(s =>
+          String(s._id || s) === String(targetSubject._id) ||
+          (s.name && s.name.toLowerCase().trim() === targetName)
+        );
+        if (hasSub) return true;
+      }
+      // Timetable entries check
+      const hasTimetableEntry = (entries || []).some(entry => {
+        const entryTeacherId = typeof entry.teacher === 'object' ? entry.teacher?._id : entry.teacher;
+        const entrySubjectId = typeof entry.subject === 'object' ? entry.subject?._id : entry.subject;
+        const entrySubjectName = typeof entry.subject === 'object' ? entry.subject?.name : null;
+
+        return String(entryTeacherId) === String(t._id) && (
+          String(entrySubjectId) === String(targetSubject._id) ||
+          (entrySubjectName && entrySubjectName.toLowerCase().trim() === targetName)
+        );
+      });
+      if (hasTimetableEntry) return true;
+
+      return false;
+    });
+
+    return matchingTeachers.length > 0 ? matchingTeachers : teachers;
+  }, [teachers, subjects, entries, form.subjectId]);
+
+  // 2. Bi-directional filtering for Subjects based on selected Class & Teacher
   const availableSubjects = useMemo(() => {
-    return subjects.filter(sub => belongsToClass(sub, form.classId));
-  }, [subjects, form.classId]);
+    let list = subjects;
+
+    // Filter by selected Class first if selected
+    if (form.classId) {
+      list = list.filter(sub => belongsToClass(sub, form.classId));
+    }
+
+    // Filter by selected Teacher
+    if (form.teacherId) {
+      const selectedTeacherObj = teachers.find(t => t._id === form.teacherId);
+
+      const filteredByTeacher = list.filter(sub => {
+        const subName = (sub.name || "").toLowerCase().trim();
+
+        // Direct subject teacher check
+        if (sub.teacher) {
+          const teacherObjId = typeof sub.teacher === 'object' ? sub.teacher._id : sub.teacher;
+          if (String(teacherObjId) === String(form.teacherId)) return true;
+        }
+
+        // Teacher's assigned subjects array check
+        if (selectedTeacherObj && Array.isArray(selectedTeacherObj.subjects)) {
+          const isAssigned = selectedTeacherObj.subjects.some(s =>
+            String(s._id || s) === String(sub._id) ||
+            (s.name && s.name.toLowerCase().trim() === subName)
+          );
+          if (isAssigned) return true;
+        }
+
+        // Timetable entries check
+        const hasTimetableEntry = (entries || []).some(entry => {
+          const entryTeacherId = typeof entry.teacher === 'object' ? entry.teacher?._id : entry.teacher;
+          const entrySubjectId = typeof entry.subject === 'object' ? entry.subject?._id : entry.subject;
+          const entrySubjectName = typeof entry.subject === 'object' ? entry.subject?.name : null;
+
+          return String(entryTeacherId) === String(form.teacherId) && (
+            String(entrySubjectId) === String(sub._id) ||
+            (entrySubjectName && entrySubjectName.toLowerCase().trim() === subName)
+          );
+        });
+        if (hasTimetableEntry) return true;
+
+        return false;
+      });
+
+      if (filteredByTeacher.length > 0) {
+        list = filteredByTeacher;
+      }
+    }
+
+    return list;
+  }, [subjects, teachers, entries, form.classId, form.teacherId, belongsToClass]);
 
   const selectedClass = classes.find(c => c._id === form.classId);
   const selectedSubject = subjects.find(s => s._id === form.subjectId);
@@ -164,13 +255,19 @@ function CreateTimetableTab({
               <select
                 name="subjectId"
                 required
-                disabled={!form.classId}
+                disabled={!form.classId && !form.teacherId}
                 value={form.subjectId}
                 onChange={(e) => setForm({ ...form, subjectId: e.target.value })}
                 className="w-full px-3 py-2.5 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 <option value="">
-                  {!form.classId ? "Select Class First" : availableSubjects.length ? "Select Subject" : "No Subject in this Class"}
+                  {!form.classId && !form.teacherId
+                    ? "Select Class or Teacher First"
+                    : availableSubjects.length
+                    ? form.teacherId && availableSubjects.length < subjects.length
+                      ? `Select Subject (Assigned to ${selectedTeacher?.name || "Teacher"})`
+                      : "Select Subject"
+                    : "No Subject found"}
                 </option>
                 {availableSubjects.map(s => (
                   <option key={s._id} value={s._id}>{s.name}</option>
@@ -188,8 +285,12 @@ function CreateTimetableTab({
                 onChange={(e) => setForm({ ...form, teacherId: e.target.value })}
                 className="w-full px-3 py-2.5 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
               >
-                <option value="">Select Teacher</option>
-                {teachers.map(t => (
+                <option value="">
+                  {form.subjectId && availableTeachers.length < teachers.length
+                    ? `Select Teacher (Teaches ${selectedSubject?.name || "Subject"})`
+                    : "Select Teacher"}
+                </option>
+                {availableTeachers.map(t => (
                   <option key={t._id} value={t._id}>{t.name}</option>
                 ))}
               </select>

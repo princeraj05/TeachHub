@@ -70,7 +70,10 @@ exports.getSubjects = async (req, res) => {
   try {
     if (!req.user?.schoolName) return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
     await migrateLegacySubjects(req.user.schoolName);
-    const subjects = await Subject.find({ schoolName: req.user.schoolName }).populate({ path: "classes", select: "name section" }).sort({ name: 1 });
+    const subjects = await Subject.find({ schoolName: req.user.schoolName })
+      .populate({ path: "classes", select: "name section" })
+      .populate("teacher", "name email")
+      .sort({ name: 1 });
     res.json(subjects.map(serialize));
   } catch (error) { res.status(500).json({ message: error.message }); }
 };
