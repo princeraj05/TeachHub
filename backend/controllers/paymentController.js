@@ -83,48 +83,88 @@ const superAdmin = () => User.findOne({ role: "superadmin" }).select("_id");
 async function activeFreePeriod(schoolName, start, end) { return FreePeriod.findOne({ schoolName, status: "Active", startDate: { $lte: end }, endDate: { $gte: start } }).sort({ startDate: 1 }); }
 async function subscriptionState(subscription) {
   const now = new Date();
-  const nextBilling = new Date(subscription.nextBillingDate || addMonths(new Date(subscription.billingStartDate || now), 1));
-  const graceDays = subscription.gracePeriodDays || 0;
-  const dueEnd = new Date(nextBilling.getTime() + graceDays * 86400000);
-  const start = new Date(subscription.billingStartDate || new Date(nextBilling.getTime() - 30 * 86400000));
+  const start = new Date(subscription.billingStartDate || now);
 
   if (["Suspended", "Cancelled"].includes(subscription.status)) {
-    return { status: subscription.status, amountDue: subscription.monthlyFee, paymentRequired: false, currentBillingPeriod: { start, end: nextBilling }, remainingDays: 0 };
+    return {
+      status: subscription.status,
+      amountDue: subscription.monthlyFee,
+      paymentRequired: false,
+      currentBillingPeriod: { start, end: subscription.nextBillingDate || addMonths(start, 1) },
+      remainingDays: 0
+    };
   }
 
-  const free = await activeFreePeriod(subscription.schoolName, start, nextBilling);
+  const free = await activeFreePeriod(subscription.schoolName, start, subscription.nextBillingDate || now);
   if (free && now >= free.startDate && now <= free.endDate) {
     const remainingDays = Math.max(0, Math.ceil((free.endDate.getTime() - now.getTime()) / 86400000));
-    return { status: "Free", amountDue: 0, paymentRequired: false, currentBillingPeriod: { start, end: nextBilling }, freePeriod: free, remainingDays };
+    return {
+      status: "Free",
+      amountDue: 0,
+      paymentRequired: false,
+      currentBillingPeriod: { start: free.startDate, end: free.endDate },
+      freePeriod: free,
+      remainingDays
+    };
   }
 
-  let status = "Active";
-  let remainingDays = 0;
-  let paymentRequired = false;
+  const latestPayment = await Payment.findOne({
+    schoolName: subscription.schoolName,
+    purpose: "SCHOOL_SUBSCRIPTION",
+    status: "Successful"
+  }).sort({ paidAt: -1, createdAt: -1 });
+
+  if (!latestPayment) {
+    const graceDays = subscription.gracePeriodDays || 0;
+    const graceEnd = new Date(start.getTime() + graceDays * 86400000);
+    const inGrace = graceDays > 0 && now <= graceEnd;
+    const remainingDays = inGrace ? Math.max(0, Math.ceil((graceEnd.getTime() - now.getTime()) / 86400000)) : 0;
+
+    return {
+      status: inGrace ? "Grace Period" : "Payment Due",
+      amountDue: subscription.monthlyFee,
+      paymentRequired: true,
+      currentBillingPeriod: { start, end: addMonths(start, 1) },
+      remainingDays
+    };
+  }
+
+  const paidAt = latestPayment.paidAt || latestPayment.createdAt;
+  const nextBilling = subscription.nextBillingDate ? new Date(subscription.nextBillingDate) : addMonths(paidAt, 1);
+  const graceDays = subscription.gracePeriodDays || 0;
+  const dueEnd = new Date(nextBilling.getTime() + graceDays * 86400000);
 
   if (now <= nextBilling) {
     const diff = nextBilling.getTime() - now.getTime();
-    remainingDays = Math.max(0, Math.ceil(diff / 86400000));
-    status = remainingDays <= 7 ? "Due Soon" : "Active";
-    paymentRequired = remainingDays <= 7;
+    const remainingDays = Math.max(0, Math.ceil(diff / 86400000));
+    const status = remainingDays <= 7 ? "Due Soon" : "Active";
+    const paymentRequired = remainingDays <= 7;
+    return {
+      status,
+      amountDue: subscription.monthlyFee,
+      paymentRequired,
+      currentBillingPeriod: { start: paidAt, end: nextBilling },
+      remainingDays
+    };
   } else if (now <= dueEnd) {
     const diff = dueEnd.getTime() - now.getTime();
-    remainingDays = Math.max(0, Math.ceil(diff / 86400000));
-    status = "Grace Period";
-    paymentRequired = true;
+    const remainingDays = Math.max(0, Math.ceil(diff / 86400000));
+    return {
+      status: "Grace Period",
+      amountDue: subscription.monthlyFee,
+      paymentRequired: true,
+      currentBillingPeriod: { start: paidAt, end: nextBilling },
+      remainingDays
+    };
   } else {
-    status = "Payment Due";
-    remainingDays = 0;
-    paymentRequired = true;
+    return {
+      status: "Payment Due",
+      amountDue: subscription.monthlyFee,
+      paymentRequired: true,
+      currentBillingPeriod: { start: paidAt, end: nextBilling },
+      remainingDays: 0
+    };
   }
-
-  return {
-    status,
-    amountDue: subscription.monthlyFee,
-    paymentRequired,
-    currentBillingPeriod: { start, end: nextBilling },
-    remainingDays
-  };
 }
 async function createOrder(res, payment) { try { const c = await getSettingsForReceiver(payment.receiver, payment.purpose, payment.schoolName); if (!c.onlineEnabled) throw Object.assign(new Error("Online payments are currently unavailable"), { status: 409 }); const order = await gateway("POST", "/v1/orders", { amount: payment.amount, currency: payment.currency, receipt: payment._id.toString(), notes: { teachhubPaymentId: payment._id.toString(), purpose: payment.purpose } }, c); payment.razorpayOrderId = order.id; payment.status = "Processing"; await payment.save(); return res.status(201).json({ paymentId: payment._id, razorpayOrderId: order.id, razorpayKeyId: c.keyId, amount: payment.amount, currency: payment.currency }); } catch (e) { await Payment.findByIdAndUpdate(payment._id, { status: "Failed" }); return fail(res, e); } }
 async function finish(orderId, paymentId, signature = "") { const payment = await Payment.findOne({ razorpayOrderId: orderId }); if (!payment) throw Object.assign(new Error("Payment record not found"), { status: 404 }); if (payment.status === "Successful") return payment; if (!["Pending", "Processing"].includes(payment.status)) throw Object.assign(new Error("Payment cannot be finalized"), { status: 409 }); const c = await getSettingsForReceiver(payment.receiver, payment.purpose, payment.schoolName); const remote = await gateway("GET", `/v1/payments/${encodeURIComponent(paymentId)}`, null, c); if (remote.order_id !== orderId || remote.amount !== payment.amount || remote.currency !== payment.currency || remote.status !== "captured") throw invalid("Gateway payment verification failed"); const paidAt = new Date(); const updated = await Payment.findOneAndUpdate({ _id: payment._id, status: { $in: ["Pending", "Processing"] } }, { $set: { status: "Successful", razorpayPaymentId: paymentId, razorpaySignature: signature, transactionReference: paymentId, verifiedAt: paidAt, paidAt, receiptNumber: receipt(payment) } }, { new: true }); if (!updated) return Payment.findById(payment._id); if (updated.purpose === "SCHOOL_SUBSCRIPTION") { const s = await SchoolSubscription.findOne({ schoolName: updated.schoolName }); if (s) { const billing = updated.metadata?.billingPeriod; const start = billing?.start ? new Date(billing.start) : new Date(s.nextBillingDate || s.billingStartDate || paidAt); const end = billing?.end ? new Date(billing.end) : addMonths(start, 1); s.nextBillingDate = end; s.currentBillingPeriod = { start, end }; s.status = "Active"; await s.save(); } } return updated; }
@@ -315,7 +355,52 @@ exports.getStudentFeePlan = async (req, res) => { try { const student = await Us
 exports.getStudentPaymentSummary = async (req, res) => { try { const student = await User.findOne({ _id: req.user.id, role: "student" }); if (!student?.schoolName) throw Object.assign(new Error("Student is not assigned to a school"), { status: 403 }); const period = calendarPeriod(); const [plan, latestSuccessful, current, successfulPayments] = await Promise.all([FeePlan.findOne({ schoolName: student.schoolName, active: true }).select("monthlyFee validityDays currency active updatedAt"), Payment.findOne({ payer: student._id, purpose: "STUDENT_SCHOOL_FEE", status: "Successful" }).sort({ paidAt: -1 }), Payment.findOne({ payer: student._id, purpose: "STUDENT_SCHOOL_FEE", "metadata.billingPeriod.key": period.key }).sort({ createdAt: -1 }).select("amount currency status verifiedAt createdAt receiptNumber"), Payment.find({ payer: student._id, purpose: "STUDENT_SCHOOL_FEE", status: "Successful" }).select("amount")]); const totalPaid = successfulPayments.reduce((sum, p) => sum + (p.amount || 0), 0); let remainingDays = 0; let dueDate = period.end; let paymentAvailable = Boolean(plan?.active); if (latestSuccessful) { const validity = plan?.validityDays || 30; const paidAt = latestSuccessful.paidAt || latestSuccessful.createdAt; const expiryDate = new Date(paidAt.getTime() + validity * 24 * 60 * 60 * 1000); const diff = expiryDate.getTime() - Date.now(); remainingDays = Math.max(0, Math.ceil(diff / (24 * 60 * 60 * 1000))); dueDate = expiryDate; } const isLocked = (current && current.status === "PendingVerification") || (remainingDays > 0); if (isLocked) { paymentAvailable = false; } const paymentStatus = (!plan || !plan.active) ? "Not Configured" : (current && ["PendingVerification", "Processing"].includes(current.status)) ? current.status : remainingDays > 0 ? "Successful" : "Pending"; res.json({ currentFee: plan?.monthlyFee || 0, currency: plan?.currency || "INR", validityDays: plan?.validityDays || 30, remainingDays, paymentAvailable, paymentStatus, dueDate, currentBillingPeriod: period, lastPayment: latestSuccessful || null, totalPaid, nextPayment: plan ? { amount: plan.monthlyFee, dueDate } : null }); } catch (e) { fail(res, e); } };
 exports.getStudentDashboard = async (req, res) => { try { const schoolName = req.user.schoolName; const userId = req.user.id; if (!schoolName) throw Object.assign(new Error("Student is not assigned to a school"), { status: 403 }); const period = calendarPeriod(); const [plan, payments, settings] = await Promise.all([FeePlan.findOne({ schoolName, active: true }).select("monthlyFee validityDays currency active updatedAt").lean(), Payment.find({ payer: userId }).populate("payer receiver", "name email role").sort({ createdAt: -1 }).limit(100).lean(), getSettingsForReceiver(null, "STUDENT_SCHOOL_FEE", schoolName)]); const options = { onlineEnabled: Boolean(settings.onlineEnabled), offlineEnabled: Boolean(settings.offlineEnabled), available: Boolean(settings.onlineEnabled || settings.offlineEnabled) }; const successfulPayments = payments.filter(p => p.purpose === "STUDENT_SCHOOL_FEE" && p.status === "Successful"); const latestSuccessful = successfulPayments[0] || null; const current = payments.find(p => p.purpose === "STUDENT_SCHOOL_FEE" && p.metadata?.billingPeriod?.key === period.key); const totalPaid = successfulPayments.reduce((sum, p) => sum + (p.amount || 0), 0); let remainingDays = 0; let dueDate = period.end; let paymentAvailable = Boolean(plan?.active); if (latestSuccessful) { const validity = plan?.validityDays || 30; const paidAt = latestSuccessful.paidAt || latestSuccessful.createdAt; const expiryDate = new Date(new Date(paidAt).getTime() + validity * 24 * 60 * 60 * 1000); const diff = expiryDate.getTime() - Date.now(); remainingDays = Math.max(0, Math.ceil(diff / (24 * 60 * 60 * 1000))); dueDate = expiryDate; } const isLocked = (current && current.status === "PendingVerification") || (remainingDays > 0); if (isLocked) { paymentAvailable = false; } const paymentStatus = (!plan || !plan.active) ? "Not Configured" : (current && ["PendingVerification", "Processing"].includes(current.status)) ? current.status : remainingDays > 0 ? "Successful" : "Pending"; const summary = { currentFee: plan?.monthlyFee || 0, currency: plan?.currency || "INR", validityDays: plan?.validityDays || 30, remainingDays, paymentAvailable, paymentStatus, dueDate, currentBillingPeriod: period, lastPayment: latestSuccessful || null, totalPaid, nextPayment: plan ? { amount: plan.monthlyFee, dueDate } : null }; res.json({ plan, options, summary, payments }); } catch (e) { fail(res, e); } };
 exports.setTeacherCompensation = async (req, res) => { try { const salary = Number(req.body.salary), paymentCycle = req.body.paymentCycle || "MONTHLY", dueDate = req.body.dueDate ? new Date(req.body.dueDate) : null; const teacher = await User.findOne({ _id: req.params.teacherId, role: "teacher", schoolName: req.user.schoolName }); if (!teacher || !Number.isSafeInteger(salary) || salary < 1 || !["MONTHLY", "WEEKLY", "ONE_TIME"].includes(paymentCycle) || (dueDate && Number.isNaN(+dueDate))) throw invalid("Valid teacher salary, payment cycle and due date are required"); const old = await TeacherCompensation.findOne({ teacher: teacher._id, schoolName: req.user.schoolName }).lean(); const pay = await TeacherCompensation.findOneAndUpdate({ teacher: teacher._id, schoolName: req.user.schoolName }, { $set: { salary, paymentCycle, dueDate, active: req.body.active !== false, updatedBy: req.user.id } }, { new: true, upsert: true }); await audit(req, "TEACHER_SALARY_CHANGED", old, pay.toObject()); res.json(pay); } catch (e) { fail(res, e); } };
-exports.setSubscription = async (req, res) => { try { const schoolName = String(req.params.schoolName || "").trim(), monthlyFee = Number(req.body.monthlyFee), gracePeriodDays = Number(req.body.gracePeriodDays || 0); if (!schoolName || !Number.isSafeInteger(monthlyFee) || monthlyFee < 1 || !Number.isInteger(gracePeriodDays) || gracePeriodDays < 0 || gracePeriodDays > 90) throw invalid("Valid school, monthly fee and grace period are required"); if (!await School.exists({ name: schoolName })) throw Object.assign(new Error("School not found"), { status: 404 }); const old = await SchoolSubscription.findOne({ schoolName }).lean(); const billingStartDate = req.body.billingStartDate ? new Date(req.body.billingStartDate) : old?.billingStartDate || new Date(); if (Number.isNaN(+billingStartDate)) throw invalid("Invalid billing start date"); const calculatedNextBilling = (old?.nextBillingDate && !Number.isNaN(new Date(old.nextBillingDate).getTime()) && new Date(old.nextBillingDate) > billingStartDate) ? old.nextBillingDate : addMonths(billingStartDate, 1); const sub = await SchoolSubscription.findOneAndUpdate({ schoolName }, { $set: { monthlyFee, billingStartDate, nextBillingDate: calculatedNextBilling, gracePeriodDays, status: req.body.status === "Suspended" ? "Suspended" : "Active", updatedBy: req.user.id } }, { new: true, upsert: true }); await audit(req, "SUBSCRIPTION_CHANGED", old, sub.toObject()); res.json({ subscription: sub, billing: await subscriptionState(sub) }); } catch (e) { fail(res, e); } };
+exports.setSubscription = async (req, res) => {
+  try {
+    const schoolName = String(req.params.schoolName || "").trim();
+    const monthlyFee = Number(req.body.monthlyFee);
+    const gracePeriodDays = Number(req.body.gracePeriodDays || 0);
+
+    if (!schoolName || !Number.isSafeInteger(monthlyFee) || monthlyFee < 1 || !Number.isInteger(gracePeriodDays) || gracePeriodDays < 0 || gracePeriodDays > 90) {
+      throw invalid("Valid school, monthly fee and grace period are required");
+    }
+    if (!await School.exists({ name: schoolName })) {
+      throw Object.assign(new Error("School not found"), { status: 404 });
+    }
+
+    const old = await SchoolSubscription.findOne({ schoolName }).lean();
+    const billingStartDate = req.body.billingStartDate ? new Date(req.body.billingStartDate) : (old?.billingStartDate || new Date());
+    if (Number.isNaN(+billingStartDate)) throw invalid("Invalid billing start date");
+
+    const hasPaid = await Payment.exists({ schoolName, purpose: "SCHOOL_SUBSCRIPTION", status: "Successful" });
+
+    const calculatedNextBilling = hasPaid
+      ? (old?.nextBillingDate && !Number.isNaN(new Date(old.nextBillingDate).getTime()) && new Date(old.nextBillingDate) > billingStartDate ? old.nextBillingDate : addMonths(billingStartDate, 1))
+      : billingStartDate;
+
+    const initialStatus = req.body.status === "Suspended" ? "Suspended" : (hasPaid ? "Active" : "Payment Due");
+
+    const sub = await SchoolSubscription.findOneAndUpdate(
+      { schoolName },
+      {
+        $set: {
+          monthlyFee,
+          billingStartDate,
+          nextBillingDate: calculatedNextBilling,
+          gracePeriodDays,
+          status: initialStatus,
+          updatedBy: req.user.id
+        }
+      },
+      { new: true, upsert: true }
+    );
+
+    await audit(req, "SUBSCRIPTION_CHANGED", old, sub.toObject());
+    res.json({ subscription: sub, billing: await subscriptionState(sub) });
+  } catch (e) {
+    fail(res, e);
+  }
+};
 exports.changeSubscriptionStatus = async (req, res) => { try { const status = String(req.body.status || ""); if (!["Suspended", "Cancelled", "Payment Due", "Active"].includes(status)) throw invalid("Invalid subscription status"); const sub = await SchoolSubscription.findOne({ schoolName: req.params.schoolName }); if (!sub) throw Object.assign(new Error("Subscription not found"), { status: 404 }); const previous = sub.toObject(); sub.status = status; sub.updatedBy = req.user.id; if (status === "Suspended") sub.suspendedAt = new Date(); if (status === "Active") sub.reactivatedAt = new Date(); await sub.save(); await audit(req, status === "Suspended" ? "SUBSCRIPTION_SUSPENDED" : status === "Active" ? "SUBSCRIPTION_REACTIVATED" : "SUBSCRIPTION_STATUS_CHANGED", previous, sub.toObject(), String(req.body.reason || "")); res.json({ subscription: sub, billing: await subscriptionState(sub) }); } catch (e) { fail(res, e); } };
 exports.grantFreePeriod = async (req, res) => { try { const startDate = new Date(req.body.startDate || Date.now()); startDate.setUTCHours(0, 0, 0, 0); const days = Number(req.body.days); const endDate = req.body.endDate ? new Date(req.body.endDate) : new Date(startDate.getTime() + (Number.isInteger(days) && days > 0 ? days - 1 : 0) * 86400000); endDate.setUTCHours(23, 59, 59, 999); if (Number.isNaN(+startDate) || Number.isNaN(+endDate) || endDate < startDate || (!req.body.endDate && (!Number.isInteger(days) || days < 1))) throw invalid("Provide a valid duration or custom free-period start and end date"); const subscription = await SchoolSubscription.findOne({ schoolName: req.params.schoolName }); if (!subscription) throw Object.assign(new Error("Subscription not found"), { status: 404 }); const type = String(req.body.type || "OTHER"); if (!["FREE_TRIAL", "PROMOTIONAL", "COMPENSATION", "SPECIAL_OFFER", "OTHER"].includes(type)) throw invalid("Invalid free-period type"); const period = await FreePeriod.create({ schoolName: subscription.schoolName, type, startDate, endDate, reason: String(req.body.reason || ""), note: String(req.body.note || ""), grantedBy: req.user.id }); await audit(req, "FREE_PERIOD_GRANTED", null, period.toObject(), period.reason); res.status(201).json(period); } catch (e) { fail(res, e); } };
 exports.cancelFreePeriod = async (req, res) => { try { const period = await FreePeriod.findOne({ _id: req.params.id, status: "Active" }); if (!period) throw Object.assign(new Error("Active free period not found"), { status: 404 }); period.status = "Cancelled"; period.cancelledAt = new Date(); period.cancelledBy = req.user.id; await period.save(); await audit(req, "FREE_PERIOD_CANCELLED", { schoolName: period.schoolName, status: "Active" }, period.toObject(), String(req.body.reason || "")); res.json(period); } catch (e) { fail(res, e); } };
