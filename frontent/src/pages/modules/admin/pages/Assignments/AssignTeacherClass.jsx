@@ -1,14 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { FaSchool, FaChalkboardTeacher, FaBook, FaCheckCircle, FaLayerGroup } from "react-icons/fa";
+import { FaSchool, FaChalkboardTeacher, FaBook, FaCheckCircle, FaEdit, FaTrashAlt, FaSearch, FaUserTie } from "react-icons/fa";
 
 function AssignTeacherClass() {
   const API = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
 
+  const formRef = useRef(null);
+
   const [classes, setClasses] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [subjects, setSubjects] = useState([]);
+  const [assignmentsList, setAssignmentsList] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
   const [selectedClassIds, setSelectedClassIds] = useState([]);
   const [teacherId, setTeacherId] = useState("");
   const [selectedSubjectIds, setSelectedSubjectIds] = useState([]);
@@ -19,6 +24,7 @@ function AssignTeacherClass() {
     fetchClasses();
     fetchTeachers();
     fetchSubjects();
+    fetchAssignments();
   }, []);
 
   const fetchClasses = async () => {
@@ -45,6 +51,15 @@ function AssignTeacherClass() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSubjects(res.data);
+    } catch (e) {}
+  };
+
+  const fetchAssignments = async () => {
+    try {
+      const res = await axios.get(`${API}/api/admin/assign/teacher-assignments`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAssignmentsList(res.data);
     } catch (e) {}
   };
 
@@ -97,11 +112,33 @@ function AssignTeacherClass() {
       setSelectedClassIds([]);
       setTeacherId("");
       setSelectedSubjectIds([]);
+      fetchAssignments();
       setTimeout(() => setSuccess(false), 4000);
     } catch (err) {
       alert(err.response?.data?.message || "Assignment failed");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEditAssignment = (item) => {
+    setTeacherId(item._id);
+    setSelectedClassIds((item.classes || []).map(c => c._id));
+    setSelectedSubjectIds((item.subjects || []).map(s => s._id));
+    formRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleClearTeacherAssignments = async (tId, tName) => {
+    if (!window.confirm(`Are you sure you want to clear all class & subject assignments for ${tName}?`)) return;
+    try {
+      await axios.post(
+        `${API}/api/admin/assign/unassign-teacher`,
+        { teacherId: tId, clearAll: true },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchAssignments();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to clear assignments");
     }
   };
 
@@ -114,19 +151,24 @@ function AssignTeacherClass() {
     return classList.some(item => selectedClassIds.includes(String(item?._id || item)));
   }) : subjects;
 
+  const filteredAssignments = assignmentsList.filter(item =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="font-sans">
+    <div className="font-sans space-y-10">
       {/* Page header */}
-      <div className="mb-8">
+      <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight">
           Unified Teacher, Multiple Classes & Subjects Assignment
         </h1>
         <p className="text-xs text-slate-400 font-medium mt-0.5">
-          Assign teacher to multiple classes and multiple course subjects together in a single step
+          Assign teacher to multiple classes and multiple course subjects together, view saved details, and edit assignments
         </p>
       </div>
 
-      <div className="max-w-xl">
+      <div ref={formRef} className="max-w-xl">
         {/* Success banner */}
         {success && (
           <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 rounded-2xl px-5 py-4 mb-6 text-sm font-bold shadow-sm animate-fadeIn">
@@ -145,7 +187,7 @@ function AssignTeacherClass() {
                 <FaChalkboardTeacher className="text-white text-base" />
               </div>
               <div>
-                <h2 className="text-base font-bold text-slate-800 dark:text-white">Assign Teacher to Multiple Classes & Subjects</h2>
+                <h2 className="text-base font-bold text-slate-800 dark:text-white">Assign / Edit Teacher Classes & Subjects</h2>
                 <p className="text-xs text-slate-400 font-medium">Select teacher profile, classroom levels and course subjects</p>
               </div>
             </div>
@@ -338,16 +380,134 @@ function AssignTeacherClass() {
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  "Assign Teacher, Class(es) & Subject(s)"
+                  "Save & Update Teacher Assignments"
                 )}
               </button>
             </form>
           </div>
         </div>
+      </div>
 
-        <p className="text-[11px] text-slate-400/80 mt-4 text-center font-medium">
-          A teacher can be assigned to multiple class sections and course subjects. Existing mappings are preserved.
-        </p>
+      {/* Saved Assignments List & Management Section */}
+      <div className="pt-6 border-t border-slate-200 dark:border-slate-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-xl font-extrabold text-slate-800 dark:text-white">
+              Current Teacher Assignments ({assignmentsList.length})
+            </h2>
+            <p className="text-xs text-slate-400 font-medium mt-0.5">
+              Overview of saved teacher assignments with quick edit & unassign controls
+            </p>
+          </div>
+
+          {/* Search filter */}
+          <div className="relative w-full sm:w-64">
+            <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+            <input
+              type="text"
+              placeholder="Search teacher..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-white dark:bg-[#0D1326] border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+            />
+          </div>
+        </div>
+
+        {filteredAssignments.length === 0 ? (
+          <div className="bg-white dark:bg-[#0D1326] p-8 text-center rounded-2xl border border-slate-200/60 dark:border-slate-800 text-slate-400 text-xs font-semibold">
+            No teacher assignments found.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredAssignments.map((item) => (
+              <div
+                key={item._id}
+                className="bg-white dark:bg-[#0D1326] rounded-2xl border border-slate-200/60 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+              >
+                <div>
+                  {/* Teacher header */}
+                  <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800/80">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center text-white text-sm font-black shadow-sm">
+                        {item.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-extrabold text-slate-800 dark:text-white leading-tight">
+                          {item.name}
+                        </h3>
+                        <p className="text-[11px] text-slate-400 font-medium">{item.email}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => handleEditAssignment(item)}
+                        title="Edit Assignment"
+                        className="p-2 rounded-lg bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 hover:bg-teal-100 dark:hover:bg-teal-900/60 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                      >
+                        <FaEdit className="text-xs" />
+                        <span className="hidden sm:inline">Edit</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleClearTeacherAssignments(item._id, item.name)}
+                        title="Clear Assignments"
+                        className="p-2 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                      >
+                        <FaTrashAlt className="text-xs" />
+                        <span className="hidden sm:inline">Clear</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Assigned Classes */}
+                  <div className="mb-3">
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block mb-1.5">
+                      Assigned Classes ({item.classes?.length || 0})
+                    </span>
+                    {item.classes && item.classes.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {item.classes.map((cls) => (
+                          <span
+                            key={cls._id}
+                            className="inline-flex items-center gap-1 bg-teal-50 dark:bg-teal-950/40 border border-teal-150 dark:border-teal-800 text-teal-700 dark:text-teal-300 text-[11px] font-bold px-2.5 py-1 rounded-lg"
+                          >
+                            <FaSchool className="text-[10px] text-teal-500" />
+                            Class {cls.name}-{cls.section}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-400 italic">No classes assigned</span>
+                    )}
+                  </div>
+
+                  {/* Assigned Subjects */}
+                  <div>
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block mb-1.5">
+                      Assigned Subjects ({item.subjects?.length || 0})
+                    </span>
+                    {item.subjects && item.subjects.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {item.subjects.map((sub) => (
+                          <span
+                            key={sub._id}
+                            className="inline-flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-150 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-[11px] font-bold px-2.5 py-1 rounded-lg"
+                          >
+                            <FaBook className="text-[10px] text-indigo-500" />
+                            {sub.name}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-400 italic">No subjects assigned</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

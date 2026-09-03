@@ -164,3 +164,81 @@ data:subject
 res.status(500).json({error:err.message});
 }
 };
+
+const Timetable = require("../models/Timetable");
+
+// ================= GET TEACHER ASSIGNMENTS =================
+exports.getTeacherAssignments = async (req, res) => {
+  try {
+    if (!req.user || !req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+    }
+
+    const schoolRegex = new RegExp(`^${(req.user.schoolName || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, "i");
+
+    const teachers = await User.find({
+      role: { $regex: /^teacher$/i },
+      $or: [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }]
+    }).select("name email avatar phoneNumber").lean();
+
+    const assignments = [];
+    for (let t of teachers) {
+      const timetableClassIds = await Timetable.distinct("class", { teacher: t._id });
+      const classes = await Class.find({
+        $or: [{ teacher: t._id }, { _id: { $in: timetableClassIds } }],
+        schoolName: schoolRegex
+      }).select("name section");
+
+      const timetableSubjectIds = await Timetable.distinct("subject", { teacher: t._id });
+      const subjects = await Subject.find({
+        $or: [{ teacher: t._id }, { _id: { $in: timetableSubjectIds } }],
+        schoolName: schoolRegex
+      }).select("name code");
+
+      assignments.push({
+        _id: t._id,
+        name: t.name,
+        email: t.email,
+        avatar: t.avatar,
+        phoneNumber: t.phoneNumber,
+        classes,
+        subjects
+      });
+    }
+
+    res.json(assignments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ================= UNASSIGN TEACHER ASSIGNMENT =================
+exports.unassignTeacherAssignment = async (req, res) => {
+  try {
+    const { teacherId, classId, subjectId, clearAll } = req.body;
+
+    if (!req.user || !req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+    }
+
+    const schoolName = req.user.schoolName;
+
+    if (clearAll) {
+      await Class.updateMany({ teacher: teacherId, schoolName }, { $unset: { teacher: "" } });
+      await Subject.updateMany({ teacher: teacherId, schoolName }, { $unset: { teacher: "" } });
+      return res.json({ message: "All class and subject assignments cleared for this teacher" });
+    }
+
+    if (classId) {
+      await Class.findOneAndUpdate({ _id: classId, schoolName, teacher: teacherId }, { $unset: { teacher: "" } });
+    }
+
+    if (subjectId) {
+      await Subject.findOneAndUpdate({ _id: subjectId, schoolName, teacher: teacherId }, { $unset: { teacher: "" } });
+    }
+
+    res.json({ message: "Assignment updated successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
