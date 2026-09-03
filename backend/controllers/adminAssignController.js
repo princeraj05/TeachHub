@@ -64,12 +64,12 @@ res.status(500).json({error:err.message});
 
 
 
-// ================= ASSIGN TEACHER TO CLASS & SUBJECT =================
+// ================= ASSIGN TEACHER TO CLASS & SUBJECT(S) =================
 
 exports.assignTeacherToClass = async (req,res)=>{
 try{
 
-const { teacherId, classId, subjectId } = req.body;
+const { teacherId, classId, subjectId, subjectIds } = req.body;
 
 if (!req.user || !req.user.schoolName) {
   return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
@@ -94,17 +94,23 @@ classId,
 { new:true }
 );
 
-// 4. If subjectId is provided, also assign subject to teacher & class
-if (subjectId) {
-  await Subject.findOneAndUpdate(
-    { _id: subjectId, schoolName: req.user.schoolName },
-    { teacher: teacherId, $addToSet: { classes: classId, class: classId } },
-    { new: true }
+// 4. Handle multiple or single subject assignment
+let targetSubjectIds = [];
+if (Array.isArray(subjectIds) && subjectIds.length > 0) {
+  targetSubjectIds = subjectIds;
+} else if (subjectId) {
+  targetSubjectIds = [subjectId];
+}
+
+if (targetSubjectIds.length > 0) {
+  await Subject.updateMany(
+    { _id: { $in: targetSubjectIds }, schoolName: req.user.schoolName },
+    { teacher: teacherId, $addToSet: { classes: classId, class: classId } }
   );
 }
 
 res.json({
-message: subjectId ? "Teacher, Class & Subject assigned successfully" : "Teacher assigned to class successfully",
+message: targetSubjectIds.length > 0 ? "Teacher, Class & Subject(s) assigned successfully" : "Teacher assigned to class successfully",
 data:updatedClass
 });
 

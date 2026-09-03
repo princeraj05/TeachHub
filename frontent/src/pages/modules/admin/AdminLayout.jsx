@@ -308,7 +308,7 @@ function AdminLayout() {
               <button
                 onClick={() => togglePopover("assignments")}
                 className={`flex items-center gap-4 px-3.5 py-3 rounded-xl transition-all duration-200 cursor-pointer text-left w-full ${
-                  activePopover === "assignments" || isActive("/admin/assign-teacher-class") || isActive("/admin/assign-student-class") || isActive("/admin/assign-subject-teacher")
+                  activePopover === "assignments" || isActive("/admin/assign-teacher-class") || isActive("/admin/assign-student-class")
                     ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] dark:bg-[#38BDF8]/10 font-bold"
                     : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
                 }`}
@@ -320,7 +320,6 @@ function AdminLayout() {
                 <div className="pl-4 lg:pl-10 space-y-1 animate-fadeIn w-full">
                   <Link to="/admin/assign-teacher-class" className={popoverLinkClass("/admin/assign-teacher-class")}>Assign Teacher</Link>
                   <Link to="/admin/assign-student-class" className={popoverLinkClass("/admin/assign-student-class")}>Assign Student</Link>
-                  <Link to="/admin/assign-subject-teacher" className={popoverLinkClass("/admin/assign-subject-teacher")}>Assign Subject</Link>
                 </div>
               )}
             </div>
@@ -556,10 +555,9 @@ function AdminLayout() {
               {/* Category: Assignments */}
               <div>
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Assignments</p>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <Link to="/admin/assign-teacher-class" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Assign Teacher</Link>
                   <Link to="/admin/assign-student-class" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Assign Student</Link>
-                  <Link to="/admin/assign-subject-teacher" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Assign Subject</Link>
                 </div>
               </div>
 

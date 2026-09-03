@@ -60,7 +60,7 @@ function AdminRoutes() {
         {/* Assignments */}
         <Route path="assign-teacher-class" element={<Suspense fallback={<PageLoader />}><AssignTeacherClass /></Suspense>} />
         <Route path="assign-student-class" element={<Suspense fallback={<PageLoader />}><AssignStudentClass /></Suspense>} />
-        <Route path="assign-subject-teacher" element={<Suspense fallback={<PageLoader />}><AssignSubjectTeacher /></Suspense>} />
+        <Route path="assign-subject-teacher" element={<Navigate to="/admin/assign-teacher-class" replace />} />
 
         {/* Reports */}
         <Route path="attendance-report" element={<Suspense fallback={<PageLoader />}><AttendanceReport /></Suspense>} />

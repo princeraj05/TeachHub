@@ -11,7 +11,7 @@ function AssignTeacherClass() {
   const [subjects, setSubjects] = useState([]);
   const [classId, setClassId] = useState("");
   const [teacherId, setTeacherId] = useState("");
-  const [subjectId, setSubjectId] = useState("");
+  const [selectedSubjectIds, setSelectedSubjectIds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -48,19 +48,35 @@ function AssignTeacherClass() {
     } catch (e) {}
   };
 
+  const toggleSubject = (sId) => {
+    if (selectedSubjectIds.includes(sId)) {
+      setSelectedSubjectIds(selectedSubjectIds.filter(id => id !== sId));
+    } else {
+      setSelectedSubjectIds([...selectedSubjectIds, sId]);
+    }
+  };
+
+  const selectAllSubjects = () => {
+    setSelectedSubjectIds(availableSubjects.map(s => s._id));
+  };
+
+  const clearAllSubjects = () => {
+    setSelectedSubjectIds([]);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
       await axios.post(
         `${API}/api/admin/assign/assign-teacher-class`,
-        { classId, teacherId, subjectId },
+        { classId, teacherId, subjectIds: selectedSubjectIds },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSuccess(true);
       setClassId("");
       setTeacherId("");
-      setSubjectId("");
+      setSelectedSubjectIds([]);
       setTimeout(() => setSuccess(false), 4000);
     } catch (err) {
       alert(err.response?.data?.message || "Assignment failed");
@@ -71,24 +87,23 @@ function AssignTeacherClass() {
 
   const selectedClass   = classes.find((c) => c._id === classId);
   const selectedTeacher = teachers.find((t) => t._id === teacherId);
-  const selectedSubject = subjects.find((s) => s._id === subjectId);
 
   // Filter available subjects for selected class if applicable
-  const availableSubjects = subjectId ? subjects : (classId ? subjects.filter(s => {
+  const availableSubjects = classId ? subjects.filter(s => {
     if (!s.class && !s.classes) return true;
     const classList = Array.isArray(s.classes) ? s.classes : [s.class];
     return classList.some(item => String(item?._id || item) === String(classId));
-  }) : subjects);
+  }) : subjects;
 
   return (
     <div className="font-sans">
       {/* Page header */}
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight">
-          Unified Teacher & Subject Assignment
+          Unified Teacher & Multiple Subjects Assignment
         </h1>
         <p className="text-xs text-slate-400 font-medium mt-0.5">
-          Assign teacher, class, and subject together in a single step
+          Assign teacher, class, and multiple course subjects together in a single step
         </p>
       </div>
 
@@ -97,7 +112,7 @@ function AssignTeacherClass() {
         {success && (
           <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 rounded-2xl px-5 py-4 mb-6 text-sm font-bold shadow-sm animate-fadeIn">
             <FaCheckCircle className="text-emerald-500 text-lg flex-shrink-0" />
-            Teacher, Class & Subject assigned successfully!
+            Teacher, Class & Selected Subject(s) assigned successfully!
           </div>
         )}
 
@@ -111,8 +126,8 @@ function AssignTeacherClass() {
                 <FaChalkboardTeacher className="text-white text-base" />
               </div>
               <div>
-                <h2 className="text-base font-bold text-slate-800 dark:text-white">Assign Teacher to Class & Subject</h2>
-                <p className="text-xs text-slate-400 font-medium">Select teacher profile, classroom level and course subject</p>
+                <h2 className="text-base font-bold text-slate-800 dark:text-white">Assign Teacher to Class & Multiple Subjects</h2>
+                <p className="text-xs text-slate-400 font-medium">Select teacher profile, classroom level and one or more course subjects</p>
               </div>
             </div>
 
@@ -168,57 +183,95 @@ function AssignTeacherClass() {
                 </div>
               </div>
 
-              {/* Select Subject */}
+              {/* Select Subjects (Multiple) */}
               <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-                  Course Subject (Optional)
-                </label>
-                <div className="relative">
-                  <FaBook className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 text-sm pointer-events-none" />
-                  <select
-                    value={subjectId}
-                    onChange={(e) => setSubjectId(e.target.value)}
-                    className="w-full pl-11 pr-10 py-3 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 shadow-sm appearance-none cursor-pointer transition-all duration-200 font-bold"
-                  >
-                    <option value="">Select Subject (Optional)</option>
-                    {availableSubjects.map((s) => (
-                      <option key={s._id} value={s._id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
-                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                  </div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                    Course Subjects (Select Multiple)
+                  </label>
+                  {availableSubjects.length > 0 && (
+                    <div className="flex items-center gap-2 text-xs font-semibold">
+                      <button
+                        type="button"
+                        onClick={selectAllSubjects}
+                        className="text-teal-600 dark:text-teal-400 hover:underline cursor-pointer"
+                      >
+                        Select All
+                      </button>
+                      <span className="text-slate-300 dark:text-slate-700">|</span>
+                      <button
+                        type="button"
+                        onClick={clearAllSubjects}
+                        className="text-slate-400 hover:underline cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  )}
                 </div>
+
+                {availableSubjects.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic p-3 bg-slate-50 dark:bg-[#0F172A] rounded-xl border border-slate-200 dark:border-slate-800">
+                    No subjects found for this school/class.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-48 overflow-y-auto p-3 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl">
+                    {availableSubjects.map((s) => {
+                      const isSelected = selectedSubjectIds.includes(s._id);
+                      return (
+                        <button
+                          key={s._id}
+                          type="button"
+                          onClick={() => toggleSubject(s._id)}
+                          className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold transition-all border text-left cursor-pointer ${
+                            isSelected
+                              ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                              : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-indigo-400"
+                          }`}
+                        >
+                          <span className="truncate pr-1">{s.name}</span>
+                          {isSelected && <FaCheckCircle className="text-white text-xs flex-shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
-              {/* Preview pill */}
-              {(selectedClass || selectedTeacher || selectedSubject) && (
-                <div className="flex items-center flex-wrap gap-2.5 bg-teal-50/50 dark:bg-teal-950/20 border border-teal-100 dark:border-teal-900/40 rounded-xl p-4 animate-fadeIn">
-                  {selectedTeacher && (
-                    <span className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm">
-                      <FaChalkboardTeacher className="text-xs text-emerald-500" />
-                      {selectedTeacher.name}
-                    </span>
-                  )}
-                  {selectedClass && (
-                    <>
-                      <span className="text-slate-400 text-xs font-bold">➡️</span>
-                      <span className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm">
-                        <FaSchool className="text-xs text-teal-500" />
-                        Class {selectedClass.name} – Section {selectedClass.section}
+              {/* Live preview */}
+              {(selectedClass || selectedTeacher || selectedSubjectIds.length > 0) && (
+                <div className="flex flex-col gap-2 bg-teal-50/50 dark:bg-teal-950/20 border border-teal-100 dark:border-teal-900/40 rounded-xl p-4 animate-fadeIn">
+                  <div className="flex items-center flex-wrap gap-2">
+                    {selectedTeacher && (
+                      <span className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm">
+                        <FaChalkboardTeacher className="text-xs text-emerald-500" />
+                        {selectedTeacher.name}
                       </span>
-                    </>
-                  )}
-                  {selectedSubject && (
-                    <>
-                      <span className="text-slate-400 text-xs font-bold">➡️</span>
-                      <span className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm">
-                        <FaBook className="text-xs text-indigo-500" />
-                        {selectedSubject.name}
-                      </span>
-                    </>
+                    )}
+                    {selectedClass && (
+                      <>
+                        <span className="text-slate-400 text-xs font-bold">➡️</span>
+                        <span className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm">
+                          <FaSchool className="text-xs text-teal-500" />
+                          Class {selectedClass.name} – Section {selectedClass.section}
+                        </span>
+                      </>
+                    )}
+                  </div>
+
+                  {selectedSubjectIds.length > 0 && (
+                    <div className="flex items-center flex-wrap gap-1.5 pt-1">
+                      <span className="text-slate-400 text-xs font-bold mr-1">➡️ Subjects:</span>
+                      {selectedSubjectIds.map(id => {
+                        const sub = subjects.find(s => s._id === id);
+                        return sub ? (
+                          <span key={id} className="inline-flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-[11px] font-bold px-2.5 py-1 rounded-lg">
+                            <FaBook className="text-[10px] text-indigo-500" />
+                            {sub.name}
+                          </span>
+                        ) : null;
+                      })}
+                    </div>
                   )}
                 </div>
               )}
@@ -231,7 +284,7 @@ function AssignTeacherClass() {
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  "Assign Teacher, Class & Subject"
+                  "Assign Teacher, Class & Subject(s)"
                 )}
               </button>
             </form>
@@ -239,7 +292,7 @@ function AssignTeacherClass() {
         </div>
 
         <p className="text-[11px] text-slate-400/80 mt-4 text-center font-medium">
-          A teacher can be assigned to multiple class sections and subjects. Existing mappings are preserved.
+          A teacher can be assigned to multiple class sections and course subjects. Existing mappings are preserved.
         </p>
       </div>
     </div>
