@@ -40,6 +40,8 @@ import RegisterExam from "../modules/student/pages/RegisterExam";
 import AboutAppPage from "../modules/student/pages/AboutAppPage";
 import StudentSupport from "../modules/student/pages/StudentSupport";
 import { useTheme } from "../../context/ThemeContext";
+import { FaVideo } from "react-icons/fa";
+import { useCall } from "../../context/CallContext";
 
 const SORA = "'Sora', sans-serif";
 
@@ -51,10 +53,67 @@ function PendingApproval() {
 
   const { theme, toggleTheme } = useTheme();
   const { confirmLogout } = usePlatform();
+  const { startCall } = useCall() || {};
   const [user, setUser] = useState({ name: "Loading...", email: "", role: "", avatar: "" });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [requestedSchoolData, setRequestedSchoolData] = useState(null);
+
+  // Live 1-second ticker for real-time countdown
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const getMeetingTimeStatus = (targetDate, targetTime) => {
+    if (!targetDate) return { isReady: false, label: "Not Scheduled", secondsLeft: Infinity };
+
+    let meetingDateObj = new Date(targetDate);
+    if (targetTime && typeof targetTime === "string") {
+      const timeMatch = targetTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+      if (timeMatch) {
+        let hours = parseInt(timeMatch[1], 10);
+        const minutes = parseInt(timeMatch[2], 10);
+        const ampm = timeMatch[3];
+        if (ampm) {
+          if (ampm.toUpperCase() === "PM" && hours < 12) hours += 12;
+          if (ampm.toUpperCase() === "AM" && hours === 12) hours = 0;
+        }
+        meetingDateObj.setHours(hours, minutes, 0, 0);
+      }
+    }
+
+    const currentNow = new Date();
+    const diffMs = meetingDateObj.getTime() - currentNow.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+
+    if (diffSec <= 900) {
+      if (diffMs < -2 * 60 * 60 * 1000) {
+        return { isReady: false, isEnded: true, label: "Meeting Finished", secondsLeft: 0 };
+      }
+      return { isReady: true, label: "Start Call Now", secondsLeft: 0 };
+    }
+
+    if (diffSec > 86400) {
+      const days = Math.floor(diffSec / 86400);
+      return { isReady: false, label: `${days} Day${days > 1 ? "s" : ""} Left`, secondsLeft: diffSec };
+    }
+
+    if (diffSec > 3600) {
+      const hours = Math.floor(diffSec / 3600);
+      const mins = Math.floor((diffSec % 3600) / 60);
+      return { isReady: false, label: `Starts in ${hours}h ${mins}m`, secondsLeft: diffSec };
+    }
+
+    if (diffSec > 60) {
+      const mins = Math.floor(diffSec / 60);
+      const secs = diffSec % 60;
+      return { isReady: false, label: `Starts in ${mins} min ${secs} sec`, secondsLeft: diffSec };
+    }
+
+    return { isReady: false, label: `Starts in ${diffSec} sec`, secondsLeft: diffSec };
+  };
 
   // Derive active tab from URL path
   const getActiveTab = () => {
@@ -754,15 +813,25 @@ function PendingApproval() {
                         </div>
                       </div>
 
-                      {/* Step 3: Credential Verification */}
+                      {/* Step 3: Interview & Credential Verification */}
                       <div className="flex gap-4 relative">
                         <div className="absolute left-[15px] top-[32px] bottom-[-24px] w-[2px] border-l-2 border-dashed border-slate-200 dark:border-white/10" />
-                        <div className="w-8 h-8 rounded-full border-2 border-dashed border-slate-200 dark:border-white/20 bg-white dark:bg-[#0B132A] flex items-center justify-center shrink-0 z-10">
-                          <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-white/20" />
-                        </div>
+                        {user.requestStatus === "scheduled" ? (
+                          <div className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 z-10 border-4 border-white dark:border-[#0B132A] shadow-sm">
+                            <FaClock className="text-sm animate-pulse" />
+                          </div>
+                        ) : (
+                          <div className="w-8 h-8 rounded-full border-2 border-dashed border-slate-200 dark:border-white/20 bg-white dark:bg-[#0B132A] flex items-center justify-center shrink-0 z-10">
+                            <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-white/20" />
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-slate-400 dark:text-slate-500">Interview & Credential Verification</p>
-                          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 font-medium">Pending Admin Review</p>
+                          <p className={`text-xs font-bold ${user.requestStatus === "scheduled" ? "text-slate-900 dark:text-white font-extrabold" : "text-slate-400 dark:text-slate-500"}`}>
+                            Interview & Credential Verification
+                          </p>
+                          <p className="text-[10px] text-slate-455 dark:text-slate-500 mt-0.5 font-medium">
+                            {user.requestStatus === "scheduled" ? "Interview Scheduled by School Admin" : "Pending Admin Review"}
+                          </p>
                         </div>
                       </div>
 
@@ -823,7 +892,7 @@ function PendingApproval() {
                           <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-white/20" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-slate-400 dark:text-slate-500">Exam Scheduled</p>
+                          <p className="text-xs font-bold text-slate-400 dark:text-slate-500">Admission Exam Scheduled</p>
                           <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 font-medium">Pending</p>
                         </div>
                       </div>
@@ -841,6 +910,58 @@ function PendingApproval() {
                     </>
                   )}
                 </div>
+
+                {/* Scheduled Teacher Interview Card */}
+                {isTeacher && user.requestStatus === "scheduled" && (
+                  <div className="w-full bg-[#0B132A] text-white rounded-3xl border border-white/10 p-6 shadow-xl text-left space-y-4 relative overflow-hidden">
+                    <div className="absolute -top-16 -right-16 w-36 h-36 bg-[#7C3AED]/20 rounded-full blur-2xl pointer-events-none" />
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                        {user.interviewMode === "Offline" || user.admissionExamMode === "Offline" ? "In-Person Meeting" : "Online Video Interview"}
+                      </span>
+                      <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                        <FaCalendarAlt className="text-[#38BDF8]" />
+                        {new Date(user.interviewDate || user.admissionExamDate).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })} at {user.interviewTime || "09:00 AM"}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 className="text-base font-black text-white">Faculty Interview Scheduled</h3>
+                      <p className="text-xs text-slate-300 mt-1 leading-relaxed font-semibold">
+                        {user.interviewMode === "Offline" || user.admissionExamMode === "Offline"
+                          ? "Please arrive at the school meeting venue at the scheduled date & time."
+                          : "Connect directly with the School Administration via online video call."}
+                      </p>
+                    </div>
+
+                    {(user.interviewMode === "Offline" || user.admissionExamMode === "Offline") ? (
+                      <div className="p-3.5 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-2.5 text-xs text-slate-200">
+                        <FaMapMarkerAlt className="text-rose-400 text-sm shrink-0" />
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Venue Location</p>
+                          <p className="font-extrabold text-white">{user.interviewVenue || "School Principal Office"}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-white/5 rounded-2xl border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 text-xs font-extrabold text-purple-300">
+                          <FaClock className="text-sm animate-pulse text-[#38BDF8]" />
+                          <span>{getMeetingTimeStatus(user.interviewDate || user.admissionExamDate, user.interviewTime).label}</span>
+                        </div>
+
+                        {getMeetingTimeStatus(user.interviewDate || user.admissionExamDate, user.interviewTime).isReady && (
+                          <button
+                            type="button"
+                            onClick={() => startCall && startCall({ _id: "admin", name: `${user.requestedSchool || "School"} Admin` }, "video")}
+                            className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 text-white font-black text-xs uppercase tracking-wider py-3 px-6 rounded-2xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition cursor-pointer"
+                          >
+                            <FaVideo className="text-sm" /> Start Call Now
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* What Happens Next info box */}
                 <div className="w-full bg-indigo-500/10 dark:bg-indigo-500/10 rounded-3xl border border-indigo-500/20 p-5 flex items-start gap-4 text-left">

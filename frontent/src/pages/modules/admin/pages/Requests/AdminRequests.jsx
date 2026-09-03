@@ -8,8 +8,14 @@ import {
   FaEnvelope,
   FaPhone,
   FaCalendarAlt,
-  FaClipboardList
+  FaClipboardList,
+  FaVideo,
+  FaVideoSlash,
+  FaClock,
+  FaMapMarkerAlt,
+  FaChalkboardTeacher
 } from "react-icons/fa";
+import { useCall } from "../../../../../context/CallContext";
 
 const SORA = "'Sora', sans-serif";
 
@@ -17,6 +23,7 @@ function AdminRequests() {
   const API = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
   const schoolName = localStorage.getItem("schoolName") || "Our School";
+  const { startCall } = useCall() || {};
 
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,11 +40,26 @@ function AdminRequests() {
   const [proctorId, setProctorId] = useState("");
   const [teachers, setTeachers] = useState([]);
 
+  // Teacher Interview Scheduling State
+  const [interviewDate, setInterviewDate] = useState("");
+  const [interviewTime, setInterviewTime] = useState("09:00 AM");
+  const [interviewMode, setInterviewMode] = useState("Online");
+  const [interviewVenue, setInterviewVenue] = useState("");
+  const [interviewNotes, setInterviewNotes] = useState("");
+  const [teacherApprovalTab, setTeacherApprovalTab] = useState("interview"); // "direct" or "interview"
+
   // Class Assignment Modal State
   const [classes, setClasses] = useState([]);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedClassId, setSelectedClassId] = useState("");
   const [approvalTab, setApprovalTab] = useState("with_exam");
+
+  // Live 1-second ticker for real-time countdown
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     fetchRequests();
@@ -114,10 +136,59 @@ function AdminRequests() {
     return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
   };
 
+  const getMeetingTimeStatus = (targetDate, targetTime) => {
+    if (!targetDate) return { isReady: false, label: "Not Scheduled", secondsLeft: Infinity };
+
+    let meetingDateObj = new Date(targetDate);
+    if (targetTime && typeof targetTime === "string") {
+      const timeMatch = targetTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+      if (timeMatch) {
+        let hours = parseInt(timeMatch[1], 10);
+        const minutes = parseInt(timeMatch[2], 10);
+        const ampm = timeMatch[3];
+        if (ampm) {
+          if (ampm.toUpperCase() === "PM" && hours < 12) hours += 12;
+          if (ampm.toUpperCase() === "AM" && hours === 12) hours = 0;
+        }
+        meetingDateObj.setHours(hours, minutes, 0, 0);
+      }
+    }
+
+    const currentNow = new Date();
+    const diffMs = meetingDateObj.getTime() - currentNow.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+
+    if (diffSec <= 900) {
+      if (diffMs < -2 * 60 * 60 * 1000) {
+        return { isReady: false, isEnded: true, label: "Meeting Finished", secondsLeft: 0 };
+      }
+      return { isReady: true, label: "Start Call Now", secondsLeft: 0 };
+    }
+
+    if (diffSec > 86400) {
+      const days = Math.floor(diffSec / 86400);
+      return { isReady: false, label: `${days} Day${days > 1 ? "s" : ""} Left`, secondsLeft: diffSec };
+    }
+
+    if (diffSec > 3600) {
+      const hours = Math.floor(diffSec / 3600);
+      const mins = Math.floor((diffSec % 3600) / 60);
+      return { isReady: false, label: `Starts in ${hours}h ${mins}m`, secondsLeft: diffSec };
+    }
+
+    if (diffSec > 60) {
+      const mins = Math.floor(diffSec / 60);
+      const secs = diffSec % 60;
+      return { isReady: false, label: `Starts in ${mins} min ${secs} sec`, secondsLeft: diffSec };
+    }
+
+    return { isReady: false, label: `Starts in ${diffSec} sec`, secondsLeft: diffSec };
+  };
+
   const openApprovalFlow = (user) => {
+    setSelectedUser(user);
     if (user.requestedRole === "student") {
       setApprovalTab("with_exam");
-      setSelectedUser(user);
       if (user.admissionExamDate) {
         setExamDate(toLocalDateTimeString(user.admissionExamDate));
       } else {
@@ -127,10 +198,40 @@ function AdminRequests() {
       setProctorId(user.admissionExamProctor?._id || user.admissionExamProctor || "");
       setShowScheduleModal(true);
     } else {
-      if (window.confirm(`Are you sure you want to approve ${user.name} as a Teacher?`)) {
-        handleAction(user._id, "approved");
+      setTeacherApprovalTab("interview");
+      const initialDate = user.interviewDate || user.admissionExamDate;
+      if (initialDate) {
+        setInterviewDate(toLocalDateTimeString(initialDate));
+      } else {
+        setInterviewDate("");
       }
+      setInterviewTime(user.interviewTime || "09:00 AM");
+      setInterviewMode(user.interviewMode || user.admissionExamMode || "Online");
+      setInterviewVenue(user.interviewVenue || "");
+      setInterviewNotes(user.interviewNotes || "");
+      setShowScheduleModal(true);
     }
+  };
+
+  const handleTeacherScheduleSubmit = (e) => {
+    e.preventDefault();
+    if (!interviewDate) {
+      alert("Please select a meeting date");
+      return;
+    }
+    const [datePart, timePart] = interviewDate.split("T");
+    const [year, month, day] = datePart.split("-").map(Number);
+    const [hour, minute] = timePart ? timePart.split(":").map(Number) : [9, 0];
+    const localDate = new Date(year, month - 1, day, hour, minute);
+    const utcDate = localDate.toISOString();
+
+    handleAction(selectedUser._id, "schedule_interview", {
+      interviewDate: utcDate,
+      interviewTime,
+      interviewMode,
+      interviewVenue,
+      interviewNotes
+    });
   };
 
   const handleScheduleSubmit = (e) => {
@@ -351,7 +452,9 @@ function AdminRequests() {
                 ? req.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)
                 : "U";
 
-              const hasTakenTest = req.requestStatus === "exam_completed" || req.admissionExamTaken;
+              const isTeacherReq = req.requestedRole === "teacher" || req.role === "teacher";
+              const hasTakenTest = !isTeacherReq && (req.requestStatus === "exam_completed" || req.admissionExamTaken);
+              const meetingStatus = isTeacherReq ? getMeetingTimeStatus(req.interviewDate || req.admissionExamDate, req.interviewTime) : null;
 
               return (
                 <div key={req._id} className="bg-white dark:bg-[#0B132A] rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-sm p-5 flex flex-col md:flex-row md:items-center justify-between gap-5 transition-all duration-200 hover:shadow-md">
@@ -375,41 +478,104 @@ function AdminRequests() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="text-sm font-black text-slate-850 dark:text-white truncate">{req.name}</h3>
                         <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider ${
-                          hasTakenTest
-                            ? "bg-emerald-500/10 text-emerald-600 border border-emerald-200/20 animate-pulse"
-                            : "bg-amber-500/10 text-amber-600 border border-amber-200/20"
+                          isTeacherReq
+                            ? "bg-indigo-500/10 text-indigo-600 border border-indigo-200/20"
+                            : hasTakenTest
+                              ? "bg-emerald-500/10 text-emerald-600 border border-emerald-200/20 animate-pulse"
+                              : "bg-amber-500/10 text-amber-600 border border-amber-200/20"
                         }`}>
-                          {hasTakenTest ? "Exam Completed" : "Exam Scheduled"}
+                          {isTeacherReq ? "Faculty Interview Scheduled" : hasTakenTest ? "Exam Completed" : "Exam Scheduled"}
                         </span>
                       </div>
 
-                      {/* Performance Details */}
+                      {/* Performance / Meeting Details */}
                       <div className="mt-2.5 space-y-1">
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">
-                          Mode: <strong className="font-extrabold text-slate-750 dark:text-white">{req.admissionExamMode}</strong>
-                          <span className="mx-2">•</span>
-                          Schedule: <strong className="font-extrabold text-slate-750 dark:text-white">{new Date(req.admissionExamDate).toLocaleString("en-US", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true })}</strong>
-                          {req.admissionExamMode === "Online" && (
-                            <>
+                        {isTeacherReq ? (
+                          <div className="space-y-1 text-[10px] text-slate-500 dark:text-slate-400 font-bold">
+                            <p>
+                              Mode: <strong className="font-extrabold text-slate-750 dark:text-white">{req.interviewMode || req.admissionExamMode || "Online"}</strong>
                               <span className="mx-2">•</span>
-                              Proctor: <strong className="font-extrabold text-slate-750 dark:text-white">{req.admissionExamProctor?.name || "Myself (Admin)"}</strong>
-                            </>
-                          )}
-                        </p>
-                        {hasTakenTest && (
-                          <div className="inline-flex items-center gap-3 bg-slate-50 dark:bg-white/5 border border-slate-200/40 dark:border-white/5 px-3 py-1.5 rounded-xl mt-1 text-[10px] font-bold text-slate-550 dark:text-slate-400 shadow-sm">
-                            <span>Score: <strong className="text-indigo-600 dark:text-[#38BDF8] text-xs font-black">{req.admissionExamScore}</strong> / {req.admissionExamTotal}</span>
-                            <span className="text-emerald-600">{req.admissionExamCorrect} Correct</span>
-                            <span className="text-rose-600">{req.admissionExamWrong} Incorrect</span>
+                              Schedule: <strong className="font-extrabold text-slate-750 dark:text-white">{new Date(req.interviewDate || req.admissionExamDate).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })} at {req.interviewTime || "09:00 AM"}</strong>
+                            </p>
+
+                            {(req.interviewMode === "Offline" || req.admissionExamMode === "Offline") ? (
+                              <p className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
+                                <FaMapMarkerAlt className="text-xs text-rose-500 shrink-0" />
+                                Venue: <strong>{req.interviewVenue || "School Principal Office"}</strong>
+                              </p>
+                            ) : (
+                              <div className="flex items-center gap-2 pt-0.5">
+                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
+                                  meetingStatus?.isReady
+                                    ? "bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 animate-pulse"
+                                    : "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20"
+                                }`}>
+                                  <FaClock className="text-[10px]" />
+                                  {meetingStatus?.label}
+                                </span>
+
+                                {meetingStatus?.isReady && (
+                                  <button
+                                    type="button"
+                                    onClick={() => startCall && startCall({ _id: req._id, name: req.name, avatar: req.avatar, role: "teacher" }, "video")}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-black uppercase tracking-wider shadow-md shadow-emerald-500/20 transition cursor-pointer"
+                                  >
+                                    <FaVideo className="text-xs" /> Start Call Now
+                                  </button>
+                                )}
+                              </div>
+                            )}
                           </div>
+                        ) : (
+                          <>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">
+                              Mode: <strong className="font-extrabold text-slate-750 dark:text-white">{req.admissionExamMode}</strong>
+                              <span className="mx-2">•</span>
+                              Schedule: <strong className="font-extrabold text-slate-750 dark:text-white">{new Date(req.admissionExamDate).toLocaleString("en-US", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true })}</strong>
+                              {req.admissionExamMode === "Online" && (
+                                <>
+                                  <span className="mx-2">•</span>
+                                  Proctor: <strong className="font-extrabold text-slate-750 dark:text-white">{req.admissionExamProctor?.name || "Myself (Admin)"}</strong>
+                                </>
+                              )}
+                            </p>
+                            {hasTakenTest && (
+                              <div className="inline-flex items-center gap-3 bg-slate-50 dark:bg-white/5 border border-slate-200/40 dark:border-white/5 px-3 py-1.5 rounded-xl mt-1 text-[10px] font-bold text-slate-550 dark:text-slate-400 shadow-sm">
+                                <span>Score: <strong className="text-indigo-600 dark:text-[#38BDF8] text-xs font-black">{req.admissionExamScore}</strong> / {req.admissionExamTotal}</span>
+                                <span className="text-emerald-600">{req.admissionExamCorrect} Correct</span>
+                                <span className="text-rose-600">{req.admissionExamWrong} Incorrect</span>
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
-                    {hasTakenTest ? (
+                  <div className="flex items-center gap-2.5 shrink-0 self-end md:self-center">
+                    {isTeacherReq ? (
+                      <>
+                        <button
+                          disabled={processing}
+                          onClick={() => {
+                            if (window.confirm(`Directly approve ${req.name} as Teacher now?`)) {
+                              handleAction(req._id, "approved");
+                            }
+                          }}
+                          className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-sm cursor-pointer transition disabled:opacity-50"
+                        >
+                          <FaCheck className="text-[10px]" /> Direct Approve
+                        </button>
+                        <button
+                          disabled={processing}
+                          onClick={() => openApprovalFlow(req)}
+                          className="flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-[#7C3AED]/10 dark:hover:bg-[#7C3AED]/20 text-[#7C3AED] dark:text-[#38BDF8] text-xs font-bold px-3.5 py-2.5 rounded-xl cursor-pointer transition disabled:opacity-50 border border-indigo-100 dark:border-white/5"
+                        >
+                          <FaCalendarAlt className="text-[10px]" /> Reschedule
+                        </button>
+                      </>
+                    ) : hasTakenTest ? (
                       <button
                         disabled={processing}
                         onClick={() => {
@@ -448,15 +614,15 @@ function AdminRequests() {
         ) : (
           <div className="text-center py-16 bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 p-8 shadow-sm">
             <FaClipboardList className="text-slate-350 dark:text-slate-700 text-4xl mx-auto mb-4" />
-            <h3 className="text-sm font-black text-slate-750 dark:text-slate-300">No Scheduled Exams</h3>
-            <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-1">There are no candidates currently in scheduled or evaluation stages.</p>
+            <h3 className="text-sm font-black text-slate-750 dark:text-slate-300">No Scheduled Exams or Meetings</h3>
+            <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-1">There are no candidate exams or interviews currently scheduled.</p>
           </div>
         )
       )}
 
-      {/* Admission Test Scheduling Modal */}
+      {/* Admission Test / Teacher Interview Scheduling Modal */}
       {showScheduleModal && selectedUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 select-none">
           <div
             className="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm"
             onClick={() => {
@@ -464,164 +630,313 @@ function AdminRequests() {
             }}
           />
 
-          <div className="bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/60 dark:border-white/10 w-full max-w-md max-h-[90vh] overflow-y-auto p-5 sm:p-6 relative z-10 shadow-2xl transition-all duration-200">
-            <div className="mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400 mb-4">
-                <FaClipboardList className="text-2xl" />
-              </div>
-              <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
-                {selectedUser.requestStatus === "scheduled" ? "Reschedule Admission Exam" : "Schedule Admission Exam"}
-              </h3>
-              <p className="text-xs text-slate-550 dark:text-slate-400 font-medium mt-0.5">
-                Set admission test schedule details for student <strong className="text-slate-800 dark:text-white">{selectedUser.name}</strong>
-              </p>
-            </div>
+          <div className="bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/60 dark:border-white/10 w-full max-w-md max-h-[90vh] overflow-y-auto p-5 sm:p-6 relative z-10 shadow-2xl transition-all duration-200 text-left">
+            {selectedUser.requestedRole === "teacher" || selectedUser.role === "teacher" ? (
+              /* Teacher Approval & Scheduling Modal */
+              <div>
+                <div className="mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-[#7C3AED]/10 dark:bg-[#38BDF8]/10 flex items-center justify-center text-[#7C3AED] dark:text-[#38BDF8] mb-4">
+                    <FaChalkboardTeacher className="text-2xl" />
+                  </div>
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                    Process Teacher Join Request
+                  </h3>
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">
+                    Choose how to approve applicant <strong className="text-slate-800 dark:text-white">{selectedUser.name}</strong>
+                  </p>
+                </div>
 
-            {/* Approval Mode Tabs */}
-            <div className="mb-6 flex rounded-xl border border-slate-200/60 bg-slate-50 p-1 dark:border-white/10 dark:bg-white/5">
-              <button
-                type="button"
-                onClick={() => setApprovalTab("with_exam")}
-                className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
-                  approvalTab === "with_exam"
-                    ? "bg-[#7C3AED] text-white shadow-sm"
-                    : "text-slate-500 hover:bg-white dark:text-slate-400 dark:hover:bg-white/5"
-                }`}
-              >
-                With Admission Test
-              </button>
-              <button
-                type="button"
-                onClick={() => setApprovalTab("without_exam")}
-                className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
-                  approvalTab === "without_exam"
-                    ? "bg-[#7C3AED] text-white shadow-sm"
-                    : "text-slate-500 hover:bg-white dark:text-slate-400 dark:hover:bg-white/5"
-                }`}
-              >
-                Direct Admission (No Test)
-              </button>
-            </div>
+                {/* Teacher Mode Tabs */}
+                <div className="mb-6 flex rounded-xl border border-slate-200/60 bg-slate-50 p-1 dark:border-white/10 dark:bg-white/5">
+                  <button
+                    type="button"
+                    onClick={() => setTeacherApprovalTab("direct")}
+                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+                      teacherApprovalTab === "direct"
+                        ? "bg-[#7C3AED] text-white shadow-sm"
+                        : "text-slate-500 hover:bg-white dark:text-slate-400 dark:hover:bg-white/5"
+                    }`}
+                  >
+                    Direct Approve
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTeacherApprovalTab("interview")}
+                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+                      teacherApprovalTab === "interview"
+                        ? "bg-[#7C3AED] text-white shadow-sm"
+                        : "text-slate-500 hover:bg-white dark:text-slate-400 dark:hover:bg-white/5"
+                    }`}
+                  >
+                    Schedule Interview
+                  </button>
+                </div>
 
-            {approvalTab === "without_exam" ? (
-              <form onSubmit={handleDirectAdmitSubmit} className="space-y-4">
-                {/* Select Class & Section */}
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
-                    Select Class & Section
-                  </label>
-                  {classes.length > 0 ? (
-                    <select
-                      value={selectedClassId}
-                      onChange={(e) => setSelectedClassId(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED] cursor-pointer"
-                    >
-                      {classes.map((cls) => (
-                        <option key={cls._id} value={cls._id}>
-                          {cls.name} - Section {cls.section}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <div className="p-3.5 bg-rose-50 dark:bg-rose-500/5 text-rose-500 rounded-xl text-xs font-bold text-center border border-rose-100/55 dark:border-rose-500/15">
-                      No classes available. Create classes in Academics first!
+                {teacherApprovalTab === "direct" ? (
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+                      <p className="font-bold">⚡ Direct Approval:</p>
+                      <p className="mt-1 leading-relaxed">
+                        This will immediately assign <strong>{selectedUser.name}</strong> as an active Teacher in {schoolName}. They will gain immediate access to the Teacher Dashboard.
+                      </p>
                     </div>
-                  )}
-                </div>
 
-                {/* Actions */}
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="submit"
-                    disabled={processing || classes.length === 0}
-                    className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-500 hover:opacity-90 active:scale-[0.99] text-white py-3 rounded-2xl text-xs font-bold shadow-md shadow-emerald-500/10 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 font-extrabold"
-                  >
-                    {processing ? "Admitting..." : "Directly Enroll Student"}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={processing}
-                    onClick={() => setShowScheduleModal(false)}
-                    className="bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 px-5 py-3 rounded-2xl text-xs font-bold border border-slate-200/60 dark:border-white/10 flex items-center justify-center gap-2 transition-colors cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <form onSubmit={handleScheduleSubmit} className="space-y-4">
-                {/* Exam Date & Time */}
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
-                    Exam Date & Start Time
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="datetime-local"
-                      required
-                      min={new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
-                      value={examDate}
-                      onChange={(e) => setExamDate(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED] cursor-pointer"
-                    />
+                    <div className="flex gap-3 pt-2">
+                      <button
+                        type="button"
+                        disabled={processing}
+                        onClick={() => handleAction(selectedUser._id, "approved")}
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-2xl text-xs font-black uppercase tracking-wider shadow-md shadow-emerald-600/20 transition cursor-pointer disabled:opacity-50"
+                      >
+                        {processing ? "Approving..." : "Directly Approve as Teacher"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={processing}
+                        onClick={() => setShowScheduleModal(false)}
+                        className="bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 px-5 py-3.5 rounded-2xl text-xs font-bold border border-slate-200/60 dark:border-white/10 transition cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <form onSubmit={handleTeacherScheduleSubmit} className="space-y-4">
+                    {/* Meeting Date */}
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
+                        Meeting / Interview Date & Time
+                      </label>
+                      <input
+                        type="datetime-local"
+                        required
+                        value={interviewDate}
+                        onChange={(e) => setInterviewDate(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED] cursor-pointer"
+                      />
+                    </div>
 
-                {/* Exam Mode */}
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
-                    Exam Mode
-                  </label>
-                  <select
-                    value={examMode}
-                    onChange={(e) => setExamMode(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED] cursor-pointer"
-                  >
-                    <option value="Online">Online</option>
-                    <option value="Offline">Offline</option>
-                  </select>
-                </div>
+                    {/* Time Label */}
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
+                        Time Format Label (e.g. 09:00 AM)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="09:00 AM"
+                        value={interviewTime}
+                        onChange={(e) => setInterviewTime(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED]"
+                      />
+                    </div>
 
-                {/* Proctor Selection */}
-                {examMode === "Online" && (
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
-                      Assigned Proctor (Invigilator)
-                    </label>
-                    <select
-                      value={proctorId}
-                      onChange={(e) => setProctorId(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED] cursor-pointer"
-                    >
-                      <option value="">Myself (Admin)</option>
-                      {teachers.map((t) => (
-                        <option key={t._id} value={t._id}>
-                          {t.name} (Teacher)
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                    {/* Mode */}
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
+                        Interview Mode
+                      </label>
+                      <select
+                        value={interviewMode}
+                        onChange={(e) => setInterviewMode(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED] cursor-pointer"
+                      >
+                        <option value="Online">Online Video Call</option>
+                        <option value="Offline">Offline (In-Person Meeting)</option>
+                      </select>
+                    </div>
+
+                    {/* Venue (if Offline) */}
+                    {interviewMode === "Offline" && (
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
+                          Meeting Venue / Location Address
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g., School Principal Office, Room 102"
+                          value={interviewVenue}
+                          onChange={(e) => setInterviewVenue(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED]"
+                        />
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex gap-3 pt-4">
+                      <button
+                        type="submit"
+                        disabled={processing}
+                        className="flex-1 bg-gradient-to-r from-[#7C3AED] to-[#312E81] hover:opacity-90 active:scale-[0.99] text-white py-3.5 rounded-2xl text-xs font-bold shadow-md shadow-[#7C3AED]/10 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 font-black uppercase tracking-wider"
+                      >
+                        {processing ? "Scheduling..." : "Schedule Meeting & Notify"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={processing}
+                        onClick={() => setShowScheduleModal(false)}
+                        className="bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 px-5 py-3.5 rounded-2xl text-xs font-bold border border-slate-200/60 dark:border-white/10 transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
                 )}
+              </div>
+            ) : (
+              /* Student Admission Exam Scheduling Modal */
+              <div>
+                <div className="mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400 mb-4">
+                    <FaClipboardList className="text-2xl" />
+                  </div>
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                    {selectedUser.requestStatus === "scheduled" ? "Reschedule Admission Exam" : "Schedule Admission Exam"}
+                  </h3>
+                  <p className="text-xs text-slate-550 dark:text-slate-400 font-medium mt-0.5">
+                    Set admission test schedule details for student <strong className="text-slate-800 dark:text-white">{selectedUser.name}</strong>
+                  </p>
+                </div>
 
-                {/* Actions */}
-                <div className="flex gap-3 pt-4">
+                {/* Approval Mode Tabs */}
+                <div className="mb-6 flex rounded-xl border border-slate-200/60 bg-slate-50 p-1 dark:border-white/10 dark:bg-white/5">
                   <button
-                    type="submit"
-                    disabled={processing}
-                    className="flex-1 bg-gradient-to-r from-[#7C3AED] to-[#312E81] hover:opacity-90 active:scale-[0.99] text-white py-3 rounded-2xl text-xs font-bold shadow-md shadow-[#7C3AED]/10 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 font-extrabold"
+                    type="button"
+                    onClick={() => setApprovalTab("with_exam")}
+                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+                      approvalTab === "with_exam"
+                        ? "bg-[#7C3AED] text-white shadow-sm"
+                        : "text-slate-500 hover:bg-white dark:text-slate-400 dark:hover:bg-white/5"
+                    }`}
                   >
-                    {processing ? "Confirming..." : selectedUser.requestStatus === "scheduled" ? "Reschedule Exam" : "Approve & Schedule"}
+                    With Admission Test
                   </button>
                   <button
                     type="button"
-                    disabled={processing}
-                    onClick={() => setShowScheduleModal(false)}
-                    className="bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 px-5 py-3 rounded-2xl text-xs font-bold border border-slate-200/60 dark:border-white/10 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                    onClick={() => setApprovalTab("without_exam")}
+                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+                      approvalTab === "without_exam"
+                        ? "bg-[#7C3AED] text-white shadow-sm"
+                        : "text-slate-500 hover:bg-white dark:text-slate-400 dark:hover:bg-white/5"
+                    }`}
                   >
-                    Cancel
+                    Direct Admission (No Test)
                   </button>
                 </div>
-              </form>
+
+                {approvalTab === "without_exam" ? (
+                  <form onSubmit={handleDirectAdmitSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
+                        Select Class & Section
+                      </label>
+                      {classes.length > 0 ? (
+                        <select
+                          value={selectedClassId}
+                          onChange={(e) => setSelectedClassId(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED] cursor-pointer"
+                        >
+                          {classes.map((cls) => (
+                            <option key={cls._id} value={cls._id}>
+                              {cls.name} - Section {cls.section}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <div className="p-3.5 bg-rose-50 dark:bg-rose-500/5 text-rose-500 rounded-xl text-xs font-bold text-center border border-rose-100/55 dark:border-rose-500/15">
+                          No classes available. Create classes in Academics first!
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                      <button
+                        type="submit"
+                        disabled={processing || classes.length === 0}
+                        className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-500 hover:opacity-90 active:scale-[0.99] text-white py-3 rounded-2xl text-xs font-bold shadow-md shadow-emerald-500/10 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 font-extrabold"
+                      >
+                        {processing ? "Admitting..." : "Directly Enroll Student"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={processing}
+                        onClick={() => setShowScheduleModal(false)}
+                        className="bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 px-5 py-3 rounded-2xl text-xs font-bold border border-slate-200/60 dark:border-white/10 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <form onSubmit={handleScheduleSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
+                        Exam Date & Start Time
+                      </label>
+                      <input
+                        type="datetime-local"
+                        required
+                        min={new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
+                        value={examDate}
+                        onChange={(e) => setExamDate(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED] cursor-pointer"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
+                        Exam Mode
+                      </label>
+                      <select
+                        value={examMode}
+                        onChange={(e) => setExamMode(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED] cursor-pointer"
+                      >
+                        <option value="Online">Online</option>
+                        <option value="Offline">Offline</option>
+                      </select>
+                    </div>
+
+                    {examMode === "Online" && (
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
+                          Assigned Proctor (Invigilator)
+                        </label>
+                        <select
+                          value={proctorId}
+                          onChange={(e) => setProctorId(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED] cursor-pointer"
+                        >
+                          <option value="">Myself (Admin)</option>
+                          {teachers.map((t) => (
+                            <option key={t._id} value={t._id}>
+                              {t.name} (Teacher)
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    <div className="flex gap-3 pt-4">
+                      <button
+                        type="submit"
+                        disabled={processing}
+                        className="flex-1 bg-gradient-to-r from-[#7C3AED] to-[#312E81] hover:opacity-90 active:scale-[0.99] text-white py-3 rounded-2xl text-xs font-bold shadow-md shadow-[#7C3AED]/10 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 font-extrabold"
+                      >
+                        {processing ? "Confirming..." : selectedUser.requestStatus === "scheduled" ? "Reschedule Exam" : "Approve & Schedule"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={processing}
+                        onClick={() => setShowScheduleModal(false)}
+                        className="bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 px-5 py-3 rounded-2xl text-xs font-bold border border-slate-200/60 dark:border-white/10 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
             )}
           </div>
         </div>

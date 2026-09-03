@@ -167,14 +167,14 @@ exports.getJoinRequests = async (req, res) => {
 // ================= PROCESS JOIN REQUEST =================
 exports.processJoinRequest = async (req, res) => {
   try {
-    const { userId, action, examDate, examMode, proctorId } = req.body;
+    const { userId, action, examDate, examMode, proctorId, interviewDate, interviewTime, interviewMode, interviewVenue, interviewNotes } = req.body;
 
     if (!req.user || !req.user.schoolName) {
       return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
     }
 
-    if (!userId || !action || !["approved", "rejected"].includes(action)) {
-      return res.status(400).json({ message: "UserId and valid action (approved/rejected) are required" });
+    if (!userId || !action || !["approved", "rejected", "schedule_interview"].includes(action)) {
+      return res.status(400).json({ message: "UserId and valid action are required" });
     }
 
     const candidate = await User.findById(userId);
@@ -186,7 +186,7 @@ exports.processJoinRequest = async (req, res) => {
       return res.status(403).json({ message: "Forbidden: You can only process requests for your own school" });
     }
 
-    if (action === "approved") {
+    if (action === "approved" || action === "schedule_interview") {
       if (candidate.requestedRole === "student") {
         if (!examDate || !examMode) {
           return res.status(400).json({ message: "Exam date and mode are required for student scheduling" });
@@ -196,8 +196,18 @@ exports.processJoinRequest = async (req, res) => {
         candidate.admissionExamDate = new Date(examDate);
         candidate.admissionExamMode = examMode;
         candidate.admissionExamProctor = proctorId || req.user.id;
+      } else if (action === "schedule_interview" || (interviewMode && interviewMode !== "")) {
+        candidate.schoolName = candidate.requestedSchool;
+        candidate.requestStatus = "scheduled";
+        candidate.interviewDate = interviewDate ? new Date(interviewDate) : new Date();
+        candidate.interviewTime = interviewTime || "";
+        candidate.interviewMode = interviewMode || "Online";
+        candidate.interviewVenue = interviewVenue || "";
+        candidate.interviewNotes = interviewNotes || "";
+        candidate.admissionExamDate = candidate.interviewDate;
+        candidate.admissionExamMode = candidate.interviewMode;
       } else {
-        candidate.role = candidate.requestedRole;
+        candidate.role = candidate.requestedRole || "teacher";
         candidate.schoolName = candidate.requestedSchool;
         candidate.requestStatus = "approved";
       }
@@ -207,8 +217,6 @@ exports.processJoinRequest = async (req, res) => {
 
     // Reset requested fields upon processing so they can apply again if rejected
     if (action === "rejected") {
-      // Retain the outcome for audit/UI purposes, but clear the requested
-      // school so the person is free to submit a new application later.
       candidate.requestedSchool = "";
       candidate.requestedRole = "";
       candidate.requestStatus = "rejected";
@@ -225,7 +233,11 @@ exports.processJoinRequest = async (req, res) => {
         schoolName: candidate.schoolName,
         requestStatus: candidate.requestStatus,
         admissionExamDate: candidate.admissionExamDate,
-        admissionExamMode: candidate.admissionExamMode
+        admissionExamMode: candidate.admissionExamMode,
+        interviewDate: candidate.interviewDate,
+        interviewTime: candidate.interviewTime,
+        interviewMode: candidate.interviewMode,
+        interviewVenue: candidate.interviewVenue
       }
     });
   } catch (error) {

@@ -75,6 +75,27 @@ const userSchema = new mongoose.Schema({
     enum: ["Online", "Offline", ""],
     default: ""
   },
+  interviewDate: {
+    type: Date,
+    default: null
+  },
+  interviewTime: {
+    type: String,
+    default: ""
+  },
+  interviewMode: {
+    type: String,
+    enum: ["Online", "Offline", ""],
+    default: ""
+  },
+  interviewVenue: {
+    type: String,
+    default: ""
+  },
+  interviewNotes: {
+    type: String,
+    default: ""
+  },
   admissionExamTaken: {
     type: Boolean,
     default: false
