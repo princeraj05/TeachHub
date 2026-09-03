@@ -31,6 +31,11 @@ function MarkAttendance() {
   const [selectedSubjectId, setSelectedSubjectId] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().substring(0, 10));
 
+  // Timetable-based subject sequencing states
+  const [timetableSubjects, setTimetableSubjects] = useState([]);
+  const [completedSubjectIds, setCompletedSubjectIds] = useState(new Set());
+  const [isCurrentSubjectCompleted, setIsCurrentSubjectCompleted] = useState(false);
+
   // Data states
   const [students, setStudents] = useState([]);
   const [attendance, setAttendance] = useState({});
@@ -43,6 +48,21 @@ function MarkAttendance() {
   const [submitting, setSubmitting] = useState(false);
   const [activeRemarkStudent, setActiveRemarkStudent] = useState(null);
   const [tempRemarkText, setTempRemarkText] = useState("");
+
+  const parseTimeToMinutes = (timeStr) => {
+    if (!timeStr) return 0;
+    const clean = String(timeStr).trim().toUpperCase();
+    const match = clean.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/);
+    if (!match) return 0;
+    let hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    const ampm = match[3];
+    if (ampm) {
+      if (ampm === "PM" && hours < 12) hours += 12;
+      if (ampm === "AM" && hours === 12) hours = 0;
+    }
+    return hours * 60 + minutes;
+  };
 
   // Fetch classes and subjects on load
   useEffect(() => {
@@ -66,6 +86,106 @@ function MarkAttendance() {
     };
     fetchMetadata();
   }, [API, token]);
+
+  // Load Timetable Schedule and Subject Sequencing for selected Class & Date
+  useEffect(() => {
+    if (!selectedClassId || !selectedDate) return;
+
+    const loadTimetableAndCompletions = async () => {
+      try {
+        const dateObj = new Date(selectedDate);
+        const dayName = dateObj.toLocaleDateString("en-US", { weekday: "long" });
+
+        // 1. Fetch timetable entries for class & day
+        const ttRes = await axios.get(`${API}/api/timetable?day=${dayName}&classId=${selectedClassId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const rawEntries = Array.isArray(ttRes.data) ? ttRes.data : [];
+        // Sort chronologically by start time
+        rawEntries.sort((a, b) => parseTimeToMinutes(a.startTime) - parseTimeToMinutes(b.startTime));
+
+        // Filter subjects belonging to selected class
+        const classFilteredSubs = subjects.filter(subject => {
+          if (subject.classes && Array.isArray(subject.classes)) {
+            return subject.classes.some(c => c._id === selectedClassId);
+          }
+          return false;
+        });
+
+        const orderedList = [];
+        const seenSubIds = new Set();
+
+        rawEntries.forEach(e => {
+          const subObj = e.subject;
+          const subId = typeof subObj === 'object' ? subObj?._id : subObj;
+          const subName = typeof subObj === 'object' ? subObj?.name : "Subject";
+          if (subId && !seenSubIds.has(String(subId))) {
+            seenSubIds.add(String(subId));
+            orderedList.push({
+              _id: String(subId),
+              name: subName,
+              startTime: e.startTime || "",
+              endTime: e.endTime || ""
+            });
+          }
+        });
+
+        // Append remaining subjects for this class
+        classFilteredSubs.forEach(sub => {
+          if (!seenSubIds.has(String(sub._id))) {
+            seenSubIds.add(String(sub._id));
+            orderedList.push({
+              _id: String(sub._id),
+              name: sub.name,
+              startTime: "",
+              endTime: ""
+            });
+          }
+        });
+
+        setTimetableSubjects(orderedList);
+
+        // 2. Check which subjects have already completed attendance on selectedDate
+        const completedSet = new Set();
+        for (const sub of orderedList) {
+          try {
+            const checkRes = await axios.get(
+              `${API}/api/attendance/by-class?classId=${selectedClassId}&date=${selectedDate}&subjectId=${sub._id}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            if (checkRes.data && checkRes.data.alreadyMarked) {
+              completedSet.add(sub._id);
+            }
+          } catch (e) {}
+        }
+        setCompletedSubjectIds(completedSet);
+
+        // 3. Auto-select the first pending subject in sequence
+        const firstPending = orderedList.find(sub => !completedSet.has(sub._id));
+        if (firstPending) {
+          setSelectedSubjectId(firstPending._id);
+        } else if (orderedList.length > 0) {
+          setSelectedSubjectId(orderedList[0]._id);
+        } else {
+          setSelectedSubjectId("");
+        }
+      } catch (err) {
+        console.error("Error loading timetable sequence:", err);
+      }
+    };
+
+    loadTimetableAndCompletions();
+  }, [selectedClassId, selectedDate, subjects, API, token]);
+
+  // Check if selectedSubjectId is already marked for today
+  useEffect(() => {
+    if (selectedSubjectId && completedSubjectIds.has(selectedSubjectId)) {
+      setIsCurrentSubjectCompleted(true);
+    } else {
+      setIsCurrentSubjectCompleted(false);
+    }
+  }, [selectedSubjectId, completedSubjectIds]);
 
   // Fetch students when selected class, date, or subject changes
   useEffect(() => {
@@ -182,6 +302,15 @@ function MarkAttendance() {
 
   // Save/Submit attendance
   const handleSaveAttendance = async () => {
+    if (!selectedSubjectId) {
+      alert("Please select a subject to mark attendance!");
+      return;
+    }
+    if (isCurrentSubjectCompleted) {
+      alert("Attendance for this subject has already been recorded for today!");
+      return;
+    }
+
     setSubmitting(true);
     try {
       const recordsToSave = students.map(s => ({
@@ -201,7 +330,26 @@ function MarkAttendance() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert("Attendance saved successfully!");
+      const currentSubObj = timetableSubjects.find(s => s._id === selectedSubjectId);
+      const currentSubName = currentSubObj ? currentSubObj.name : "Subject";
+
+      // Update completed set
+      const nextCompleted = new Set(completedSubjectIds);
+      nextCompleted.add(selectedSubjectId);
+      setCompletedSubjectIds(nextCompleted);
+
+      // Find next pending subject in timetable sequence
+      const currentIdx = timetableSubjects.findIndex(s => s._id === selectedSubjectId);
+      const nextPending = timetableSubjects.find((s, idx) => idx > currentIdx && !nextCompleted.has(s._id))
+        || timetableSubjects.find(s => !nextCompleted.has(s._id));
+
+      if (nextPending) {
+        setSelectedSubjectId(nextPending._id);
+        alert(`Attendance saved for ${currentSubName}! Next pending subject (${nextPending.name}) selected.`);
+      } else {
+        alert(`Attendance saved for ${currentSubName}! All subjects completed for today.`);
+      }
+
     } catch (err) {
       console.error("Error saving attendance:", err);
       alert("Failed to save attendance.");
@@ -306,22 +454,39 @@ function MarkAttendance() {
 
         {/* Subject Selector */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Subject (Optional)</label>
+          <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Select Subject *</label>
           <div className="relative">
             <select
               value={selectedSubjectId}
               onChange={(e) => setSelectedSubjectId(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
             >
-              <option value="">General Roster Check</option>
-              {filteredSubjects.map(sub => (
-                <option key={sub._id} value={sub._id}>{sub.name}</option>
-              ))}
+              {timetableSubjects.length === 0 ? (
+                <option value="">No subjects found</option>
+              ) : (
+                timetableSubjects.map(sub => {
+                  const isDone = completedSubjectIds.has(sub._id);
+                  const timeLabel = sub.startTime ? `${sub.startTime} - ${sub.endTime} | ` : "";
+                  return (
+                    <option key={sub._id} value={sub._id}>
+                      {timeLabel}{sub.name}{isDone ? " (Completed Today ✔)" : ""}
+                    </option>
+                  );
+                })
+              )}
             </select>
             <FaBook className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none" />
           </div>
         </div>
       </div>
+
+      {/* Completed Attendance Today Info Banner */}
+      {isCurrentSubjectCompleted && (
+        <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+          <span>✔ Attendance for this subject has already been recorded for today ({selectedDate}). Next attendance will be available tomorrow!</span>
+          <span className="px-3 py-1 rounded-xl bg-amber-500/20 text-[10px] font-black uppercase tracking-wider shrink-0">Completed Today</span>
+        </div>
+      )}
 
       {/* Main Workspace Layout */}
       <div className="flex flex-col lg:flex-row gap-6">
@@ -637,7 +802,7 @@ function MarkAttendance() {
             {/* Save Ledger button */}
             <button
               onClick={handleSaveAttendance}
-              disabled={submitting || totalRoster === 0}
+              disabled={submitting || totalRoster === 0 || !selectedSubjectId || isCurrentSubjectCompleted}
               className="w-full py-3 mt-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-md shadow-purple-600/10 active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
             >
               {submitting ? (
