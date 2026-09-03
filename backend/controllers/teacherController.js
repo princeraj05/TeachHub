@@ -7,6 +7,27 @@ const Timetable = require("../models/Timetable");
 const TeacherLeave = require("../models/TeacherLeave");
 const ExamSubmission = require("../models/ExamSubmission");
 
+// Helper: Fetch all classes assigned to a teacher (via direct assignment, teachers array, subjects, or timetable)
+const getTeacherClasses = async (teacherId) => {
+  const timetableClassIds = await Timetable.distinct("class", { teacher: teacherId });
+  const subjectClassIds1 = await Subject.distinct("classes", { teacher: teacherId });
+  const subjectClassIds2 = await Subject.distinct("class", { teacher: teacherId });
+
+  const combinedClassIds = [...new Set([
+    ...timetableClassIds.map(id => id.toString()),
+    ...subjectClassIds1.map(id => id.toString()),
+    ...subjectClassIds2.map(id => id.toString())
+  ])];
+
+  return await Class.find({
+    $or: [
+      { teacher: teacherId },
+      { teachers: teacherId },
+      { _id: { $in: combinedClassIds } }
+    ]
+  }).populate("students", "name email avatar gender classId");
+};
+
 // ================= GET TEACHER DASHBOARD =================
 
 exports.getTeacherDashboard = async (req, res) => {
@@ -14,11 +35,8 @@ exports.getTeacherDashboard = async (req, res) => {
     const teacherId = req.user.id;
     const schoolName = req.user.schoolName || "";
 
-    // 1. Fetch teacher classes (both direct & timetable assignment)
-    const timetableClassIds = await Timetable.distinct("class", { teacher: teacherId });
-    const classes = await Class.find({
-      $or: [{ teacher: teacherId }, { _id: { $in: timetableClassIds } }]
-    }).populate("students", "name email");
+    // 1. Fetch teacher classes (direct, teachers array, subject & timetable assignment)
+    const classes = await getTeacherClasses(teacherId);
 
     // Extract student IDs and sections
     let studentIds = [];
@@ -275,10 +293,7 @@ exports.getTeacherDashboard = async (req, res) => {
 exports.getMyClasses = async (req, res) => {
   try {
     const teacherId = req.user.id;
-    const timetableClassIds = await Timetable.distinct("class", { teacher: teacherId });
-    const classes = await Class.find({
-      $or: [{ teacher: teacherId }, { _id: { $in: timetableClassIds } }]
-    }).populate("students", "name email gender");
+    const classes = await getTeacherClasses(teacherId);
 
     const detailedClasses = [];
     for (const c of classes) {
@@ -629,11 +644,8 @@ exports.getMyStudents = async (req, res) => {
   try {
     const teacherId = req.user.id;
     
-    // Find all classes taught by teacher (both direct & timetable assignment)
-    const timetableClassIds = await Timetable.distinct("class", { teacher: teacherId });
-    const classes = await Class.find({
-      $or: [{ teacher: teacherId }, { _id: { $in: timetableClassIds } }]
-    }).populate("students", "name email avatar gender classId");
+    // Find all classes taught by teacher (direct, teachers array, subject & timetable assignment)
+    const classes = await getTeacherClasses(teacherId);
     
     const detailedStudents = [];
     

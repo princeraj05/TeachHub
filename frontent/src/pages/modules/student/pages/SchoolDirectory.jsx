@@ -135,7 +135,7 @@ function SchoolDirectory() {
     const term = search.toLowerCase();
     const nameMatch = school.name?.toLowerCase().includes(term);
     const principalMatch = school.principalName?.toLowerCase().includes(term);
-    const locationMatch = getSchoolDetails(school.name, "location").toLowerCase().includes(term);
+    const locationMatch = (school.address || getSchoolDetails(school.name, "location")).toLowerCase().includes(term);
     return nameMatch || principalMatch || locationMatch;
   });
 
@@ -243,9 +243,12 @@ function SchoolDirectory() {
                     </div>
                   </div>
                   <div className="self-start sm:self-center shrink-0">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 rounded-full text-slate-550 dark:text-slate-400 text-xs font-semibold">
+                    <span 
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 rounded-full text-slate-550 dark:text-slate-400 text-xs font-semibold max-w-[260px] sm:max-w-xs truncate"
+                      title={school.address || getSchoolDetails(school.name, "location")}
+                    >
                       <FaMapMarkerAlt className="text-xs shrink-0 text-slate-450" />
-                      {getSchoolDetails(school.name, "location")}
+                      <span className="truncate">{school.address || getSchoolDetails(school.name, "location")}</span>
                     </span>
                   </div>
                 </div>

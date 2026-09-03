@@ -96,7 +96,7 @@ if (targetClassIds.length === 0) {
 // 3. Assign teacher to classes
 await Class.updateMany(
   { _id: { $in: targetClassIds }, schoolName: req.user.schoolName },
-  { teacher: teacherId }
+  { teacher: teacherId, $addToSet: { teachers: teacherId } }
 );
 
 // 4. Normalize subject IDs & assign to teacher & classes
@@ -184,8 +184,21 @@ exports.getTeacherAssignments = async (req, res) => {
     const assignments = [];
     for (let t of teachers) {
       const timetableClassIds = await Timetable.distinct("class", { teacher: t._id });
+      const subjectClassIds1 = await Subject.distinct("classes", { teacher: t._id, schoolName: schoolRegex });
+      const subjectClassIds2 = await Subject.distinct("class", { teacher: t._id, schoolName: schoolRegex });
+
+      const combinedClassIds = [...new Set([
+        ...timetableClassIds.map(id => id.toString()),
+        ...subjectClassIds1.map(id => id.toString()),
+        ...subjectClassIds2.map(id => id.toString())
+      ])];
+
       const classes = await Class.find({
-        $or: [{ teacher: t._id }, { _id: { $in: timetableClassIds } }],
+        $or: [
+          { teacher: t._id },
+          { teachers: t._id },
+          { _id: { $in: combinedClassIds } }
+        ],
         schoolName: schoolRegex
       }).select("name section");
 
@@ -224,12 +237,14 @@ exports.unassignTeacherAssignment = async (req, res) => {
     const schoolName = req.user.schoolName;
 
     if (clearAll) {
+      await Class.updateMany({ schoolName }, { $pull: { teachers: teacherId } });
       await Class.updateMany({ teacher: teacherId, schoolName }, { $unset: { teacher: "" } });
       await Subject.updateMany({ teacher: teacherId, schoolName }, { $unset: { teacher: "" } });
       return res.json({ message: "All class and subject assignments cleared for this teacher" });
     }
 
     if (classId) {
+      await Class.findOneAndUpdate({ _id: classId, schoolName }, { $pull: { teachers: teacherId } });
       await Class.findOneAndUpdate({ _id: classId, schoolName, teacher: teacherId }, { $unset: { teacher: "" } });
     }
 

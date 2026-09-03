@@ -23,6 +23,13 @@ type:mongoose.Schema.Types.ObjectId,
 ref:"User"
 },
 
+teachers:[
+{
+type:mongoose.Schema.Types.ObjectId,
+ref:"User"
+}
+],
+
 students:[
 {
 type:mongoose.Schema.Types.ObjectId,
