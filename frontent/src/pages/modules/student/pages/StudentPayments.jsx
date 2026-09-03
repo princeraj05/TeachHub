@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { FaCreditCard, FaHistory } from "react-icons/fa";
 import { startBackendPayment } from "../../../../utils/razorpayCheckout";
+import socket from "../../../../socket";
 
 const money = value => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format((value || 0) / 100);
 
@@ -44,7 +45,41 @@ export default function StudentPayments() {
     }
   }, [api, token]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+
+    try {
+      socket.connect();
+    } catch (err) {
+      console.error("Socket connect error:", err);
+    }
+
+    const handleRealtimeUpdate = () => {
+      load();
+    };
+
+    socket.on("feePlan:updated", handleRealtimeUpdate);
+    socket.on("paymentSettings:updated", handleRealtimeUpdate);
+    socket.on("payment:updated", handleRealtimeUpdate);
+    socket.on("payment:created", handleRealtimeUpdate);
+
+    // 3-second background polling fallback to guarantee real-time updates even if WebSockets are blocked
+    const intervalId = setInterval(load, 3000);
+
+    const handleFocus = () => load();
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
+
+    return () => {
+      socket.off("feePlan:updated", handleRealtimeUpdate);
+      socket.off("paymentSettings:updated", handleRealtimeUpdate);
+      socket.off("payment:updated", handleRealtimeUpdate);
+      socket.off("payment:created", handleRealtimeUpdate);
+      clearInterval(intervalId);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
+    };
+  }, [load]);
 
   const payOnline = async () => {
     setBusy(true);

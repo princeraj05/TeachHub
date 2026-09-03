@@ -382,11 +382,26 @@ exports.updateSettings = async (req, res) => {
       liveKeyId,
       liveSecretConfigured
     });
+
+    broadcastEvent(req, "paymentSettings:updated", { schoolName: req.user.schoolName });
   } catch (e) {
     fail(res, e);
   }
 };
-exports.setFeePlan = async (req, res) => { try { const monthlyFee = Number(req.body.monthlyFee), validityDays = Number(req.body.validityDays || 30); if (!Number.isSafeInteger(monthlyFee) || monthlyFee < 1) throw invalid("Fee must be a positive integer in paise"); if (!Number.isSafeInteger(validityDays) || validityDays < 1) throw invalid("Validity period must be a positive integer of days"); const old = await FeePlan.findOne({ schoolName: req.user.schoolName }).lean(); const plan = await FeePlan.findOneAndUpdate({ schoolName: req.user.schoolName }, { $set: { monthlyFee, validityDays, active: req.body.active !== false, updatedBy: req.user.id } }, { new: true, upsert: true }); await audit(req, "STUDENT_FEE_CHANGED", old, plan.toObject()); res.json(plan); } catch (e) { fail(res, e); } };
+exports.setFeePlan = async (req, res) => {
+  try {
+    const monthlyFee = Number(req.body.monthlyFee), validityDays = Number(req.body.validityDays || 30);
+    if (!Number.isSafeInteger(monthlyFee) || monthlyFee < 1) throw invalid("Fee must be a positive integer in paise");
+    if (!Number.isSafeInteger(validityDays) || validityDays < 1) throw invalid("Validity period must be a positive integer of days");
+    const old = await FeePlan.findOne({ schoolName: req.user.schoolName }).lean();
+    const plan = await FeePlan.findOneAndUpdate({ schoolName: req.user.schoolName }, { $set: { monthlyFee, validityDays, active: req.body.active !== false, updatedBy: req.user.id } }, { new: true, upsert: true });
+    await audit(req, "STUDENT_FEE_CHANGED", old, plan.toObject());
+    broadcastEvent(req, "feePlan:updated", { schoolName: req.user.schoolName, plan });
+    res.json(plan);
+  } catch (e) {
+    fail(res, e);
+  }
+};
 exports.getFeePlan = async (req, res) => { try { res.json(await FeePlan.findOne({ schoolName: req.user.schoolName }).select("monthlyFee validityDays currency active updatedAt") || null); } catch (e) { fail(res, e); } };
 exports.getMyCompensation = async (req, res) => { try { const teacher = await User.findOne({ _id: req.user.id, role: "teacher" }); if (!teacher?.schoolName) throw Object.assign(new Error("Teacher is not assigned to a school"), { status: 403 }); res.json(await TeacherCompensation.findOne({ teacher: teacher._id, schoolName: teacher.schoolName, active: true }).select("salary currency paymentCycle dueDate updatedAt") || null); } catch (e) { fail(res, e); } };
 exports.listTeacherCompensations = async (req, res) => { try { res.json(await TeacherCompensation.find({ schoolName: req.user.schoolName }).populate("teacher", "name email").sort({ updatedAt: -1 })); } catch (e) { fail(res, e); } };
