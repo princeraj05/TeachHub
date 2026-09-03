@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { 
   FaUser, 
@@ -20,13 +20,27 @@ import {
   FaGraduationCap,
   FaIdCard
 } from "react-icons/fa";
+import { compressAvatar } from "../../../../../utils/mediaCompression";
 
 const SORA = "'Sora', sans-serif";
+
+const formatDateForInput = (dateStr) => {
+  if (!dateStr) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "";
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 function TeacherProfile() {
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const token = localStorage.getItem("token");
   const headers = { Authorization: `Bearer ${token}` };
+
+  const fileInputRef = useRef(null);
 
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
@@ -37,12 +51,10 @@ function TeacherProfile() {
   const [dob, setDob] = useState("");
   const [gender, setGender] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [alternatePhone, setAlternatePhone] = useState("");
   const [address, setAddress] = useState("");
   const [department, setDepartment] = useState("");
   const [qualification, setQualification] = useState("");
   const [experience, setExperience] = useState("");
-  const [joiningDate, setJoiningDate] = useState("");
   const [employeeId, setEmployeeId] = useState("");
   const [bio, setBio] = useState("");
   const [avatar, setAvatar] = useState("");
@@ -97,15 +109,13 @@ function TeacherProfile() {
         // Initialize form states
         setName(u.name || "");
         setEmail(u.email || "");
-        setDob(u.dob || "12 May 1990");
+        setDob(u.dob || "1990-05-12");
         setGender(u.gender || "Male");
         setPhoneNumber(u.phoneNumber || "");
-        setAlternatePhone(u.alternatePhone || "");
         setAddress(u.address || "");
         setDepartment(u.department || "Faculty");
         setQualification(u.qualification || "M.Sc, B.Ed");
         setExperience(u.experience || "6 Years");
-        setJoiningDate(u.joiningDate || "15 Aug 2023");
         setEmployeeId(u.employeeId || `TCH${String(u._id).slice(-4).toUpperCase()}`);
         setBio(u.bio || "Passionate educator dedicated to academic excellence and student success.");
         setAvatar(u.avatar || "");
@@ -122,6 +132,23 @@ function TeacherProfile() {
       });
   }, [API, token]);
 
+  const handleAvatarFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const compressedBase64 = await compressAvatar(file);
+        setAvatar(compressedBase64);
+        try {
+          localStorage.setItem("avatar", compressedBase64);
+        } catch (err) {}
+        window.dispatchEvent(new Event("profileUpdate"));
+      } catch (err) {
+        console.error("Error uploading avatar:", err);
+        alert("Could not process image file.");
+      }
+    }
+  };
+
   const handleSaveChanges = async (e) => {
     e.preventDefault();
     setSaveMessage("");
@@ -134,15 +161,21 @@ function TeacherProfile() {
         dob,
         gender,
         phoneNumber,
-        alternatePhone,
         address,
         department,
         qualification,
         experience,
-        joiningDate,
         bio,
         avatar
       }, { headers });
+
+      if (avatar) {
+        try { localStorage.setItem("avatar", avatar); } catch (e) {}
+      }
+      if (name) {
+        try { localStorage.setItem("name", name); } catch (e) {}
+      }
+      window.dispatchEvent(new Event("profileUpdate"));
 
       setSaveMessage("Profile changes saved successfully!");
       if (res.data?.teacher) {
@@ -156,14 +189,17 @@ function TeacherProfile() {
   };
 
   const handleAvatarUpload = () => {
-    const newAvatarUrl = prompt("Enter profile photo URL:", avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200");
-    if (newAvatarUrl !== null) {
-      setAvatar(newAvatarUrl);
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
   };
 
   const handleAvatarRemove = () => {
     setAvatar("");
+    try {
+      localStorage.setItem("avatar", "");
+    } catch (e) {}
+    window.dispatchEvent(new Event("profileUpdate"));
   };
 
   if (loading) {
@@ -178,20 +214,18 @@ function TeacherProfile() {
   return (
     <div className="w-full text-slate-800 dark:text-white pb-10 font-sans" style={{ fontFamily: SORA }}>
       
-      {/* Header breadcrumb */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 select-none">
-        <div>
-          <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Teacher Profile</h1>
-          <p className="text-xs text-slate-400 dark:text-slate-500 font-bold mt-1">
-            Manage your teaching profile, qualifications, and account settings
-          </p>
-          <div className="flex items-center gap-1.5 mt-2 text-[10px] text-slate-400 font-bold uppercase tracking-wide">
-            <span>Teacher Portal</span>
-            <span>&gt;</span>
-            <span className="text-purple-500 font-black">My Profile</span>
-          </div>
-        </div>
+      {/* Header title */}
+      <div className="mb-6 select-none">
+        <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Teacher Profile</h1>
       </div>
+
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        accept="image/*" 
+        className="hidden" 
+        onChange={handleAvatarFileChange} 
+      />
 
       <form onSubmit={handleSaveChanges} className="flex flex-col gap-6">
         
@@ -321,11 +355,10 @@ function TeacherProfile() {
               <div>
                 <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Date of Birth</label>
                 <input
-                  type="text"
-                  placeholder="12 May 1990"
-                  value={dob}
+                  type="date"
+                  value={formatDateForInput(dob)}
                   onChange={(e) => setDob(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-slate-800 dark:text-white"
                 />
               </div>
 
@@ -363,30 +396,6 @@ function TeacherProfile() {
                   placeholder="6 Years"
                   value={experience}
                   onChange={(e) => setExperience(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
-                />
-              </div>
-
-              {/* Joining Date */}
-              <div>
-                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Joining Date</label>
-                <input
-                  type="text"
-                  placeholder="15 Aug 2023"
-                  value={joiningDate}
-                  onChange={(e) => setJoiningDate(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
-                />
-              </div>
-
-              {/* Alternate Phone */}
-              <div>
-                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Alternate Phone</label>
-                <input
-                  type="text"
-                  placeholder="+91 91234 56789"
-                  value={alternatePhone}
-                  onChange={(e) => setAlternatePhone(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
                 />
               </div>
