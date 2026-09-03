@@ -275,7 +275,34 @@ exports.updateTimetable = async (req, res) => {
     res.status(500).json({ message: "Could not update timetable entry" });
   }
 };
-exports.getTimetable = async (req, res) => { try { const day = req.query.day; const query = { schoolName: req.user.schoolName }; if (day) query.day = day; if (req.user.role === "teacher") query.teacher = req.user.id; if (req.user.role === "student") { const user = await schoolUser(req.user.id); if (!user.classId) return res.json([]); query.class = user.classId; } const entries = await Timetable.find(query).populate("class", "name section").populate("subject", "name").populate("teacher", "name email").sort({ startTime: 1 }); const today = new Date(); today.setHours(0,0,0,0); const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1); const attendance = await TeacherAttendance.find({ schoolName: req.user.schoolName, date: { $gte: today, $lt: tomorrow } }).select("teacher status"); const statuses = new Map(attendance.map(item => [String(item.teacher), item.status])); res.json(entries.map(e => ({ ...e.toObject(), teacherAttendance: statuses.get(String(e.teacher?._id || e.teacher)) || "Not Marked" }))); } catch { res.status(500).json({ message: "Could not load timetable" }); } };
+exports.getTimetable = async (req, res) => { 
+  try { 
+    const day = req.query.day; 
+    const classId = req.query.classId || req.query.class;
+    const query = { schoolName: req.user.schoolName }; 
+    if (day) query.day = day; 
+    if (classId) {
+      query.class = classId;
+    } else if (req.user.role === "teacher") {
+      query.teacher = req.user.id; 
+    }
+    if (req.user.role === "student") { 
+      const user = await schoolUser(req.user.id); 
+      if (!user.classId) return res.json([]); 
+      query.class = user.classId; 
+    } 
+    const entries = await Timetable.find(query).populate("class", "name section").populate("subject", "name").populate("teacher", "name email").sort({ startTime: 1 }); 
+    const today = new Date(); 
+    today.setHours(0,0,0,0); 
+    const tomorrow = new Date(today); 
+    tomorrow.setDate(tomorrow.getDate() + 1); 
+    const attendance = await TeacherAttendance.find({ schoolName: req.user.schoolName, date: { $gte: today, $lt: tomorrow } }).select("teacher status"); 
+    const statuses = new Map(attendance.map(item => [String(item.teacher), item.status])); 
+    res.json(entries.map(e => ({ ...e.toObject(), teacherAttendance: statuses.get(String(e.teacher?._id || e.teacher)) || "Not Marked" }))); 
+  } catch { 
+    res.status(500).json({ message: "Could not load timetable" }); 
+  } 
+};
 
 exports.markTeacherAttendance = async (req, res) => { try { const { status } = req.body; if (!['Present', 'Absent'].includes(status)) return res.status(400).json({ message: 'Attendance status must be Present or Absent' }); const today = new Date(); today.setHours(0, 0, 0, 0); const attendance = await TeacherAttendance.findOneAndUpdate({ teacher: req.user.id, date: today }, { schoolName: req.user.schoolName, status }, { new: true, upsert: true, setDefaultsOnInsert: true }); res.json(attendance); } catch { res.status(500).json({ message: 'Could not save teacher attendance' }); } };
 exports.deleteTimetable = async (req, res) => { try { const result = await Timetable.deleteOne({ _id: req.params.id, schoolName: req.user.schoolName }); if (!result.deletedCount) return res.status(404).json({ message: "Timetable entry not found" }); res.json({ message: "Timetable entry deleted" }); } catch { res.status(400).json({ message: "Invalid timetable entry" }); } };

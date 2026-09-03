@@ -492,7 +492,7 @@ function MarkAttendance() {
       <div className="flex flex-col lg:flex-row gap-6">
         
         {/* Left Hand: Student List Table */}
-        <div className="flex-1 bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between">
+        <div className="flex-1 bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] rounded-2xl shadow-sm overflow-hidden flex flex-col">
           
           {/* Table Toolbar controls */}
           <div className="p-4 border-b border-slate-200/50 dark:border-white/[0.05] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
