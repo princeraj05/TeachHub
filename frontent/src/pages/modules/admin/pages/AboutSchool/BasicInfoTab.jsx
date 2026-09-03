@@ -248,20 +248,6 @@ function BasicInfoTab({
                 )}
               </div>
 
-              {/* Website */}
-              <div>
-                <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Website</span>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={website}
-                    onChange={(e) => setWebsite(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
-                  />
-                ) : (
-                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{website || "www.gdaccedmy.edu.in"}</p>
-                )}
-              </div>
 
               {/* School Address */}
               <div className="sm:col-span-2">

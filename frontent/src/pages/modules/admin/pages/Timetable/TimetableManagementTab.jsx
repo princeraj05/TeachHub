@@ -535,7 +535,7 @@ function TimetableManagementTab({
 
                   return (
                     <tr key={sIdx} className="border-b border-slate-850/60 last:border-b-0">
-                      <td className="text-[9px] font-bold text-slate-450 py-4 border-r border-slate-850">
+                      <td className="text-[9.5px] font-black text-purple-300/90 py-4 px-2 border-r border-slate-850/80 leading-snug whitespace-nowrap">
                         {slot.label}
                       </td>
                       {DAYS_LIST.map(day => {
@@ -543,9 +543,9 @@ function TimetableManagementTab({
                         const hasConflict = period && cellConflicts.has(period._id);
                         
                         return (
-                          <td key={day} className="py-2.5 px-1 border-r border-slate-850/30 last:border-r-0 relative group">
+                          <td key={day} className="py-2 px-1 border-r border-slate-850/30 last:border-r-0 relative group">
                             {period ? (
-                              <div className={`border rounded-xl p-2.5 flex flex-col justify-between h-20 transition hover:scale-[1.01] hover:shadow-md ${
+                              <div className={`border rounded-xl p-2.5 flex flex-col justify-between min-h-[96px] transition hover:scale-[1.01] hover:shadow-md ${
                                 hasConflict 
                                   ? "bg-rose-950/50 border-rose-800 text-rose-200" 
                                   : getSubjectColor(period.subject?.name)
@@ -556,26 +556,29 @@ function TimetableManagementTab({
                                   {/* Delete handler */}
                                   <button
                                     onClick={() => remove(period._id)}
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-[8px] text-rose-400 hover:text-rose-600 cursor-pointer shrink-0"
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 text-[8px] text-rose-400 hover:text-rose-300 cursor-pointer shrink-0"
                                     title="Delete Period"
                                   >
                                     <FaTrashAlt />
                                   </button>
                                 </div>
-                                <span className="block text-[8px] font-bold text-slate-400 truncate mt-0.5">
+                                <span className="block text-[8.5px] font-bold text-slate-300/80 truncate mt-0.5">
                                   {period.teacher?.name || "Teacher"}
                                 </span>
-                                <span className="block text-[8px] font-extrabold text-purple-300 truncate mt-0.5">
-                                  {formatTime12h(period.startTime)} - {formatTime12h(period.endTime)}
-                                </span>
+                                
+                                {/* Timing badge - High visibility with clock icon */}
+                                <div className="flex items-center gap-1 my-1 px-1.5 py-0.5 rounded-md bg-black/40 border border-white/10 text-[8.5px] font-extrabold text-cyan-300 tracking-tight whitespace-nowrap overflow-hidden select-none">
+                                  <FaClock className="text-[7.5px] text-cyan-400 shrink-0" />
+                                  <span className="truncate">{formatTime12h(period.startTime)} - {formatTime12h(period.endTime)}</span>
+                                </div>
                                 
                                 {/* Room location & conflict indicator */}
-                                <div className="flex items-center justify-between mt-1.5 text-[8px] font-bold select-none">
-                                  <span className="text-[8px] font-extrabold text-slate-400 truncate max-w-[50px] bg-slate-900/60 px-1 py-0.5 rounded border border-white/5">
+                                <div className="flex items-center justify-between text-[8px] font-bold select-none mt-0.5">
+                                  <span className="text-[8px] font-extrabold text-slate-200 bg-slate-900/80 px-1.5 py-0.5 rounded border border-white/10 truncate max-w-[65px]">
                                     {period.room || "Room 101"}
                                   </span>
                                   {hasConflict && (
-                                    <FaExclamationTriangle className="text-rose-500 animate-pulse text-[9px]" title="Conflict Alert!" />
+                                    <FaExclamationTriangle className="text-rose-400 animate-pulse text-[9.5px]" title="Conflict Alert!" />
                                   )}
                                 </div>
                               </div>
