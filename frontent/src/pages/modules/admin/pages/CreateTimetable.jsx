@@ -35,6 +35,14 @@ export default function CreateTimetable() {
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // School break settings for smart break-skipping
+  const [breakSettings, setBreakSettings] = useState({
+    shortBreakStartTime: "11:00 AM",
+    shortBreakDuration: 30,
+    lunchBreakStartTime: "12:00 PM",
+    lunchBreakDuration: 60
+  });
+
   // Form states
   const [form, setForm] = useState({
     classId: "",
@@ -54,17 +62,67 @@ export default function CreateTimetable() {
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
+  const parseTimeToMinutes = (timeStr) => {
+    if (!timeStr) return 0;
+    const clean = String(timeStr).trim().toUpperCase();
+    const match = clean.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/);
+    if (!match) return 0;
+    let hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    const ampm = match[3];
+    if (ampm) {
+      if (ampm === "PM" && hours < 12) hours += 12;
+      if (ampm === "AM" && hours === 12) hours = 0;
+    }
+    return hours * 60 + minutes;
+  };
+
+  // Helper to calculate next start time after submitting a slot, automatically skipping configured school breaks
+  const getNextStartTime = (currentStartTime, durationMins, breaks) => {
+    if (!currentStartTime) return "10:00";
+    let [h, m] = currentStartTime.split(":").map(Number);
+    if (isNaN(h) || isNaN(m)) return "10:00";
+
+    let totalMins = h * 60 + m + Number(durationMins || 60);
+
+    if (breaks) {
+      const lunchStart = parseTimeToMinutes(breaks.lunchBreakStartTime);
+      const lunchDuration = Number(breaks.lunchBreakDuration || 0);
+      const lunchEnd = lunchStart + lunchDuration;
+
+      const shortStart = parseTimeToMinutes(breaks.shortBreakStartTime);
+      const shortDuration = Number(breaks.shortBreakDuration || 0);
+      const shortEnd = shortStart + shortDuration;
+
+      // Repeat check up to 2 times in case breaks are consecutive
+      for (let i = 0; i < 2; i++) {
+        if (lunchDuration > 0 && totalMins >= lunchStart && totalMins < lunchEnd) {
+          totalMins = lunchEnd;
+        }
+        if (shortDuration > 0 && totalMins >= shortStart && totalMins < shortEnd) {
+          totalMins = shortEnd;
+        }
+      }
+    }
+
+    let nextH = Math.floor(totalMins / 60) % 24;
+    let nextM = totalMins % 60;
+
+    return `${String(nextH).padStart(2, "0")}:${String(nextM).padStart(2, "0")}`;
+  };
+
   const load = async () => {
     setLoading(true);
     setErrorMsg("");
     try {
       const reqHeaders = getHeaders();
       const config = { headers: reqHeaders, timeout: 10000 };
-      const [classRes, subjectRes, teacherRes, entryRes] = await Promise.allSettled([
+      const [classRes, subjectRes, teacherRes, entryRes, schoolRes] = await Promise.allSettled([
         axios.get(`${API}/api/admin/classes`, config),
         axios.get(`${API}/api/admin/subjects`, config),
         axios.get(`${API}/api/admin/users/teachers`, config),
-        axios.get(`${API}/api/timetable`, config)
+        axios.get(`${API}/api/timetable`, config),
+        axios.get(`${API}/api/schools/my-school`, config)
       ]);
 
       if (classRes.status === "fulfilled" && Array.isArray(classRes.value.data)) {
@@ -90,6 +148,16 @@ export default function CreateTimetable() {
       } else {
         setEntries([]);
       }
+
+      if (schoolRes.status === "fulfilled" && schoolRes.value.data) {
+        const sData = schoolRes.value.data;
+        setBreakSettings({
+          shortBreakStartTime: sData.shortBreakStartTime || "11:00 AM",
+          shortBreakDuration: sData.shortBreakDuration !== undefined ? sData.shortBreakDuration : 30,
+          lunchBreakStartTime: sData.lunchBreakStartTime || "12:00 PM",
+          lunchBreakDuration: sData.lunchBreakDuration !== undefined ? sData.lunchBreakDuration : 60
+        });
+      }
     } catch (e) {
       console.error("Error loading timetable setup data:", e);
       setErrorMsg("Could not load timetable setup data.");
@@ -101,19 +169,6 @@ export default function CreateTimetable() {
   useEffect(() => {
     load();
   }, []);
-
-  // Helper to calculate next start time after submitting a slot
-  const getNextStartTime = (currentStartTime, durationMins) => {
-    if (!currentStartTime) return "10:00";
-    let [h, m] = currentStartTime.split(":").map(Number);
-    if (isNaN(h) || isNaN(m)) return "10:00";
-
-    let totalMins = h * 60 + m + Number(durationMins || 60);
-    let nextH = Math.floor(totalMins / 60) % 24;
-    let nextM = totalMins % 60;
-
-    return `${String(nextH).padStart(2, "0")}:${String(nextM).padStart(2, "0")}`;
-  };
 
   // Form Reset
   const resetForm = () => {
@@ -168,8 +223,14 @@ export default function CreateTimetable() {
         { headers: getHeaders() }
       );
       
-      const nextStartTime = getNextStartTime(form.startTime, form.durationMinutes);
-      setMessage(`Timetable entry created successfully. Next start time auto-set to ${nextStartTime}!`);
+      const nextStartTime = getNextStartTime(form.startTime, form.durationMinutes, breakSettings);
+      
+      const [nh, nm] = nextStartTime.split(":").map(Number);
+      const ampm = nh >= 12 ? "PM" : "AM";
+      const displayH = nh % 12 || 12;
+      const displayTime12h = `${String(displayH).padStart(2, "0")}:${String(nm).padStart(2, "0")} ${ampm}`;
+
+      setMessage(`Timetable entry created successfully. Next start time auto-set to ${displayTime12h}!`);
       
       // Auto-increment start time for next entry, reset subject/teacher/notes while preserving class & repeat days
       setForm((prev) => ({
