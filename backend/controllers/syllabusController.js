@@ -3,53 +3,8 @@ const SubjectSyllabus = require("../models/SubjectSyllabus");
 const Subject = require("../models/Subject");
 const Class = require("../models/Class");
 
-// Helper: Seed default 10 chapters if no MasterSyllabus exists
-const getDefaultChaptersForSubject = (subjectName) => {
-  const isHindi = (subjectName || "").toLowerCase().includes("hindi");
-  const isMath = (subjectName || "").toLowerCase().includes("math");
-  const isScience = (subjectName || "").toLowerCase().includes("science");
-
-  if (isHindi) {
-    return [
-      { chapterNo: 1, title: "कबीरदास - साखी (Kabirdas Sakhi)", description: "पद, दोहे एवं भावार्थ", topics: [{ title: "साखी पठन एवं अर्थ", completed: true }, { title: "कठिन शब्द एवं प्रश्न-उत्तर", completed: true }] },
-      { chapterNo: 2, title: "सूरदास - पद (Surdas Pada)", description: "भक्ति काल एवं वात्सल्य रस", topics: [{ title: "पद व्याख्या", completed: true }, { title: "अभ्यास प्रश्न", completed: false }] },
-      { chapterNo: 3, title: "तुलसीदास - राम-लक्ष्मण-परशुराम संवाद", description: "रामचरितमानस बालकांड अंश", topics: [{ title: "चौपाई एवं दोहा अर्थ", completed: false }] },
-      { chapterNo: 4, title: "जयशंकर प्रसाद - आत्मकथ्य", description: "छायावादी काव्य संग्रह", topics: [{ title: "कविता वाचन एवं भाव", completed: false }] },
-      { chapterNo: 5, title: "सूर्यकांत त्रिपाठी 'निराला' - उत्साह और अत नहीं रही", description: "प्रकृति सौंदर्य एवं क्रांति चेतना", topics: [{ title: "काव्य बोध", completed: false }] },
-      { chapterNo: 6, title: "नेताजी का चश्मा (Netaji Ka Chashma)", description: "देशभक्ति एवं सामाजिक संदेश", topics: [{ title: "कहानी सार एवं पात्र परिचय", completed: false }] },
-      { chapterNo: 7, title: "बालगोबिन भगत (Balgobin Bhagat)", description: "रामवृक्ष बेनीपुरी रचित रेखाचित्र", topics: [{ title: "चरित्र चित्रण", completed: false }] },
-      { chapterNo: 8, title: "लखनवी अंदाज (Lakhnavi Andaz)", description: "यशपाल द्वारा रचित व्यंग्य", topics: [{ title: "व्यंग्यात्मक शैली विश्लेषण", completed: false }] },
-      { chapterNo: 9, title: "हिंदी व्याकरण - समास एवं वाक्य भेद", description: "संधि, समास, पदबंध एवं वाक्य रचना", topics: [{ title: "समास भेद", completed: false }, { title: "वाक्य रूपांतरण", completed: false }] },
-      { chapterNo: 10, title: "अपठित गद्यांश एवं निबंध लेखन", description: "रचनात्मक लेखन एवं अनुच्छेद", topics: [{ title: "निबंध लेखन अभ्यास", completed: false }] }
-    ];
-  }
-
-  if (isMath) {
-    return [
-      { chapterNo: 1, title: "Real Numbers", description: "Euclid's division lemma & Fundamental Theorem of Arithmetic", topics: [{ title: "Prime Factorization", completed: true }] },
-      { chapterNo: 2, title: "Polynomials", description: "Zeros of polynomial & division algorithm", topics: [{ title: "Quadratic Polynomials", completed: true }] },
-      { chapterNo: 3, title: "Pair of Linear Equations in Two Variables", description: "Graphical & Algebraic methods", topics: [{ title: "Substitution & Elimination Method", completed: false }] },
-      { chapterNo: 4, title: "Quadratic Equations", description: "Standard form & quadratic formula", topics: [{ title: "Factorization & Discriminant", completed: false }] },
-      { chapterNo: 5, title: "Arithmetic Progressions", description: "nth term & sum of first n terms", topics: [{ title: "AP Formulae", completed: false }] },
-      { chapterNo: 6, title: "Triangles & Geometry", description: "Similarity of triangles & Pythagoras theorem", topics: [{ title: "BPT Theorem", completed: false }] },
-      { chapterNo: 7, title: "Coordinate Geometry", description: "Distance & section formulas", topics: [{ title: "Distance Formula", completed: false }] },
-      { chapterNo: 8, title: "Introduction to Trigonometry", description: "Trigonometric ratios & identities", topics: [{ title: "Sin/Cos/Tan Ratios", completed: false }] },
-      { chapterNo: 9, title: "Circles & Areas Related to Circles", description: "Tangents & Sector Areas", topics: [{ title: "Area of Segment", completed: false }] },
-      { chapterNo: 10, title: "Statistics & Probability", description: "Mean, Median, Mode & basic probability", topics: [{ title: "Grouped Data Statistics", completed: false }] }
-    ];
-  }
-
-  // Generic fallback for any other subject
-  return Array.from({ length: 10 }, (_, i) => ({
-    chapterNo: i + 1,
-    title: `${subjectName || "Subject"} - Chapter ${i + 1}`,
-    description: `Fundamental overview and exercises for Unit ${i + 1}`,
-    topics: [
-      { title: `Introduction to Unit ${i + 1}`, completed: i < 3 },
-      { title: `Core Concepts & Applications`, completed: i < 2 }
-    ]
-  }));
-};
+// Helper: Seed default chapters if no MasterSyllabus exists (returns empty array so syllabus starts clean)
+const getDefaultChaptersForSubject = () => [];
 
 // 1. Get Teacher Subject Syllabus (Auto-clone from Master or default)
 exports.getSubjectSyllabus = async (req, res) => {
@@ -69,7 +24,6 @@ exports.getSubjectSyllabus = async (req, res) => {
       }
 
       // Check if MasterSyllabus exists for school & subject
-      const firstClassName = subjectObj.classes && subjectObj.classes.length > 0 ? subjectObj.classes[0].name : "10";
       const master = await MasterSyllabus.findOne({
         schoolName: req.user.schoolName || "",
         subjectName: new RegExp("^" + subjectObj.name.trim() + "$", "i")
@@ -86,7 +40,7 @@ exports.getSubjectSyllabus = async (req, res) => {
           topics: (ch.defaultTopics || []).map(t => ({ title: t, completed: false }))
         }));
       } else {
-        initialChapters = getDefaultChaptersForSubject(subjectObj.name);
+        initialChapters = getDefaultChaptersForSubject();
       }
 
       // Create new SubjectSyllabus doc
@@ -320,9 +274,7 @@ exports.getMasterSyllabus = async (req, res) => {
     }).lean();
 
     if (!master) {
-      // Fallback default chapters if none exists yet
-      const defaults = getDefaultChaptersForSubject(subjectName);
-      return res.json({ className, subjectName, chapters: defaults, isDefault: true });
+      return res.json({ className, subjectName, chapters: [], isDefault: true });
     }
 
     res.json(master);

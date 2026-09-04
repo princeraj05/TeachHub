@@ -391,23 +391,23 @@ export default function Subjects() {
 
       {/* ── Admin Master Syllabus Modal ── */}
       {syllabusSubject && (
-        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[95] flex items-center justify-center p-3 sm:p-6 overflow-y-auto select-none">
-          <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl relative animate-fadeIn text-slate-800 my-auto">
+        <div className="fixed inset-0 bg-[#070b13]/80 backdrop-blur-sm z-[95] flex items-center justify-center p-3 sm:p-6 overflow-y-auto select-none">
+          <div className="bg-white dark:bg-[#0F172A] border border-slate-200/80 dark:border-white/10 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl relative animate-fadeIn text-slate-800 dark:text-white my-auto">
             
             {/* Modal Header */}
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div className="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-teal-500/10 text-teal-600 border border-teal-500/20 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-2xl bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] border border-[#7C3AED]/20 flex items-center justify-center shrink-0">
                   <FaListUl className="text-base" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">Master Syllabus & Chapters</h3>
-                  <p className="text-[11px] font-bold text-teal-600 mt-0.5">{syllabusSubject.name} &bull; School Blueprint Curriculum</p>
+                  <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">Master Syllabus & Chapters</h3>
+                  <p className="text-[11px] font-bold text-[#7C3AED] dark:text-[#38BDF8] mt-0.5">{syllabusSubject.name} &bull; School Blueprint Curriculum</p>
                 </div>
               </div>
               <button
                 onClick={() => setSyllabusSubject(null)}
-                className="text-slate-400 hover:text-slate-600 p-2 rounded-xl bg-white border border-slate-200 cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white p-2 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 cursor-pointer transition"
               >
                 <FaTimes className="text-sm" />
               </button>
@@ -417,19 +417,19 @@ export default function Subjects() {
             <div className="p-6 overflow-y-auto flex-1 space-y-6">
               
               {/* Target Class Selector Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-purple-50/80 border border-purple-200/80 p-4 rounded-2xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#7C3AED]/10 border border-[#7C3AED]/20 p-4 rounded-2xl">
                 <div>
-                  <span className="text-[10px] font-black uppercase text-purple-700 tracking-wider">Select Class to Manage Syllabus</span>
-                  <p className="text-xs font-extrabold text-slate-800 mt-0.5">
-                    Managing <span className="text-purple-600 font-black">{syllabusSubject.name}</span> Syllabus for <span className="text-purple-600 font-black">Class {selectedSyllabusClass}</span>
+                  <span className="text-[10px] font-black uppercase text-[#7C3AED] dark:text-[#38BDF8] tracking-wider">Select Class to Manage Syllabus</span>
+                  <p className="text-xs font-extrabold text-slate-800 dark:text-white mt-0.5">
+                    Managing <span className="text-[#7C3AED] dark:text-[#38BDF8] font-black">{syllabusSubject.name}</span> Syllabus for <span className="text-[#7C3AED] dark:text-[#38BDF8] font-black">Class {selectedSyllabusClass}</span>
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <FaLayerGroup className="text-purple-600 text-xs shrink-0" />
+                  <FaLayerGroup className="text-[#7C3AED] dark:text-[#38BDF8] text-xs shrink-0" />
                   <select
                     value={selectedSyllabusClass}
                     onChange={(e) => handleSyllabusClassChange(e.target.value)}
-                    className="px-3.5 py-2 bg-white border border-purple-300 text-purple-900 rounded-xl text-xs font-black shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                    className="px-3.5 py-2 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white rounded-xl text-xs font-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 cursor-pointer"
                   >
                     {(syllabusSubject.classes && syllabusSubject.classes.length > 0
                       ? syllabusSubject.classes
@@ -444,9 +444,9 @@ export default function Subjects() {
               </div>
 
               {/* Add New Chapter Form */}
-              <div className="bg-teal-50/50 border border-teal-200/60 p-4 rounded-2xl space-y-3">
-                <h4 className="text-xs font-black uppercase tracking-wider text-teal-800 flex items-center gap-1.5">
-                  <FaPlus className="text-[10px]" /> Add Chapter for Class {selectedSyllabusClass} ({syllabusSubject.name})
+              <div className="bg-slate-50/80 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 p-4 rounded-2xl space-y-3">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-white flex items-center gap-1.5">
+                  <FaPlus className="text-[10px] text-[#7C3AED] dark:text-[#38BDF8]" /> Add Chapter for Class {selectedSyllabusClass} ({syllabusSubject.name})
                 </h4>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -455,14 +455,14 @@ export default function Subjects() {
                     placeholder="Chapter Title (e.g. Chapter 1: Kabirdas Sakhi)"
                     value={newChapterTitle}
                     onChange={(e) => setNewChapterTitle(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-teal-500"
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#7C3AED]"
                   />
                   <input
                     type="text"
                     placeholder="Short Description / Topics Overview (Optional)"
                     value={newChapterDesc}
                     onChange={(e) => setNewChapterDesc(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-teal-500"
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#7C3AED]"
                   />
                 </div>
 
@@ -471,7 +471,7 @@ export default function Subjects() {
                     type="button"
                     onClick={addChapterToMaster}
                     disabled={!newChapterTitle.trim()}
-                    className="px-4 py-2 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-xs font-extrabold rounded-xl transition cursor-pointer shadow-sm"
+                    className="px-4 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] disabled:opacity-50 text-white text-xs font-extrabold rounded-xl transition cursor-pointer shadow-sm"
                   >
                     + Add Chapter
                   </button>
@@ -480,37 +480,37 @@ export default function Subjects() {
 
               {/* Master Chapters List */}
               <div>
-                <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 mb-3">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3">
                   Master Chapters List ({syllabusChapters.length})
                 </h4>
 
                 {syllabusChapters.length === 0 ? (
-                  <div className="p-8 text-center bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
-                    <p className="text-xs text-slate-400 font-bold">No master chapters added yet.</p>
-                    <p className="text-[10px] text-slate-400 mt-1">Use the form above to add standard chapters for {syllabusSubject.name}.</p>
+                  <div className="p-8 text-center bg-slate-50 dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/10 rounded-2xl">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">No chapters added yet for Class {selectedSyllabusClass}.</p>
+                    <p className="text-[10px] text-slate-400 mt-1">Use the form above to add standard chapters for Class {selectedSyllabusClass} ({syllabusSubject.name}).</p>
                   </div>
                 ) : (
                   <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
                     {syllabusChapters.map((ch, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs"
+                        className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/5 rounded-xl text-xs"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <span className="w-6 h-6 rounded-lg bg-teal-600 text-white text-[10px] font-black flex items-center justify-center shrink-0">
+                          <span className="w-6 h-6 rounded-lg bg-[#7C3AED] text-white text-[10px] font-black flex items-center justify-center shrink-0">
                             {idx + 1}
                           </span>
                           <div className="min-w-0">
-                            <p className="font-bold text-slate-800 truncate">{ch.title}</p>
+                            <p className="font-bold text-slate-800 dark:text-white truncate">{ch.title}</p>
                             {ch.description && (
-                              <p className="text-[10px] text-slate-400 truncate">{ch.description}</p>
+                              <p className="text-[10px] text-slate-400 dark:text-slate-400 truncate">{ch.description}</p>
                             )}
                           </div>
                         </div>
                         <button
                           type="button"
                           onClick={() => removeChapterFromMaster(idx)}
-                          className="text-rose-500 hover:text-rose-700 p-1.5 rounded-lg hover:bg-rose-50 transition shrink-0"
+                          className="text-rose-500 hover:text-rose-700 p-1.5 rounded-lg hover:bg-rose-500/10 transition shrink-0 cursor-pointer"
                           title="Remove Chapter"
                         >
                           <FaTrash className="text-xs" />
@@ -524,11 +524,11 @@ export default function Subjects() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3">
+            <div className="p-5 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setSyllabusSubject(null)}
-                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer"
+                className="px-4 py-2.5 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl transition cursor-pointer"
               >
                 Cancel
               </button>
@@ -536,7 +536,7 @@ export default function Subjects() {
                 type="button"
                 onClick={saveMasterSyllabus}
                 disabled={savingSyllabus}
-                className="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-xs font-extrabold rounded-xl transition cursor-pointer shadow-md"
+                className="px-5 py-2.5 bg-[#7C3AED] hover:bg-[#6D28D9] disabled:opacity-50 text-white text-xs font-extrabold rounded-xl transition cursor-pointer shadow-md"
               >
                 {savingSyllabus ? "Saving Master..." : "Save Master Syllabus"}
               </button>
