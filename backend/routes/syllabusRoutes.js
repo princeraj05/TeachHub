@@ -11,6 +11,7 @@ router.patch("/subject/:subjectId/chapter/:chapterId/topic/:topicId", protect, a
 router.post("/subject/:subjectId/custom-chapter", protect, authorize("teacher", "admin", "superadmin"), syllabusController.addCustomChapter);
 
 // Admin Master Endpoint
+router.get("/master", protect, authorize("admin", "superadmin"), syllabusController.getMasterSyllabus);
 router.post("/master", protect, authorize("admin", "superadmin"), syllabusController.createMasterSyllabus);
 
 module.exports = router;

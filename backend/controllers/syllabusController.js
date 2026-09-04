@@ -304,3 +304,29 @@ exports.createMasterSyllabus = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// 7. Get Master Syllabus for specific className and subjectName
+exports.getMasterSyllabus = async (req, res) => {
+  try {
+    const { className, subjectName } = req.query;
+    if (!className || !subjectName) {
+      return res.status(400).json({ message: "className and subjectName query parameters required" });
+    }
+
+    const master = await MasterSyllabus.findOne({
+      schoolName: req.user.schoolName || "",
+      className,
+      subjectName: new RegExp("^" + subjectName.trim() + "$", "i")
+    }).lean();
+
+    if (!master) {
+      // Fallback default chapters if none exists yet
+      const defaults = getDefaultChaptersForSubject(subjectName);
+      return res.json({ className, subjectName, chapters: defaults, isDefault: true });
+    }
+
+    res.json(master);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

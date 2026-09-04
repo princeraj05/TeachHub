@@ -27,13 +27,12 @@ export default function Subjects() {
   const [newChapterDesc, setNewChapterDesc] = useState("");
   const [selectedSyllabusClass, setSelectedSyllabusClass] = useState("10");
 
-  const openSyllabusModal = async (subject) => {
-    setSyllabusSubject(subject);
-    const className = (subject.classes && subject.classes.length > 0) ? subject.classes[0].name : "10";
-    setSelectedSyllabusClass(className);
-
+  const loadClassMasterSyllabus = async (subject, targetClassName) => {
     try {
-      const res = await axios.get(`${api}/api/syllabus/subject/${subject._id}`, { headers: headers() });
+      const res = await axios.get(
+        `${api}/api/syllabus/master?className=${encodeURIComponent(targetClassName)}&subjectName=${encodeURIComponent(subject.name)}`,
+        { headers: headers() }
+      );
       if (res.data && res.data.chapters) {
         setSyllabusChapters(res.data.chapters);
       } else {
@@ -41,6 +40,20 @@ export default function Subjects() {
       }
     } catch (err) {
       setSyllabusChapters([]);
+    }
+  };
+
+  const openSyllabusModal = async (subject) => {
+    setSyllabusSubject(subject);
+    const firstClass = (subject.classes && subject.classes.length > 0) ? subject.classes[0].name : "10";
+    setSelectedSyllabusClass(firstClass);
+    await loadClassMasterSyllabus(subject, firstClass);
+  };
+
+  const handleSyllabusClassChange = async (newClassName) => {
+    setSelectedSyllabusClass(newClassName);
+    if (syllabusSubject) {
+      await loadClassMasterSyllabus(syllabusSubject, newClassName);
     }
   };
 
@@ -403,10 +416,37 @@ export default function Subjects() {
             {/* Modal Body */}
             <div className="p-6 overflow-y-auto flex-1 space-y-6">
               
+              {/* Target Class Selector Bar */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-purple-50/80 border border-purple-200/80 p-4 rounded-2xl">
+                <div>
+                  <span className="text-[10px] font-black uppercase text-purple-700 tracking-wider">Select Class to Manage Syllabus</span>
+                  <p className="text-xs font-extrabold text-slate-800 mt-0.5">
+                    Managing <span className="text-purple-600 font-black">{syllabusSubject.name}</span> Syllabus for <span className="text-purple-600 font-black">Class {selectedSyllabusClass}</span>
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FaLayerGroup className="text-purple-600 text-xs shrink-0" />
+                  <select
+                    value={selectedSyllabusClass}
+                    onChange={(e) => handleSyllabusClassChange(e.target.value)}
+                    className="px-3.5 py-2 bg-white border border-purple-300 text-purple-900 rounded-xl text-xs font-black shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                  >
+                    {(syllabusSubject.classes && syllabusSubject.classes.length > 0
+                      ? syllabusSubject.classes
+                      : classes
+                    ).map((cls) => (
+                      <option key={cls._id || cls.name} value={cls.name}>
+                        Class {cls.name} {cls.section ? `(Section ${cls.section})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               {/* Add New Chapter Form */}
               <div className="bg-teal-50/50 border border-teal-200/60 p-4 rounded-2xl space-y-3">
                 <h4 className="text-xs font-black uppercase tracking-wider text-teal-800 flex items-center gap-1.5">
-                  <FaPlus className="text-[10px]" /> Add Chapter to Master Blueprint
+                  <FaPlus className="text-[10px]" /> Add Chapter for Class {selectedSyllabusClass} ({syllabusSubject.name})
                 </h4>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
