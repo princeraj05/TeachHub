@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaBook, FaCheckSquare, FaPlus, FaSchool, FaSearch, FaTrash, FaEdit, FaTimes } from "react-icons/fa";
+import { FaBook, FaCheckSquare, FaPlus, FaSchool, FaSearch, FaTrash, FaEdit, FaTimes, FaListUl, FaLayerGroup } from "react-icons/fa";
 
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
 const classLabel = item => `Class ${item.name} — Section ${item.section}`;
@@ -18,6 +18,83 @@ export default function Subjects() {
   
   const [editingSubject, setEditingSubject] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+
+  // Master Syllabus Modal State
+  const [syllabusSubject, setSyllabusSubject] = useState(null);
+  const [syllabusChapters, setSyllabusChapters] = useState([]);
+  const [savingSyllabus, setSavingSyllabus] = useState(false);
+  const [newChapterTitle, setNewChapterTitle] = useState("");
+  const [newChapterDesc, setNewChapterDesc] = useState("");
+  const [selectedSyllabusClass, setSelectedSyllabusClass] = useState("10");
+
+  const openSyllabusModal = async (subject) => {
+    setSyllabusSubject(subject);
+    const className = (subject.classes && subject.classes.length > 0) ? subject.classes[0].name : "10";
+    setSelectedSyllabusClass(className);
+
+    try {
+      const res = await axios.get(`${api}/api/syllabus/subject/${subject._id}`, { headers: headers() });
+      if (res.data && res.data.chapters) {
+        setSyllabusChapters(res.data.chapters);
+      } else {
+        setSyllabusChapters([]);
+      }
+    } catch (err) {
+      setSyllabusChapters([]);
+    }
+  };
+
+  const addChapterToMaster = () => {
+    if (!newChapterTitle.trim()) return;
+    const nextNo = syllabusChapters.length + 1;
+    setSyllabusChapters(prev => [
+      ...prev,
+      {
+        chapterNo: nextNo,
+        title: newChapterTitle.trim(),
+        description: newChapterDesc.trim(),
+        defaultTopics: []
+      }
+    ]);
+    setNewChapterTitle("");
+    setNewChapterDesc("");
+  };
+
+  const removeChapterFromMaster = (index) => {
+    setSyllabusChapters(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const saveMasterSyllabus = async () => {
+    if (!syllabusSubject) return;
+    try {
+      setSavingSyllabus(true);
+      const formattedChapters = syllabusChapters.map((ch, idx) => ({
+        chapterNo: idx + 1,
+        title: ch.title,
+        description: ch.description || "",
+        defaultTopics: ch.topics ? ch.topics.map(t => t.title || t) : (ch.defaultTopics || [])
+      }));
+
+      await axios.post(
+        `${api}/api/syllabus/master`,
+        {
+          className: selectedSyllabusClass,
+          subjectName: syllabusSubject.name,
+          chapters: formattedChapters
+        },
+        { headers: headers() }
+      );
+
+      setNotice(`Master Syllabus for ${syllabusSubject.name} saved successfully!`);
+      setSyllabusSubject(null);
+      setTimeout(() => setNotice(""), 3000);
+    } catch (err) {
+      setErrorNotice(err.response?.data?.message || "Failed to save Master Syllabus.");
+      setTimeout(() => setErrorNotice(""), 4000);
+    } finally {
+      setSavingSyllabus(false);
+    }
+  };
 
   const load = async () => {
     try {
@@ -221,20 +298,26 @@ export default function Subjects() {
                 </div>
               </div>
               
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => openSyllabusModal(subject)}
+                  className="rounded-xl bg-purple-50 hover:bg-purple-100 px-3 py-2 text-xs font-bold text-purple-700 transition border border-purple-200/60 cursor-pointer"
+                >
+                  <FaListUl className="mr-1 inline" />Manage Syllabus
+                </button>
                 <button
                   onClick={() => {
                     setEditingSubject(subject);
                     setName(subject.name);
                     setClassIds((subject.classes || []).map(item => item._id));
                   }}
-                  className="rounded-xl bg-slate-100 hover:bg-slate-200 px-3 py-2 text-xs font-bold text-slate-700 transition"
+                  className="rounded-xl bg-slate-100 hover:bg-slate-200 px-3 py-2 text-xs font-bold text-slate-700 transition cursor-pointer"
                 >
                   <FaEdit className="mr-1 inline" />Edit subject
                 </button>
                 <button
                   onClick={() => remove(subject)}
-                  className="rounded-xl border border-rose-100 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-500 transition hover:bg-rose-500 hover:text-white"
+                  className="rounded-xl border border-rose-100 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-500 transition hover:bg-rose-500 hover:text-white cursor-pointer"
                 >
                   <FaTrash className="mr-1 inline" />Delete subject
                 </button>
@@ -289,6 +372,136 @@ export default function Subjects() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Admin Master Syllabus Modal ── */}
+      {syllabusSubject && (
+        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[95] flex items-center justify-center p-3 sm:p-6 overflow-y-auto select-none">
+          <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl relative animate-fadeIn text-slate-800 my-auto">
+            
+            {/* Modal Header */}
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-teal-500/10 text-teal-600 border border-teal-500/20 flex items-center justify-center shrink-0">
+                  <FaListUl className="text-base" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">Master Syllabus & Chapters</h3>
+                  <p className="text-[11px] font-bold text-teal-600 mt-0.5">{syllabusSubject.name} &bull; School Blueprint Curriculum</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSyllabusSubject(null)}
+                className="text-slate-400 hover:text-slate-600 p-2 rounded-xl bg-white border border-slate-200 cursor-pointer"
+              >
+                <FaTimes className="text-sm" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-6">
+              
+              {/* Add New Chapter Form */}
+              <div className="bg-teal-50/50 border border-teal-200/60 p-4 rounded-2xl space-y-3">
+                <h4 className="text-xs font-black uppercase tracking-wider text-teal-800 flex items-center gap-1.5">
+                  <FaPlus className="text-[10px]" /> Add Chapter to Master Blueprint
+                </h4>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    placeholder="Chapter Title (e.g. Chapter 1: Kabirdas Sakhi)"
+                    value={newChapterTitle}
+                    onChange={(e) => setNewChapterTitle(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-teal-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Short Description / Topics Overview (Optional)"
+                    value={newChapterDesc}
+                    onChange={(e) => setNewChapterDesc(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-teal-500"
+                  />
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={addChapterToMaster}
+                    disabled={!newChapterTitle.trim()}
+                    className="px-4 py-2 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-xs font-extrabold rounded-xl transition cursor-pointer shadow-sm"
+                  >
+                    + Add Chapter
+                  </button>
+                </div>
+              </div>
+
+              {/* Master Chapters List */}
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 mb-3">
+                  Master Chapters List ({syllabusChapters.length})
+                </h4>
+
+                {syllabusChapters.length === 0 ? (
+                  <div className="p-8 text-center bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+                    <p className="text-xs text-slate-400 font-bold">No master chapters added yet.</p>
+                    <p className="text-[10px] text-slate-400 mt-1">Use the form above to add standard chapters for {syllabusSubject.name}.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                    {syllabusChapters.map((ch, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="w-6 h-6 rounded-lg bg-teal-600 text-white text-[10px] font-black flex items-center justify-center shrink-0">
+                            {idx + 1}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="font-bold text-slate-800 truncate">{ch.title}</p>
+                            {ch.description && (
+                              <p className="text-[10px] text-slate-400 truncate">{ch.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeChapterFromMaster(idx)}
+                          className="text-rose-500 hover:text-rose-700 p-1.5 rounded-lg hover:bg-rose-50 transition shrink-0"
+                          title="Remove Chapter"
+                        >
+                          <FaTrash className="text-xs" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setSyllabusSubject(null)}
+                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={saveMasterSyllabus}
+                disabled={savingSyllabus}
+                className="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-xs font-extrabold rounded-xl transition cursor-pointer shadow-md"
+              >
+                {savingSyllabus ? "Saving Master..." : "Save Master Syllabus"}
+              </button>
+            </div>
+
           </div>
         </div>
       )}
