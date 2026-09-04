@@ -27,7 +27,13 @@ export default function SyllabusTab({ subjectId, subjectName, assignedClasses = 
     ? assignedClasses.map(c => c.name || `Class ${c.name}`) 
     : defaultClassOptions;
 
-  const [selectedClass, setSelectedClass] = useState(initialClass || classList[0] || "Class 1");
+  const getEffectiveClass = (cStr) => {
+    if (cStr && cStr !== "All") return cStr;
+    if (classList && classList.length > 0) return classList[0];
+    return "Class 1";
+  };
+
+  const [selectedClass, setSelectedClass] = useState(() => getEffectiveClass(initialClass));
   const [loading, setLoading] = useState(true);
   const [syllabus, setSyllabus] = useState(null);
   const [expandedChapterId, setExpandedChapterId] = useState(null);
@@ -45,8 +51,9 @@ export default function SyllabusTab({ subjectId, subjectName, assignedClasses = 
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (initialClass && initialClass !== selectedClass) {
-      setSelectedClass(initialClass);
+    const effective = getEffectiveClass(initialClass);
+    if (effective !== selectedClass) {
+      setSelectedClass(effective);
     }
   }, [initialClass]);
 
@@ -61,7 +68,6 @@ export default function SyllabusTab({ subjectId, subjectName, assignedClasses = 
         headers: { Authorization: `Bearer ${token}` }
       });
       setSyllabus(res.data);
-      if (onSyllabusUpdate) onSyllabusUpdate(targetClass);
     } catch (err) {
       console.error("Error loading syllabus:", err);
     } finally {
@@ -170,36 +176,6 @@ export default function SyllabusTab({ subjectId, subjectName, assignedClasses = 
 
   return (
     <div className="space-y-6">
-      
-      {/* Class Selection Banner */}
-      <div className="bg-gradient-to-r from-purple-900/10 via-indigo-900/10 to-slate-900/10 dark:from-purple-950/40 dark:to-slate-900/40 border border-purple-500/20 dark:border-white/10 p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 select-none shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-black text-sm shadow-md shrink-0">
-            <FaBook />
-          </div>
-          <div>
-            <span className="text-[9px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-400">CLASS SYLLABUS SELECTOR</span>
-            <h4 className="text-xs font-black text-slate-900 dark:text-white mt-0.5">
-              Managing Syllabus for <span className="text-purple-600 dark:text-purple-400 font-extrabold">{selectedClass}</span> ({subjectName})
-            </h4>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 w-full md:w-auto shrink-0">
-          <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider whitespace-nowrap hidden sm:inline">Select Class:</label>
-          <select
-            value={selectedClass}
-            onChange={(e) => setSelectedClass(e.target.value)}
-            className="w-full md:w-60 px-4 py-2.5 bg-white dark:bg-[#0F172A] border border-purple-500/30 dark:border-white/15 rounded-xl text-xs font-extrabold text-slate-900 dark:text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
-          >
-            {classList.map((cName, idx) => (
-              <option key={idx} value={cName}>
-                {cName} Syllabus
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
 
       {/* Syllabus Header & Action Bar */}
       <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">

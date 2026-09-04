@@ -409,28 +409,31 @@ exports.uploadVideos = async (req, res) => {
 
       if (hasCloudinary) {
         try {
-          const result = await cloudinary.uploader.upload_large(file.path, {
+          // Try standard video upload first
+          const result = await cloudinary.uploader.upload(file.path, {
             folder: "teachhub/events/videos",
             resource_type: "video",
-            chunk_size: 6000000
+            timeout: 120000
           });
           uploadedIds.push(result.public_id);
           videoUrl = result.secure_url;
           filename = result.public_id;
           deletePhysicalFile(file.filename);
         } catch (cErr) {
-          console.error("Cloudinary video upload_large error, trying standard upload:", cErr.message);
+          console.error("Cloudinary standard video upload error, trying upload_large:", cErr.message);
           try {
-            const result = await cloudinary.uploader.upload(file.path, {
+            const result = await cloudinary.uploader.upload_large(file.path, {
               folder: "teachhub/events/videos",
-              resource_type: "video"
+              resource_type: "video",
+              chunk_size: 20000000, // 20MB minimum chunk size for Cloudinary
+              timeout: 180000
             });
             uploadedIds.push(result.public_id);
             videoUrl = result.secure_url;
             filename = result.public_id;
             deletePhysicalFile(file.filename);
           } catch (cErr2) {
-            console.error("Cloudinary standard video upload error:", cErr2.message);
+            console.error("Cloudinary upload_large video upload error:", cErr2.message);
           }
         }
       }

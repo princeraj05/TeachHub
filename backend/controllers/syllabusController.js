@@ -6,11 +6,14 @@ const Class = require("../models/Class");
 // Helper: Seed default chapters if no MasterSyllabus exists (returns empty array so syllabus starts clean)
 const getDefaultChaptersForSubject = () => [];
 
-// Helper: Extract base class name (e.g. "Class 1" from "Class 1 - A")
+// Helper: Extract base class name (e.g. "Class 1" from "Class 1 - A" or "1")
 const extractBaseClassName = (str) => {
   if (!str) return "Class 1";
-  const match = String(str).match(/Class\s*\d+/i);
-  return match ? match[0] : String(str).trim();
+  const numMatch = String(str).match(/\d+/);
+  if (numMatch) {
+    return `Class ${numMatch[0]}`;
+  }
+  return String(str).trim();
 };
 
 // 1. Get Teacher Subject Syllabus (Auto-clone from Master or default for specific class)
@@ -36,47 +39,54 @@ exports.getSubjectSyllabus = async (req, res) => {
       .populate("subject", "name code classes")
       .lean();
 
-    if (!syllabus) {
-      // Check if MasterSyllabus exists for school, targetClassName & subjectName
-      const master = await MasterSyllabus.findOne({
-        schoolName: req.user.schoolName || "",
-        className: new RegExp("^" + targetClassName.trim() + "$", "i"),
-        subjectName: new RegExp("^" + subjectObj.name.trim() + "$", "i")
-      }).lean();
+    // Check master syllabus template
+    const master = await MasterSyllabus.findOne({
+      schoolName: req.user.schoolName || "",
+      className: targetClassName,
+      subjectName: new RegExp("^" + subjectObj.name.trim() + "$", "i")
+    }).lean();
 
-      let initialChapters = [];
-      if (master && master.chapters && master.chapters.length > 0) {
-        initialChapters = master.chapters.map(ch => ({
+    const masterChapters = (master && master.chapters && master.chapters.length > 0)
+      ? master.chapters.map(ch => ({
           chapterNo: ch.chapterNo,
           title: ch.title,
           description: ch.description || "",
           status: "Not Started",
           isMasterChapter: true,
-          topics: (ch.defaultTopics || []).map(t => ({ title: t, completed: false }))
-        }));
-      } else {
-        initialChapters = getDefaultChaptersForSubject();
-      }
+          topics: (ch.defaultTopics || []).map(t => ({ title: typeof t === 'string' ? t : (t.title || ""), completed: false }))
+        }))
+      : [];
 
+    if (!syllabus) {
       // Create new SubjectSyllabus doc for this class
       const newSyllabusDoc = await SubjectSyllabus.create({
         subject: subjectId,
         className: targetClassName,
         teacher: teacherId,
         schoolName: req.user.schoolName || "",
-        chapters: initialChapters
+        chapters: masterChapters
       });
 
       syllabus = await SubjectSyllabus.findById(newSyllabusDoc._id)
         .populate("subject", "name code classes")
         .lean();
+    } else if ((!syllabus.chapters || syllabus.chapters.length === 0) && masterChapters.length > 0) {
+      // If existing syllabus is empty but Master now has chapters, auto-sync
+      await SubjectSyllabus.updateOne(
+        { _id: syllabus._id },
+        { $set: { chapters: masterChapters } }
+      );
+
+      syllabus = await SubjectSyllabus.findById(syllabus._id)
+        .populate("subject", "name code classes")
+        .lean();
     }
 
     // Calculate progression stats
-    const totalChapters = syllabus.chapters.length;
-    const completedChapters = syllabus.chapters.filter(ch => ch.status === "Completed").length;
-    const inProgressChapters = syllabus.chapters.filter(ch => ch.status === "In Progress").length;
-    const notStartedChapters = syllabus.chapters.filter(ch => ch.status === "Not Started").length;
+    const totalChapters = (syllabus.chapters || []).length;
+    const completedChapters = (syllabus.chapters || []).filter(ch => ch.status === "Completed").length;
+    const inProgressChapters = (syllabus.chapters || []).filter(ch => ch.status === "In Progress").length;
+    const notStartedChapters = (syllabus.chapters || []).filter(ch => ch.status === "Not Started").length;
 
     let progressPercentage = 0;
     if (totalChapters > 0) {
@@ -270,21 +280,49 @@ exports.createMasterSyllabus = async (req, res) => {
       return res.status(400).json({ message: "className, subjectName, and chapters array required" });
     }
 
+    const targetClassName = extractBaseClassName(className);
+
     const master = await MasterSyllabus.findOneAndUpdate(
       {
         schoolName: req.user.schoolName || "",
-        className,
-        subjectName
+        className: targetClassName,
+        subjectName: new RegExp("^" + subjectName.trim() + "$", "i")
       },
       {
         schoolName: req.user.schoolName || "",
-        className,
-        subjectName,
+        className: targetClassName,
+        subjectName: subjectName.trim(),
         chapters,
         createdBy: req.user.id
       },
       { new: true, upsert: true }
     );
+
+    // Auto-update any existing SubjectSyllabus for this school + subject + className if empty
+    const subjectObj = await Subject.findOne({ name: new RegExp("^" + subjectName.trim() + "$", "i") });
+    if (subjectObj) {
+      const initialChapters = chapters.map(ch => ({
+        chapterNo: ch.chapterNo,
+        title: ch.title,
+        description: ch.description || "",
+        status: "Not Started",
+        isMasterChapter: true,
+        topics: (ch.defaultTopics || []).map(t => ({ title: typeof t === 'string' ? t : (t.title || ""), completed: false }))
+      }));
+
+      const existingDocs = await SubjectSyllabus.find({
+        subject: subjectObj._id,
+        className: targetClassName,
+        schoolName: req.user.schoolName || ""
+      });
+
+      for (const doc of existingDocs) {
+        if (!doc.chapters || doc.chapters.length === 0) {
+          doc.chapters = initialChapters;
+          await doc.save();
+        }
+      }
+    }
 
     res.json({ success: true, message: "Master syllabus saved", master });
   } catch (err) {
@@ -300,14 +338,16 @@ exports.getMasterSyllabus = async (req, res) => {
       return res.status(400).json({ message: "className and subjectName query parameters required" });
     }
 
+    const targetClassName = extractBaseClassName(className);
+
     const master = await MasterSyllabus.findOne({
       schoolName: req.user.schoolName || "",
-      className,
+      className: targetClassName,
       subjectName: new RegExp("^" + subjectName.trim() + "$", "i")
     }).lean();
 
     if (!master) {
-      return res.json({ className, subjectName, chapters: [], isDefault: true });
+      return res.json({ className: targetClassName, subjectName, chapters: [], isDefault: true });
     }
 
     res.json(master);
