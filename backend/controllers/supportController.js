@@ -240,17 +240,24 @@ exports.getContacts = async (req, res) => {
 
     if (role === "unassigned") {
       if (schoolRegex) {
-        contacts = await User.find({ role: { $regex: /^admin$/i }, schoolName: schoolRegex })
+        contacts = await User.find({
+          role: { $in: ["admin", "superadmin", "Admin", "SuperAdmin"] },
+          $or: [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }]
+        }).select("name email role schoolName isOnline lastSeen avatar");
+      }
+      if (contacts.length === 0) {
+        contacts = await User.find({ role: { $in: ["admin", "superadmin", "Admin", "SuperAdmin"] } })
           .select("name email role schoolName isOnline lastSeen avatar");
       }
     } else if (role === "superadmin") {
-      contacts = await User.find({ role: { $regex: /^admin$/i } })
+      contacts = await User.find({ _id: { $ne: currentUserId } })
         .select("name email role schoolName isOnline lastSeen avatar");
     } else if (role === "admin") {
       const superAdmins = await User.find({ role: { $regex: /^superadmin$/i } }).select("name email role schoolName isOnline lastSeen avatar");
       
       const query = {
-        role: { $in: ["teacher", "student", "Teacher", "Student"] }
+        _id: { $ne: currentUserId },
+        role: { $in: ["teacher", "student", "unassigned", "Teacher", "Student"] }
       };
       if (schoolRegex) {
         query.$or = [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }];
@@ -258,26 +265,22 @@ exports.getContacts = async (req, res) => {
 
       const schoolUsers = await User.find(query).select("name email role schoolName isOnline lastSeen avatar");
       contacts = [...superAdmins, ...schoolUsers];
-    } else if (role === "teacher") {
-      const adminQuery = { role: { $regex: /^admin$/i } };
-      const studentQuery = { role: { $regex: /^student$/i } };
+      if (contacts.length === 0) {
+        contacts = await User.find({ _id: { $ne: currentUserId } }).select("name email role schoolName isOnline lastSeen avatar");
+      }
+    } else {
+      const adminQuery = { role: { $in: ["admin", "superadmin", "Admin", "SuperAdmin"] } };
+      const peerQuery = { _id: { $ne: currentUserId }, role: { $in: ["teacher", "student", "Teacher", "Student"] } };
       if (schoolRegex) {
         adminQuery.$or = [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }];
-        studentQuery.$or = [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }];
+        peerQuery.$or = [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }];
       }
       const admins = await User.find(adminQuery).select("name email role schoolName isOnline lastSeen avatar");
-      const students = await User.find(studentQuery).select("name email role schoolName isOnline lastSeen avatar");
-      contacts = [...admins, ...students];
-    } else if (role === "student") {
-      const adminQuery = { role: { $regex: /^admin$/i } };
-      const teacherQuery = { role: { $regex: /^teacher$/i } };
-      if (schoolRegex) {
-        adminQuery.$or = [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }];
-        teacherQuery.$or = [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }];
+      const peers = await User.find(peerQuery).select("name email role schoolName isOnline lastSeen avatar");
+      contacts = [...admins, ...peers];
+      if (contacts.length === 0) {
+        contacts = await User.find({ role: { $in: ["admin", "superadmin"] } }).select("name email role schoolName isOnline lastSeen avatar");
       }
-      const admins = await User.find(adminQuery).select("name email role schoolName isOnline lastSeen avatar");
-      const teachers = await User.find(teacherQuery).select("name email role schoolName isOnline lastSeen avatar");
-      contacts = [...admins, ...teachers];
     }
 
     // Attach dynamic real-time metadata (lastMessage, unreadCount) to each contact

@@ -590,21 +590,36 @@ function PendingApproval() {
                                   const res = await axios.get(`${API}/api/support/users`, {
                                     headers: { Authorization: `Bearer ${token}` }
                                   });
-                                  if (Array.isArray(res.data)) {
-                                    const admin = res.data.find(c => c.role === "admin" || c.role === "superadmin");
+                                  if (Array.isArray(res.data) && res.data.length > 0) {
+                                    const admin = res.data.find(c => c.role === "admin" || c.role === "superadmin") || res.data[0];
                                     if (admin) {
                                       recipient = admin;
                                       setSchoolAdmin(admin);
                                     }
                                   }
+                                } catch (e) {
+                                  console.error("Error fetching support contacts for video call:", e);
+                                }
+                              }
+
+                              if (!recipient || !recipient._id) {
+                                try {
+                                  const res = await axios.get(`${API}/api/schools/${encodeURIComponent(user.requestedSchool || '')}`, {
+                                    headers: { Authorization: `Bearer ${token}` }
+                                  });
+                                  if (res.data && res.data.adminUser) {
+                                    recipient = res.data.adminUser;
+                                    setSchoolAdmin(res.data.adminUser);
+                                  }
                                 } catch (e) {}
                               }
-                              if (!recipient || !recipient._id) {
+
+                              if (recipient && recipient._id) {
+                                if (startCall) {
+                                  startCall(recipient, "video");
+                                }
+                              } else {
                                 alert(`Connecting to ${user.requestedSchool || 'School'} Admin... Please try again in a moment.`);
-                                return;
-                              }
-                              if (startCall) {
-                                startCall(recipient, "video");
                               }
                             }}
                             className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition cursor-pointer ${
