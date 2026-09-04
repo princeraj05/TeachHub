@@ -25,34 +25,49 @@ export default function VideoGallery({ videos, getMediaUrl, onDeleteVideo }) {
       {/* Main Active Player Area */}
       <div className="w-full bg-slate-950 dark:bg-slate-950/80 rounded-2.5xl border border-slate-200/60 dark:border-white/10 overflow-hidden shadow-lg flex flex-col select-none">
         <div className="relative aspect-video w-full bg-black flex items-center justify-center">
-          {videoError ? (
-            <div className="flex flex-col items-center justify-center p-6 text-center text-white space-y-3">
-              <FaExclamationTriangle className="text-amber-400 text-3xl" />
-              <p className="text-xs font-bold">Browser video format / codec ko support nahi kar raha hai.</p>
-              <p className="text-[11px] text-slate-300">Ye WhatsApp video file ho sakti hai. Isko direct download ya external player me open karein.</p>
-              <a
-                href={activeUrl}
-                target="_blank"
-                rel="noreferrer"
-                download
-                className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-black rounded-xl transition shadow-md"
-              >
-                <FaDownload /> Download / Open Video
-              </a>
+          <video
+            key={activeUrl}
+            src={activeUrl}
+            controls
+            autoPlay={activeIndex !== 0}
+            preload="metadata"
+            playsInline
+            onError={() => setVideoError(true)}
+            onCanPlay={() => setVideoError(false)}
+            className="w-full h-full object-contain"
+          >
+            <source src={activeUrl} type="video/mp4" />
+            <source src={activeUrl} type="video/webm" />
+            <source src={activeUrl} />
+            Your browser does not support playing this video.
+          </video>
+
+          {videoError && (
+            <div className="absolute inset-0 bg-black/85 backdrop-blur-md p-6 text-center text-white flex flex-col items-center justify-center space-y-3 z-10">
+              <FaExclamationTriangle className="text-amber-400 text-3xl animate-bounce" />
+              <p className="text-xs font-bold">Browser media codec error or format not natively playable.</p>
+              <p className="text-[11px] text-slate-300 max-w-md">
+                If this video is recorded from mobile / WhatsApp, your browser may require direct download or an external player.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setVideoError(false)}
+                  className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition border border-white/10"
+                >
+                  Retry Player
+                </button>
+                <a
+                  href={activeUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  download
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-black rounded-xl transition shadow-md"
+                >
+                  <FaDownload /> Download / Open Video
+                </a>
+              </div>
             </div>
-          ) : (
-            <video
-              key={activeUrl}
-              controls
-              autoPlay={activeIndex !== 0} // Autoplay when user manually selects subsequent videos
-              preload="metadata"
-              playsInline
-              onError={() => setVideoError(true)}
-              className="w-full h-full object-contain"
-            >
-              <source src={activeUrl} type={activeVideo?.mimeType || "video/mp4"} />
-              Your browser does not support playing this video.
-            </video>
           )}
         </div>
         
