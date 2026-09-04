@@ -232,7 +232,7 @@ exports.getContacts = async (req, res) => {
     const currentUserId = req.user.id;
     const role = req.user.role;
     const userDoc = await User.findById(currentUserId).lean();
-    const effectiveSchoolName = schoolName || userDoc?.requestedSchool || userDoc?.schoolName || "";
+    const effectiveSchoolName = req.user.schoolName || userDoc?.requestedSchool || userDoc?.schoolName || "";
 
     let contacts = [];
     const escapeRegex = (str) => (str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -301,7 +301,7 @@ exports.getContacts = async (req, res) => {
       });
 
       return {
-        ...contact.toObject(),
+        ...(contact.toObject ? contact.toObject() : contact),
         lastMessage: lastMsg,
         unreadCount
       };
