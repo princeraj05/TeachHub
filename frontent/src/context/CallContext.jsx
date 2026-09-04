@@ -84,7 +84,7 @@ export const CallProvider = ({ children }) => {
   useEffect(() => { currentCallIdRef.current = currentCallId; }, [currentCallId]);
   useEffect(() => { callDurationRef.current = callDuration; }, [callDuration]);
 
-  // Robust multi-STUN server config for Mobile LTE/5G and NAT traversal
+  // Robust multi-STUN and TURN server config for Mobile LTE/5G and NAT traversal
   const ICE_SERVERS = {
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
@@ -92,8 +92,24 @@ export const CallProvider = ({ children }) => {
       { urls: "stun:stun2.l.google.com:19302" },
       { urls: "stun:stun3.l.google.com:19302" },
       { urls: "stun:stun4.l.google.com:19302" },
-      { urls: "stun:global.stun.twilio.com:3478" }
-    ]
+      { urls: "stun:global.stun.twilio.com:3478" },
+      {
+        urls: "turn:openrelay.metered.ca:80",
+        username: "openrelayproject",
+        credential: "openrelayproject"
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443",
+        username: "openrelayproject",
+        credential: "openrelayproject"
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443?transport=tcp",
+        username: "openrelayproject",
+        credential: "openrelayproject"
+      }
+    ],
+    iceCandidatePoolSize: 10
   };
 
   // Helper for Sound Synthesis using Web Audio API
@@ -186,17 +202,27 @@ export const CallProvider = ({ children }) => {
       startSoundEffect("ringing");
     });
 
-    socket.on("call:accepted", async ({ callId }) => {
-      showToast("Call Accepted");
+    socket.on("call:waiting", ({ callId }) => {
+      setCurrentCallId(callId);
+      showToast("Waiting for participant to join meeting...");
+    });
+
+    socket.on("call:accepted", async ({ callId, isHost, partner }) => {
+      showToast("Participant connected");
+      if (partner) {
+        setCallPartner(partner);
+      }
       setCallState("active");
       stopSoundEffect();
       
-      setCallDuration(0);
-      timerRef.current = setInterval(() => {
-        setCallDuration((prev) => prev + 1);
-      }, 1000);
+      if (!timerRef.current) {
+        setCallDuration(0);
+        timerRef.current = setInterval(() => {
+          setCallDuration((prev) => prev + 1);
+        }, 1000);
+      }
 
-      await setupWebRTC(true);
+      await setupWebRTC(isHost !== undefined ? isHost : true);
     });
 
     socket.on("call:rejected", ({ reason, callId }) => {
@@ -207,7 +233,7 @@ export const CallProvider = ({ children }) => {
       if (reason === "busy") {
         showToast("User is busy");
       } else if (reason === "unavailable") {
-        showToast("User is offline");
+        showToast("Waiting in room for participant");
       } else {
         showToast("Call Declined");
       }
@@ -286,24 +312,34 @@ export const CallProvider = ({ children }) => {
     stopSoundEffect();
   };
 
-  const setupWebRTC = async (isCaller, remoteOffer = null) => {
+  const setupLocalStreamOnly = async (type = "video") => {
     try {
+      if (localStreamRef.current) return localStreamRef.current;
       const constraints = {
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        },
-        video: callTypeRef.current === "video" ? {
-          width: { ideal: 640 },
-          height: { ideal: 480 },
-          facingMode: "user"
-        } : false
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+        video: (type || callTypeRef.current) === "video" ? { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" } : false
       };
-
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       localStreamRef.current = stream;
       setLocalStream(stream);
+      return stream;
+    } catch (e) {
+      console.error("Local media setup failed:", e);
+    }
+  };
+
+  const setupWebRTC = async (isCaller, remoteOffer = null) => {
+    try {
+      let stream = localStreamRef.current;
+      if (!stream) {
+        stream = await setupLocalStreamOnly(callTypeRef.current);
+      }
+      if (!stream) return;
+
+      if (peerConnectionRef.current) {
+        peerConnectionRef.current.close();
+        peerConnectionRef.current = null;
+      }
 
       const pc = new RTCPeerConnection(ICE_SERVERS);
       peerConnectionRef.current = pc;
@@ -361,13 +397,15 @@ export const CallProvider = ({ children }) => {
     }
   };
 
-  const startCall = (receiver, type) => {
-    if (callState !== "idle") return;
+  const startCall = async (receiver, type) => {
+    if (callState !== "idle" && callState !== "ringing") return;
 
     setCallPartner(receiver);
     setCallType(type);
-    setCallState("calling");
-    startSoundEffect("calling");
+    setCallState("active");
+    stopSoundEffect();
+
+    await setupLocalStreamOnly(type);
 
     socket.emit("call:initiate", {
       receiverId: receiver._id,
@@ -469,9 +507,27 @@ export const CallProvider = ({ children }) => {
     remoteVideoRef.current = node;
     if (node && remoteStreamRef.current) {
       node.srcObject = remoteStreamRef.current;
-      node.play().catch(() => {});
+      const playPromise = node.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.warn("Mobile autoplay failed, attaching interaction listeners:", err);
+          const handleTouch = () => {
+            node.play().catch(() => {});
+            window.removeEventListener("touchstart", handleTouch);
+            window.removeEventListener("click", handleTouch);
+          };
+          window.addEventListener("touchstart", handleTouch);
+          window.addEventListener("click", handleTouch);
+        });
+      }
     }
   };
+
+  const hasRemoteVideo = Boolean(
+    remoteStream &&
+    remoteStream.getVideoTracks().length > 0 &&
+    remoteStream.getVideoTracks()[0].readyState === "live"
+  );
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
@@ -650,31 +706,72 @@ export const CallProvider = ({ children }) => {
           {/* Call Body Stream / Visualization */}
           {callType === "video" ? (
             <div className="relative flex-1 bg-slate-900/60 border border-white/10 my-4 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center max-w-4xl mx-auto w-full">
-              {/* Remote Video Stream */}
-              <video
-                ref={remoteVideoCallback}
-                autoPlay
-                playsInline
-                className="w-full h-full object-cover"
-              />
-
-              {/* Local Video PIP (Picture in Picture) */}
-              <div className="absolute bottom-4 right-4 w-32 sm:w-44 h-44 sm:h-56 bg-slate-950 border-2 border-white/20 rounded-2xl overflow-hidden shadow-2xl group transition-transform hover:scale-105">
-                {isCamOff ? (
-                  <div className="w-full h-full bg-slate-900 text-[10px] font-extrabold text-slate-400 flex flex-col items-center justify-center gap-1.5 uppercase">
-                    <FaVideoSlash className="text-base text-slate-500" />
-                    <span>Camera Off</span>
+              {/* Main Display: Remote Stream if connected and live, otherwise Local Stream preview */}
+              {hasRemoteVideo ? (
+                <video
+                  ref={remoteVideoCallback}
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="relative w-full h-full flex items-center justify-center bg-slate-950">
+                  {isCamOff ? (
+                    <div className="w-full h-full bg-slate-900 text-xs font-extrabold text-slate-400 flex flex-col items-center justify-center gap-2 uppercase">
+                      <FaVideoSlash className="text-3xl text-slate-500" />
+                      <span>Camera Off</span>
+                    </div>
+                  ) : (
+                    <video
+                      ref={localVideoCallback}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover transform scale-x-[-1]"
+                    />
+                  )}
+                  {/* Floating Waiting Banner Overlay */}
+                  <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-10">
+                    <div className="relative w-24 h-24 mb-4 flex items-center justify-center">
+                      <div className="absolute inset-0 rounded-full bg-purple-500/30 animate-ping" />
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white text-2xl font-black shadow-xl overflow-hidden border-2 border-white/20 z-10">
+                        {callPartner.avatar ? (
+                          <img src={callPartner.avatar} alt={callPartner.name} className="w-full h-full object-cover" />
+                        ) : (
+                          callPartner.name?.charAt(0).toUpperCase()
+                        )}
+                      </div>
+                    </div>
+                    <h3 className="text-white font-extrabold text-lg tracking-tight">Meeting Room Active</h3>
+                    <p className="text-purple-300 text-xs font-bold mt-1 animate-pulse">
+                      Waiting for {callPartner.name} to join...
+                    </p>
+                    <span className="mt-3 px-3 py-1 bg-white/10 rounded-full text-[10px] text-slate-300 font-mono">
+                      Meeting Room Live • Camera & Mic Active
+                    </span>
                   </div>
-                ) : (
-                  <video
-                    ref={localVideoCallback}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="w-full h-full object-cover transform scale-x-[-1]"
-                  />
-                )}
-              </div>
+                </div>
+              )}
+
+              {/* Local Video PIP (Picture in Picture) when remoteStream is connected and live */}
+              {hasRemoteVideo && (
+                <div className="absolute bottom-4 right-4 w-32 sm:w-44 h-44 sm:h-56 bg-slate-950 border-2 border-white/20 rounded-2xl overflow-hidden shadow-2xl group transition-transform hover:scale-105">
+                  {isCamOff ? (
+                    <div className="w-full h-full bg-slate-900 text-[10px] font-extrabold text-slate-400 flex flex-col items-center justify-center gap-1.5 uppercase">
+                      <FaVideoSlash className="text-base text-slate-500" />
+                      <span>Camera Off</span>
+                    </div>
+                  ) : (
+                    <video
+                      ref={localVideoCallback}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover transform scale-x-[-1]"
+                    />
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center my-6">

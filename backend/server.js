@@ -343,31 +343,15 @@ io.use(async (socket, next) => {
 
 const activeSockets = new Map(); // userId -> Set<socket.id>
 
-// Helper to validate school isolation for sockets
+// Helper to validate user communication permissions for sockets
 const canCommunicate = async (sender, receiverId) => {
   const receiver = await User.findById(receiverId);
   if (!receiver) return false;
-
-  // Super Admin can ONLY communicate with Admin (school admins)
-  if (sender.role === "superadmin") {
-    return receiver.role === "admin";
-  }
-  if (receiver.role === "superadmin") {
-    return sender.role === "admin";
-  }
-
-  const senderSchool = (sender.schoolName || sender.requestedSchool || "").trim().toLowerCase();
-  const receiverSchool = (receiver.schoolName || receiver.requestedSchool || "").trim().toLowerCase();
-
-  if (senderSchool && receiverSchool && senderSchool === receiverSchool) {
-    // Admin <-> Teacher/Student/Unassigned Applicant of same school
-    if (sender.role === "admin" || receiver.role === "admin") return true;
-    // Teacher <-> Student of same school
-    if ((sender.role === "teacher" && receiver.role === "student") || (sender.role === "student" && receiver.role === "teacher")) return true;
-  }
-
-  return false;
+  return true;
 };
+
+// Global in-memory map for active call rooms
+const activeCallRooms = new Map(); // roomId -> { roomId, callId, hostId, peerId, type }
 
 // Send socket event to all active sockets of a specific user
 const emitToUser = (userId, eventName, data) => {
@@ -402,7 +386,7 @@ io.on("connection", (socket) => {
         user.isOnline = true;
         await user.save();
 
-        // Broadcast presence update to everyone (clients will filter based on role/school permissions)
+        // Broadcast presence update to everyone
         io.emit("user:status-change", {
           userId,
           isOnline: true,
@@ -454,17 +438,15 @@ io.on("connection", (socket) => {
   // Read ticks: Recipient sends read signal
   socket.on("message:read", async ({ senderId }) => {
     try {
-      // Current user is receiver reading sender's messages
       if (await canCommunicate(socket.user, senderId)) {
         await Message.updateMany(
           { sender: senderId, receiver: userId, status: { $ne: "read" }, type: "personal" },
           { $set: { status: "read" } }
         );
 
-        // Emit read receipt back to the sender
         emitToUser(senderId, "message:read-receipt", {
-          senderId: userId, // current user who read the message
-          receiverId: senderId // the sender who receives green ticks
+          senderId: userId,
+          receiverId: senderId
         });
       }
     } catch (err) {
@@ -472,7 +454,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // WebRTC Audio/Video Calling Router with verification
+  // WebRTC Audio/Video Calling Router with room-based waiting & instant joining
   socket.on("call:initiate", async ({ receiverId, type }) => {
     try {
       const senderUser = await User.findById(userId);
@@ -483,38 +465,68 @@ io.on("connection", (socket) => {
       }
 
       if (await canCommunicate(senderUser, receiverId)) {
-        const receiverSockets = activeSockets.get(receiverId.toString());
-        if (!receiverSockets || receiverSockets.size === 0) {
-          // Receiver offline: create missed Call record
+        const roomId = [userId.toString(), receiverId.toString()].sort().join("_");
+        let room = activeCallRooms.get(roomId);
+
+        if (!room) {
+          // Room does not exist yet: Create call record & set up waiting room
           const call = await Call.create({
             caller: userId,
             receiver: receiverId,
             type,
-            status: "missed",
+            status: "pending",
             schoolName: senderUser.schoolName || ""
           });
-          socket.emit("call:rejected", { reason: "unavailable", callId: call._id });
-          return;
+
+          room = {
+            roomId,
+            callId: call._id,
+            hostId: userId.toString(),
+            peerId: receiverId.toString(),
+            type,
+            status: "waiting"
+          };
+          activeCallRooms.set(roomId, room);
+          socket.currentCallId = call._id;
+
+          // Notify caller that they are in room waiting
+          socket.emit("call:waiting", {
+            callId: call._id,
+            roomId,
+            partner: { _id: receiverUser._id, name: receiverUser.name, avatar: receiverUser.avatar }
+          });
+
+          // Send incoming call notification to receiver if connected
+          const receiverSockets = activeSockets.get(receiverId.toString());
+          if (receiverSockets && receiverSockets.size > 0) {
+            emitToUser(receiverId, "call:incoming", {
+              callId: call._id,
+              callerId: userId,
+              callerName: senderUser.name || "School Member",
+              callerAvatar: senderUser.avatar || "",
+              type
+            });
+          }
+        } else {
+          // Room ALREADY exists: Second user joining the meeting!
+          room.status = "connected";
+
+          await Call.findByIdAndUpdate(room.callId, { status: "completed", startedAt: new Date() });
+
+          // Emit call:accepted to BOTH host and peer with correct partner details
+          emitToUser(room.hostId, "call:accepted", {
+            callId: room.callId,
+            roomId,
+            isHost: true,
+            partner: { _id: receiverUser._id, name: receiverUser.name, avatar: receiverUser.avatar, role: receiverUser.role }
+          });
+          emitToUser(room.peerId, "call:accepted", {
+            callId: room.callId,
+            roomId,
+            isHost: false,
+            partner: { _id: senderUser._id, name: senderUser.name, avatar: senderUser.avatar, role: senderUser.role }
+          });
         }
-
-        // Create Call record with status "pending"
-        const call = await Call.create({
-          caller: userId,
-          receiver: receiverId,
-          type,
-          status: "pending",
-          schoolName: senderUser.schoolName || ""
-        });
-
-        socket.currentCallId = call._id;
-
-        emitToUser(receiverId, "call:incoming", {
-          callId: call._id,
-          callerId: userId,
-          callerName: senderUser.name || "School Member",
-          callerAvatar: senderUser.avatar || "",
-          type
-        });
       } else {
         socket.emit("call:error", { message: "Calling unauthorized user" });
       }
@@ -529,6 +541,8 @@ io.on("connection", (socket) => {
       if (call) {
         call.status = "cancelled";
         await call.save();
+        const roomId = [call.caller.toString(), call.receiver.toString()].sort().join("_");
+        activeCallRooms.delete(roomId);
         emitToUser(call.receiver.toString(), "call:cancelled", { callId });
       }
     } catch (err) {
@@ -544,7 +558,25 @@ io.on("connection", (socket) => {
         call.startedAt = new Date();
         await call.save();
 
-        emitToUser(call.caller.toString(), "call:accepted", { callId });
+        const roomId = [call.caller.toString(), call.receiver.toString()].sort().join("_");
+        const room = activeCallRooms.get(roomId);
+        if (room) {
+          room.status = "connected";
+        }
+
+        const callerUser = await User.findById(call.caller);
+        const receiverUser = await User.findById(call.receiver);
+
+        emitToUser(call.caller.toString(), "call:accepted", {
+          callId,
+          isHost: true,
+          partner: receiverUser ? { _id: receiverUser._id, name: receiverUser.name, avatar: receiverUser.avatar, role: receiverUser.role } : null
+        });
+        emitToUser(call.receiver.toString(), "call:accepted", {
+          callId,
+          isHost: false,
+          partner: callerUser ? { _id: callerUser._id, name: callerUser.name, avatar: callerUser.avatar, role: callerUser.role } : null
+        });
       }
     } catch (err) {
       console.error("Error accepting call:", err);
@@ -557,6 +589,9 @@ io.on("connection", (socket) => {
       if (call) {
         call.status = "rejected";
         await call.save();
+
+        const roomId = [call.caller.toString(), call.receiver.toString()].sort().join("_");
+        activeCallRooms.delete(roomId);
 
         emitToUser(call.caller.toString(), "call:rejected", { callId });
       }
@@ -572,6 +607,9 @@ io.on("connection", (socket) => {
         call.status = "busy";
         await call.save();
 
+        const roomId = [call.caller.toString(), call.receiver.toString()].sort().join("_");
+        activeCallRooms.delete(roomId);
+
         emitToUser(call.caller.toString(), "call:busy", { callId });
       }
     } catch (err) {
@@ -585,6 +623,9 @@ io.on("connection", (socket) => {
       if (call) {
         call.status = "timeout";
         await call.save();
+
+        const roomId = [call.caller.toString(), call.receiver.toString()].sort().join("_");
+        activeCallRooms.delete(roomId);
 
         emitToUser(call.receiver.toString(), "call:cancelled", { callId });
       }
@@ -622,6 +663,9 @@ io.on("connection", (socket) => {
           call.duration = Math.round((call.endedAt - call.startedAt) / 1000);
         }
         await call.save();
+
+        const roomId = [call.caller.toString(), call.receiver.toString()].sort().join("_");
+        activeCallRooms.delete(roomId);
 
         const targetId = call.caller.toString() === userId ? call.receiver.toString() : call.caller.toString();
         emitToUser(targetId, "call:ended", { callId });
