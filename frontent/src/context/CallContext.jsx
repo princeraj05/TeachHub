@@ -191,6 +191,9 @@ export const CallProvider = ({ children }) => {
 
     socket.on("call:incoming", ({ callId, callerId, callerName, callerAvatar, type }) => {
       if (callStateRef.current !== "idle") {
+        if (callPartnerRef.current && (callPartnerRef.current._id?.toString() === callerId?.toString())) {
+          return;
+        }
         socket.emit("call:busy", { callId });
         return;
       }
@@ -222,7 +225,11 @@ export const CallProvider = ({ children }) => {
         }, 1000);
       }
 
-      await setupWebRTC(isHost !== undefined ? isHost : true);
+      if (isHost) {
+        await setupWebRTC(true);
+      } else {
+        await setupLocalStreamOnly(callTypeRef.current);
+      }
     });
 
     socket.on("call:rejected", ({ reason, callId }) => {
@@ -330,6 +337,10 @@ export const CallProvider = ({ children }) => {
 
   const setupWebRTC = async (isCaller, remoteOffer = null) => {
     try {
+      if (!isCaller && !remoteOffer) {
+        await setupLocalStreamOnly(callTypeRef.current);
+        return;
+      }
       let stream = localStreamRef.current;
       if (!stream) {
         stream = await setupLocalStreamOnly(callTypeRef.current);

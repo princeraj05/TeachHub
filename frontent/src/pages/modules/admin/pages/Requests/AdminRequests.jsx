@@ -159,30 +159,30 @@ function AdminRequests() {
     const diffSec = Math.floor(diffMs / 1000);
 
     if (diffSec <= 900) {
-      if (diffMs < -2 * 60 * 60 * 1000) {
-        return { isReady: false, isEnded: true, label: "Meeting Finished", secondsLeft: 0 };
+      if (diffMs < -24 * 60 * 60 * 1000) {
+        return { isReady: true, isEnded: true, label: "Meeting Finished", secondsLeft: 0 };
       }
-      return { isReady: true, label: "Start Call Now", secondsLeft: 0 };
+      return { isReady: true, isLive: true, label: "Meeting Live Now", secondsLeft: 0 };
     }
 
     if (diffSec > 86400) {
       const days = Math.floor(diffSec / 86400);
-      return { isReady: false, label: `${days} Day${days > 1 ? "s" : ""} Left`, secondsLeft: diffSec };
+      return { isReady: true, label: `${days} Day${days > 1 ? "s" : ""} Left`, secondsLeft: diffSec };
     }
 
     if (diffSec > 3600) {
       const hours = Math.floor(diffSec / 3600);
       const mins = Math.floor((diffSec % 3600) / 60);
-      return { isReady: false, label: `Starts in ${hours}h ${mins}m`, secondsLeft: diffSec };
+      return { isReady: true, label: `Starts in ${hours}h ${mins}m`, secondsLeft: diffSec };
     }
 
     if (diffSec > 60) {
       const mins = Math.floor(diffSec / 60);
       const secs = diffSec % 60;
-      return { isReady: false, label: `Starts in ${mins} min ${secs} sec`, secondsLeft: diffSec };
+      return { isReady: true, label: `Starts in ${mins} min ${secs} sec`, secondsLeft: diffSec };
     }
 
-    return { isReady: false, label: `Starts in ${diffSec} sec`, secondsLeft: diffSec };
+    return { isReady: true, isLive: true, label: `Starting in ${diffSec}s`, secondsLeft: diffSec };
   };
 
   const openApprovalFlow = (user) => {
@@ -507,24 +507,24 @@ function AdminRequests() {
                             ) : (
                               <div className="flex items-center gap-2 pt-0.5">
                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
-                                  meetingStatus?.isReady
+                                  meetingStatus?.isLive
                                     ? "bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 animate-pulse"
                                     : "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20"
                                 }`}>
                                   <FaClock className="text-[10px]" />
-                                  {meetingStatus?.label}
+                                  {meetingStatus?.label || "Meeting Ready"}
                                 </span>
 
                                 <button
                                   type="button"
                                   onClick={() => startCall && startCall({ _id: req._id, name: req.name, avatar: req.avatar, role: req.requestedRole || "teacher" }, "video")}
-                                  className={`inline-flex items-center gap-1.5 px-3 py-1 text-white rounded-lg text-[10px] font-black uppercase tracking-wider shadow-md transition cursor-pointer ${
-                                    meetingStatus?.isReady
-                                      ? "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20 animate-bounce"
+                                  className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-white rounded-lg text-[10px] font-black uppercase tracking-wider shadow-md transition cursor-pointer ${
+                                    meetingStatus?.isLive
+                                      ? "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20 animate-pulse"
                                       : "bg-[#7C3AED] hover:bg-[#6D28D9] shadow-[#7C3AED]/20"
                                   }`}
                                 >
-                                  <FaVideo className="text-xs" /> {meetingStatus?.isReady ? "Start Call Now" : "Start Video Call"}
+                                  <FaVideo className="text-xs" /> {meetingStatus?.isLive ? "Start Call Now" : "Start Video Call"}
                                 </button>
                               </div>
                             )}

@@ -90,30 +90,30 @@ function PendingApproval() {
     const diffSec = Math.floor(diffMs / 1000);
 
     if (diffSec <= 900) {
-      if (diffMs < -2 * 60 * 60 * 1000) {
-        return { isReady: false, isEnded: true, label: "Meeting Finished", secondsLeft: 0 };
+      if (diffMs < -24 * 60 * 60 * 1000) {
+        return { isReady: true, isEnded: true, label: "Meeting Finished", secondsLeft: 0 };
       }
-      return { isReady: true, label: "Start Call Now", secondsLeft: 0 };
+      return { isReady: true, isLive: true, label: "Meeting Live Now", secondsLeft: 0 };
     }
 
     if (diffSec > 86400) {
       const days = Math.floor(diffSec / 86400);
-      return { isReady: false, label: `${days} Day${days > 1 ? "s" : ""} Left`, secondsLeft: diffSec };
+      return { isReady: true, label: `${days} Day${days > 1 ? "s" : ""} Left`, secondsLeft: diffSec };
     }
 
     if (diffSec > 3600) {
       const hours = Math.floor(diffSec / 3600);
       const mins = Math.floor((diffSec % 3600) / 60);
-      return { isReady: false, label: `Starts in ${hours}h ${mins}m`, secondsLeft: diffSec };
+      return { isReady: true, label: `Starts in ${hours}h ${mins}m`, secondsLeft: diffSec };
     }
 
     if (diffSec > 60) {
       const mins = Math.floor(diffSec / 60);
       const secs = diffSec % 60;
-      return { isReady: false, label: `Starts in ${mins} min ${secs} sec`, secondsLeft: diffSec };
+      return { isReady: true, label: `Starts in ${mins} min ${secs} sec`, secondsLeft: diffSec };
     }
 
-    return { isReady: false, label: `Starts in ${diffSec} sec`, secondsLeft: diffSec };
+    return { isReady: true, isLive: true, label: `Starting in ${diffSec}s`, secondsLeft: diffSec };
   };
 
   // Derive active tab from URL path
@@ -573,12 +573,12 @@ function PendingApproval() {
                       {user.interviewMode !== "Offline" && (
                         <div className="flex items-center justify-between pt-1 gap-3 flex-wrap">
                           <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${
-                            meetingStatus?.isReady
+                            meetingStatus?.isLive
                               ? "bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 animate-pulse"
                               : "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20"
                           }`}>
                             <FaClock className="text-[10px]" />
-                            {meetingStatus?.label || "Online Meeting Scheduled"}
+                            {meetingStatus?.label || "Online Meeting Ready"}
                           </span>
 
                           <button
@@ -622,14 +622,14 @@ function PendingApproval() {
                                 alert(`Connecting to ${user.requestedSchool || 'School'} Admin... Please try again in a moment.`);
                               }
                             }}
-                            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition cursor-pointer ${
-                              meetingStatus?.isReady
-                                ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30 animate-bounce"
-                                : "bg-[#7C3AED] hover:bg-[#6D28D9] text-white shadow-[#7C3AED]/20"
+                            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer ${
+                              meetingStatus?.isLive
+                                ? "bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-emerald-500/25 animate-pulse"
+                                : "bg-gradient-to-r from-[#7C3AED] to-[#6366F1] hover:from-[#6D28D9] hover:to-[#4F46E5] text-white shadow-purple-500/25"
                             }`}
                           >
                             <FaVideo className="text-xs" />
-                            {meetingStatus?.isReady ? "Join Video Call Now" : "Start Video Call"}
+                            {meetingStatus?.isLive ? "Join Video Call Now" : "Join Video Call Room"}
                           </button>
                         </div>
                       )}
