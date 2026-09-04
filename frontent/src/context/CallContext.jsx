@@ -409,6 +409,11 @@ export const CallProvider = ({ children }) => {
   };
 
   const startCall = async (receiver, type) => {
+    if (!receiver || !receiver._id) return;
+    if (receiver._id.toString() === currentUserId?.toString()) {
+      showToast("Cannot call yourself");
+      return;
+    }
     if (callState !== "idle" && callState !== "ringing") return;
 
     setCallPartner(receiver);
@@ -424,17 +429,20 @@ export const CallProvider = ({ children }) => {
     });
   };
 
-  const acceptCall = () => {
+  const acceptCall = async () => {
     if (callState !== "ringing" || !currentCallId) return;
 
     stopSoundEffect();
     setCallState("active");
 
     setCallDuration(0);
-    timerRef.current = setInterval(() => {
-      setCallDuration((prev) => prev + 1);
-    }, 1000);
+    if (!timerRef.current) {
+      timerRef.current = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    }
 
+    await setupLocalStreamOnly(callTypeRef.current);
     socket.emit("call:accept", { callId: currentCallId });
   };
 

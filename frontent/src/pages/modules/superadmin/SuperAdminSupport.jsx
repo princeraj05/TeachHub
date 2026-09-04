@@ -75,16 +75,19 @@ function SuperAdminSupport() {
         headers: { Authorization: `Bearer ${token}` }
       });
 
+      const currentUserId = localStorage.getItem("userId");
       const usersList = Array.isArray(res.data) ? res.data : (res.data?.users || []);
-      const mappedAdmins = usersList.map((u, index) => ({
-        _id: u._id,
-        name: u.name || "School Admin",
-        email: u.email || "",
-        role: "admin",
-        schoolName: u.schoolName || u.requestedSchool || "Partner School",
-        isOnline: u.isOnline !== undefined ? u.isOnline : false,
-        avatar: u.photo || ""
-      }));
+      const mappedAdmins = usersList
+        .filter((u) => u._id !== currentUserId)
+        .map((u) => ({
+          _id: u._id,
+          name: u.name || "School Admin",
+          email: u.email || "",
+          role: "admin",
+          schoolName: u.schoolName || u.requestedSchool || "Partner School",
+          isOnline: u.isOnline !== undefined ? u.isOnline : false,
+          avatar: u.photo || ""
+        }));
 
       setAdminContacts(mappedAdmins);
       localStorage.setItem("cached_superadmin_support_contacts", JSON.stringify(mappedAdmins));
