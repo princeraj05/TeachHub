@@ -583,43 +583,14 @@ function PendingApproval() {
 
                           <button
                             type="button"
-                            onClick={async () => {
-                              let recipient = schoolAdmin || requestedSchoolData?.adminUser;
-                              if (!recipient || !recipient._id) {
-                                try {
-                                  const res = await axios.get(`${API}/api/support/users`, {
-                                    headers: { Authorization: `Bearer ${token}` }
-                                  });
-                                  if (Array.isArray(res.data) && res.data.length > 0) {
-                                    const admin = res.data.find(c => c.role === "admin" || c.role === "superadmin") || res.data[0];
-                                    if (admin) {
-                                      recipient = admin;
-                                      setSchoolAdmin(admin);
-                                    }
-                                  }
-                                } catch (e) {
-                                  console.error("Error fetching support contacts for video call:", e);
-                                }
-                              }
-
-                              if (!recipient || !recipient._id) {
-                                try {
-                                  const res = await axios.get(`${API}/api/schools/${encodeURIComponent(user.requestedSchool || '')}`, {
-                                    headers: { Authorization: `Bearer ${token}` }
-                                  });
-                                  if (res.data && res.data.adminUser) {
-                                    recipient = res.data.adminUser;
-                                    setSchoolAdmin(res.data.adminUser);
-                                  }
-                                } catch (e) {}
-                              }
-
-                              if (recipient && recipient._id) {
-                                if (startCall) {
-                                  startCall(recipient, "video");
-                                }
-                              } else {
-                                alert(`Connecting to ${user.requestedSchool || 'School'} Admin... Please try again in a moment.`);
+                            onClick={() => {
+                              const recipient = schoolAdmin || requestedSchoolData?.adminUser || {
+                                _id: "admin_support_fallback",
+                                name: `${user.requestedSchool || 'School'} Admin`,
+                                role: "admin"
+                              };
+                              if (startCall) {
+                                startCall(recipient, "video");
                               }
                             }}
                             className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer ${
@@ -1132,10 +1103,19 @@ function PendingApproval() {
                         {getMeetingTimeStatus(user.interviewDate || user.admissionExamDate, user.interviewTime).isReady && (
                           <button
                             type="button"
-                            onClick={() => startCall && startCall({ _id: "admin", name: `${user.requestedSchool || "School"} Admin` }, "video")}
+                            onClick={() => {
+                              const recipient = schoolAdmin || requestedSchoolData?.adminUser || {
+                                _id: "admin_support_fallback",
+                                name: `${user.requestedSchool || 'School'} Admin`,
+                                role: "admin"
+                              };
+                              if (startCall) {
+                                startCall(recipient, "video");
+                              }
+                            }}
                             className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 text-white font-black text-xs uppercase tracking-wider py-3 px-6 rounded-2xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition cursor-pointer"
                           >
-                            <FaVideo className="text-sm" /> Start Call Now
+                            <FaVideo className="text-sm" /> Join Video Call Now
                           </button>
                         )}
                       </div>

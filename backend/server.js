@@ -345,6 +345,14 @@ const activeSockets = new Map(); // userId -> Set<socket.id>
 
 // Helper to validate user communication permissions for sockets
 const canCommunicate = async (sender, receiverId) => {
+  if (
+    receiverId === "admin" ||
+    receiverId === "admin_support_fallback" ||
+    receiverId === "superadmin" ||
+    receiverId === "superadmin_support_fallback"
+  ) {
+    return true;
+  }
   const receiver = await User.findById(receiverId);
   if (!receiver) return false;
   return true;
@@ -458,7 +466,30 @@ io.on("connection", (socket) => {
   socket.on("call:initiate", async ({ receiverId, type }) => {
     try {
       const senderUser = await User.findById(userId);
-      const receiverUser = await User.findById(receiverId);
+      let receiverUser = null;
+
+      if (
+        receiverId === "admin" ||
+        receiverId === "admin_support_fallback" ||
+        receiverId === "superadmin" ||
+        receiverId === "superadmin_support_fallback"
+      ) {
+        const schoolRegex = senderUser?.schoolName || senderUser?.requestedSchool
+          ? new RegExp("^" + (senderUser.schoolName || senderUser.requestedSchool).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "$", "i")
+          : null;
+
+        if (schoolRegex) {
+          receiverUser = await User.findOne({ role: "admin", $or: [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }] });
+        }
+        if (!receiverUser) {
+          receiverUser = await User.findOne({ role: "admin" }) || await User.findOne({ role: "superadmin" });
+        }
+        if (receiverUser) {
+          receiverId = receiverUser._id.toString();
+        }
+      } else {
+        receiverUser = await User.findById(receiverId);
+      }
 
       if (!senderUser || !receiverUser) {
         return socket.emit("call:error", { message: "Caller or Receiver not found" });
