@@ -74,7 +74,6 @@ const defaultProfile = {
   address: "Patna, Bihar, India",
   timezone: "(GMT+05:30) Asia/Kolkata",
   language: "English",
-  about: "System administrator with full access to all modules and settings.",
   avatar: ""
 };
 
@@ -98,13 +97,13 @@ function SuperAdminProfile() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [gettingLocation, setGettingLocation] = useState(false);
 
   // Form input fields state initialized from profile
   const [name, setName] = useState(profile.name || "Super Admin");
   const [phoneNumber, setPhoneNumber] = useState(profile.phoneNumber || "+91 98765 43210");
   const [gender, setGender] = useState(profile.gender || "Male");
   const [address, setAddress] = useState(profile.address || "Patna, Bihar, India");
-  const [about, setAbout] = useState(profile.about || "System owner.");
   const [avatar, setAvatar] = useState(profile.avatar || "");
 
   // Change Password state
@@ -121,6 +120,38 @@ function SuperAdminProfile() {
   const [errorMsg, setErrorMsg] = useState("");
 
   const fileInputRef = useRef(null);
+
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+    setGettingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          );
+          const data = await res.json();
+          if (data && data.display_name) {
+            setAddress(data.display_name);
+          } else {
+            setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          }
+        } catch (err) {
+          setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+        } finally {
+          setGettingLocation(false);
+        }
+      },
+      (error) => {
+        alert("Could not detect location: " + error.message);
+        setGettingLocation(false);
+      }
+    );
+  };
 
   useEffect(() => {
     fetchProfile();
@@ -155,7 +186,6 @@ function SuperAdminProfile() {
         setPhoneNumber(d.phoneNumber || "+91 98765 43210");
         setGender(d.gender || "Male");
         setAddress(d.address || "Patna, Bihar, India");
-        setAbout(d.about || "System administrator.");
         setAvatar(d.avatar || "");
       }
     } catch (err) {
@@ -215,7 +245,6 @@ function SuperAdminProfile() {
         phoneNumber,
         gender,
         address,
-        about,
         avatar
       };
 
@@ -459,20 +488,24 @@ function SuperAdminProfile() {
               </div>
 
               <div className="md:col-span-2 space-y-1">
-                <span className="text-[9px] font-black text-slate-405 uppercase tracking-widest block">Current Location</span>
+                <div className="flex items-center justify-between mb-1 select-none">
+                  <span className="text-[9px] font-black text-slate-405 uppercase tracking-widest block">Current Location</span>
+                  {editMode && (
+                    <button
+                      type="button"
+                      onClick={handleGetCurrentLocation}
+                      disabled={gettingLocation}
+                      className="text-[9px] font-black text-[#7C3AED] hover:text-[#6D28D9] dark:text-purple-400 flex items-center gap-1 cursor-pointer bg-[#7C3AED]/10 px-2.5 py-1 rounded-lg border border-[#7C3AED]/20 hover:bg-[#7C3AED]/20 transition-all active:scale-95 disabled:opacity-50"
+                    >
+                      <FaMapMarkerAlt className="text-[10px]" />
+                      {gettingLocation ? "Detecting Location..." : "Use Current Location"}
+                    </button>
+                  )}
+                </div>
                 {editMode ? (
-                  <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#1E293B] text-slate-805 dark:text-white font-semibold outline-none focus:border-[#7C3AED]" />
+                  <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="e.g. Patna, Bihar, India" className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#1E293B] text-slate-805 dark:text-white font-semibold outline-none focus:border-[#7C3AED]" />
                 ) : (
                   <p className="text-slate-850 dark:text-white font-extrabold text-xs">{address}</p>
-                )}
-              </div>
-
-              <div className="md:col-span-2 space-y-1">
-                <span className="text-[9px] font-black text-slate-405 uppercase tracking-widest block">About</span>
-                {editMode ? (
-                  <textarea rows="3" value={about} onChange={(e) => setAbout(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#1E293B] text-slate-805 dark:text-white font-semibold outline-none focus:border-[#7C3AED]" />
-                ) : (
-                  <p className="text-slate-855 dark:text-slate-200 font-extrabold text-xs leading-relaxed">{about}</p>
                 )}
               </div>
             </div>

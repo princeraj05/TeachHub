@@ -73,20 +73,12 @@ export default function VideoGallery({ videos, getMediaUrl, onDeleteVideo }) {
                   key={video._id || video.url || index}
                   type="button"
                   onClick={() => setActiveIndex(index)}
-                  className={`group relative aspect-video w-36 sm:w-44 shrink-0 snap-start overflow-hidden rounded-2xl bg-slate-900 border text-left transition-all duration-300 ${
+                  className={`group relative aspect-video w-36 sm:w-44 shrink-0 snap-start overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 to-slate-950 border text-left transition-all duration-300 cursor-pointer ${
                     isActive 
                       ? "border-[#7C3AED] dark:border-[#38BDF8] ring-2 ring-[#7C3AED]/20 dark:ring-[#38BDF8]/20 scale-95" 
                       : "border-slate-200/60 dark:border-white/10 hover:border-slate-400 dark:hover:border-white/20"
                   }`}
                 >
-                  {/* Subtle video preview background using standard video element but paused */}
-                  <video
-                    src={getMediaUrl(video.url)}
-                    preload="metadata"
-                    muted
-                    className="absolute inset-0 h-full w-full object-cover opacity-60 group-hover:opacity-80 transition duration-300"
-                  />
-                  
                   {/* Overlay and play button icon */}
                   <div className="absolute inset-0 bg-black/35 flex items-center justify-center">
                     <span className={`w-8 h-8 rounded-full flex items-center justify-center text-white backdrop-blur-sm transition-all duration-300 ${

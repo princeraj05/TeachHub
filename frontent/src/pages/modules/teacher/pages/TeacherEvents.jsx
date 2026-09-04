@@ -121,8 +121,8 @@ function TeacherEvents() {
         /* Event Grid */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
           {events.map((ev) => {
-            const hasCover = ev.photos && ev.photos.length > 0;
-            const coverUrl = hasCover ? getMediaUrl(ev.photos[0].url) : null;
+            const hasCover = ev.photos && ev.photos.length > 0 && ev.photos[0]?.url;
+            const coverUrl = ev.coverPhoto ? getMediaUrl(ev.coverPhoto) : (hasCover ? getMediaUrl(ev.photos[0].url) : null);
 
             return (
               <div 
@@ -130,10 +130,10 @@ function TeacherEvents() {
                 className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl overflow-hidden shadow-sm relative flex flex-col justify-between"
               >
                 <div>
-                  {activeTab === "completed" && (
+                  {(coverUrl || activeTab === "completed") && (
                     <div className="h-44 bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b border-slate-150 dark:border-white/5">
                       {coverUrl ? (
-                        <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
+                        <img src={coverUrl} alt={ev.title || "Cover"} className="w-full h-full object-cover" />
                       ) : (
                         <div className="text-center text-slate-400 dark:text-slate-500">
                           <FaImage className="text-3xl mb-2 opacity-50 mx-auto" />

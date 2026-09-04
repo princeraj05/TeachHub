@@ -436,20 +436,7 @@ exports.uploadVideos = async (req, res) => {
       }
 
       if (!videoUrl) {
-        try {
-          if (fs.existsSync(file.path)) {
-            if (file.size <= 25 * 1024 * 1024) {
-              const fileBuffer = fs.readFileSync(file.path);
-              const base64Str = fileBuffer.toString("base64");
-              const cleanMime = (file.mimetype || "video/mp4").split(";")[0].toLowerCase().trim();
-              videoUrl = `data:${cleanMime};base64,${base64Str}`;
-              deletePhysicalFile(file.filename);
-            } else {
-              videoUrl = `/uploads/${file.filename}`;
-            }
-          }
-        } catch (fErr) {
-          console.error("Failed to convert video to base64 Data URL:", fErr);
+        if (fs.existsSync(file.path)) {
           videoUrl = `/uploads/${file.filename}`;
         }
       }
