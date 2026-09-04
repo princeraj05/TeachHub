@@ -178,8 +178,21 @@ exports.getSubjectDetails = async (req, res) => {
       });
     });
 
-    // Fetch live SubjectSyllabus for progress computation
-    const liveSyllabus = await SubjectSyllabus.findOne({ subject: subjectId }).lean();
+    // Helper to extract base class name
+    const extractBaseClassName = (str) => {
+      if (!str) return null;
+      const match = String(str).match(/Class\s*\d+/i);
+      return match ? match[0] : String(str).trim();
+    };
+
+    const targetClassName = extractBaseClassName(req.query.className);
+    let liveSyllabus = null;
+    if (targetClassName) {
+      liveSyllabus = await SubjectSyllabus.findOne({ subject: subjectId, className: targetClassName }).lean();
+    }
+    if (!liveSyllabus) {
+      liveSyllabus = await SubjectSyllabus.findOne({ subject: subjectId }).lean();
+    }
     let totalChaptersCount = meta.chapters;
     let completedChaptersCount = Math.round(meta.chapters * (meta.progress / 100));
     let calculatedProgress = meta.progress;

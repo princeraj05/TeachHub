@@ -6,26 +6,41 @@ const Class = require("../models/Class");
 // Helper: Seed default chapters if no MasterSyllabus exists (returns empty array so syllabus starts clean)
 const getDefaultChaptersForSubject = () => [];
 
-// 1. Get Teacher Subject Syllabus (Auto-clone from Master or default)
+// Helper: Extract base class name (e.g. "Class 1" from "Class 1 - A")
+const extractBaseClassName = (str) => {
+  if (!str) return "Class 1";
+  const match = String(str).match(/Class\s*\d+/i);
+  return match ? match[0] : String(str).trim();
+};
+
+// 1. Get Teacher Subject Syllabus (Auto-clone from Master or default for specific class)
 exports.getSubjectSyllabus = async (req, res) => {
   try {
     const { subjectId } = req.params;
     const teacherId = req.user.id;
 
-    let syllabus = await SubjectSyllabus.findOne({ subject: subjectId })
+    // Find subject details first to know default class if className is missing
+    const subjectObj = await Subject.findById(subjectId).populate("classes", "name section").lean();
+    if (!subjectObj) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
+
+    // Determine target className (e.g. "Class 1")
+    const rawClassName = req.query.className || (subjectObj.classes?.[0] ? `Class ${subjectObj.classes[0].name}` : "Class 1");
+    const targetClassName = extractBaseClassName(rawClassName);
+
+    let syllabus = await SubjectSyllabus.findOne({
+      subject: subjectId,
+      className: targetClassName
+    })
       .populate("subject", "name code classes")
       .lean();
 
     if (!syllabus) {
-      // Find subject details
-      const subjectObj = await Subject.findById(subjectId).populate("classes", "name section").lean();
-      if (!subjectObj) {
-        return res.status(404).json({ message: "Subject not found" });
-      }
-
-      // Check if MasterSyllabus exists for school & subject
+      // Check if MasterSyllabus exists for school, targetClassName & subjectName
       const master = await MasterSyllabus.findOne({
         schoolName: req.user.schoolName || "",
+        className: new RegExp("^" + targetClassName.trim() + "$", "i"),
         subjectName: new RegExp("^" + subjectObj.name.trim() + "$", "i")
       }).lean();
 
@@ -43,9 +58,10 @@ exports.getSubjectSyllabus = async (req, res) => {
         initialChapters = getDefaultChaptersForSubject();
       }
 
-      // Create new SubjectSyllabus doc
+      // Create new SubjectSyllabus doc for this class
       const newSyllabusDoc = await SubjectSyllabus.create({
         subject: subjectId,
+        className: targetClassName,
         teacher: teacherId,
         schoolName: req.user.schoolName || "",
         chapters: initialChapters
@@ -72,6 +88,7 @@ exports.getSubjectSyllabus = async (req, res) => {
 
     res.json({
       ...syllabus,
+      className: targetClassName,
       stats: {
         totalChapters,
         completedChapters,
@@ -89,13 +106,17 @@ exports.getSubjectSyllabus = async (req, res) => {
 exports.updateChapterStatus = async (req, res) => {
   try {
     const { subjectId, chapterId } = req.params;
-    const { status } = req.body;
+    const { status, className } = req.body;
+    const targetClassName = extractBaseClassName(className || req.query.className);
 
     if (!["Not Started", "In Progress", "Completed"].includes(status)) {
       return res.status(400).json({ message: "Invalid status value" });
     }
 
-    const syllabus = await SubjectSyllabus.findOne({ subject: subjectId });
+    let syllabus = await SubjectSyllabus.findOne({ subject: subjectId, className: targetClassName });
+    if (!syllabus) {
+      syllabus = await SubjectSyllabus.findOne({ subject: subjectId });
+    }
     if (!syllabus) {
       return res.status(404).json({ message: "Syllabus record not found" });
     }
@@ -125,13 +146,17 @@ exports.updateChapterStatus = async (req, res) => {
 exports.addSubTopic = async (req, res) => {
   try {
     const { subjectId, chapterId } = req.params;
-    const { topicTitle } = req.body;
+    const { topicTitle, className } = req.body;
+    const targetClassName = extractBaseClassName(className || req.query.className);
 
     if (!topicTitle || !topicTitle.trim()) {
       return res.status(400).json({ message: "Topic title is required" });
     }
 
-    const syllabus = await SubjectSyllabus.findOne({ subject: subjectId });
+    let syllabus = await SubjectSyllabus.findOne({ subject: subjectId, className: targetClassName });
+    if (!syllabus) {
+      syllabus = await SubjectSyllabus.findOne({ subject: subjectId });
+    }
     if (!syllabus) {
       return res.status(404).json({ message: "Syllabus record not found" });
     }
@@ -161,8 +186,12 @@ exports.addSubTopic = async (req, res) => {
 exports.toggleTopicStatus = async (req, res) => {
   try {
     const { subjectId, chapterId, topicId } = req.params;
+    const targetClassName = extractBaseClassName(req.query.className || req.body.className);
 
-    const syllabus = await SubjectSyllabus.findOne({ subject: subjectId });
+    let syllabus = await SubjectSyllabus.findOne({ subject: subjectId, className: targetClassName });
+    if (!syllabus) {
+      syllabus = await SubjectSyllabus.findOne({ subject: subjectId });
+    }
     if (!syllabus) return res.status(404).json({ message: "Syllabus record not found" });
 
     const chapter = syllabus.chapters.id(chapterId);
@@ -195,13 +224,17 @@ exports.toggleTopicStatus = async (req, res) => {
 exports.addCustomChapter = async (req, res) => {
   try {
     const { subjectId } = req.params;
-    const { title, description, topics } = req.body;
+    const { title, description, topics, className } = req.body;
+    const targetClassName = extractBaseClassName(className || req.query.className);
 
     if (!title || !title.trim()) {
       return res.status(400).json({ message: "Chapter title is required" });
     }
 
-    const syllabus = await SubjectSyllabus.findOne({ subject: subjectId });
+    let syllabus = await SubjectSyllabus.findOne({ subject: subjectId, className: targetClassName });
+    if (!syllabus) {
+      syllabus = await SubjectSyllabus.findOne({ subject: subjectId });
+    }
     if (!syllabus) {
       return res.status(404).json({ message: "Syllabus record not found" });
     }

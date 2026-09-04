@@ -313,12 +313,14 @@ function MySubjects() {
                     <p className="text-[8px] font-bold text-slate-450 uppercase tracking-wider mb-2 select-none">Classes Assigned</p>
                     <div className="flex flex-wrap gap-1.5">
                       {s.classes?.map((c, i) => (
-                        <span 
+                        <Link 
                           key={c._id || i}
-                          className="px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.03] text-[9px] font-bold text-slate-650 dark:text-slate-300 border border-slate-200/50 dark:border-white/[0.03] select-none"
+                          to={`/teacher/my-subjects/${s._id}?class=${encodeURIComponent(`Class ${c.name}`)}`}
+                          className="px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.03] text-[9px] font-bold text-slate-650 dark:text-slate-300 border border-slate-200/50 dark:border-white/[0.03] hover:border-purple-500/40 hover:text-purple-500 dark:hover:text-purple-400 transition select-none cursor-pointer"
+                          title={`View ${s.name} syllabus for Class ${c.name}`}
                         >
                           Class {c.name} - {c.section}
-                        </span>
+                        </Link>
                       ))}
                     </div>
                   </div>

@@ -56,17 +56,23 @@ function SVGProgressRing({ value }) {
 
 function SubjectDetails() {
   const { subjectId } = useParams();
+  const [searchParams] = useSearchParams();
   const API = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [activeTab, setActiveTab] = useState("Overview");
+  const [selectedClassForSyllabus, setSelectedClassForSyllabus] = useState(searchParams.get("class") || "");
 
   // Fetch subject details on load
-  const fetchSubjectDetails = async () => {
+  const fetchSubjectDetails = async (classNameParam) => {
     try {
-      const res = await axios.get(`${API}/api/teacher/my-subjects/${subjectId}/details`, {
+      const activeClass = classNameParam || selectedClassForSyllabus || searchParams.get("class") || "";
+      const url = activeClass
+        ? `${API}/api/teacher/my-subjects/${subjectId}/details?className=${encodeURIComponent(activeClass)}`
+        : `${API}/api/teacher/my-subjects/${subjectId}/details`;
+      const res = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setData(res.data);
@@ -483,8 +489,13 @@ function SubjectDetails() {
       ) : activeTab === "Syllabus" ? (
         <SyllabusTab 
           subjectId={subjectId} 
-          subjectName={subjectInfo.name} 
-          onSyllabusUpdate={fetchSubjectDetails} 
+          subjectName={subjectInfo.name}
+          assignedClasses={assignedClasses}
+          initialClass={searchParams.get("class") || selectedClassForSyllabus || ""}
+          onSyllabusUpdate={(cName) => {
+            setSelectedClassForSyllabus(cName);
+            fetchSubjectDetails(cName);
+          }}
         />
       ) : (
         

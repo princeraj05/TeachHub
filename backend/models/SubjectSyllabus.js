@@ -25,7 +25,11 @@ const subjectSyllabusSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Subject",
       required: true,
-      unique: true,
+      index: true
+    },
+    className: {
+      type: String,
+      required: true,
       index: true
     },
     teacher: {
@@ -42,5 +46,7 @@ const subjectSyllabusSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+subjectSyllabusSchema.index({ subject: 1, className: 1, schoolName: 1 }, { unique: true });
 
 module.exports = mongoose.model("SubjectSyllabus", subjectSyllabusSchema);
