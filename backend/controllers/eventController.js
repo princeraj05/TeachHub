@@ -404,30 +404,64 @@ exports.uploadVideos = async (req, res) => {
 
     const newVideos = [];
     for (const file of req.files) {
-      let videoUrl = `/uploads/${file.filename}`;
+      let videoUrl = "";
       let filename = file.filename;
 
       if (hasCloudinary) {
         try {
-          const result = await cloudinary.uploader.upload(file.path, {
+          const result = await cloudinary.uploader.upload_large(file.path, {
             folder: "teachhub/events/videos",
-            resource_type: "video"
+            resource_type: "video",
+            chunk_size: 6000000
           });
           uploadedIds.push(result.public_id);
           videoUrl = result.secure_url;
           filename = result.public_id;
           deletePhysicalFile(file.filename);
         } catch (cErr) {
-          console.error("Cloudinary video upload error, falling back to local file:", cErr.message);
+          console.error("Cloudinary video upload_large error, trying standard upload:", cErr.message);
+          try {
+            const result = await cloudinary.uploader.upload(file.path, {
+              folder: "teachhub/events/videos",
+              resource_type: "video"
+            });
+            uploadedIds.push(result.public_id);
+            videoUrl = result.secure_url;
+            filename = result.public_id;
+            deletePhysicalFile(file.filename);
+          } catch (cErr2) {
+            console.error("Cloudinary standard video upload error:", cErr2.message);
+          }
         }
       }
 
-      newVideos.push({
-        url: videoUrl,
-        filename: filename,
-        mimeType: file.mimetype,
-        size: file.size
-      });
+      if (!videoUrl) {
+        try {
+          if (fs.existsSync(file.path)) {
+            if (file.size <= 25 * 1024 * 1024) {
+              const fileBuffer = fs.readFileSync(file.path);
+              const base64Str = fileBuffer.toString("base64");
+              const cleanMime = (file.mimetype || "video/mp4").split(";")[0].toLowerCase().trim();
+              videoUrl = `data:${cleanMime};base64,${base64Str}`;
+              deletePhysicalFile(file.filename);
+            } else {
+              videoUrl = `/uploads/${file.filename}`;
+            }
+          }
+        } catch (fErr) {
+          console.error("Failed to convert video to base64 Data URL:", fErr);
+          videoUrl = `/uploads/${file.filename}`;
+        }
+      }
+
+      if (videoUrl) {
+        newVideos.push({
+          url: videoUrl,
+          filename: filename,
+          mimeType: file.mimetype,
+          size: file.size
+        });
+      }
     }
 
     event.videos.push(...newVideos);
@@ -503,11 +537,16 @@ exports.deleteVideo = async (req, res) => {
       return res.status(404).json({ message: "Video not found in event gallery" });
     }
 
-    // Delete the file from Cloudinary (video.filename contains public_id, and resource_type is video)
-    try {
-      await cloudinary.uploader.destroy(video.filename, { resource_type: "video" });
-    } catch (err) {
-      console.error("Failed to delete video from Cloudinary:", err);
+    if (video.filename) {
+      if (video.url && video.url.startsWith("/uploads/")) {
+        deletePhysicalFile(video.filename);
+      } else {
+        try {
+          await cloudinary.uploader.destroy(video.filename, { resource_type: "video" });
+        } catch (err) {
+          console.error("Failed to delete video from Cloudinary:", err);
+        }
+      }
     }
 
     // Remove reference from array

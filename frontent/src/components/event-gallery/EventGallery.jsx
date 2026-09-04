@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaImage, FaVideo } from "react-icons/fa";
 import PhotoGallery from "./PhotoGallery";
 import VideoGallery from "./VideoGallery";
@@ -7,6 +7,15 @@ export default function EventGallery({ event, api = "", onDeletePhoto, onDeleteV
   const photos = event?.photos || [];
   const videos = event?.videos || [];
   const [activeTab, setActiveTab] = useState(photos.length ? "photos" : "videos");
+
+  useEffect(() => {
+    if (activeTab === "photos" && !photos.length && videos.length) {
+      setActiveTab("videos");
+    } else if (activeTab === "videos" && !videos.length && photos.length) {
+      setActiveTab("photos");
+    }
+  }, [photos.length, videos.length]);
+
   const defaultApi = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
   const effectiveApi = api || defaultApi;
   const getMediaUrl = (url) => {

@@ -262,8 +262,6 @@ function AdminEvents() {
     if ((selectedEvent.videos?.length || 0) + files.length > 5) { setUploadError("An event can contain a maximum of 5 videos."); setUploading(false); return; }
     try {
       const sourceFiles = [...files];
-      const durations = await Promise.all(sourceFiles.map(videoDuration));
-      if (durations.some(duration => duration > 60)) { setUploadError("Each video must be 1 minute or shorter."); setUploading(false); return; }
       const totalMB = (sourceFiles.reduce((sum, f) => sum + f.size, 0) / 1048576).toFixed(2);
       setCompressionInfo(`Preparing ${sourceFiles.length} video(s) (${totalMB} MB) for original quality upload...`);
       const formData = new FormData(); 
@@ -284,6 +282,8 @@ function AdminEvents() {
       );
       setSelectedEvent(res.data);
       setEvents(prev => prev.map(ev => ev._id === res.data._id ? res.data : ev));
+      setCompressionInfo("Video upload complete!");
+      setTimeout(() => setCompressionInfo(""), 3000);
     } catch (err) {
       setUploadError(err.response?.data?.message || "Failed to upload video(s)");
     } finally {
