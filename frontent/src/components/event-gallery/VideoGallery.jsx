@@ -29,11 +29,13 @@ export default function VideoGallery({ videos, getMediaUrl, onDeleteVideo }) {
             key={activeUrl}
             src={activeUrl}
             controls
-            autoPlay={activeIndex !== 0}
-            preload="metadata"
+            preload="auto"
             playsInline
+            crossOrigin="anonymous"
             onError={() => setVideoError(true)}
+            onLoadedMetadata={() => setVideoError(false)}
             onCanPlay={() => setVideoError(false)}
+            onPlay={() => setVideoError(false)}
             className="w-full h-full object-contain"
           >
             <source src={activeUrl} type="video/mp4" />
@@ -43,28 +45,29 @@ export default function VideoGallery({ videos, getMediaUrl, onDeleteVideo }) {
           </video>
 
           {videoError && (
-            <div className="absolute inset-0 bg-black/85 backdrop-blur-md p-6 text-center text-white flex flex-col items-center justify-center space-y-3 z-10">
-              <FaExclamationTriangle className="text-amber-400 text-3xl animate-bounce" />
-              <p className="text-xs font-bold">Browser media codec error or format not natively playable.</p>
-              <p className="text-[11px] text-slate-300 max-w-md">
-                If this video is recorded from mobile / WhatsApp, your browser may require direct download or an external player.
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+            <div className="absolute top-3 left-3 right-3 bg-slate-900/90 backdrop-blur-md border border-amber-500/30 p-3 rounded-xl text-white flex items-center justify-between gap-3 z-10 shadow-xl">
+              <div className="flex items-center gap-2 min-w-0">
+                <FaExclamationTriangle className="text-amber-400 text-sm shrink-0" />
+                <p className="text-[11px] font-semibold text-slate-200 truncate">
+                  Codec warning: If video does not play automatically, click Play or Download.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setVideoError(false)}
-                  className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition border border-white/10"
+                  className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold rounded-lg transition border border-white/10"
                 >
-                  Retry Player
+                  Dismiss
                 </button>
                 <a
                   href={activeUrl}
                   target="_blank"
                   rel="noreferrer"
                   download
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-black rounded-xl transition shadow-md"
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-[10px] font-black rounded-lg transition shadow-sm"
                 >
-                  <FaDownload /> Download / Open Video
+                  <FaDownload /> Download
                 </a>
               </div>
             </div>
