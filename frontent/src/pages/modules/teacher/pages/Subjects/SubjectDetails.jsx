@@ -64,19 +64,20 @@ function SubjectDetails() {
   const [activeTab, setActiveTab] = useState("Overview");
 
   // Fetch subject details on load
+  const fetchSubjectDetails = async () => {
+    try {
+      const res = await axios.get(`${API}/api/teacher/my-subjects/${subjectId}/details`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setData(res.data);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error loading subject details:", err);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchSubjectDetails = async () => {
-      try {
-        const res = await axios.get(`${API}/api/teacher/my-subjects/${subjectId}/details`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setData(res.data);
-        setLoading(false);
-      } catch (err) {
-        console.error("Error loading subject details:", err);
-        setLoading(false);
-      }
-    };
     fetchSubjectDetails();
   }, [subjectId, API, token]);
 
