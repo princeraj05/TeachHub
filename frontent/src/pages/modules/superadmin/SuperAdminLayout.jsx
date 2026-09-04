@@ -341,7 +341,7 @@ function SuperAdminLayout() {
 
               <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-sm sm:text-base shadow-md border border-white/20 overflow-hidden">
                 {avatar ? (
-                  <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  <img src={avatar} alt="" onError={() => setAvatar("")} className="w-full h-full object-cover" />
                 ) : (
                   name.charAt(0).toUpperCase()
                 )}
@@ -355,7 +355,7 @@ function SuperAdminLayout() {
                   <div className="px-3 py-2 border-b border-white/[0.08] mb-1 flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-xs overflow-hidden border border-white/20 shrink-0">
                       {avatar ? (
-                        <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+                        <img src={avatar} alt="" onError={() => setAvatar("")} className="w-full h-full object-cover" />
                       ) : (
                         name.charAt(0).toUpperCase()
                       )}

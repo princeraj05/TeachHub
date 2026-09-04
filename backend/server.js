@@ -356,13 +356,15 @@ const canCommunicate = async (sender, receiverId) => {
     return sender.role === "admin";
   }
 
-  // Admin <-> Teacher/Student of same school
-  if (sender.role === "admin" && (receiver.role === "teacher" || receiver.role === "student") && sender.schoolName === receiver.schoolName) return true;
-  if ((sender.role === "teacher" || sender.role === "student") && receiver.role === "admin" && sender.schoolName === receiver.schoolName) return true;
+  const senderSchool = (sender.schoolName || sender.requestedSchool || "").trim().toLowerCase();
+  const receiverSchool = (receiver.schoolName || receiver.requestedSchool || "").trim().toLowerCase();
 
-  // Teacher <-> Student of same school
-  if (sender.role === "teacher" && receiver.role === "student" && sender.schoolName === receiver.schoolName) return true;
-  if (sender.role === "student" && receiver.role === "teacher" && sender.schoolName === receiver.schoolName) return true;
+  if (senderSchool && receiverSchool && senderSchool === receiverSchool) {
+    // Admin <-> Teacher/Student/Unassigned Applicant of same school
+    if (sender.role === "admin" || receiver.role === "admin") return true;
+    // Teacher <-> Student of same school
+    if ((sender.role === "teacher" && receiver.role === "student") || (sender.role === "student" && receiver.role === "teacher")) return true;
+  }
 
   return false;
 };

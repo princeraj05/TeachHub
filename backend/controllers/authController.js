@@ -564,7 +564,7 @@ exports.updateProfile = async (req, res) => {
     if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
     if (alternatePhone !== undefined) user.alternatePhone = alternatePhone;
     if (avatar !== undefined) {
-      if (avatar && avatar.startsWith("data:image")) {
+      if (typeof avatar === "string" && avatar.startsWith("data:image")) {
         if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
           try {
             const cloudinary = require("../config/cloudinary");
@@ -580,7 +580,7 @@ exports.updateProfile = async (req, res) => {
         } else {
           user.avatar = avatar;
         }
-      } else {
+      } else if (typeof avatar === "string") {
         user.avatar = avatar;
       }
     }

@@ -240,7 +240,10 @@ function PendingApproval() {
         .get(`${API}/api/schools/${encodeURIComponent(user.requestedSchool)}`, {
           headers: { Authorization: `Bearer ${token}` }
         })
-        .then((res) => setRequestedSchoolData(res.data))
+        .then((res) => {
+          setRequestedSchoolData(res.data);
+          if (res.data?.adminUser) setSchoolAdmin(res.data.adminUser);
+        })
         .catch((err) => console.error("Error fetching requested school data:", err));
 
       axios
@@ -253,7 +256,7 @@ function PendingApproval() {
             if (admin) setSchoolAdmin(admin);
           }
         })
-        .catch((err) => console.error("Error fetching school admin:", err));
+        .catch((err) => console.error("Error fetching school admin contacts:", err));
     }
   }, [user.requestedSchool, token, API]);
 
@@ -581,7 +584,11 @@ function PendingApproval() {
                           <button
                             type="button"
                             onClick={() => {
-                              const recipient = schoolAdmin || { _id: "admin_support_fallback", name: `${user.requestedSchool || 'School'} Admin`, role: "admin" };
+                              const recipient = schoolAdmin || requestedSchoolData?.adminUser;
+                              if (!recipient || !recipient._id) {
+                                alert(`Connecting to ${user.requestedSchool || 'School'} Admin... Please try again in a moment.`);
+                                return;
+                              }
                               if (startCall) {
                                 startCall(recipient, "video");
                               }

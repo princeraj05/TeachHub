@@ -515,15 +515,17 @@ function AdminRequests() {
                                   {meetingStatus?.label}
                                 </span>
 
-                                {meetingStatus?.isReady && (
-                                  <button
-                                    type="button"
-                                    onClick={() => startCall && startCall({ _id: req._id, name: req.name, avatar: req.avatar, role: "teacher" }, "video")}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-black uppercase tracking-wider shadow-md shadow-emerald-500/20 transition cursor-pointer"
-                                  >
-                                    <FaVideo className="text-xs" /> Start Call Now
-                                  </button>
-                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => startCall && startCall({ _id: req._id, name: req.name, avatar: req.avatar, role: req.requestedRole || "teacher" }, "video")}
+                                  className={`inline-flex items-center gap-1.5 px-3 py-1 text-white rounded-lg text-[10px] font-black uppercase tracking-wider shadow-md transition cursor-pointer ${
+                                    meetingStatus?.isReady
+                                      ? "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20 animate-bounce"
+                                      : "bg-[#7C3AED] hover:bg-[#6D28D9] shadow-[#7C3AED]/20"
+                                  }`}
+                                >
+                                  <FaVideo className="text-xs" /> {meetingStatus?.isReady ? "Start Call Now" : "Start Video Call"}
+                                </button>
                               </div>
                             )}
                           </div>

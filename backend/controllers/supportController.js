@@ -231,17 +231,19 @@ exports.getContacts = async (req, res) => {
   try {
     const currentUserId = req.user.id;
     const role = req.user.role;
-    const schoolName = req.user.schoolName;
-
-    if (role === "unassigned") {
-      return res.status(403).json({ message: "Unassigned users have no contact permissions" });
-    }
+    const userDoc = await User.findById(currentUserId).lean();
+    const effectiveSchoolName = schoolName || userDoc?.requestedSchool || userDoc?.schoolName || "";
 
     let contacts = [];
     const escapeRegex = (str) => (str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const schoolRegex = schoolName ? new RegExp("^" + escapeRegex(schoolName) + "$", "i") : null;
+    const schoolRegex = effectiveSchoolName ? new RegExp("^" + escapeRegex(effectiveSchoolName) + "$", "i") : null;
 
-    if (role === "superadmin") {
+    if (role === "unassigned") {
+      if (schoolRegex) {
+        contacts = await User.find({ role: { $regex: /^admin$/i }, schoolName: schoolRegex })
+          .select("name email role schoolName isOnline lastSeen avatar");
+      }
+    } else if (role === "superadmin") {
       contacts = await User.find({ role: { $regex: /^admin$/i } })
         .select("name email role schoolName isOnline lastSeen avatar");
     } else if (role === "admin") {

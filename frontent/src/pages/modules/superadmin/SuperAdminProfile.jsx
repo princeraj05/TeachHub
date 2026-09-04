@@ -346,7 +346,7 @@ function SuperAdminProfile() {
           <div className="relative group shrink-0">
             <div className="w-24 h-24 rounded-full overflow-hidden bg-slate-100 border-2 border-slate-200/50 flex items-center justify-center p-0.5">
               {avatar ? (
-                <img src={avatar} alt="Profile" className="w-full h-full object-cover rounded-full" />
+                <img src={avatar} alt="" onError={() => setAvatar("")} className="w-full h-full object-cover rounded-full" />
               ) : (
                 <div className="w-full h-full bg-[#7C3AED] text-white text-3xl font-black rounded-full flex items-center justify-center">
                   {profileInitials}
@@ -514,7 +514,7 @@ function SuperAdminProfile() {
           <div className="my-8 flex flex-col items-center space-y-4">
             <div className="w-32 h-32 rounded-full overflow-hidden bg-slate-100 border border-slate-200 shadow-inner flex items-center justify-center p-1">
               {avatar ? (
-                <img src={avatar} alt="Profile Photo" className="w-full h-full object-cover rounded-full" />
+                <img src={avatar} alt="" onError={() => setAvatar("")} className="w-full h-full object-cover rounded-full" />
               ) : (
                 <div className="w-full h-full bg-[#7C3AED] text-white text-3xl font-black rounded-full flex items-center justify-center">
                   {profileInitials}
@@ -534,9 +534,20 @@ function SuperAdminProfile() {
             </button>
             
             <button
-              onClick={() => {
+              onClick={async () => {
                 if (window.confirm("Remove avatar photo?")) {
                   setAvatar("");
+                  localStorage.setItem("avatar", "");
+                  try {
+                    const res = await axios.put(`${API}/api/auth/profile`, { avatar: "" }, {
+                      headers: { Authorization: `Bearer ${token}` }
+                    });
+                    if (res.data?.user) {
+                      setProfile(res.data.user);
+                      localStorage.setItem("cached_superadmin_profile", JSON.stringify(res.data.user));
+                    }
+                  } catch (e) {}
+                  window.dispatchEvent(new Event("profileUpdate"));
                 }
               }}
               className="w-full bg-transparent hover:bg-slate-50 dark:hover:bg-white/5 border border-slate-200 text-slate-550 dark:text-slate-300 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition flex items-center justify-center gap-1.5 cursor-pointer"

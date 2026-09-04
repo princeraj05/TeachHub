@@ -378,12 +378,13 @@ exports.getSchoolDetails = async (req, res) => {
     }
 
     const exactRegex = new RegExp("^" + escapeRegex(school.name) + "$", "i");
-    const [totalStudents, totalTeachers, totalClasses, totalEvents, totalSubjects] = await Promise.all([
+    const [totalStudents, totalTeachers, totalClasses, totalEvents, totalSubjects, adminUser] = await Promise.all([
       User.countDocuments({ schoolName: exactRegex, role: "student" }),
       User.countDocuments({ schoolName: exactRegex, role: "teacher" }),
       Class.countDocuments({ schoolName: exactRegex }),
       Event.countDocuments({ schoolName: exactRegex }),
-      Subject.countDocuments({ schoolName: exactRegex })
+      Subject.countDocuments({ schoolName: exactRegex }),
+      User.findOne({ role: "admin", schoolName: exactRegex }).select("_id name email role schoolName avatar").lean()
     ]);
 
     const schoolObj = school.toObject();
@@ -392,6 +393,7 @@ exports.getSchoolDetails = async (req, res) => {
     schoolObj.totalClasses = totalClasses;
     schoolObj.totalEvents = totalEvents;
     schoolObj.totalSubjects = totalSubjects;
+    schoolObj.adminUser = adminUser || null;
 
     res.json(schoolObj);
   } catch (error) {
