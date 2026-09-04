@@ -159,40 +159,58 @@ exports.getSubjectDetails = async (req, res) => {
     const key = Object.keys(mockAssignments).find(k => nameKey.includes(k)) || "mathematics";
     const assignments = mockAssignments[key];
 
-    // Compute student stats
+    // Collect class list and student lists per class
     let totalStudents = 0;
     const classProgressList = [];
+    const allStudentsList = [];
     
     subject.classes.forEach((c, idx) => {
-      const studentCount = c.students?.length || 0;
+      const classStudents = (c.students || []).map(st => ({
+        _id: st._id,
+        name: st.name || "Student",
+        email: st.email || "",
+        avatar: st.avatar || "",
+        gender: st.gender || "Other",
+        className: `Class ${c.name} - ${c.section}`,
+        classId: c._id
+      }));
+
+      const studentCount = classStudents.length;
       totalStudents += studentCount;
+      allStudentsList.push(...classStudents);
 
       const variance = [-5, -2, 2, -1, 3];
       const classProgress = Math.min(100, Math.max(0, meta.progress + (variance[idx % variance.length] || 0)));
 
       classProgressList.push({
         _id: c._id,
-        name: `${c.name} - ${c.section}`,
+        name: `Class ${c.name} - ${c.section}`,
+        rawName: c.name,
+        section: c.section,
         studentCount,
-        progress: classProgress
+        progress: classProgress,
+        students: classStudents
       });
     });
 
     // Helper to extract base class name
     const extractBaseClassName = (str) => {
-      if (!str) return null;
+      if (!str || str === "All") return null;
       const match = String(str).match(/Class\s*\d+/i);
       return match ? match[0] : String(str).trim();
     };
 
-    const targetClassName = extractBaseClassName(req.query.className);
+    const requestedClassName = req.query.className;
+    const targetClassName = extractBaseClassName(requestedClassName);
     let liveSyllabus = null;
+
     if (targetClassName) {
       liveSyllabus = await SubjectSyllabus.findOne({ subject: subjectId, className: targetClassName }).lean();
     }
     if (!liveSyllabus) {
       liveSyllabus = await SubjectSyllabus.findOne({ subject: subjectId }).lean();
     }
+
     let totalChaptersCount = meta.chapters;
     let completedChaptersCount = Math.round(meta.chapters * (meta.progress / 100));
     let calculatedProgress = meta.progress;
@@ -214,6 +232,19 @@ exports.getSubjectDetails = async (req, res) => {
       inProgressPct = Math.round((inProgCount / totalChaptersCount) * 100);
       notStartedPct = Math.round((notStartedCount / totalChaptersCount) * 100);
       overduePct = 0;
+    }
+
+    // Filter students if a specific class was requested
+    let filteredStudents = allStudentsList;
+    if (requestedClassName && requestedClassName !== "All") {
+      const matchedClass = classProgressList.find(
+        c => c.name.toLowerCase() === requestedClassName.toLowerCase() ||
+             c.name.toLowerCase().includes(requestedClassName.toLowerCase()) ||
+             `class ${c.rawName}`.toLowerCase() === requestedClassName.toLowerCase()
+      );
+      if (matchedClass) {
+        filteredStudents = matchedClass.students;
+      }
     }
 
     res.json({
@@ -241,6 +272,8 @@ exports.getSubjectDetails = async (req, res) => {
         subjectCode: meta.code
       },
       assignedClasses: classProgressList,
+      students: filteredStudents,
+      allStudents: allStudentsList,
       timetable: formattedTimetable,
       exams: formattedExams,
       assignments: assignments || [],

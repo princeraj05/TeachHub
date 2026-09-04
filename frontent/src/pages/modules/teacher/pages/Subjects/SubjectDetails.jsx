@@ -140,18 +140,41 @@ function SubjectDetails() {
         {/* Left Column: Subject Name and description */}
         <div className="flex-1 flex flex-col justify-between">
           <div>
-            <div className="flex items-center gap-3 mb-2.5">
-              <div className="w-11 h-11 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-lg shadow-purple-500/20 select-none">
-                <FaBook className="text-lg" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-black text-slate-900 dark:text-white leading-none">{subjectInfo.name}</h2>
-                  <span className="inline-flex px-2 py-0.5 rounded-full text-[8px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-wider select-none">Active</span>
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-2.5">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-lg shadow-purple-500/20 select-none">
+                  <FaBook className="text-lg" />
                 </div>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mt-1.5">{subjectInfo.code} &bull; Core Subject</p>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-black text-slate-900 dark:text-white leading-none">{subjectInfo.name}</h2>
+                    <span className="inline-flex px-2 py-0.5 rounded-full text-[8px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-wider select-none">Active</span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mt-1.5">{subjectInfo.code} &bull; Core Subject</p>
+                </div>
+              </div>
+
+              {/* Class Filter Dropdown in Header */}
+              <div className="flex items-center gap-2 bg-purple-500/10 border border-purple-500/25 px-3 py-1.5 rounded-xl shadow-sm">
+                <span className="text-[9px] font-black uppercase text-purple-600 dark:text-purple-400 tracking-wider">SELECT CLASS:</span>
+                <select
+                  value={selectedClassForSyllabus || "All"}
+                  onChange={(e) => {
+                    setSelectedClassForSyllabus(e.target.value);
+                    fetchSubjectDetails(e.target.value);
+                  }}
+                  className="bg-transparent text-xs font-black text-slate-900 dark:text-white focus:outline-none cursor-pointer"
+                >
+                  <option value="All" className="dark:bg-[#0F172A] text-slate-900 dark:text-white font-bold">All Classes (Overall Aggregate)</option>
+                  {assignedClasses.map((c, i) => (
+                    <option key={c._id || i} value={c.name} className="dark:bg-[#0F172A] text-slate-900 dark:text-white font-bold">
+                      {c.name} ({c.studentCount} Students)
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
+
             <p className="text-xs text-slate-450 dark:text-slate-400 leading-relaxed font-medium mb-4 max-w-xl">
               {subjectInfo.description}
             </p>
@@ -159,10 +182,10 @@ function SubjectDetails() {
           
           {/* Card footer mini counters */}
           <div className="flex flex-wrap gap-4 text-[10px] font-bold text-slate-450 uppercase tracking-wide border-t border-slate-100 dark:border-white/[0.03] pt-4 select-none">
-            <div>Classes: <span className="text-slate-800 dark:text-white font-extrabold">{subjectInfo.classesCount}</span></div>
-            <div>Students: <span className="text-slate-800 dark:text-white font-extrabold">{subjectInfo.studentsCount}</span></div>
+            <div>Classes: <span className="text-slate-800 dark:text-white font-extrabold">{selectedClassForSyllabus && selectedClassForSyllabus !== "All" ? `1 (${selectedClassForSyllabus})` : `${subjectInfo.classesCount} Total`}</span></div>
+            <div>Students: <span className="text-slate-800 dark:text-white font-extrabold">{(data?.students || []).length}</span></div>
             <div>Chapters: <span className="text-slate-800 dark:text-white font-extrabold">{subjectInfo.chapters}</span></div>
-            <div>Overall Progress: <span className="text-purple-500 font-extrabold">{subjectInfo.progress}%</span></div>
+            <div>Progress: <span className="text-purple-500 font-extrabold">{subjectInfo.progress}%</span></div>
           </div>
         </div>
 
@@ -497,6 +520,122 @@ function SubjectDetails() {
             fetchSubjectDetails(cName);
           }}
         />
+      ) : activeTab === "Students" ? (
+        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-6 rounded-2xl shadow-sm space-y-4 select-none">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-white/5">
+            <div>
+              <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                Students Roster {selectedClassForSyllabus && selectedClassForSyllabus !== "All" ? `(${selectedClassForSyllabus})` : "(Across All Classes)"}
+              </h3>
+              <p className="text-[10px] text-slate-450 dark:text-slate-400 font-semibold mt-0.5">
+                {(data?.students || []).length} students enrolled in {subjectInfo.name} course
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-slate-400">Class Filter:</span>
+              <select
+                value={selectedClassForSyllabus || "All"}
+                onChange={(e) => {
+                  setSelectedClassForSyllabus(e.target.value);
+                  fetchSubjectDetails(e.target.value);
+                }}
+                className="px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-purple-500/30 dark:border-white/15 rounded-xl text-xs font-bold text-slate-900 dark:text-white cursor-pointer"
+              >
+                <option value="All">All Classes ({(data?.allStudents || []).length} Total)</option>
+                {assignedClasses.map((c, i) => (
+                  <option key={c._id || i} value={c.name}>{c.name} ({c.studentCount} Students)</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {(data?.students || []).length === 0 ? (
+            <div className="py-16 text-center text-slate-400">
+              <FaUserGraduate className="text-3xl text-purple-400 mx-auto mb-2" />
+              <p className="text-xs font-bold text-slate-700 dark:text-white">No students enrolled in this class filter.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto select-text">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 dark:bg-white/[0.02] text-slate-400 uppercase tracking-widest text-[9px] font-black border-b border-slate-100 dark:border-white/5">
+                    <th className="px-4 py-3">Student Name</th>
+                    <th className="px-4 py-3">Email Address</th>
+                    <th className="px-4 py-3">Class & Section</th>
+                    <th className="px-4 py-3 text-center">Gender</th>
+                    <th className="px-4 py-3 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                  {(data?.students || []).map((st, i) => (
+                    <tr key={st._id || i} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.01]">
+                      <td className="px-4 py-3 font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+                        {st.avatar ? (
+                          <img src={st.avatar} alt={st.name} className="w-7 h-7 rounded-full object-cover border border-slate-200" />
+                        ) : (
+                          <div className="w-7 h-7 rounded-full bg-purple-500/10 text-purple-500 font-black text-[10px] flex items-center justify-center border border-purple-500/20 shrink-0">
+                            {st.name?.charAt(0)}
+                          </div>
+                        )}
+                        <span>{st.name}</span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-500 font-medium">{st.email || "N/A"}</td>
+                      <td className="px-4 py-3 font-bold text-purple-600 dark:text-purple-400">{st.className || "Class 1 - A"}</td>
+                      <td className="px-4 py-3 text-center capitalize">{st.gender || "Student"}</td>
+                      <td className="px-4 py-3 text-center">
+                        <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[8px] font-black rounded-full uppercase tracking-wider">Active</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      ) : activeTab === "Classes" ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 select-none">
+          {assignedClasses.map((c, i) => (
+            <div key={c._id || i} className="bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm flex flex-col justify-between space-y-4 hover:border-purple-500/30 transition">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-black text-slate-900 dark:text-white">{c.name}</h4>
+                  <p className="text-[10px] text-slate-400 font-bold mt-0.5">{c.studentCount} Students Enrolled</p>
+                </div>
+                <span className="px-2.5 py-1 bg-purple-500/10 text-purple-600 border border-purple-500/20 text-xs font-black rounded-xl">
+                  {c.progress}% Progress
+                </span>
+              </div>
+
+              <div className="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
+                <div className="h-full bg-purple-500 rounded-full" style={{ width: `${c.progress}%` }} />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-white/5">
+                <button
+                  onClick={() => {
+                    setSelectedClassForSyllabus(c.name);
+                    fetchSubjectDetails(c.name);
+                    setActiveTab("Syllabus");
+                  }}
+                  className="flex-1 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold text-center transition cursor-pointer"
+                >
+                  View Syllabus &rarr;
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedClassForSyllabus(c.name);
+                    fetchSubjectDetails(c.name);
+                    setActiveTab("Students");
+                  }}
+                  className="px-3 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition cursor-pointer"
+                >
+                  Students ({c.studentCount})
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         
         // OTHER TABS FALLBACK CONTENT LISTS
