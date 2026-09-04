@@ -247,7 +247,7 @@ function PendingApproval() {
         .catch((err) => console.error("Error fetching requested school data:", err));
 
       axios
-        .get(`${API}/api/support/contacts`, {
+        .get(`${API}/api/support/users`, {
           headers: { Authorization: `Bearer ${token}` }
         })
         .then((res) => {
@@ -583,8 +583,22 @@ function PendingApproval() {
 
                           <button
                             type="button"
-                            onClick={() => {
-                              const recipient = schoolAdmin || requestedSchoolData?.adminUser;
+                            onClick={async () => {
+                              let recipient = schoolAdmin || requestedSchoolData?.adminUser;
+                              if (!recipient || !recipient._id) {
+                                try {
+                                  const res = await axios.get(`${API}/api/support/users`, {
+                                    headers: { Authorization: `Bearer ${token}` }
+                                  });
+                                  if (Array.isArray(res.data)) {
+                                    const admin = res.data.find(c => c.role === "admin" || c.role === "superadmin");
+                                    if (admin) {
+                                      recipient = admin;
+                                      setSchoolAdmin(admin);
+                                    }
+                                  }
+                                } catch (e) {}
+                              }
                               if (!recipient || !recipient._id) {
                                 alert(`Connecting to ${user.requestedSchool || 'School'} Admin... Please try again in a moment.`);
                                 return;

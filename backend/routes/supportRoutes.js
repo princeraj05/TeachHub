@@ -60,6 +60,7 @@ router.use(protect);
 router.post("/message", sendMessage);
 router.get("/history", getHistory);
 router.get("/users", getContacts);
+router.get("/contacts", getContacts);
 router.post("/upload", upload.single("file"), handleUpload);
 router.post("/react", addReaction);
 router.delete("/message/:id", deleteMessage);
