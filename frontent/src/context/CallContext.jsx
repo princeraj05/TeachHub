@@ -30,6 +30,10 @@ export const CallProvider = ({ children }) => {
   // WebRTC streams
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
+  const remoteStreamRef = useRef(null);
+  const iceCandidatesQueueRef = useRef([]);
+
+  useEffect(() => { remoteStreamRef.current = remoteStream; }, [remoteStream]);
 
   // Toast / Status notification
   const [toastMessage, setToastMessage] = useState(null);
@@ -40,6 +44,32 @@ export const CallProvider = ({ children }) => {
   const audioContextRef = useRef(null);
   const soundIntervalRef = useRef(null);
   const timerRef = useRef(null);
+
+  // Helper functions for safe ICE candidate processing
+  const processIceQueue = async () => {
+    if (!peerConnectionRef.current || !peerConnectionRef.current.remoteDescription) return;
+    while (iceCandidatesQueueRef.current.length > 0) {
+      const candidate = iceCandidatesQueueRef.current.shift();
+      try {
+        await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+      } catch (e) {
+        console.error("Error adding queued ice candidate:", e);
+      }
+    }
+  };
+
+  const addIceCandidateSafely = async (candidate) => {
+    const pc = peerConnectionRef.current;
+    if (pc && pc.remoteDescription && pc.remoteDescription.type) {
+      try {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+      } catch (e) {
+        console.error("Error adding ice candidate:", e);
+      }
+    } else {
+      iceCandidatesQueueRef.current.push(candidate);
+    }
+  };
 
   // Refs for tracking dynamic calling state inside socket listeners
   const callStateRef = useRef(callState);
@@ -207,22 +237,18 @@ export const CallProvider = ({ children }) => {
 
     socket.on("call:offer", async ({ senderId, offer }) => {
       await setupWebRTC(false, offer);
+      await processIceQueue();
     });
 
     socket.on("call:answer", async ({ senderId, answer }) => {
       if (peerConnectionRef.current) {
         await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(answer));
+        await processIceQueue();
       }
     });
 
     socket.on("call:ice-candidate", async ({ senderId, candidate }) => {
-      if (peerConnectionRef.current) {
-        try {
-          await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
-        } catch (e) {
-          console.error("Error adding ice candidate:", e);
-        }
-      }
+      await addIceCandidateSafely(candidate);
     });
 
     return () => {
@@ -250,6 +276,8 @@ export const CallProvider = ({ children }) => {
       peerConnectionRef.current.close();
       peerConnectionRef.current = null;
     }
+    iceCandidatesQueueRef.current = [];
+    remoteStreamRef.current = null;
     setLocalStream(null);
     setRemoteStream(null);
     setIsMuted(false);
@@ -428,6 +456,22 @@ export const CallProvider = ({ children }) => {
   // Video Ref mounts & Playback execution
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
+
+  const localVideoCallback = (node) => {
+    localVideoRef.current = node;
+    if (node && localStreamRef.current) {
+      node.srcObject = localStreamRef.current;
+      node.play().catch(() => {});
+    }
+  };
+
+  const remoteVideoCallback = (node) => {
+    remoteVideoRef.current = node;
+    if (node && remoteStreamRef.current) {
+      node.srcObject = remoteStreamRef.current;
+      node.play().catch(() => {});
+    }
+  };
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
@@ -608,7 +652,7 @@ export const CallProvider = ({ children }) => {
             <div className="relative flex-1 bg-slate-900/60 border border-white/10 my-4 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center max-w-4xl mx-auto w-full">
               {/* Remote Video Stream */}
               <video
-                ref={remoteVideoRef}
+                ref={remoteVideoCallback}
                 autoPlay
                 playsInline
                 className="w-full h-full object-cover"
@@ -623,7 +667,7 @@ export const CallProvider = ({ children }) => {
                   </div>
                 ) : (
                   <video
-                    ref={localVideoRef}
+                    ref={localVideoCallback}
                     autoPlay
                     playsInline
                     muted
