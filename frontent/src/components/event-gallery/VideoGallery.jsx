@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { FaPlay, FaVideo, FaTrash } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { FaPlay, FaVideo, FaTrash, FaDownload, FaExclamationTriangle, FaExternalLinkAlt } from "react-icons/fa";
 
 export default function VideoGallery({ videos, getMediaUrl, onDeleteVideo }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [videoError, setVideoError] = useState(false);
 
   if (!videos.length) {
     return <p className="py-12 text-center text-xs font-bold italic text-slate-400">No videos uploaded to this event gallery yet.</p>;
@@ -10,6 +11,10 @@ export default function VideoGallery({ videos, getMediaUrl, onDeleteVideo }) {
 
   const activeVideo = videos[activeIndex] || videos[0];
   const activeUrl = getMediaUrl(activeVideo?.url);
+
+  useEffect(() => {
+    setVideoError(false);
+  }, [activeUrl]);
 
   return (
     <section className="flex flex-col gap-6">
@@ -20,16 +25,35 @@ export default function VideoGallery({ videos, getMediaUrl, onDeleteVideo }) {
       {/* Main Active Player Area */}
       <div className="w-full bg-slate-950 dark:bg-slate-950/80 rounded-2.5xl border border-slate-200/60 dark:border-white/10 overflow-hidden shadow-lg flex flex-col select-none">
         <div className="relative aspect-video w-full bg-black flex items-center justify-center">
-          {/* Main Video */}
-          <video
-            key={activeUrl}
-            src={activeUrl}
-            controls
-            autoPlay={activeIndex !== 0} // Autoplay when user manually selects subsequent videos
-            preload="metadata"
-            playsInline
-            className="w-full h-full object-contain"
-          />
+          {videoError ? (
+            <div className="flex flex-col items-center justify-center p-6 text-center text-white space-y-3">
+              <FaExclamationTriangle className="text-amber-400 text-3xl" />
+              <p className="text-xs font-bold">Browser video format / codec ko support nahi kar raha hai.</p>
+              <p className="text-[11px] text-slate-300">Ye WhatsApp video file ho sakti hai. Isko direct download ya external player me open karein.</p>
+              <a
+                href={activeUrl}
+                target="_blank"
+                rel="noreferrer"
+                download
+                className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-black rounded-xl transition shadow-md"
+              >
+                <FaDownload /> Download / Open Video
+              </a>
+            </div>
+          ) : (
+            <video
+              key={activeUrl}
+              controls
+              autoPlay={activeIndex !== 0} // Autoplay when user manually selects subsequent videos
+              preload="metadata"
+              playsInline
+              onError={() => setVideoError(true)}
+              className="w-full h-full object-contain"
+            >
+              <source src={activeUrl} type={activeVideo?.mimeType || "video/mp4"} />
+              Your browser does not support playing this video.
+            </video>
+          )}
         </div>
         
         {/* Caption bar */}
@@ -42,6 +66,17 @@ export default function VideoGallery({ videos, getMediaUrl, onDeleteVideo }) {
           </div>
           
           <div className="flex shrink-0 items-center gap-2">
+            <a
+              href={activeUrl}
+              target="_blank"
+              rel="noreferrer"
+              download
+              className="rounded-xl p-2.5 text-slate-500 hover:text-[#7C3AED] dark:text-slate-400 dark:hover:text-[#38BDF8] hover:bg-slate-100 dark:hover:bg-white/5 transition-colors flex items-center gap-1 text-xs font-bold"
+              title="Download / Open Video"
+            >
+              <FaDownload className="text-xs" />
+              <span className="hidden sm:inline text-[10px]">Download</span>
+            </a>
             {onDeleteVideo && (
               <button
                 type="button"

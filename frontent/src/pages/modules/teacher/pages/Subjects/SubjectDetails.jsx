@@ -20,6 +20,7 @@ import {
   FaRegCalendarAlt, 
   FaChartLine 
 } from "react-icons/fa";
+import SyllabusTab from "../../../../../components/syllabus/SyllabusTab";
 
 const SORA = "'Sora', sans-serif";
 
@@ -478,6 +479,12 @@ function SubjectDetails() {
           </div>
 
         </div>
+      ) : activeTab === "Syllabus" ? (
+        <SyllabusTab 
+          subjectId={subjectId} 
+          subjectName={subjectInfo.name} 
+          onSyllabusUpdate={fetchSubjectDetails} 
+        />
       ) : (
         
         // OTHER TABS FALLBACK CONTENT LISTS

@@ -4,6 +4,8 @@ const Exam = require("../models/Exam");
 const User = require("../models/User");
 const Timetable = require("../models/Timetable");
 const ExamSubmission = require("../models/ExamSubmission");
+const SubjectSyllabus = require("../models/SubjectSyllabus");
+const MasterSyllabus = require("../models/MasterSyllabus");
 
 // ================= GET MY SUBJECTS =================
 
@@ -176,6 +178,31 @@ exports.getSubjectDetails = async (req, res) => {
       });
     });
 
+    // Fetch live SubjectSyllabus for progress computation
+    const liveSyllabus = await SubjectSyllabus.findOne({ subject: subjectId }).lean();
+    let totalChaptersCount = meta.chapters;
+    let completedChaptersCount = Math.round(meta.chapters * (meta.progress / 100));
+    let calculatedProgress = meta.progress;
+    let inProgressPct = Math.round((100 - meta.progress) * 0.7);
+    let notStartedPct = Math.round((100 - meta.progress) * 0.2);
+    let overduePct = Math.round((100 - meta.progress) * 0.1);
+
+    if (liveSyllabus && liveSyllabus.chapters && liveSyllabus.chapters.length > 0) {
+      totalChaptersCount = liveSyllabus.chapters.length;
+      completedChaptersCount = liveSyllabus.chapters.filter(ch => ch.status === "Completed").length;
+      const inProgCount = liveSyllabus.chapters.filter(ch => ch.status === "In Progress").length;
+      const notStartedCount = liveSyllabus.chapters.filter(ch => ch.status === "Not Started").length;
+
+      calculatedProgress = Math.round(
+        (completedChaptersCount / totalChaptersCount) * 100 + (inProgCount / totalChaptersCount) * 40
+      );
+      if (calculatedProgress > 100) calculatedProgress = 100;
+
+      inProgressPct = Math.round((inProgCount / totalChaptersCount) * 100);
+      notStartedPct = Math.round((notStartedCount / totalChaptersCount) * 100);
+      overduePct = 0;
+    }
+
     res.json({
       subjectInfo: {
         _id: subject._id,
@@ -183,8 +210,8 @@ exports.getSubjectDetails = async (req, res) => {
         code: meta.code,
         description: meta.desc,
         department: meta.dept,
-        chapters: meta.chapters,
-        progress: meta.progress,
+        chapters: totalChaptersCount,
+        progress: calculatedProgress,
         studentsCount: totalStudents || 128,
         classesCount: subject.classes?.length || 0
       },
@@ -205,11 +232,11 @@ exports.getSubjectDetails = async (req, res) => {
       exams: formattedExams,
       assignments: assignments || [],
       progressOverview: {
-        completed: meta.progress,
-        inProgress: Math.round((100 - meta.progress) * 0.7),
-        notStarted: Math.round((100 - meta.progress) * 0.2),
-        overdue: Math.round((100 - meta.progress) * 0.1),
-        chapterCompletion: `${Math.round(meta.chapters * (meta.progress / 100))} / ${meta.chapters}`
+        completed: calculatedProgress,
+        inProgress: inProgressPct,
+        notStarted: notStartedPct,
+        overdue: overduePct,
+        chapterCompletion: `${completedChaptersCount} / ${totalChaptersCount}`
       }
     });
   } catch (error) {
