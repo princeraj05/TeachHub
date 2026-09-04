@@ -58,6 +58,7 @@ function PendingApproval() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [requestedSchoolData, setRequestedSchoolData] = useState(null);
+  const [schoolAdmin, setSchoolAdmin] = useState(null);
 
   // Live 1-second ticker for real-time countdown
   const [now, setNow] = useState(Date.now());
@@ -241,6 +242,18 @@ function PendingApproval() {
         })
         .then((res) => setRequestedSchoolData(res.data))
         .catch((err) => console.error("Error fetching requested school data:", err));
+
+      axios
+        .get(`${API}/api/support/contacts`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then((res) => {
+          if (Array.isArray(res.data)) {
+            const admin = res.data.find(c => c.role === "admin" || c.role === "superadmin");
+            if (admin) setSchoolAdmin(admin);
+          }
+        })
+        .catch((err) => console.error("Error fetching school admin:", err));
     }
   }, [user.requestedSchool, token, API]);
 
@@ -502,57 +515,91 @@ function PendingApproval() {
                 </div>
 
                 {/* Meeting / Interview & Approval Details Card */}
-                {user.interviewDate || user.interviewMode ? (
-                  <div className="w-full bg-white dark:bg-[#0B132A] rounded-3xl border border-purple-500/20 shadow-sm p-5 text-left flex flex-col gap-4">
-                    <div className="flex gap-3.5 items-start">
-                      <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 border border-purple-500/20">
-                        {user.interviewMode === "Offline" ? <FaMapMarkerAlt className="text-lg" /> : <FaVideo className="text-lg" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-xs font-black text-purple-600 dark:text-purple-400">
-                            {user.interviewMode === "Offline" ? "In-Person / Offline Interview" : "Online Video Meeting / Interview"}
-                          </h3>
-                          <span className="px-2.5 py-0.5 text-[9px] font-black uppercase rounded-full bg-purple-500/10 text-purple-500 border border-purple-500/20">
-                            {user.interviewMode || "Online"}
-                          </span>
+                {user.interviewDate || user.interviewMode ? (() => {
+                  const meetingStatus = user.interviewDate ? getMeetingTimeStatus(user.interviewDate, user.interviewTime) : null;
+                  return (
+                    <div className="w-full bg-white dark:bg-[#0B132A] rounded-3xl border border-purple-500/20 shadow-sm p-5 text-left flex flex-col gap-4">
+                      <div className="flex gap-3.5 items-start">
+                        <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 border border-purple-500/20">
+                          {user.interviewMode === "Offline" ? <FaMapMarkerAlt className="text-lg" /> : <FaVideo className="text-lg" />}
                         </div>
-                        <p className="text-[10px] text-slate-450 dark:text-slate-500 font-medium leading-normal mt-1">
-                          {user.interviewMode === "Offline"
-                            ? "School Admin has scheduled an offline meeting/interview at campus."
-                            : "School Admin has scheduled an online video call interview."}
-                        </p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-xs font-black text-purple-600 dark:text-purple-400">
+                              {user.interviewMode === "Offline" ? "In-Person / Offline Interview" : "Online Video Meeting / Interview"}
+                            </h3>
+                            <span className="px-2.5 py-0.5 text-[9px] font-black uppercase rounded-full bg-purple-500/10 text-purple-500 border border-purple-500/20">
+                              {user.interviewMode || "Online"}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-slate-450 dark:text-slate-500 font-medium leading-normal mt-1">
+                            {user.interviewMode === "Offline"
+                              ? "School Admin has scheduled an offline meeting/interview at campus."
+                              : "School Admin has scheduled an online video call interview."}
+                          </p>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex flex-col gap-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.04] p-4 rounded-2.5xl text-xs font-bold">
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-400 dark:text-slate-500 font-semibold">Meeting Date & Time</span>
-                        <span className="text-slate-900 dark:text-white font-extrabold">
-                          {user.interviewDate ? formatDate(user.interviewDate) : "Scheduled"} {user.interviewTime ? `at ${user.interviewTime}` : ""}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-400 dark:text-slate-500 font-semibold">Meeting Mode</span>
-                        <span className="text-purple-500 font-black">{user.interviewMode || "Online"}</span>
-                      </div>
-                      {user.interviewVenue && (
+                      <div className="flex flex-col gap-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.04] p-4 rounded-2.5xl text-xs font-bold">
                         <div className="flex justify-between items-center">
-                          <span className="text-slate-400 dark:text-slate-500 font-semibold">
-                            {user.interviewMode === "Offline" ? "Venue / Campus Room" : "Meeting Link / Address"}
+                          <span className="text-slate-400 dark:text-slate-500 font-semibold">Meeting Date & Time</span>
+                          <span className="text-slate-900 dark:text-white font-extrabold">
+                            {user.interviewDate ? formatDate(user.interviewDate) : "Scheduled"} {user.interviewTime ? `at ${user.interviewTime}` : ""}
                           </span>
-                          <span className="text-slate-900 dark:text-white font-extrabold truncate max-w-[200px]">{user.interviewVenue}</span>
                         </div>
-                      )}
-                      {user.interviewNotes && (
-                        <div className="flex flex-col gap-1 border-t border-slate-200/50 dark:border-white/5 pt-2">
-                          <span className="text-slate-400 dark:text-slate-500 font-semibold">Admin Instructions / Notes:</span>
-                          <span className="text-slate-700 dark:text-slate-300 font-medium text-[11px] leading-relaxed">{user.interviewNotes}</span>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-400 dark:text-slate-500 font-semibold">Meeting Mode</span>
+                          <span className="text-purple-500 font-black">{user.interviewMode || "Online"}</span>
+                        </div>
+                        {user.interviewVenue && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-400 dark:text-slate-500 font-semibold">
+                              {user.interviewMode === "Offline" ? "Venue / Campus Room" : "Meeting Link / Address"}
+                            </span>
+                            <span className="text-slate-900 dark:text-white font-extrabold truncate max-w-[200px]">{user.interviewVenue}</span>
+                          </div>
+                        )}
+                        {user.interviewNotes && (
+                          <div className="flex flex-col gap-1 border-t border-slate-200/50 dark:border-white/5 pt-2">
+                            <span className="text-slate-400 dark:text-slate-500 font-semibold">Admin Instructions / Notes:</span>
+                            <span className="text-slate-700 dark:text-slate-300 font-medium text-[11px] leading-relaxed">{user.interviewNotes}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {user.interviewMode !== "Offline" && (
+                        <div className="flex items-center justify-between pt-1 gap-3 flex-wrap">
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${
+                            meetingStatus?.isReady
+                              ? "bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 animate-pulse"
+                              : "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20"
+                          }`}>
+                            <FaClock className="text-[10px]" />
+                            {meetingStatus?.label || "Online Meeting Scheduled"}
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const recipient = schoolAdmin || { _id: "admin_support_fallback", name: `${user.requestedSchool || 'School'} Admin`, role: "admin" };
+                              if (startCall) {
+                                startCall(recipient, "video");
+                              }
+                            }}
+                            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition cursor-pointer ${
+                              meetingStatus?.isReady
+                                ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30 animate-bounce"
+                                : "bg-[#7C3AED] hover:bg-[#6D28D9] text-white shadow-[#7C3AED]/20"
+                            }`}
+                          >
+                            <FaVideo className="text-xs" />
+                            {meetingStatus?.isReady ? "Join Video Call Now" : "Start Video Call"}
+                          </button>
                         </div>
                       )}
                     </div>
-                  </div>
-                ) : (
+                  );
+                })() : (
                   <div className="w-full bg-white dark:bg-[#0B132A] rounded-3xl border border-emerald-500/20 shadow-sm p-5 text-left flex flex-col gap-4">
                     <div className="flex gap-3.5 items-start">
                       <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20">

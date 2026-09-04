@@ -202,13 +202,14 @@ function AdminRequests() {
       const initialDate = user.interviewDate || user.admissionExamDate;
       if (initialDate) {
         setInterviewDate(toLocalDateTimeString(initialDate));
+        const d = new Date(initialDate);
+        if (!isNaN(d.getTime())) {
+          setInterviewTime(user.interviewTime || d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }));
+        }
       } else {
         setInterviewDate("");
+        setInterviewTime("09:00 AM");
       }
-      setInterviewTime(user.interviewTime || "09:00 AM");
-      setInterviewMode(user.interviewMode || user.admissionExamMode || "Online");
-      setInterviewVenue(user.interviewVenue || "");
-      setInterviewNotes(user.interviewNotes || "");
       setShowScheduleModal(true);
     }
   };
@@ -711,7 +712,20 @@ function AdminRequests() {
                         type="datetime-local"
                         required
                         value={interviewDate}
-                        onChange={(e) => setInterviewDate(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setInterviewDate(val);
+                          if (val) {
+                            const [datePart, timePart] = val.split("T");
+                            if (datePart && timePart) {
+                              const [y, m, d] = datePart.split("-").map(Number);
+                              const [hr, min] = timePart.split(":").map(Number);
+                              const dateObj = new Date(y, m - 1, d, hr, min);
+                              const formatted = dateObj.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+                              setInterviewTime(formatted);
+                            }
+                          }
+                        }}
                         className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED] cursor-pointer"
                       />
                     </div>
@@ -719,7 +733,7 @@ function AdminRequests() {
                     {/* Time Label */}
                     <div>
                       <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
-                        Time Format Label (e.g. 09:00 AM)
+                        Display Time Label (Auto-synced, e.g. 09:00 AM)
                       </label>
                       <input
                         type="text"
