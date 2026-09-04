@@ -278,23 +278,23 @@ function SubjectDetails() {
                 <Link to="/teacher/showtimetable" className="text-[10px] font-bold text-purple-500 hover:underline">View Full Timetable</Link>
               </div>
 
-              {timetable.length === 0 ? (
+              {(timetable || []).filter(Boolean).length === 0 ? (
                 <p className="text-slate-450 dark:text-slate-500 text-xs py-4 text-center">No classes scheduled for today.</p>
               ) : (
                 <div className="flex flex-col gap-3.5 mb-2 select-none">
-                  {timetable.map(t => (
-                    <div key={t._id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50/70 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.03]">
+                  {(timetable || []).filter(Boolean).map((t, idx) => (
+                    <div key={t._id || idx} className="flex items-center justify-between p-3 rounded-xl bg-slate-50/70 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.03]">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-500 border border-purple-500/15 flex items-center justify-center shrink-0">
                           <FaClock className="text-xs" />
                         </div>
                         <div>
-                          <p className="text-[10px] font-black text-slate-800 dark:text-white leading-tight">{t.startTime} - {t.endTime}</p>
-                          <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wide mt-1">{t.className} &bull; {t.topic}</p>
+                          <p className="text-[10px] font-black text-slate-800 dark:text-white leading-tight">{t?.startTime || ""} - {t?.endTime || ""}</p>
+                          <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wide mt-1">{t?.className || ""} &bull; {t?.topic || ""}</p>
                         </div>
                       </div>
                       <span className="text-[9px] font-bold text-slate-500 bg-slate-150 dark:bg-white/[0.03] px-2 py-0.5 rounded-md border border-slate-200 dark:border-white/[0.05]">
-                        {t.room}
+                        {t?.room || ""}
                       </span>
                     </div>
                   ))}

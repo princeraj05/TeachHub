@@ -422,17 +422,17 @@ function TeacherDashboard() {
 
           {/* Timetable Items */}
           <div className="space-y-4 flex-1 overflow-y-auto max-h-[190px] pr-1.5 select-none scrollbar-thin">
-            {dashboardData.timetable.length === 0 ? (
+            {(dashboardData.timetable || []).filter(Boolean).length === 0 ? (
               <div className="py-10 text-center">
                 <p className="text-xs text-slate-400 font-bold">No classes scheduled for today.</p>
               </div>
             ) : (
-              dashboardData.timetable.map((item, idx) => (
-                <div key={item._id || idx} className="flex gap-4 relative">
+              (dashboardData.timetable || []).filter(Boolean).map((item, idx) => (
+                <div key={item?._id || idx} className="flex gap-4 relative">
                   {/* Left timeline indicator */}
                   <div className="flex flex-col items-center">
-                    <div className={`w-2 h-2 rounded-full ${item.status === 'Completed' ? 'bg-emerald-500' : item.status === 'In Progress' ? 'bg-blue-500 animate-pulse' : 'bg-slate-400'} shrink-0`} />
-                    {idx < dashboardData.timetable.length - 1 && (
+                    <div className={`w-2 h-2 rounded-full ${item?.status === 'Completed' ? 'bg-emerald-500' : item?.status === 'In Progress' ? 'bg-blue-500 animate-pulse' : 'bg-slate-400'} shrink-0`} />
+                    {idx < (dashboardData.timetable || []).filter(Boolean).length - 1 && (
                       <div className="w-0.5 flex-1 bg-slate-100 dark:bg-white/5 my-1" />
                     )}
                   </div>
@@ -441,28 +441,28 @@ function TeacherDashboard() {
                   <div className="flex-1 flex justify-between items-start">
                     <div>
                       <h4 className="text-xs font-black text-slate-800 dark:text-white leading-tight">
-                        {item.subjectName}
+                        {item?.subjectName || "Class"}
                       </h4>
                       <p className="text-[9px] text-slate-450 dark:text-slate-400 font-semibold mt-1">
-                        Class {item.className} - {item.sectionName} · Room {item.room}
+                        Class {item?.className || ""} - {item?.sectionName || ""} · Room {item?.room || ""}
                       </p>
                     </div>
 
                     <div className="text-right">
                       <p className="text-[9px] font-mono font-bold text-slate-450 dark:text-slate-400 leading-none">
-                        {item.startTime}
+                        {item?.startTime || ""}
                       </p>
                       <p className="text-[8px] font-mono font-bold text-slate-400 dark:text-slate-500 mt-1 leading-none">
-                        {item.endTime}
+                        {item?.endTime || ""}
                       </p>
                       <span className={`inline-block text-[8px] font-extrabold px-1.5 py-0.5 rounded-md mt-2 tracking-wider ${
-                        item.status === 'Completed'
+                        item?.status === 'Completed'
                           ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                          : item.status === 'In Progress'
+                          : item?.status === 'In Progress'
                           ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
                           : 'bg-slate-500/10 text-slate-500 border border-slate-500/20'
                       }`}>
-                        {item.status}
+                        {item?.status || "Scheduled"}
                       </span>
                     </div>
                   </div>
