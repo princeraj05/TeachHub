@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { 
@@ -64,6 +64,8 @@ function SubjectDetails() {
   const [data, setData] = useState(null);
   const [activeTab, setActiveTab] = useState("Overview");
   const [selectedClassForSyllabus, setSelectedClassForSyllabus] = useState(searchParams.get("class") || "");
+  const [selectedClass, setSelectedClass] = useState("All");
+  const [selectedSection, setSelectedSection] = useState("All");
 
   // Fetch subject details on load
   const fetchSubjectDetails = async (classNameParam) => {
@@ -120,6 +122,52 @@ function SubjectDetails() {
 
   const assignedClasses = sortClasses(rawAssignedClasses);
 
+  const uniqueClassOptions = useMemo(() => {
+    if (!Array.isArray(assignedClasses)) return [];
+    const map = new Map();
+    assignedClasses.forEach((c) => {
+      const raw = String(c.rawName || c.name || "").replace(/Class\s*/i, "").split("-")[0].trim();
+      if (raw && !map.has(raw)) {
+        map.set(raw, { rawName: raw, label: `Class ${raw}` });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => {
+      const numA = parseInt(a.rawName.replace(/\D/g, ""), 10) || 0;
+      const numB = parseInt(b.rawName.replace(/\D/g, ""), 10) || 0;
+      return numA - numB;
+    });
+  }, [assignedClasses]);
+
+  const availableSectionOptions = useMemo(() => {
+    if (selectedClass === "All") return [];
+    const secSet = new Set();
+    assignedClasses.forEach((c) => {
+      const raw = String(c.rawName || c.name || "").replace(/Class\s*/i, "").split("-")[0].trim();
+      if (String(raw) === String(selectedClass)) {
+        secSet.add(c.section || "");
+      }
+    });
+    return Array.from(secSet).sort();
+  }, [assignedClasses, selectedClass]);
+
+  const handleClassChange = (newClass) => {
+    setSelectedClass(newClass);
+    setSelectedSection("All");
+    const param = newClass === "All" ? "All" : `Class ${newClass}`;
+    setSelectedClassForSyllabus(param);
+    fetchSubjectDetails(param);
+  };
+
+  const handleSectionChange = (newSec) => {
+    setSelectedSection(newSec);
+    let param = `Class ${selectedClass}`;
+    if (newSec && newSec !== "All") {
+      param = `Class ${selectedClass} - ${newSec}`;
+    }
+    setSelectedClassForSyllabus(param);
+    fetchSubjectDetails(param);
+  };
+
   return (
     <div className="w-full text-slate-800 dark:text-white pb-10" style={{ fontFamily: SORA }}>
       
@@ -166,24 +214,44 @@ function SubjectDetails() {
                 </div>
               </div>
 
-              {/* Class Filter Dropdown in Header */}
-              <div className="flex items-center gap-2 bg-purple-500/10 border border-purple-500/25 px-3 py-1.5 rounded-xl shadow-sm">
-                <span className="text-[9px] font-black uppercase text-purple-600 dark:text-purple-400 tracking-wider">SELECT CLASS:</span>
-                <select
-                  value={selectedClassForSyllabus || "All"}
-                  onChange={(e) => {
-                    setSelectedClassForSyllabus(e.target.value);
-                    fetchSubjectDetails(e.target.value);
-                  }}
-                  className="bg-transparent text-xs font-black text-slate-900 dark:text-white focus:outline-none cursor-pointer"
-                >
-                  <option value="All" className="dark:bg-[#0F172A] text-slate-900 dark:text-white font-bold">All Classes (Overall Aggregate)</option>
-                  {assignedClasses.map((c, i) => (
-                    <option key={c._id || i} value={c.name} className="dark:bg-[#0F172A] text-slate-900 dark:text-white font-bold">
-                      {c.name} ({c.studentCount} Students)
-                    </option>
-                  ))}
-                </select>
+              {/* 2-Step Class & Section Filter Dropdowns */}
+              <div className="flex flex-wrap items-center gap-2 bg-[#7C3AED]/10 dark:bg-purple-500/10 border border-[#7C3AED]/30 dark:border-purple-500/25 px-3.5 py-2 rounded-2xl shadow-xs">
+                {/* Step 1: Select Class Level */}
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[9px] font-black uppercase text-[#7C3AED] dark:text-purple-400 tracking-wider">CLASS:</span>
+                  <select
+                    value={selectedClass}
+                    onChange={(e) => handleClassChange(e.target.value)}
+                    className="bg-transparent text-xs font-black text-slate-900 dark:text-white focus:outline-none cursor-pointer"
+                  >
+                    <option value="All" className="dark:bg-[#0F172A] text-slate-900 dark:text-white font-bold">All Classes</option>
+                    {uniqueClassOptions.map((c) => (
+                      <option key={c.rawName} value={c.rawName} className="dark:bg-[#0F172A] text-slate-900 dark:text-white font-bold">
+                        Class {c.rawName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <span className="text-purple-300 dark:text-purple-600 font-bold hidden sm:inline">|</span>
+
+                {/* Step 2: Select Section */}
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[9px] font-black uppercase text-[#7C3AED] dark:text-purple-400 tracking-wider">SECTION:</span>
+                  <select
+                    value={selectedSection}
+                    onChange={(e) => handleSectionChange(e.target.value)}
+                    disabled={selectedClass === "All" || availableSectionOptions.length === 0}
+                    className="bg-transparent text-xs font-black text-slate-900 dark:text-white focus:outline-none cursor-pointer disabled:opacity-40"
+                  >
+                    <option value="All" className="dark:bg-[#0F172A] text-slate-900 dark:text-white font-bold">All Sections</option>
+                    {availableSectionOptions.map((sec) => (
+                      <option key={sec || "none"} value={sec} className="dark:bg-[#0F172A] text-slate-900 dark:text-white font-bold">
+                        {sec ? `Section ${sec}` : "No Section"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -526,7 +594,7 @@ function SubjectDetails() {
           subjectId={subjectId} 
           subjectName={subjectInfo.name}
           assignedClasses={assignedClasses}
-          initialClass={searchParams.get("class") || selectedClassForSyllabus || ""}
+          initialClass={selectedClassForSyllabus || (selectedClass !== "All" ? (selectedSection !== "All" ? `Class ${selectedClass} - ${selectedSection}` : `Class ${selectedClass}`) : searchParams.get("class") || "")}
           onSyllabusUpdate={(cName) => {
             setSelectedClassForSyllabus(cName);
             fetchSubjectDetails(cName);
@@ -544,21 +612,41 @@ function SubjectDetails() {
               </p>
             </div>
             
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-slate-400">Class Filter:</span>
-              <select
-                value={selectedClassForSyllabus || "All"}
-                onChange={(e) => {
-                  setSelectedClassForSyllabus(e.target.value);
-                  fetchSubjectDetails(e.target.value);
-                }}
-                className="px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-purple-500/30 dark:border-white/15 rounded-xl text-xs font-bold text-slate-900 dark:text-white cursor-pointer"
-              >
-                <option value="All">All Classes ({(data?.allStudents || []).length} Total)</option>
-                {assignedClasses.map((c, i) => (
-                  <option key={c._id || i} value={c.name}>{c.name} ({c.studentCount} Students)</option>
-                ))}
-              </select>
+            <div className="flex flex-wrap items-center gap-2 bg-[#7C3AED]/10 dark:bg-purple-500/10 border border-[#7C3AED]/30 dark:border-purple-500/25 px-3 py-1.5 rounded-xl shadow-xs">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] font-black uppercase text-[#7C3AED] dark:text-purple-400 tracking-wider">CLASS:</span>
+                <select
+                  value={selectedClass}
+                  onChange={(e) => handleClassChange(e.target.value)}
+                  className="bg-transparent text-xs font-black text-slate-900 dark:text-white focus:outline-none cursor-pointer"
+                >
+                  <option value="All" className="dark:bg-[#0F172A] text-slate-900 dark:text-white font-bold">All Classes</option>
+                  {uniqueClassOptions.map((c) => (
+                    <option key={c.rawName} value={c.rawName} className="dark:bg-[#0F172A] text-slate-900 dark:text-white font-bold">
+                      Class {c.rawName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <span className="text-purple-300 dark:text-purple-600 font-bold hidden sm:inline">|</span>
+
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] font-black uppercase text-[#7C3AED] dark:text-purple-400 tracking-wider">SECTION:</span>
+                <select
+                  value={selectedSection}
+                  onChange={(e) => handleSectionChange(e.target.value)}
+                  disabled={selectedClass === "All" || availableSectionOptions.length === 0}
+                  className="bg-transparent text-xs font-black text-slate-900 dark:text-white focus:outline-none cursor-pointer disabled:opacity-40"
+                >
+                  <option value="All" className="dark:bg-[#0F172A] text-slate-900 dark:text-white font-bold">All Sections</option>
+                  {availableSectionOptions.map((sec) => (
+                    <option key={sec || "none"} value={sec} className="dark:bg-[#0F172A] text-slate-900 dark:text-white font-bold">
+                      {sec ? `Section ${sec}` : "No Section"}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
