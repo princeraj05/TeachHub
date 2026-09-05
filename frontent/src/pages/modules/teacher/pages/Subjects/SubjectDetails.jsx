@@ -128,6 +128,22 @@ function SubjectDetails() {
     return Array.from(secSet).sort();
   }, [assignedClasses, selectedClass]);
 
+  const filteredAssignedClasses = useMemo(() => {
+    if (!Array.isArray(assignedClasses)) return [];
+    return assignedClasses.filter((c) => {
+      const rawCls = String(c.rawName || c.name || "").replace(/Class\s*/i, "").split("-")[0].trim();
+      const sec = String(c.section || "").trim();
+
+      if (selectedClass !== "All" && String(rawCls) !== String(selectedClass)) {
+        return false;
+      }
+      if (selectedSection !== "All" && String(sec).toUpperCase() !== String(selectedSection).toUpperCase()) {
+        return false;
+      }
+      return true;
+    });
+  }, [assignedClasses, selectedClass, selectedSection]);
+
   const handleClassChange = (newClass) => {
     setSelectedClass(newClass);
     setSelectedSection("All");
@@ -352,20 +368,24 @@ function SubjectDetails() {
               </div>
 
               <div className="flex flex-col gap-3.5 mb-4">
-                {assignedClasses.map(c => (
-                  <div key={c._id}>
-                    <div className="flex items-center justify-between text-xs font-bold mb-1.5">
-                      <div>
-                        <p className="text-slate-900 dark:text-white font-extrabold">{c.name}</p>
-                        <p className="text-[9px] text-slate-450 mt-0.5 font-semibold">{c.studentCount} Students</p>
+                {filteredAssignedClasses.length === 0 ? (
+                  <p className="text-slate-450 dark:text-slate-500 text-xs py-4 text-center">No classes match filter.</p>
+                ) : (
+                  filteredAssignedClasses.map(c => (
+                    <div key={c._id}>
+                      <div className="flex items-center justify-between text-xs font-bold mb-1.5">
+                        <div>
+                          <p className="text-slate-900 dark:text-white font-extrabold">{c.name}</p>
+                          <p className="text-[9px] text-slate-450 mt-0.5 font-semibold">{c.studentCount} Students</p>
+                        </div>
+                        <span className="text-purple-500 font-extrabold">{c.progress}%</span>
                       </div>
-                      <span className="text-purple-500 font-extrabold">{c.progress}%</span>
+                      <div className="w-full h-1 bg-slate-100 dark:bg-white/[0.04] rounded-full overflow-hidden">
+                        <div className="h-full bg-purple-500 rounded-full" style={{ width: `${c.progress}%` }} />
+                      </div>
                     </div>
-                    <div className="w-full h-1 bg-slate-100 dark:bg-white/[0.04] rounded-full overflow-hidden">
-                      <div className="h-full bg-purple-500 rounded-full" style={{ width: `${c.progress}%` }} />
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
 
               <button className="w-full py-2.5 border border-slate-150 dark:border-white/[0.05] hover:border-purple-500/20 text-center font-bold text-[10px] uppercase tracking-wider rounded-xl hover:bg-purple-500/5 hover:text-purple-500 dark:hover:text-purple-400 transition-all cursor-pointer">
@@ -693,48 +713,55 @@ function SubjectDetails() {
           )}
         </div>
       ) : activeTab === "Classes" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 select-none">
-          {assignedClasses.map((c, i) => (
-            <div key={c._id || i} className="bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm flex flex-col justify-between space-y-4 hover:border-purple-500/30 transition">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-black text-slate-900 dark:text-white">{c.name}</h4>
-                  <p className="text-[10px] text-slate-400 font-bold mt-0.5">{c.studentCount} Students Enrolled</p>
+        filteredAssignedClasses.length === 0 ? (
+          <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-12 rounded-2xl text-center select-none col-span-full">
+            <FaLayerGroup className="text-3xl text-purple-400 mx-auto mb-2" />
+            <p className="text-xs font-bold text-slate-700 dark:text-white">No classes match the selected filter.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 select-none">
+            {filteredAssignedClasses.map((c, i) => (
+              <div key={c._id || i} className="bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm flex flex-col justify-between space-y-4 hover:border-purple-500/30 transition">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-black text-slate-900 dark:text-white">{c.name}</h4>
+                    <p className="text-[10px] text-slate-400 font-bold mt-0.5">{c.studentCount} Students Enrolled</p>
+                  </div>
+                  <span className="px-2.5 py-1 bg-purple-500/10 text-purple-600 border border-purple-500/20 text-xs font-black rounded-xl">
+                    {c.progress}% Progress
+                  </span>
                 </div>
-                <span className="px-2.5 py-1 bg-purple-500/10 text-purple-600 border border-purple-500/20 text-xs font-black rounded-xl">
-                  {c.progress}% Progress
-                </span>
-              </div>
 
-              <div className="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
-                <div className="h-full bg-purple-500 rounded-full" style={{ width: `${c.progress}%` }} />
-              </div>
+                <div className="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
+                  <div className="h-full bg-purple-500 rounded-full" style={{ width: `${c.progress}%` }} />
+                </div>
 
-              <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-white/5">
-                <button
-                  onClick={() => {
-                    setSelectedClassForSyllabus(c.name);
-                    fetchSubjectDetails(c.name);
-                    setActiveTab("Syllabus");
-                  }}
-                  className="flex-1 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold text-center transition cursor-pointer"
-                >
-                  View Syllabus &rarr;
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedClassForSyllabus(c.name);
-                    fetchSubjectDetails(c.name);
-                    setActiveTab("Students");
-                  }}
-                  className="px-3 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition cursor-pointer"
-                >
-                  Students ({c.studentCount})
-                </button>
+                <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-white/5">
+                  <button
+                    onClick={() => {
+                      setSelectedClassForSyllabus(c.name);
+                      fetchSubjectDetails(c.name);
+                      setActiveTab("Syllabus");
+                    }}
+                    className="flex-1 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold text-center transition cursor-pointer"
+                  >
+                    View Syllabus &rarr;
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedClassForSyllabus(c.name);
+                      fetchSubjectDetails(c.name);
+                      setActiveTab("Students");
+                    }}
+                    className="px-3 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition cursor-pointer"
+                  >
+                    Students ({c.studentCount})
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )
       ) : (
         
         // OTHER TABS FALLBACK CONTENT LISTS
