@@ -89,28 +89,8 @@ function SubjectDetails() {
     fetchSubjectDetails();
   }, [subjectId, API, token]);
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-40 gap-3 text-slate-400" style={{ fontFamily: SORA }}>
-        <div className="w-8 h-8 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
-        <p className="text-xs font-semibold">Loading subject details...</p>
-      </div>
-    );
-  }
-
-  if (!data) {
-    return (
-      <div className="py-20 text-center text-slate-400" style={{ fontFamily: SORA }}>
-        <FaExclamationTriangle className="text-2xl mx-auto mb-3 text-amber-500" />
-        <p className="text-sm font-bold text-slate-800 dark:text-white">Subject details not found</p>
-        <Link to="/teacher/my-subjects" className="text-xs text-purple-500 hover:underline mt-2 inline-block">Back to list</Link>
-      </div>
-    );
-  }
-
-  const { subjectInfo, teacherInfo, academicMetadata, assignedClasses: rawAssignedClasses, timetable, exams, assignments, progressOverview } = data;
-
-  const sortClasses = (list) => {
+  const assignedClasses = useMemo(() => {
+    const list = data?.assignedClasses || [];
     if (!Array.isArray(list)) return [];
     return [...list].sort((a, b) => {
       const numA = parseInt(String(a.rawName || a.name || "").replace(/\D/g, ""), 10) || 0;
@@ -118,9 +98,7 @@ function SubjectDetails() {
       if (numA !== numB) return numA - numB;
       return String(a.section || "").localeCompare(String(b.section || ""));
     });
-  };
-
-  const assignedClasses = sortClasses(rawAssignedClasses);
+  }, [data]);
 
   const uniqueClassOptions = useMemo(() => {
     if (!Array.isArray(assignedClasses)) return [];
@@ -167,6 +145,27 @@ function SubjectDetails() {
     setSelectedClassForSyllabus(param);
     fetchSubjectDetails(param);
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-40 gap-3 text-slate-400" style={{ fontFamily: SORA }}>
+        <div className="w-8 h-8 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
+        <p className="text-xs font-semibold">Loading subject details...</p>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="py-20 text-center text-slate-400" style={{ fontFamily: SORA }}>
+        <FaExclamationTriangle className="text-2xl mx-auto mb-3 text-amber-500" />
+        <p className="text-sm font-bold text-slate-800 dark:text-white">Subject details not found</p>
+        <Link to="/teacher/my-subjects" className="text-xs text-purple-500 hover:underline mt-2 inline-block">Back to list</Link>
+      </div>
+    );
+  }
+
+  const { subjectInfo, teacherInfo, academicMetadata, timetable, exams, assignments, progressOverview } = data;
 
   return (
     <div className="w-full text-slate-800 dark:text-white pb-10" style={{ fontFamily: SORA }}>
