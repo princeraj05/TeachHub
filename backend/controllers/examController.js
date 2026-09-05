@@ -58,13 +58,29 @@ if (!req.user || (req.user.role !== "superadmin" && !req.user.schoolName)) {
 
 const query = req.user.role === "superadmin" ? {} : { schoolName: req.user.schoolName };
 if (req.user.role === "student") {
-  const student = await User.findById(req.user.id).select("classId").lean();
+  const student = await User.findById(req.user.id).select("classId schoolName").lean();
   if (!student?.classId) return res.json([]);
-  query.class = student.classId;
+
+  const studentClassDoc = await Class.findById(student.classId).select("name schoolName").lean();
+  if (!studentClassDoc) {
+    query.class = student.classId;
+  } else {
+    const sameLevelClassIds = await Class.find({
+      schoolName: studentClassDoc.schoolName || req.user.schoolName,
+      name: studentClassDoc.name
+    }).distinct("_id");
+    query.class = { $in: sameLevelClassIds };
+  }
 }
+
 if (req.user.role === "teacher") {
-  const classIds = await Class.find({ schoolName: req.user.schoolName, teacher: req.user.id }).distinct("_id");
-  query.$or = [{ proctor: req.user.id }, { class: { $in: classIds } }];
+  const teacherClasses = await Class.find({ schoolName: req.user.schoolName, teacher: req.user.id }).select("name").lean();
+  const teacherClassNames = [...new Set(teacherClasses.map(c => c.name))];
+  const sameLevelClassIds = await Class.find({
+    schoolName: req.user.schoolName,
+    name: { $in: teacherClassNames }
+  }).distinct("_id");
+  query.$or = [{ proctor: req.user.id }, { class: { $in: sameLevelClassIds } }];
 }
 const exams = await Exam.find(query)
 .populate("class","name section")

@@ -3,7 +3,7 @@ import axios from "axios";
 import { FaBook, FaCheckSquare, FaPlus, FaSchool, FaSearch, FaTrash, FaEdit, FaTimes, FaListUl, FaLayerGroup } from "react-icons/fa";
 
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
-const classLabel = item => `Class ${item.name} — Section ${item.section}`;
+const classLabel = item => `Class ${item.name}`;
 
 export default function Subjects() {
   const api = import.meta.env.VITE_API_URL;
@@ -201,6 +201,39 @@ export default function Subjects() {
     }
   };
 
+  const getGroupedClasses = () => {
+    if (!Array.isArray(classes)) return [];
+    const map = new Map();
+    classes.forEach(c => {
+      const className = String(c?.name || "").trim();
+      if (!className) return;
+      if (!map.has(className)) {
+        map.set(className, []);
+      }
+      map.get(className).push(c._id);
+    });
+    return Array.from(map.entries())
+      .map(([name, ids]) => ({ name, ids }))
+      .sort((a, b) => {
+        const numA = parseInt(a.name.replace(/\D/g, ""), 10) || 0;
+        const numB = parseInt(b.name.replace(/\D/g, ""), 10) || 0;
+        return numA - numB;
+      });
+  };
+
+  const isGroupChecked = (group) => {
+    return group.ids.length > 0 && group.ids.every(id => classIds.includes(id));
+  };
+
+  const toggleGroupClass = (group) => {
+    const allChecked = isGroupChecked(group);
+    if (allChecked) {
+      setClassIds(prev => prev.filter(id => !group.ids.includes(id)));
+    } else {
+      setClassIds(prev => [...new Set([...prev, ...group.ids])]);
+    }
+  };
+
   const toggleClass = id => setClassIds(current => current.includes(id) ? current.filter(value => value !== id) : [...current, id]);
 
   const toggleSelectAll = () => {
@@ -211,7 +244,10 @@ export default function Subjects() {
     }
   };
 
-  const filtered = subjects.filter(subject => `${subject.name} ${(subject.classes || []).map(item => classLabel(item)).join(" ")}`.toLowerCase().includes(search.toLowerCase()));
+  const filtered = subjects.filter(subject => {
+    const classNames = sortClassesList(subject.classes || []).map(c => `Class ${c.name}`).join(" ");
+    return `${subject.name} ${classNames}`.toLowerCase().includes(search.toLowerCase());
+  });
 
   return (
     <div className="font-sans">
@@ -269,15 +305,15 @@ export default function Subjects() {
               )}
             </div>
             <div className="grid max-h-32 grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-2">
-              {classes.map(item => (
-                <label key={item._id} className="flex cursor-pointer items-center gap-2 text-xs text-slate-700">
+              {getGroupedClasses().map(group => (
+                <label key={group.name} className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-700">
                   <input
                     type="checkbox"
-                    checked={classIds.includes(item._id)}
-                    onChange={() => toggleClass(item._id)}
-                    className="accent-teal-600"
+                    checked={isGroupChecked(group)}
+                    onChange={() => toggleGroupClass(group)}
+                    className="accent-teal-600 cursor-pointer"
                   />
-                  {classLabel(item)}
+                  Class {group.name}
                 </label>
               ))}
             </div>
@@ -330,9 +366,9 @@ export default function Subjects() {
                   <FaBook className="mr-2 inline text-teal-600" />{subject.name}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {subject.classes?.map(item => (
-                    <span key={item._id} className="rounded-full bg-teal-50 px-3 py-1 text-xs font-bold text-teal-700">
-                      <FaSchool className="mr-1 inline" />{classLabel(item)}
+                  {sortClassesList(subject.classes).map(item => (
+                    <span key={item.name} className="rounded-full bg-teal-50 px-3 py-1 text-xs font-bold text-teal-700">
+                      <FaSchool className="mr-1 inline" />Class {item.name}
                     </span>
                   ))}
                 </div>

@@ -26,6 +26,22 @@ function ExamSchedule() {
     proctorId: ""
   });
 
+  const getUniqueClasses = (list) => {
+    if (!Array.isArray(list)) return [];
+    const map = new Map();
+    list.forEach(c => {
+      const name = String(c?.name || "").trim();
+      if (name && !map.has(name)) {
+        map.set(name, c);
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => {
+      const numA = parseInt(String(a.name).replace(/\D/g, ""), 10) || 0;
+      const numB = parseInt(String(b.name).replace(/\D/g, ""), 10) || 0;
+      return numA - numB;
+    });
+  };
+
   const handleClassExamQuestionChange = (qIdx, field, val) => {
     const updatedQs = [...form.questions];
     updatedQs[qIdx] = { ...updatedQs[qIdx], [field]: val };
@@ -338,9 +354,9 @@ function ExamSchedule() {
                           className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
                         >
                           <option value="" disabled>Select Class</option>
-                          {classes.map((cls) => (
+                          {getUniqueClasses(classes).map((cls) => (
                             <option key={cls._id} value={cls._id}>
-                              {cls.name} ({cls.section})
+                              Class {cls.name}
                             </option>
                           ))}
                         </select>
@@ -613,7 +629,7 @@ function ExamSchedule() {
                             <tr key={e._id} className="hover:bg-slate-50/50 transition-colors">
                               <td className="px-5 py-4">
                                 <span className="inline-flex items-center bg-indigo-50 text-indigo-700 font-bold text-[10px] px-2.5 py-1 rounded-md border border-indigo-100">
-                                  {e.class?.name} {e.class?.section ? `(${e.class.section})` : ""}
+                                  Class {e.class?.name}
                                 </span>
                               </td>
                               <td className="px-5 py-4">
