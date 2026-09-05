@@ -7,6 +7,19 @@ const ExamSubmission = require("../models/ExamSubmission");
 const SubjectSyllabus = require("../models/SubjectSyllabus");
 const MasterSyllabus = require("../models/MasterSyllabus");
 
+// Helper to sort classes in natural numerical order (Class 1, Class 2, Class 3...)
+const sortClassesNumerically = (list) => {
+  if (!Array.isArray(list)) return [];
+  return [...list].sort((a, b) => {
+    const nameA = String(a.rawName || a.name || "");
+    const nameB = String(b.rawName || b.name || "");
+    const numA = parseInt(nameA.replace(/\D/g, ""), 10) || 0;
+    const numB = parseInt(nameB.replace(/\D/g, ""), 10) || 0;
+    if (numA !== numB) return numA - numB;
+    return String(a.section || "").localeCompare(String(b.section || ""));
+  });
+};
+
 // ================= GET MY SUBJECTS =================
 
 exports.getMySubjectsDetailed = async (req, res) => {
@@ -20,14 +33,6 @@ exports.getMySubjectsDetailed = async (req, res) => {
       select: "name section students"
     });
 
-    const subjectMetaMap = {
-      mathematics: { code: "MATH101", chapters: 12, progress: 85, dept: "Science" },
-      science: { code: "SCI101", chapters: 15, progress: 76, dept: "Science" },
-      english: { code: "ENG101", chapters: 8, progress: 70, dept: "Languages" },
-      hindi: { code: "HIN101", chapters: 10, progress: 60, dept: "Languages" },
-      "social science": { code: "SST101", chapters: 12, progress: 65, dept: "Humanities" }
-    };
-
     const detailedSubjects = [];
     for (const sub of subjects) {
       // Get all classes for this subject via Timetable as well
@@ -39,7 +44,7 @@ exports.getMySubjectsDetailed = async (req, res) => {
         sub.classes.forEach(c => classMap.set(String(c._id), c));
       }
       ttClasses.forEach(c => classMap.set(String(c._id), c));
-      const mergedClasses = Array.from(classMap.values());
+      const mergedClasses = sortClassesNumerically(Array.from(classMap.values()));
 
       let totalStudents = 0;
       mergedClasses.forEach(c => {
@@ -48,24 +53,40 @@ exports.getMySubjectsDetailed = async (req, res) => {
         }
       });
 
-      const nameKey = sub.name.toLowerCase().trim();
-      let meta = { code: "SUB101", chapters: 10, progress: 70, dept: "Science" };
-      Object.keys(subjectMetaMap).forEach(key => {
-        if (nameKey.includes(key)) {
-          meta = subjectMetaMap[key];
+      // Check if real syllabus exists in DB
+      let chaptersCount = 0;
+      let progressPct = 0;
+
+      const masterSyllabi = await MasterSyllabus.find({
+        schoolName: req.user.schoolName || "",
+        subjectName: new RegExp("^" + sub.name.trim() + "$", "i")
+      }).lean();
+
+      if (masterSyllabi && masterSyllabi.length > 0) {
+        const totalCh = masterSyllabi.reduce((acc, m) => acc + (m.chapters?.length || 0), 0);
+        chaptersCount = Math.round(totalCh / masterSyllabi.length);
+      } else {
+        const subjectSyllabi = await SubjectSyllabus.find({ subject: sub._id }).lean();
+        if (subjectSyllabi && subjectSyllabi.length > 0) {
+          const firstWithCh = subjectSyllabi.find(s => s.chapters && s.chapters.length > 0);
+          if (firstWithCh) {
+            chaptersCount = firstWithCh.chapters.length;
+            const completed = firstWithCh.chapters.filter(ch => ch.status === "Completed").length;
+            progressPct = chaptersCount > 0 ? Math.round((completed / chaptersCount) * 100) : 0;
+          }
         }
-      });
+      }
 
       detailedSubjects.push({
         _id: sub._id,
         name: sub.name,
         schoolName: sub.schoolName,
         classes: mergedClasses.map(c => ({ _id: c._id, name: c.name, section: c.section })),
-        studentsCount: totalStudents || 32,
-        chapters: meta.chapters,
-        progress: meta.progress,
-        subjectCode: meta.code,
-        department: meta.dept
+        studentsCount: totalStudents,
+        chapters: chaptersCount,
+        progress: progressPct,
+        subjectCode: sub.code || "SUB101",
+        department: sub.department || "General"
       });
     }
 
@@ -96,22 +117,6 @@ exports.getSubjectDetails = async (req, res) => {
       return res.status(404).json({ message: "Subject not found" });
     }
 
-    const nameKey = subject.name.toLowerCase().trim();
-    const subjectMetaMap = {
-      mathematics: { code: "MATH101", chapters: 12, progress: 85, dept: "Science", desc: "This subject covers fundamental to advanced mathematical concepts including Algebra, Geometry, Trigonometry and Calculus." },
-      science: { code: "SCI101", chapters: 15, progress: 76, dept: "Science", desc: "This course covers general physical, chemical, and biological sciences with experimental analysis." },
-      english: { code: "ENG101", chapters: 8, progress: 70, dept: "Languages", desc: "This course focuses on English literature, prose, poetry, creative writing and communication grammar." },
-      hindi: { code: "HIN101", chapters: 10, progress: 60, dept: "Languages", desc: "This subject covers Hindi literature, grammar, essay writing, and storytelling." },
-      "social science": { code: "SST101", chapters: 12, progress: 65, dept: "Humanities", desc: "This course covers history, geography, civics, and economics topics." }
-    };
-
-    let meta = { code: "SUB101", chapters: 10, progress: 70, dept: "Science", desc: "Core subject syllabus." };
-    Object.keys(subjectMetaMap).forEach(key => {
-      if (nameKey.includes(key)) {
-        meta = subjectMetaMap[key];
-      }
-    });
-
     // Today's Timetable
     const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const todayDayName = days[new Date().getDay()];
@@ -139,32 +144,17 @@ exports.getSubjectDetails = async (req, res) => {
 
     const formattedExams = exams.map(ex => ({
       _id: ex._id,
-      title: ex.notes || "Unit Test - 2",
+      title: ex.notes || "Unit Test",
       className: `${ex.class?.name || "Class"} - ${ex.class?.section || "A"}`,
       date: ex.date
     }));
-
-    // Assignments
-    const mockAssignments = {
-      mathematics: [
-        { id: "as1", name: "Algebra Worksheet - 3", className: "Class 10 - A, 10 - B", status: "Submitted", dueDate: "2026-05-24" },
-        { id: "as2", name: "Coordinate Geometry Problems", className: "Class 9 - A", status: "Pending", dueDate: "2026-05-21" },
-        { id: "as3", name: "Real Numbers Worksheet", className: "Class 8 - B, 8 - A", status: "Submitted", dueDate: "2026-05-18" }
-      ],
-      science: [
-        { id: "as1", name: "Physics Velocity Lab", className: "Class 10 - A", status: "Submitted", dueDate: "2026-05-25" },
-        { id: "as2", name: "Chemical Equations Quiz", className: "Class 9 - B", status: "Pending", dueDate: "2026-05-22" }
-      ]
-    };
-    const key = Object.keys(mockAssignments).find(k => nameKey.includes(k)) || "mathematics";
-    const assignments = mockAssignments[key];
 
     // Collect class list and student lists per class
     let totalStudents = 0;
     const classProgressList = [];
     const allStudentsList = [];
     
-    subject.classes.forEach((c, idx) => {
+    subject.classes.forEach((c) => {
       const classStudents = (c.students || []).map(st => ({
         _id: st._id,
         name: st.name || "Student",
@@ -179,25 +169,24 @@ exports.getSubjectDetails = async (req, res) => {
       totalStudents += studentCount;
       allStudentsList.push(...classStudents);
 
-      const variance = [-5, -2, 2, -1, 3];
-      const classProgress = Math.min(100, Math.max(0, meta.progress + (variance[idx % variance.length] || 0)));
-
       classProgressList.push({
         _id: c._id,
         name: `Class ${c.name} - ${c.section}`,
         rawName: c.name,
         section: c.section,
         studentCount,
-        progress: classProgress,
+        progress: 0,
         students: classStudents
       });
     });
 
+    const sortedClasses = sortClassesNumerically(classProgressList);
+
     // Helper to extract base class name
     const extractBaseClassName = (str) => {
       if (!str || str === "All") return null;
-      const match = String(str).match(/Class\s*\d+/i);
-      return match ? match[0] : String(str).trim();
+      const numMatch = String(str).match(/\d+/);
+      return numMatch ? `Class ${numMatch[0]}` : String(str).trim();
     };
 
     const requestedClassName = req.query.className;
@@ -211,12 +200,12 @@ exports.getSubjectDetails = async (req, res) => {
       liveSyllabus = await SubjectSyllabus.findOne({ subject: subjectId }).lean();
     }
 
-    let totalChaptersCount = meta.chapters;
-    let completedChaptersCount = Math.round(meta.chapters * (meta.progress / 100));
-    let calculatedProgress = meta.progress;
-    let inProgressPct = Math.round((100 - meta.progress) * 0.7);
-    let notStartedPct = Math.round((100 - meta.progress) * 0.2);
-    let overduePct = Math.round((100 - meta.progress) * 0.1);
+    let totalChaptersCount = 0;
+    let completedChaptersCount = 0;
+    let calculatedProgress = 0;
+    let inProgressPct = 0;
+    let notStartedPct = 0;
+    let overduePct = 0;
 
     if (liveSyllabus && liveSyllabus.chapters && liveSyllabus.chapters.length > 0) {
       totalChaptersCount = liveSyllabus.chapters.length;
@@ -234,10 +223,23 @@ exports.getSubjectDetails = async (req, res) => {
       overduePct = 0;
     }
 
+    // Update progress on class progress list based on actual live syllabus
+    for (const c of sortedClasses) {
+      const clsName = `Class ${c.rawName}`;
+      const clsSyllabus = await SubjectSyllabus.findOne({ subject: subjectId, className: clsName }).lean();
+      if (clsSyllabus && clsSyllabus.chapters && clsSyllabus.chapters.length > 0) {
+        const total = clsSyllabus.chapters.length;
+        const comp = clsSyllabus.chapters.filter(ch => ch.status === "Completed").length;
+        c.progress = Math.round((comp / total) * 100);
+      } else {
+        c.progress = calculatedProgress;
+      }
+    }
+
     // Filter students if a specific class was requested
     let filteredStudents = allStudentsList;
     if (requestedClassName && requestedClassName !== "All") {
-      const matchedClass = classProgressList.find(
+      const matchedClass = sortedClasses.find(
         c => c.name.toLowerCase() === requestedClassName.toLowerCase() ||
              c.name.toLowerCase().includes(requestedClassName.toLowerCase()) ||
              `class ${c.rawName}`.toLowerCase() === requestedClassName.toLowerCase()
@@ -251,32 +253,32 @@ exports.getSubjectDetails = async (req, res) => {
       subjectInfo: {
         _id: subject._id,
         name: subject.name,
-        code: meta.code,
-        description: meta.desc,
-        department: meta.dept,
+        code: subject.code || "SUB101",
+        description: subject.description || `Syllabus and details for ${subject.name}.`,
+        department: subject.department || "General",
         chapters: totalChaptersCount,
         progress: calculatedProgress,
-        studentsCount: totalStudents || 128,
+        studentsCount: totalStudents,
         classesCount: subject.classes?.length || 0
       },
       teacherInfo: {
-        name: req.user.name || "Lovely Coder",
-        email: req.user.email || "princerajlivegaming@gmail.com",
-        phone: req.user.phoneNumber || "+91 98765 43210",
+        name: req.user.name || "Course Instructor",
+        email: req.user.email || "",
+        phone: req.user.phoneNumber || "",
         avatar: req.user.avatar || ""
       },
       academicMetadata: {
         year: "2026",
         term: "Session 1 (Apr - Sep)",
-        department: meta.dept,
-        subjectCode: meta.code
+        department: subject.department || "General",
+        subjectCode: subject.code || "SUB101"
       },
-      assignedClasses: classProgressList,
+      assignedClasses: sortedClasses,
       students: filteredStudents,
       allStudents: allStudentsList,
       timetable: formattedTimetable,
       exams: formattedExams,
-      assignments: assignments || [],
+      assignments: [],
       progressOverview: {
         completed: calculatedProgress,
         inProgress: inProgressPct,

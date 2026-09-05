@@ -43,9 +43,20 @@ export default function Subjects() {
     }
   };
 
+  const sortClassesList = (list) => {
+    if (!Array.isArray(list)) return [];
+    return [...list].sort((a, b) => {
+      const numA = parseInt(String(a.name).replace(/\D/g, ""), 10) || 0;
+      const numB = parseInt(String(b.name).replace(/\D/g, ""), 10) || 0;
+      if (numA !== numB) return numA - numB;
+      return String(a.section || "").localeCompare(String(b.section || ""));
+    });
+  };
+
   const openSyllabusModal = async (subject) => {
     setSyllabusSubject(subject);
-    const firstClass = (subject.classes && subject.classes.length > 0) ? subject.classes[0].name : "10";
+    const sorted = sortClassesList(subject.classes && subject.classes.length > 0 ? subject.classes : classes);
+    const firstClass = sorted.length > 0 ? sorted[0].name : "1";
     setSelectedSyllabusClass(firstClass);
     await loadClassMasterSyllabus(subject, firstClass);
   };
@@ -431,9 +442,10 @@ export default function Subjects() {
                     onChange={(e) => handleSyllabusClassChange(e.target.value)}
                     className="px-3.5 py-2 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white rounded-xl text-xs font-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 cursor-pointer"
                   >
-                    {(syllabusSubject.classes && syllabusSubject.classes.length > 0
-                      ? syllabusSubject.classes
-                      : classes
+                    {sortClassesList(
+                      syllabusSubject.classes && syllabusSubject.classes.length > 0
+                        ? syllabusSubject.classes
+                        : classes
                     ).map((cls) => (
                       <option key={cls._id || cls.name} value={cls.name}>
                         Class {cls.name} {cls.section ? `(Section ${cls.section})` : ""}

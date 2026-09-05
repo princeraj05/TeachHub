@@ -47,6 +47,13 @@ exports.getClasses = async (req, res) => {
 
     const classes = await Class.find({ schoolName: req.user.schoolName });
 
+    classes.sort((a, b) => {
+      const numA = parseInt(String(a.name).replace(/\D/g, ""), 10) || 0;
+      const numB = parseInt(String(b.name).replace(/\D/g, ""), 10) || 0;
+      if (numA !== numB) return numA - numB;
+      return String(a.section || "").localeCompare(String(b.section || ""));
+    });
+
     res.json(classes);
 
   } catch (error) {

@@ -106,7 +106,19 @@ function SubjectDetails() {
     );
   }
 
-  const { subjectInfo, teacherInfo, academicMetadata, assignedClasses, timetable, exams, assignments, progressOverview } = data;
+  const { subjectInfo, teacherInfo, academicMetadata, assignedClasses: rawAssignedClasses, timetable, exams, assignments, progressOverview } = data;
+
+  const sortClasses = (list) => {
+    if (!Array.isArray(list)) return [];
+    return [...list].sort((a, b) => {
+      const numA = parseInt(String(a.rawName || a.name || "").replace(/\D/g, ""), 10) || 0;
+      const numB = parseInt(String(b.rawName || b.name || "").replace(/\D/g, ""), 10) || 0;
+      if (numA !== numB) return numA - numB;
+      return String(a.section || "").localeCompare(String(b.section || ""));
+    });
+  };
+
+  const assignedClasses = sortClasses(rawAssignedClasses);
 
   return (
     <div className="w-full text-slate-800 dark:text-white pb-10" style={{ fontFamily: SORA }}>
