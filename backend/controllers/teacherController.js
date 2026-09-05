@@ -1240,3 +1240,80 @@ exports.getProctorSessions = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+// ================= TEACHER MY DIARY (HOMEWORK MANAGEMENT) =================
+
+const MyDiary = require("../models/MyDiary");
+
+exports.getTeacherDiary = async (req, res) => {
+  try {
+    const teacherId = req.user.id;
+    const { date, classId } = req.query;
+
+    const teacher = await User.findById(teacherId).lean();
+    const schoolName = req.user.schoolName || teacher?.schoolName || "G.D Academy";
+
+    const query = {
+      $or: [{ teacher: teacherId }, { schoolName: schoolName }]
+    };
+
+    if (date) query.homeworkDate = date;
+    if (classId && classId !== "All") query.classId = classId;
+
+    const homeworks = await MyDiary.find(query).sort({ createdAt: -1 }).lean();
+    res.json(homeworks);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.createTeacherDiary = async (req, res) => {
+  try {
+    const teacherId = req.user.id;
+    const teacher = await User.findById(teacherId).lean();
+    const schoolName = req.user.schoolName || teacher?.schoolName || "G.D Academy";
+
+    const {
+      classId,
+      className,
+      section,
+      subjectName,
+      homeworkDate,
+      dueDate,
+      title,
+      description,
+      types
+    } = req.body;
+
+    const newDiary = await MyDiary.create({
+      schoolName,
+      classId: classId || null,
+      className: className || "Class 5",
+      section: section || "A",
+      subjectName: subjectName || "General",
+      teacher: teacherId,
+      teacherName: teacher?.name || "Assigned Teacher",
+      homeworkDate: homeworkDate || new Date().toISOString().split("T")[0],
+      dueDate: dueDate || homeworkDate || new Date().toISOString().split("T")[0],
+      title: title || "New Homework",
+      description: description || "",
+      types: Array.isArray(types) ? types : ["Exercise"]
+    });
+
+    res.status(201).json({ message: "Homework assigned successfully!", homework: newDiary });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deleteTeacherDiary = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await MyDiary.findByIdAndDelete(id);
+    res.json({ message: "Homework entry deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

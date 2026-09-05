@@ -21,7 +21,8 @@ import {
   FaMoon,
   FaTv,
   FaMoneyBillWave,
-  FaBell
+  FaBell,
+  FaBookOpen
 } from "react-icons/fa";
 
 import { usePlatform } from "../../../context/PlatformContext";
@@ -97,6 +98,7 @@ function TeacherLayout() {
 
   const navLinks = [
     { to: "/teacher/dashboard", icon: <FaTachometerAlt className="text-xl" />, label: "Dashboard" },
+    { to: "/teacher/mydiary", icon: <FaBookOpen className="text-xl text-[#7C3AED] dark:text-[#38BDF8]" />, label: "My Diary" },
     { to: "/teacher/my-classes", icon: <FaSchool className="text-xl" />, label: "My Classes" },
     { to: "/teacher/my-students", icon: <FaUserGraduate className="text-xl" />, label: "My Students" },
     { to: "/teacher/mark-attendance", icon: <FaClipboardCheck className="text-xl" />, label: "Mark Attendance" },
@@ -268,6 +270,7 @@ function TeacherLayout() {
               <div>
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Classes & Material</p>
                 <div className="grid grid-cols-2 gap-2">
+                  <Link to="/teacher/mydiary" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2.5 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">My Diary</Link>
                   <Link to="/teacher/my-classes" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2.5 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">My Classes</Link>
                   <Link to="/teacher/my-subjects" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2.5 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Study Material</Link>
                 </div>
