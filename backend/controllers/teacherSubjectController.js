@@ -58,22 +58,22 @@ exports.getMySubjectsDetailed = async (req, res) => {
       let progressPct = 0;
 
       const masterSyllabi = await MasterSyllabus.find({
-        schoolName: req.user.schoolName || "",
+        schoolName: new RegExp("^" + (req.user.schoolName || "").trim() + "$", "i"),
         subjectName: new RegExp("^" + sub.name.trim() + "$", "i")
       }).lean();
 
       if (masterSyllabi && masterSyllabi.length > 0) {
-        const totalCh = masterSyllabi.reduce((acc, m) => acc + (m.chapters?.length || 0), 0);
-        chaptersCount = Math.round(totalCh / masterSyllabi.length);
-      } else {
-        const subjectSyllabi = await SubjectSyllabus.find({ subject: sub._id }).lean();
-        if (subjectSyllabi && subjectSyllabi.length > 0) {
-          const firstWithCh = subjectSyllabi.find(s => s.chapters && s.chapters.length > 0);
-          if (firstWithCh) {
-            chaptersCount = firstWithCh.chapters.length;
-            const completed = firstWithCh.chapters.filter(ch => ch.status === "Completed").length;
-            progressPct = chaptersCount > 0 ? Math.round((completed / chaptersCount) * 100) : 0;
-          }
+        const maxCh = Math.max(...masterSyllabi.map(m => m.chapters?.length || 0));
+        chaptersCount = maxCh;
+      }
+      
+      const subjectSyllabi = await SubjectSyllabus.find({ subject: sub._id }).lean();
+      if (subjectSyllabi && subjectSyllabi.length > 0) {
+        const firstWithCh = subjectSyllabi.find(s => s.chapters && s.chapters.length > 0);
+        if (firstWithCh) {
+          chaptersCount = Math.max(chaptersCount, firstWithCh.chapters.length);
+          const completed = firstWithCh.chapters.filter(ch => ch.status === "Completed").length;
+          progressPct = chaptersCount > 0 ? Math.round((completed / chaptersCount) * 100) : 0;
         }
       }
 
@@ -190,29 +190,68 @@ exports.getSubjectDetails = async (req, res) => {
     };
 
     const requestedClassName = req.query.className;
-    const targetClassName = extractBaseClassName(requestedClassName);
+    const targetClassName = extractBaseClassName(requestedClassName) || (sortedClasses[0] ? `Class ${sortedClasses[0].rawName}` : "Class 1");
+    
     let liveSyllabus = null;
-
     if (targetClassName) {
-      liveSyllabus = await SubjectSyllabus.findOne({ subject: subjectId, className: targetClassName }).lean();
+      liveSyllabus = await SubjectSyllabus.findOne({
+        subject: subjectId,
+        $or: [
+          { className: targetClassName },
+          { className: requestedClassName },
+          { className: targetClassName.replace("Class ", "") }
+        ]
+      }).lean();
     }
     if (!liveSyllabus) {
       liveSyllabus = await SubjectSyllabus.findOne({ subject: subjectId }).lean();
     }
 
-    let totalChaptersCount = 0;
-    let completedChaptersCount = 0;
+    let chaptersList = liveSyllabus?.chapters || [];
+
+    // Fallback to MasterSyllabus if SubjectSyllabus chapters are 0
+    if (chaptersList.length === 0) {
+      const masterQuery = {
+        subjectName: new RegExp("^" + subject.name.trim() + "$", "i")
+      };
+      if (targetClassName) {
+        masterQuery.className = { $in: [targetClassName, requestedClassName, targetClassName.replace("Class ", "")] };
+      }
+      if (schoolName) {
+        masterQuery.schoolName = new RegExp("^" + schoolName.trim() + "$", "i");
+      }
+      const master = await MasterSyllabus.findOne(masterQuery).lean();
+      if (master && master.chapters && master.chapters.length > 0) {
+        chaptersList = master.chapters.map(ch => ({
+          chapterNo: ch.chapterNo,
+          title: ch.title,
+          description: ch.description || "",
+          status: "Not Started",
+          isMasterChapter: true,
+          topics: (ch.defaultTopics || []).map(t => ({ title: typeof t === 'string' ? t : (t.title || ""), completed: false }))
+        }));
+
+        // Seed SubjectSyllabus in background so future reads are fast
+        SubjectSyllabus.create({
+          subject: subjectId,
+          className: targetClassName,
+          teacher: teacherId,
+          schoolName: schoolName || "",
+          chapters: chaptersList
+        }).catch(() => {});
+      }
+    }
+
+    let totalChaptersCount = chaptersList.length;
+    let completedChaptersCount = chaptersList.filter(ch => ch.status === "Completed").length;
+    let inProgCount = chaptersList.filter(ch => ch.status === "In Progress").length;
+    let notStartedCount = chaptersList.filter(ch => ch.status === "Not Started").length;
+
     let calculatedProgress = 0;
     let inProgressPct = 0;
     let notStartedPct = 0;
-    let overduePct = 0;
 
-    if (liveSyllabus && liveSyllabus.chapters && liveSyllabus.chapters.length > 0) {
-      totalChaptersCount = liveSyllabus.chapters.length;
-      completedChaptersCount = liveSyllabus.chapters.filter(ch => ch.status === "Completed").length;
-      const inProgCount = liveSyllabus.chapters.filter(ch => ch.status === "In Progress").length;
-      const notStartedCount = liveSyllabus.chapters.filter(ch => ch.status === "Not Started").length;
-
+    if (totalChaptersCount > 0) {
       calculatedProgress = Math.round(
         (completedChaptersCount / totalChaptersCount) * 100 + (inProgCount / totalChaptersCount) * 40
       );
@@ -220,19 +259,38 @@ exports.getSubjectDetails = async (req, res) => {
 
       inProgressPct = Math.round((inProgCount / totalChaptersCount) * 100);
       notStartedPct = Math.round((notStartedCount / totalChaptersCount) * 100);
-      overduePct = 0;
     }
 
     // Update progress on class progress list based on actual live syllabus
     for (const c of sortedClasses) {
       const clsName = `Class ${c.rawName}`;
-      const clsSyllabus = await SubjectSyllabus.findOne({ subject: subjectId, className: clsName }).lean();
-      if (clsSyllabus && clsSyllabus.chapters && clsSyllabus.chapters.length > 0) {
-        const total = clsSyllabus.chapters.length;
-        const comp = clsSyllabus.chapters.filter(ch => ch.status === "Completed").length;
+      let clsSyllabus = await SubjectSyllabus.findOne({
+        subject: subjectId,
+        $or: [
+          { className: clsName },
+          { className: c.rawName },
+          { className: c.name }
+        ]
+      }).lean();
+
+      let chs = clsSyllabus?.chapters || [];
+      if (chs.length === 0) {
+        const master = await MasterSyllabus.findOne({
+          schoolName: new RegExp("^" + (schoolName || "").trim() + "$", "i"),
+          subjectName: new RegExp("^" + subject.name.trim() + "$", "i"),
+          className: { $in: [clsName, c.rawName, c.name] }
+        }).lean();
+        if (master && master.chapters) {
+          chs = master.chapters;
+        }
+      }
+
+      if (chs.length > 0) {
+        const total = chs.length;
+        const comp = chs.filter(ch => ch.status === "Completed").length;
         c.progress = Math.round((comp / total) * 100);
       } else {
-        c.progress = calculatedProgress;
+        c.progress = 0;
       }
     }
 
