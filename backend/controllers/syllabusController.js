@@ -73,12 +73,6 @@ exports.getSubjectSyllabus = async (req, res) => {
       }).lean();
     }
 
-    if (!master) {
-      master = await MasterSyllabus.findOne({
-        subjectName: new RegExp("^" + escapeRegex(subjectObj.name) + "$", "i")
-      }).lean();
-    }
-
     const masterChapters = (master && master.chapters && master.chapters.length > 0)
       ? master.chapters.map(ch => ({
           chapterNo: ch.chapterNo,
