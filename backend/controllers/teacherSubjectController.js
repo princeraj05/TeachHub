@@ -27,16 +27,14 @@ const sortClassesNumerically = (list) => {
 exports.getMySubjectsDetailed = async (req, res) => {
   try {
     const teacherId = req.user.id;
+    const schoolRegex = new RegExp("^" + escapeRegex(req.user.schoolName) + "$", "i");
     const timetableSubjectIds = await Timetable.distinct("subject", { teacher: teacherId });
-    const teacherClasses = await Class.find({ $or: [{ teacher: teacherId }, { teachers: teacherId }] }).distinct("_id");
 
     const subjects = await Subject.find({
+      schoolName: schoolRegex,
       $or: [
         { teacher: teacherId },
-        { _id: { $in: timetableSubjectIds } },
-        { classes: { $in: teacherClasses } },
-        { class: { $in: teacherClasses } },
-        { schoolName: req.user.schoolName }
+        { _id: { $in: timetableSubjectIds } }
       ]
     }).populate({
       path: "classes",
@@ -118,11 +116,10 @@ exports.getSubjectDetails = async (req, res) => {
 
     let subject = await Subject.findOne({
       _id: subjectId,
+      schoolName: new RegExp("^" + escapeRegex(schoolName) + "$", "i"),
       $or: [
         { teacher: teacherId },
-        { _id: { $in: timetableSubjectIds } },
-        { classes: { $in: teacherClasses } },
-        { class: { $in: teacherClasses } }
+        { _id: { $in: timetableSubjectIds } }
       ]
     }).populate({
       path: "classes",
