@@ -23,7 +23,9 @@ import {
   FaCheck,
   FaUserTie,
   FaBookOpen,
-  FaChevronRight
+  FaChevronRight,
+  FaPenNib,
+  FaUserGraduate
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
 
@@ -88,6 +90,9 @@ export default function TeacherMyDiary() {
   const API = import.meta.env.VITE_API_URL || "";
   const token = localStorage.getItem("token");
 
+  // Tab mode: 'homework' or 'signature-check'
+  const [activeTab, setActiveTab] = useState("homework");
+
   // State
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [selectedClassId, setSelectedClassId] = useState("All");
@@ -97,6 +102,11 @@ export default function TeacherMyDiary() {
   const [classesList, setClassesList] = useState([]);
   const [subjectsList, setSubjectsList] = useState([]);
   const [homeworks, setHomeworks] = useState([]);
+
+  // Signature Check State
+  const [selectedStudentId, setSelectedStudentId] = useState("All");
+  const [signatureReport, setSignatureReport] = useState([]);
+  const [loadingSignature, setLoadingSignature] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -140,7 +150,6 @@ export default function TeacherMyDiary() {
         }
 
         const rawSubj = subjRes.data || [];
-        // Flatten or map subjects
         const cleanSubjList = Array.isArray(rawSubj)
           ? rawSubj.map((s) => (typeof s === "string" ? s : s.name || s.subjectName || "General"))
           : ["Mathematics", "Science", "English", "Hindi", "Social Studies"];
@@ -156,7 +165,7 @@ export default function TeacherMyDiary() {
     fetchMetadata();
   }, [API, token]);
 
-  // Fetch Homeworks based on selected date / filters
+  // Fetch Homeworks
   const fetchHomeworks = async () => {
     setLoading(true);
     setErrorMsg("");
@@ -177,8 +186,28 @@ export default function TeacherMyDiary() {
     }
   };
 
+  // Fetch Parent Signature Report for Class & Date
+  const fetchSignatureReport = async () => {
+    setLoadingSignature(true);
+    try {
+      let url = `${API}/api/teacher/mydiary/signatures?date=${selectedDate}`;
+      if (selectedClassId && selectedClassId !== "All") {
+        url += `&classId=${selectedClassId}`;
+      }
+      const res = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSignatureReport(res.data?.report || []);
+    } catch (err) {
+      console.error("Error fetching signature report:", err);
+    } finally {
+      setLoadingSignature(false);
+    }
+  };
+
   useEffect(() => {
     fetchHomeworks();
+    fetchSignatureReport();
   }, [selectedDate, selectedClassId]);
 
   // Filtered homework list
@@ -199,6 +228,12 @@ export default function TeacherMyDiary() {
     });
   }, [homeworks, selectedSubject, searchQuery]);
 
+  // Filtered signature report list (by selected student)
+  const filteredSignatureReport = useMemo(() => {
+    if (selectedStudentId === "All") return signatureReport;
+    return signatureReport.filter((std) => std._id === selectedStudentId);
+  }, [signatureReport, selectedStudentId]);
+
   // Handle Create Homework Submit
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
@@ -210,13 +245,12 @@ export default function TeacherMyDiary() {
     setSubmitting(true);
     setErrorMsg("");
     try {
-      const res = await axios.post(`${API}/api/teacher/mydiary`, formData, {
+      await axios.post(`${API}/api/teacher/mydiary`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       setSuccessMsg("Homework assigned successfully!");
       setIsModalOpen(false);
-      // Reset title & desc
       setFormData((prev) => ({
         ...prev,
         title: "",
@@ -224,6 +258,7 @@ export default function TeacherMyDiary() {
         types: ["Questions / Exercises"]
       }));
       fetchHomeworks();
+      fetchSignatureReport();
       setTimeout(() => setSuccessMsg(""), 4000);
     } catch (err) {
       console.error("Error creating homework:", err);
@@ -255,7 +290,7 @@ export default function TeacherMyDiary() {
     setFormData((prev) => {
       const exists = prev.types.includes(typeId);
       if (exists) {
-        if (prev.types.length === 1) return prev; // Keep at least one
+        if (prev.types.length === 1) return prev;
         return { ...prev, types: prev.types.filter((t) => t !== typeId) };
       } else {
         return { ...prev, types: [...prev.types, typeId] };
@@ -297,13 +332,13 @@ export default function TeacherMyDiary() {
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-3 py-1 rounded-full text-xs font-extrabold tracking-wider uppercase">
               <FaBookOpen className="text-amber-300" />
-              Teacher Homework Diary
+              Teacher Homework Diary & Verification
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
               My Diary & Homework
             </h1>
             <p className="text-xs sm:text-sm text-white/80 max-w-xl font-medium">
-              Create and manage daily subject homework entries for your classes. Students will receive these assignments in real-time.
+              Assign daily class homework and check parent signatures when students bring their diaries to class.
             </p>
           </div>
 
@@ -315,6 +350,31 @@ export default function TeacherMyDiary() {
             <span>Assign Homework</span>
           </button>
         </div>
+      </div>
+
+      {/* View Selector Tabs */}
+      <div className="flex items-center gap-3 border-b border-slate-200 dark:border-white/10 pb-1">
+        <button
+          onClick={() => setActiveTab("homework")}
+          className={`px-5 py-2.5 text-xs font-black rounded-2xl transition flex items-center gap-2 cursor-pointer ${
+            activeTab === "homework"
+              ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/20"
+              : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10"
+          }`}
+        >
+          <FaBookOpen /> Assigned Homework Feed
+        </button>
+
+        <button
+          onClick={() => setActiveTab("signature-check")}
+          className={`px-5 py-2.5 text-xs font-black rounded-2xl transition flex items-center gap-2 cursor-pointer ${
+            activeTab === "signature-check"
+              ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/20"
+              : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10"
+          }`}
+        >
+          <FaPenNib /> Parent Signature Inspector
+        </button>
       </div>
 
       {/* Filters & Control Bar */}
@@ -339,14 +399,14 @@ export default function TeacherMyDiary() {
           {/* Class Filter */}
           <div>
             <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
-              Class
+              Target Class
             </label>
             <div className="relative">
               <FaSchool className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
               <select
                 value={selectedClassId}
                 onChange={(e) => setSelectedClassId(e.target.value)}
-                className="w-full pl-10 pr-8 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED] appearance-none"
+                className="w-full pl-10 pr-8 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED] appearance-none cursor-pointer"
               >
                 <option value="All" className="bg-white dark:bg-[#0B132A] text-slate-800 dark:text-white">All Classes</option>
                 {classesList.map((cls) => (
@@ -358,173 +418,277 @@ export default function TeacherMyDiary() {
             </div>
           </div>
 
-          {/* Subject Filter */}
-          <div>
-            <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
-              Subject
-            </label>
-            <div className="relative">
-              <FaBook className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
-              <select
-                value={selectedSubject}
-                onChange={(e) => setSelectedSubject(e.target.value)}
-                className="w-full pl-10 pr-8 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED] appearance-none"
-              >
-                <option value="All" className="bg-white dark:bg-[#0B132A] text-slate-800 dark:text-white">All Subjects</option>
-                {subjectsList.map((subj, idx) => (
-                  <option key={idx} value={subj} className="bg-white dark:bg-[#0B132A] text-slate-800 dark:text-white">
-                    {subj}
+          {/* Student Dropdown Inspector for Signature Check */}
+          {activeTab === "signature-check" ? (
+            <div className="sm:col-span-2">
+              <label className="block text-[11px] font-extrabold uppercase tracking-wider text-[#7C3AED] dark:text-[#38BDF8] mb-1.5 flex items-center gap-1.5">
+                <FaUserGraduate /> Select Student (Check Parent Signature)
+              </label>
+              <div className="relative">
+                <select
+                  value={selectedStudentId}
+                  onChange={(e) => setSelectedStudentId(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-purple-500/10 dark:bg-white/10 border border-purple-500/30 rounded-xl text-xs font-black text-[#7C3AED] dark:text-[#38BDF8] focus:outline-none focus:border-[#7C3AED] cursor-pointer"
+                >
+                  <option value="All" className="bg-white dark:bg-[#0B132A] text-slate-800 dark:text-white">
+                    All Class Students ({signatureReport.length})
                   </option>
-                ))}
-              </select>
+                  {signatureReport.map((std) => (
+                    <option key={std._id} value={std._id} className="bg-white dark:bg-[#0B132A] text-slate-800 dark:text-white">
+                      Roll {std.rollNo}: {std.name} {std.isSigned ? " (✒️ Parent Signed)" : " (❌ Signature Pending)"}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </div>
+          ) : (
+            <>
+              {/* Subject Filter */}
+              <div>
+                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
+                  Subject
+                </label>
+                <div className="relative">
+                  <FaBook className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                  <select
+                    value={selectedSubject}
+                    onChange={(e) => setSelectedSubject(e.target.value)}
+                    className="w-full pl-10 pr-8 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED] appearance-none cursor-pointer"
+                  >
+                    <option value="All" className="bg-white dark:bg-[#0B132A] text-slate-800 dark:text-white">All Subjects</option>
+                    {subjectsList.map((subj, idx) => (
+                      <option key={idx} value={subj} className="bg-white dark:bg-[#0B132A] text-slate-800 dark:text-white">
+                        {subj}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
-          {/* Search Box */}
-          <div>
-            <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
-              Search
-            </label>
-            <div className="relative">
-              <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
-              <input
-                type="text"
-                placeholder="Search topic or detail..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-3 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
-              />
-            </div>
-          </div>
+              {/* Search Box */}
+              <div>
+                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
+                  Search
+                </label>
+                <div className="relative">
+                  <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                  <input
+                    type="text"
+                    placeholder="Search topic or detail..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-3 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
+                  />
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Main Homework List */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-base font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
-            <span>Assigned Homework</span>
-            <span className="text-xs bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] dark:bg-[#38BDF8]/10 px-2.5 py-0.5 rounded-full font-black">
-              {filteredHomeworks.length}
-            </span>
-          </h2>
-        </div>
-
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-[#0B132A] rounded-2.5xl border border-slate-200 dark:border-white/10">
-            <FaSpinner className="text-3xl text-[#7C3AED] animate-spin mb-3" />
-            <p className="text-xs font-bold text-slate-400 animate-pulse">Loading homework entries...</p>
+      {/* TAB 1: HOMEWORK FEED VIEW */}
+      {activeTab === "homework" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-base font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
+              <span>Assigned Homework</span>
+              <span className="text-xs bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] dark:bg-[#38BDF8]/10 px-2.5 py-0.5 rounded-full font-black">
+                {filteredHomeworks.length}
+              </span>
+            </h2>
           </div>
-        ) : filteredHomeworks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-[#0B132A] rounded-2.5xl border border-slate-200 dark:border-white/10 text-center px-4">
-            <div className="w-16 h-16 rounded-2xl bg-purple-500/10 text-[#7C3AED] dark:text-[#38BDF8] flex items-center justify-center text-2xl mb-4">
-              <FaBookOpen />
+
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-[#0B132A] rounded-2.5xl border border-slate-200 dark:border-white/10">
+              <FaSpinner className="text-3xl text-[#7C3AED] animate-spin mb-3" />
+              <p className="text-xs font-bold text-slate-400 animate-pulse">Loading homework entries...</p>
             </div>
-            <h3 className="text-base font-extrabold text-slate-800 dark:text-white mb-1">
-              No Homework Assigned
-            </h3>
-            <p className="text-xs text-slate-400 max-w-sm mb-5">
-              No homework was found for {selectedDate}. Click below to assign homework to your class.
-            </p>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-extrabold px-5 py-2.5 rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer"
-            >
-              <FaPlus /> Assign Homework Now
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-            {filteredHomeworks.map((hw) => {
-              const subjVisual = getSubjectIcon(hw.subjectName);
-              const completionsCount = Array.isArray(hw.studentCompletions) ? hw.studentCompletions.length : 0;
+          ) : filteredHomeworks.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-[#0B132A] rounded-2.5xl border border-slate-200 dark:border-white/10 text-center px-4">
+              <div className="w-16 h-16 rounded-2xl bg-purple-500/10 text-[#7C3AED] dark:text-[#38BDF8] flex items-center justify-center text-2xl mb-4">
+                <FaBookOpen />
+              </div>
+              <h3 className="text-base font-extrabold text-slate-800 dark:text-white mb-1">
+                No Homework Assigned
+              </h3>
+              <p className="text-xs text-slate-400 max-w-sm mb-5">
+                No homework was found for {selectedDate}. Click below to assign homework to your class.
+              </p>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-extrabold px-5 py-2.5 rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer"
+              >
+                <FaPlus /> Assign Homework Now
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+              {filteredHomeworks.map((hw) => {
+                const subjVisual = getSubjectIcon(hw.subjectName);
+                const completionsCount = Array.isArray(hw.studentCompletions) ? hw.studentCompletions.length : 0;
 
-              return (
-                <div
-                  key={hw._id}
-                  className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-2.5xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between relative group"
-                >
-                  <div className="space-y-3">
-                    {/* Header Badges */}
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <div className="flex items-center gap-2">
-                        {/* Class Badge */}
-                        <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-lg border border-slate-200/60 dark:border-white/10">
-                          {hw.className} {hw.section ? `(${hw.section})` : ""}
-                        </span>
+                return (
+                  <div
+                    key={hw._id}
+                    className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-2.5xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between relative group"
+                  >
+                    <div className="space-y-3">
+                      {/* Header Badges */}
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-lg border border-slate-200/60 dark:border-white/10">
+                            {hw.className} {hw.section ? `(${hw.section})` : ""}
+                          </span>
 
-                        {/* Subject Badge */}
-                        <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg border flex items-center gap-1.5 ${subjVisual.bg}`}>
-                          {subjVisual.icon}
-                          {hw.subjectName}
-                        </span>
+                          <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg border flex items-center gap-1.5 ${subjVisual.bg}`}>
+                            {subjVisual.icon}
+                            {hw.subjectName}
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={() => handleDelete(hw._id)}
+                          className="text-slate-400 hover:text-rose-500 p-2 rounded-xl hover:bg-rose-500/10 transition cursor-pointer"
+                          title="Delete Homework"
+                        >
+                          <FaTrash className="text-xs" />
+                        </button>
                       </div>
 
-                      {/* Delete Button */}
-                      <button
-                        onClick={() => handleDelete(hw._id)}
-                        className="text-slate-400 hover:text-rose-500 p-2 rounded-xl hover:bg-rose-500/10 transition cursor-pointer"
-                        title="Delete Homework"
-                      >
-                        <FaTrash className="text-xs" />
-                      </button>
+                      <h3 className="text-base font-extrabold text-slate-800 dark:text-white leading-snug">
+                        {hw.title}
+                      </h3>
+
+                      {hw.types && hw.types.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {hw.types.map((t, idx) => {
+                            const badge = getTypeBadge(t);
+                            return (
+                              <span
+                                key={idx}
+                                className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-md border flex items-center gap-1 ${badge.style}`}
+                              >
+                                <span>{badge.icon}</span>
+                                <span>{badge.label}</span>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {hw.description && (
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-white/[0.03] p-3 rounded-xl border border-slate-100 dark:border-white/[0.05]">
+                          {hw.description}
+                        </p>
+                      )}
                     </div>
 
-                    {/* Title */}
-                    <h3 className="text-base font-extrabold text-slate-800 dark:text-white leading-snug">
-                      {hw.title}
-                    </h3>
-
-                    {/* Homework Types */}
-                    {hw.types && hw.types.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {hw.types.map((t, idx) => {
-                          const badge = getTypeBadge(t);
-                          return (
-                            <span
-                              key={idx}
-                              className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-md border flex items-center gap-1 ${badge.style}`}
-                            >
-                              <span>{badge.icon}</span>
-                              <span>{badge.label}</span>
-                            </span>
-                          );
-                        })}
+                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/[0.08] flex items-center justify-between text-[11px] text-slate-400 font-bold">
+                      <div className="flex items-center gap-1.5">
+                        <FaClock className="text-slate-400" />
+                        <span>Due: {hw.dueDate || hw.homeworkDate}</span>
                       </div>
-                    )}
 
-                    {/* Description */}
-                    {hw.description && (
-                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-white/[0.03] p-3 rounded-xl border border-slate-100 dark:border-white/[0.05]">
-                        {hw.description}
-                      </p>
-                    )}
+                      <div className="flex items-center gap-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold">
+                        <FaCheck className="text-[9px]" />
+                        <span>{completionsCount} Completed</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 2: PARENT SIGNATURE INSPECTOR VIEW */}
+      {activeTab === "signature-check" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-base font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
+              <span>Parent Signature Verification (Class Inspection)</span>
+              <span className="text-xs bg-purple-500/10 text-[#7C3AED] dark:text-[#38BDF8] px-2.5 py-0.5 rounded-full font-black">
+                {filteredSignatureReport.length} Students
+              </span>
+            </h2>
+          </div>
+
+          {loadingSignature ? (
+            <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-[#0B132A] rounded-2.5xl border border-slate-200 dark:border-white/10">
+              <FaSpinner className="text-3xl text-[#7C3AED] animate-spin mb-3" />
+              <p className="text-xs font-bold text-slate-400">Loading student signature records...</p>
+            </div>
+          ) : filteredSignatureReport.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-[#0B132A] rounded-2.5xl border border-slate-200 dark:border-white/10 text-center px-4">
+              <FaPenNib className="text-3xl text-slate-300 mb-3" />
+              <h3 className="text-base font-extrabold text-slate-800 dark:text-white">No Student Records</h3>
+              <p className="text-xs text-slate-400">No student signature data found for the selected class and date.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredSignatureReport.map((std) => (
+                <div
+                  key={std._id}
+                  className={`bg-white dark:bg-[#0B132A] border rounded-2.5xl p-5 shadow-sm space-y-3 transition ${
+                    std.isSigned
+                      ? "border-emerald-500/30 bg-emerald-500/[0.02]"
+                      : "border-rose-500/30 bg-rose-500/[0.02]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl bg-[#7C3AED]/10 text-[#7C3AED] font-black flex items-center justify-center text-xs">
+                        #{std.rollNo}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-slate-900 dark:text-white">
+                          {std.name}
+                        </h4>
+                        <p className="text-[10px] text-slate-400 font-bold">
+                          Diary Date: {selectedDate}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${
+                        std.isSigned
+                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                          : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                      }`}
+                    >
+                      {std.isSigned ? "🟢 COMPLETED" : "🟠 PENDING"}
+                    </span>
                   </div>
 
-                  {/* Footer Meta */}
-                  <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/[0.08] flex items-center justify-between text-[11px] text-slate-400 font-bold">
-                    <div className="flex items-center gap-1.5">
-                      <FaClock className="text-slate-400" />
-                      <span>Due: {hw.dueDate || hw.homeworkDate}</span>
-                    </div>
-
-                    <div className="flex items-center gap-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold">
-                      <FaCheck className="text-[9px]" />
-                      <span>{completionsCount} Completed</span>
-                    </div>
+                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 space-y-1.5">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                      Parent Signature Status
+                    </span>
+                    {std.isSigned ? (
+                      <div className="flex items-center gap-2 text-xs font-black text-emerald-600 dark:text-emerald-400">
+                        <FaPenNib className="text-xs" />
+                        <span>Signed by: {std.parentSignatureName || "Parent / Guardian"}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-xs font-black text-rose-500">
+                        <FaExclamationCircle className="text-xs" />
+                        <span>Parent Signature Missing (Pending)</span>
+                      </div>
+                    )}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* CREATE HOMEWORK MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 sm:p-7 space-y-5">
-            {/* Modal Title */}
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-xl bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] flex items-center justify-center font-bold">
@@ -546,11 +710,8 @@ export default function TeacherMyDiary() {
               </button>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleCreateSubmit} className="space-y-4">
-              {/* Class & Subject row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Select Class */}
                 <div>
                   <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
                     Target Class *
@@ -573,7 +734,6 @@ export default function TeacherMyDiary() {
                   </select>
                 </div>
 
-                {/* Select Subject */}
                 <div>
                   <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
                     Subject *
@@ -603,7 +763,6 @@ export default function TeacherMyDiary() {
                 </div>
               </div>
 
-              {/* Homework Date & Due Date */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
@@ -632,7 +791,6 @@ export default function TeacherMyDiary() {
                 </div>
               </div>
 
-              {/* Title / Topic */}
               <div>
                 <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
                   Topic / Homework Title *
@@ -647,7 +805,6 @@ export default function TeacherMyDiary() {
                 />
               </div>
 
-              {/* Homework Types Chips */}
               <div>
                 <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
                   Homework Task Types
@@ -674,7 +831,6 @@ export default function TeacherMyDiary() {
                 </div>
               </div>
 
-              {/* Instructions / Description */}
               <div>
                 <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
                   Detailed Instructions (Optional)
@@ -688,7 +844,6 @@ export default function TeacherMyDiary() {
                 />
               </div>
 
-              {/* Actions */}
               <div className="pt-3 border-t border-slate-100 dark:border-white/10 flex items-center justify-end gap-3">
                 <button
                   type="button"

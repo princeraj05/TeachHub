@@ -24,7 +24,8 @@ import {
   FaUserTie,
   FaChevronRight,
   FaCheck,
-  FaExternalLinkAlt
+  FaExternalLinkAlt,
+  FaPenNib
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
 
@@ -98,85 +99,98 @@ const formatDateLabel = (dateStr) => {
 };
 
 export default function StudentMyDiary() {
-  const API = import.meta.env.VITE_API_URL;
   const { theme } = useTheme();
+  const API = import.meta.env.VITE_API_URL || "";
 
-  const todayStr = new Date().toISOString().split("T")[0];
-  const [selectedDate, setSelectedDate] = useState(todayStr);
+  // State
+  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
 
   const [diaryData, setDiaryData] = useState({
-    schoolName: "G.D Academy",
-    className: "Class 5",
-    section: "A",
+    schoolName: "",
+    className: "",
+    section: "",
+    date: "",
     summary: { totalHomework: 0, completed: 0, pending: 0, subjectsCount: 0 },
     homeworks: []
   });
 
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSubject, setSelectedSubject] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
-
-  // Modal State for Homework Details
-  const [selectedHomework, setSelectedHomework] = useState(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-
-  // Upload Submission state
-  const [attachmentFile, setAttachmentFile] = useState(null);
-  const [attachmentPreview, setAttachmentPreview] = useState("");
-  const [submittingFile, setSubmittingFile] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  const showToast = (msg) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(""), 4000);
-  };
+  // Signature Inputs per homework ID
+  const [parentNameInputs, setParentNameInputs] = useState({});
 
-  const fetchDiary = (dateToFetch) => {
+  // Modal State
+  const [selectedHomework, setSelectedHomework] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+
+  // Fetch Diary Data
+  const fetchDiary = (dateStr, subjectFilter = "All") => {
     setLoading(true);
     const token = localStorage.getItem("token");
+
+    let url = `${API}/api/student/mydiary?date=${dateStr}`;
+    if (subjectFilter !== "All") {
+      url += `&subject=${encodeURIComponent(subjectFilter)}`;
+    }
+
     axios
-      .get(`${API}/api/student/mydiary?date=${dateToFetch}`, {
+      .get(url, {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then((res) => {
-        if (res.data) {
-          setDiaryData(res.data);
-        }
+        setDiaryData(res.data || {});
       })
       .catch((err) => {
-        console.error("Error fetching student diary:", err);
+        console.error("Error loading student diary:", err);
+        showToast("Failed to load diary entries.");
       })
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    fetchDiary(selectedDate);
-  }, [selectedDate]);
+    fetchDiary(selectedDate, selectedSubject);
+  }, [selectedDate, selectedSubject]);
 
-  // Handle Quick Date Selection
-  const handleQuickDate = (type) => {
-    const d = new Date();
-    if (type === "yesterday") {
-      d.setDate(d.getDate() - 1);
-    } else if (type === "prev") {
-      d.setDate(d.getDate() - 2);
-    }
-    const iso = d.toISOString().split("T")[0];
-    setSelectedDate(iso);
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(""), 3500);
   };
 
-  // Filtered homework list
+  // Quick Date Selectors
+  const handleQuickDateChange = (type) => {
+    const today = new Date();
+    if (type === "today") {
+      setSelectedDate(today.toISOString().split("T")[0]);
+    } else if (type === "yesterday") {
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      setSelectedDate(yesterday.toISOString().split("T")[0]);
+    }
+  };
+
+  // Filtered Homeworks
   const filteredHomeworks = useMemo(() => {
     return (diaryData.homeworks || []).filter((hw) => {
       const matchSearch =
-        (hw.subjectName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        searchQuery.trim() === "" ||
         (hw.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (hw.description || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (hw.subjectName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
         (hw.teacherName || "").toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchSubject = selectedSubject === "All" || hw.subjectName.toLowerCase() === selectedSubject.toLowerCase();
-      const matchStatus = statusFilter === "All" || hw.status.toLowerCase() === statusFilter.toLowerCase();
+      const matchSubject = selectedSubject === "All" || hw.subjectName === selectedSubject;
+      
+      let matchStatus = true;
+      if (statusFilter === "Completed") {
+        matchStatus = hw.status === "Completed" || hw.status === "Submitted" || hw.status === "Reviewed";
+      } else if (statusFilter === "Pending") {
+        matchStatus = hw.status !== "Completed" && hw.status !== "Submitted" && hw.status !== "Reviewed";
+      }
 
       return matchSearch && matchSubject && matchStatus;
     });
@@ -188,22 +202,37 @@ export default function StudentMyDiary() {
     return Array.from(set);
   }, [diaryData.homeworks]);
 
-  // Mark as Completed
-  const handleMarkCompleted = (hwId) => {
+  // Submit Parent Signature & Mark as Completed
+  const handleMarkCompletedWithSignature = (hwId) => {
+    const parentName = (parentNameInputs[hwId] || "").trim();
+    if (!parentName) {
+      alert("Please enter the Parent/Guardian name to sign the diary.");
+      return;
+    }
+
     setActionLoading(true);
     const token = localStorage.getItem("token");
     axios
-      .post(`${API}/api/student/mydiary/${hwId}/complete`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      .post(
+        `${API}/api/student/mydiary/${hwId}/complete`,
+        { parentSignatureName: parentName, parentName: parentName },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
       .then((res) => {
-        showToast("🎉 Homework marked as Completed!");
+        showToast("✒️ Signed by Parent & Homework Marked Completed!");
         // Update local state
         setDiaryData((prev) => {
           const updated = prev.homeworks.map((item) =>
-            item._id === hwId ? { ...item, status: "Completed" } : item
+            item._id === hwId
+              ? {
+                  ...item,
+                  status: "Completed",
+                  parentSignatureName: parentName,
+                  parentSignedAt: new Date().toISOString()
+                }
+              : item
           );
-          const completedCount = updated.filter((i) => ["Completed", "Submitted", "Reviewed"].includes(i.status)).length;
+          const completedCount = updated.filter((i) => i.status === "Completed" || i.status === "Submitted" || i.status === "Reviewed").length;
           const pendingCount = updated.length - completedCount;
           return {
             ...prev,
@@ -212,77 +241,23 @@ export default function StudentMyDiary() {
           };
         });
         if (selectedHomework && selectedHomework._id === hwId) {
-          setSelectedHomework((prev) => ({ ...prev, status: "Completed" }));
+          setSelectedHomework((prev) => ({
+            ...prev,
+            status: "Completed",
+            parentSignatureName: parentName,
+            parentSignedAt: new Date().toISOString()
+          }));
         }
       })
       .catch((err) => {
-        console.error("Error marking completed:", err);
-        showToast("⚠️ Could not update status. Try again.");
+        console.error("Error signing diary:", err);
+        showToast("⚠️ Could not submit signature. Try again.");
       })
       .finally(() => setActionLoading(false));
   };
 
-  // Handle File Upload Preview
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setAttachmentFile(file);
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setAttachmentPreview(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  // Submit Homework with File Attachment
-  const handleSubmitHomework = (e) => {
-    e.preventDefault();
-    if (!selectedHomework) return;
-
-    setSubmittingFile(true);
-    const token = localStorage.getItem("token");
-
-    const payload = {
-      attachmentUrl: attachmentPreview || "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=80",
-      filename: attachmentFile ? attachmentFile.name : "homework_submission.png",
-      fileType: attachmentFile ? attachmentFile.type : "image/png"
-    };
-
-    axios
-      .post(`${API}/api/student/mydiary/${selectedHomework._id}/submit`, payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      .then((res) => {
-        showToast("🚀 Homework submitted successfully!");
-        setDiaryData((prev) => {
-          const updated = prev.homeworks.map((item) =>
-            item._id === selectedHomework._id
-              ? { ...item, status: "Submitted", attachment: payload }
-              : item
-          );
-          const completedCount = updated.filter((i) => ["Completed", "Submitted", "Reviewed"].includes(i.status)).length;
-          const pendingCount = updated.length - completedCount;
-          return {
-            ...prev,
-            summary: { ...prev.summary, completed: completedCount, pending: pendingCount },
-            homeworks: updated
-          };
-        });
-        setSelectedHomework((prev) => ({ ...prev, status: "Submitted", attachment: payload }));
-        setAttachmentFile(null);
-        setAttachmentPreview("");
-      })
-      .catch((err) => {
-        console.error("Error submitting homework:", err);
-        showToast("⚠️ Error uploading submission.");
-      })
-      .finally(() => setSubmittingFile(false));
-  };
-
   return (
     <div style={{ fontFamily: SORA }} className="w-full max-w-5xl mx-auto space-y-6 text-left select-none pb-12">
-      
       {/* Toast Notification Banner */}
       {toastMessage && (
         <div className="fixed top-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce border border-white/20">
@@ -326,75 +301,77 @@ export default function StudentMyDiary() {
             <div>
               <p className="text-[9px] text-slate-400 font-bold uppercase leading-none">Class</p>
               <p className="text-xs font-black text-slate-800 dark:text-white leading-tight mt-0.5">
-                {diaryData.className || "Class 5"} - Sec {diaryData.section || "A"}
+                {diaryData.className} - Sec {diaryData.section}
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Date Selector & Toolbar */}
-      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] p-4 sm:p-5 rounded-3xl shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          
-          {/* Quick Date Buttons */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+      {/* Date Navigation & Control Bar */}
+      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-3xl p-4 sm:p-5 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* Quick Date Pills */}
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setSelectedDate(todayStr)}
-              className={`px-4 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer shrink-0 ${
-                selectedDate === todayStr
-                  ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/20"
-                  : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10"
+              onClick={() => handleQuickDateChange("today")}
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                selectedDate === new Date().toISOString().split("T")[0]
+                  ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/25"
+                  : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10"
               }`}
             >
               Today
             </button>
             <button
-              onClick={() => handleQuickDate("yesterday")}
-              className={`px-4 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer shrink-0 ${
-                formatDateLabel(selectedDate) === "Yesterday"
-                  ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/20"
-                  : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10"
+              onClick={() => handleQuickDateChange("yesterday")}
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                selectedDate ===
+                new Date(Date.now() - 86400000).toISOString().split("T")[0]
+                  ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/25"
+                  : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10"
               }`}
             >
               Yesterday
             </button>
 
-            {/* Custom Date Picker */}
-            <div className="relative flex items-center bg-slate-100 dark:bg-white/5 px-3 py-1.5 rounded-xl border border-slate-200/60 dark:border-white/10 shrink-0">
-              <FaCalendarAlt className="text-slate-400 text-xs mr-2" />
+            {/* Custom Date Input */}
+            <div className="relative">
               <input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="bg-transparent text-xs font-bold text-slate-800 dark:text-white focus:outline-none cursor-pointer"
+                className="px-3.5 py-1.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED] cursor-pointer"
               />
             </div>
           </div>
 
-          {/* Date Label Header */}
-          <div className="text-right shrink-0">
-            <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">Diary Date</p>
-            <p className="text-sm font-black text-indigo-600 dark:text-[#38BDF8]">
+          <div className="text-right">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block">
+              Diary Date
+            </span>
+            <span className="text-sm font-black text-[#7C3AED] dark:text-[#38BDF8]">
               {formatDateLabel(selectedDate)}
-            </p>
+            </span>
           </div>
         </div>
 
-        {/* Search & Subject/Status Filters */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 pt-2 border-t border-slate-100 dark:border-white/5">
-          <div className="relative flex-1 w-full">
+        {/* Search & Filters */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 border-t border-slate-100 dark:border-white/5">
+          {/* Search Box */}
+          <div className="relative flex-1">
             <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
             <input
               type="text"
               placeholder="Search homework by subject, title or teacher..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20"
+              className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          {/* Subject & Status Dropdowns */}
+          <div className="flex items-center gap-2">
             {/* Subject Filter */}
             <select
               value={selectedSubject}
@@ -402,14 +379,14 @@ export default function StudentMyDiary() {
               className="px-3 py-2 bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/10 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer"
             >
               <option value="All">All Subjects</option>
-              {uniqueSubjects.map((sub) => (
-                <option key={sub} value={sub}>
-                  {sub}
+              {uniqueSubjects.map((subj) => (
+                <option key={subj} value={subj}>
+                  {subj}
                 </option>
               ))}
             </select>
 
-            {/* Status Filter */}
+            {/* Status Filter: Simplified to Pending & Completed */}
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -418,8 +395,6 @@ export default function StudentMyDiary() {
               <option value="All">All Statuses</option>
               <option value="Pending">Pending</option>
               <option value="Completed">Completed</option>
-              <option value="Submitted">Submitted</option>
-              <option value="Reviewed">Reviewed</option>
             </select>
           </div>
         </div>
@@ -465,7 +440,7 @@ export default function StudentMyDiary() {
 
         <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/10 rounded-3xl p-4 shadow-sm flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center font-black text-sm shrink-0">
-            📖
+            📑
           </div>
           <div>
             <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Subjects</p>
@@ -476,7 +451,7 @@ export default function StudentMyDiary() {
         </div>
       </div>
 
-      {/* Homework Cards Section */}
+      {/* Main Content Area */}
       {loading ? (
         <div className="py-20 text-center flex flex-col items-center justify-center space-y-3">
           <FaSpinner className="text-3xl text-[#7C3AED] animate-spin" />
@@ -486,32 +461,11 @@ export default function StudentMyDiary() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {filteredHomeworks.map((hw) => {
             const visual = getSubjectIcon(hw.subjectName);
+            const isCompleted = hw.status === "Completed" || hw.status === "Submitted" || hw.status === "Reviewed";
 
-            let statusBadge = {
-              text: "Pending",
-              style: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
-              icon: "🟠"
-            };
-
-            if (hw.status === "Completed") {
-              statusBadge = {
-                text: "Completed",
-                style: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-                icon: "🟢"
-              };
-            } else if (hw.status === "Submitted") {
-              statusBadge = {
-                text: "Submitted",
-                style: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-                icon: "🔵"
-              };
-            } else if (hw.status === "Reviewed") {
-              statusBadge = {
-                text: "Reviewed",
-                style: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
-                icon: "🟣"
-              };
-            }
+            const statusBadge = isCompleted
+              ? { text: "Completed", style: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20", icon: "🟢" }
+              : { text: "Pending", style: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20", icon: "🟠" };
 
             return (
               <div
@@ -551,38 +505,87 @@ export default function StudentMyDiary() {
                   </div>
                 </div>
 
-                {/* Homework Types Badges */}
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {(hw.types || []).map((t, idx) => {
-                    const badge = getTypeBadge(t);
-                    return (
-                      <span
-                        key={idx}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-extrabold border ${badge.style}`}
-                      >
-                        <span>{badge.icon}</span>
-                        <span>{badge.label}</span>
-                      </span>
-                    );
-                  })}
-                </div>
+                {/* Types Chips */}
+                {hw.types && hw.types.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {hw.types.map((typeStr, idx) => {
+                      const badge = getTypeBadge(typeStr);
+                      return (
+                        <span
+                          key={idx}
+                          className={`text-[10px] font-bold px-2.5 py-1 rounded-xl border flex items-center gap-1.5 ${badge.style}`}
+                        >
+                          <span>{badge.icon}</span>
+                          <span>{badge.label}</span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
 
-                {/* Card Footer: Date & Details Button */}
-                <div className="pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between gap-3 text-[11px]">
-                  <span className="text-slate-400 font-semibold flex items-center gap-1">
-                    <FaClock className="text-[10px] text-amber-500" />
-                    Due: <strong className="text-slate-700 dark:text-slate-300">{formatDateLabel(hw.dueDate)}</strong>
-                  </span>
+                {/* Parent Signature Section */}
+                {isCompleted ? (
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-2xl flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FaPenNib className="text-emerald-500 text-xs" />
+                      <div>
+                        <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold uppercase tracking-wider">
+                          Parent Signature
+                        </p>
+                        <p className="text-xs font-black text-slate-800 dark:text-white">
+                          {hw.parentSignatureName || "Signed by Parent"}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 bg-white dark:bg-emerald-950 px-2 py-0.5 rounded-lg border border-emerald-500/20">
+                      ✅ COMPLETED
+                    </span>
+                  </div>
+                ) : (
+                  <div className="bg-purple-500/5 dark:bg-white/[0.02] border border-purple-500/20 p-3.5 rounded-2xl space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black text-[#7C3AED] dark:text-[#38BDF8] flex items-center gap-1.5">
+                        <FaPenNib /> Parent Signature Required
+                      </span>
+                      <span className="text-[10px] font-extrabold text-amber-500">Pending</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                      Parent must sign (enter name) to complete today's homework.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        type="text"
+                        placeholder="Enter Parent's Full Name (Signature)..."
+                        value={parentNameInputs[hw._id] || ""}
+                        onChange={(e) => setParentNameInputs({ ...parentNameInputs, [hw._id]: e.target.value })}
+                        className="flex-1 px-3 py-2 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
+                      />
+                      <button
+                        onClick={() => handleMarkCompletedWithSignature(hw._id)}
+                        disabled={actionLoading}
+                        className="px-4 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl text-xs font-black transition shadow-md flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+                      >
+                        <FaCheck className="text-xs" /> Submit Signature
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Footer Meta & View Details */}
+                <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5 text-slate-400 font-semibold text-[11px]">
+                    <FaClock className="text-[10px]" />
+                    <span>Due: {hw.dueDate || hw.homeworkDate}</span>
+                  </div>
 
                   <button
                     onClick={() => {
                       setSelectedHomework(hw);
                       setShowDetailModal(true);
                     }}
-                    className="flex items-center gap-1.5 text-[#7C3AED] dark:text-[#38BDF8] hover:underline font-extrabold cursor-pointer group-hover:translate-x-0.5 transition-transform"
+                    className="text-[11px] font-extrabold text-[#7C3AED] dark:text-[#38BDF8] hover:underline flex items-center gap-1 cursor-pointer"
                   >
-                    <span>View Details</span>
-                    <FaChevronRight className="text-[9px]" />
+                    View Details <FaChevronRight className="text-[9px]" />
                   </button>
                 </div>
               </div>
@@ -591,190 +594,103 @@ export default function StudentMyDiary() {
         </div>
       ) : (
         /* Empty State */
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-3xl p-12 text-center space-y-4 shadow-sm">
-          <div className="w-20 h-20 bg-gradient-to-tr from-amber-400/20 to-emerald-400/20 rounded-full flex items-center justify-center text-4xl mx-auto border border-amber-400/30 animate-pulse">
-            🎉
+        <div className="py-20 bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-3xl text-center space-y-4 shadow-sm px-4">
+          <div className="w-16 h-16 rounded-3xl bg-violet-500/10 text-[#7C3AED] dark:text-[#38BDF8] border border-violet-500/20 flex items-center justify-center text-2xl mx-auto">
+            📖
           </div>
           <div className="space-y-1">
-            <h3 className="text-lg font-black text-slate-900 dark:text-white">
-              No homework for {formatDateLabel(selectedDate)}!
+            <h3 className="text-lg font-black text-slate-800 dark:text-white">
+              No Homework Recorded
             </h3>
-            <p className="text-xs text-slate-450 dark:text-slate-400 font-semibold max-w-sm mx-auto leading-relaxed">
-              Enjoy your free time, revise previous lessons, and keep learning.
+            <p className="text-xs text-slate-400 max-w-sm mx-auto font-medium">
+              There is no homework assigned for {formatDateLabel(selectedDate)} matching your search criteria.
             </p>
           </div>
-          <button
-            onClick={() => {
-              setSelectedDate(todayStr);
-              setSelectedSubject("All");
-              setStatusFilter("All");
-              setSearchQuery("");
-            }}
-            className="px-5 py-2.5 bg-[#7C3AED] text-white rounded-xl text-xs font-bold shadow-md hover:bg-[#6D28D9] transition cursor-pointer"
-          >
-            Reset Filters & View Today
-          </button>
         </div>
       )}
 
-      {/* Homework Detail & Submission Modal */}
+      {/* DETAIL MODAL */}
       {showDetailModal && selectedHomework && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 w-full max-w-xl rounded-3xl p-6 shadow-2xl space-y-6 relative max-h-[90vh] overflow-y-auto">
-            
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl p-6 space-y-5">
             {/* Modal Header */}
-            <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100 dark:border-white/5">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
               <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl border ${getSubjectIcon(selectedHomework.subjectName).bg}`}>
+                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-base border ${getSubjectIcon(selectedHomework.subjectName).bg}`}>
                   {getSubjectIcon(selectedHomework.subjectName).icon}
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-slate-900 dark:text-white leading-tight">
-                    {selectedHomework.subjectName}
+                  <h3 className="text-base font-black text-slate-900 dark:text-white">
+                    {selectedHomework.subjectName} Homework
                   </h3>
-                  <p className="text-xs text-slate-400 font-bold">
+                  <p className="text-[11px] text-slate-400 font-bold">
                     Teacher: {selectedHomework.teacherName}
                   </p>
                 </div>
               </div>
 
               <button
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setAttachmentFile(null);
-                  setAttachmentPreview("");
-                }}
-                className="w-9 h-9 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10 flex items-center justify-center cursor-pointer transition"
+                onClick={() => setShowDetailModal(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition"
               >
                 <FaTimes />
               </button>
             </div>
 
-            {/* Modal Metadata Row */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-slate-50 dark:bg-white/[0.02] p-3.5 rounded-2xl border border-slate-100 dark:border-white/5">
+            {/* Title & Description */}
+            <div className="space-y-3">
               <div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase">Assigned Date</p>
-                <p className="font-extrabold text-slate-800 dark:text-slate-200 mt-0.5">
-                  {formatDateLabel(selectedHomework.homeworkDate)}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase">Due Date</p>
-                <p className="font-extrabold text-amber-600 dark:text-amber-400 mt-0.5">
-                  {formatDateLabel(selectedHomework.dueDate)}
-                </p>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">Topic</span>
+                <h4 className="text-sm font-black text-slate-800 dark:text-white">
+                  {selectedHomework.title}
+                </h4>
               </div>
 
               <div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase">Status</p>
-                <p className="font-extrabold text-indigo-600 dark:text-[#38BDF8] mt-0.5">
-                  {selectedHomework.status}
-                </p>
-              </div>
-            </div>
-
-            {/* Title & Instructions */}
-            <div className="space-y-2">
-              <h4 className="text-base font-extrabold text-slate-900 dark:text-white">
-                {selectedHomework.title}
-              </h4>
-              <div className="bg-slate-50 dark:bg-white/[0.03] p-4 rounded-2xl border border-slate-100 dark:border-white/5 text-xs text-slate-700 dark:text-slate-300 font-medium whitespace-pre-line leading-relaxed">
-                {selectedHomework.description}
-              </div>
-            </div>
-
-            {/* Homework Types */}
-            <div className="space-y-1.5">
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Homework Types</p>
-              <div className="flex flex-wrap items-center gap-2">
-                {(selectedHomework.types || []).map((t, i) => {
-                  const b = getTypeBadge(t);
-                  return (
-                    <span key={i} className={`px-3 py-1 rounded-xl text-xs font-extrabold border ${b.style}`}>
-                      {b.icon} {b.label}
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Submitted Attachment Preview if exists */}
-            {selectedHomework.attachment && selectedHomework.attachment.url && (
-              <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                    <FaCheckCircle /> Submitted File
-                  </span>
-                  <a
-                    href={selectedHomework.attachment.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
-                  >
-                    View File <FaExternalLinkAlt className="text-[9px]" />
-                  </a>
-                </div>
-                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 truncate">
-                  📎 {selectedHomework.attachment.filename || "homework_submission.png"}
-                </p>
-              </div>
-            )}
-
-            {/* File Upload Section for Submit Homework */}
-            {selectedHomework.status !== "Reviewed" && (
-              <div className="pt-2 border-t border-slate-100 dark:border-white/5 space-y-3">
-                <h5 className="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">
-                  Submit Work / Attach Proof
-                </h5>
-                <div className="border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-[#7C3AED] rounded-2xl p-4 text-center cursor-pointer transition relative bg-slate-50 dark:bg-white/[0.01]">
-                  <input
-                    type="file"
-                    accept="image/*,.pdf,.doc,.docx"
-                    onChange={handleFileChange}
-                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                  />
-                  <div className="flex flex-col items-center gap-1">
-                    <FaFileUpload className="text-xl text-[#7C3AED]" />
-                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                      {attachmentFile ? attachmentFile.name : "Click or Drag to Upload Image / PDF / Document"}
-                    </p>
-                    <p className="text-[10px] text-slate-400">PNG, JPG, PDF up to 10MB</p>
-                  </div>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">Homework Details</span>
+                <div className="text-xs text-slate-700 dark:text-slate-300 font-medium leading-relaxed bg-slate-50 dark:bg-white/[0.02] p-4 rounded-2xl border border-slate-100 dark:border-white/5 whitespace-pre-line">
+                  {selectedHomework.description}
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* Action Buttons */}
-            <div className="pt-4 border-t border-slate-100 dark:border-white/5 flex flex-wrap items-center justify-end gap-3">
-              {selectedHomework.status === "Pending" && (
+            {/* Parent Signature inside modal */}
+            {selectedHomework.status === "Completed" ? (
+              <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl space-y-1">
+                <p className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                  <FaPenNib /> Parent Signature Verified
+                </p>
+                <p className="text-xs font-black text-slate-800 dark:text-white">
+                  ✒️ Signed by: {selectedHomework.parentSignatureName || "Parent / Guardian"}
+                </p>
+              </div>
+            ) : (
+              <div className="p-4 bg-purple-500/5 dark:bg-white/[0.02] border border-purple-500/20 rounded-2xl space-y-3">
+                <p className="text-xs font-black text-[#7C3AED] dark:text-[#38BDF8] flex items-center gap-1.5">
+                  <FaPenNib /> Parent Signature Form
+                </p>
+                <input
+                  type="text"
+                  placeholder="Enter Parent's Full Name (Signature)..."
+                  value={parentNameInputs[selectedHomework._id] || ""}
+                  onChange={(e) => setParentNameInputs({ ...parentNameInputs, [selectedHomework._id]: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
+                />
                 <button
-                  onClick={() => handleMarkCompleted(selectedHomework._id)}
+                  onClick={() => handleMarkCompletedWithSignature(selectedHomework._id)}
                   disabled={actionLoading}
-                  className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-extrabold transition shadow-md flex items-center gap-2 cursor-pointer"
+                  className="w-full py-2.5 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl text-xs font-black transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <FaCheck /> Mark as Completed
+                  <FaCheck /> Submit Parent Signature & Mark Complete
                 </button>
-              )}
+              </div>
+            )}
 
-              {attachmentFile && (
-                <button
-                  onClick={handleSubmitHomework}
-                  disabled={submittingFile}
-                  className="px-5 py-2.5 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl text-xs font-extrabold transition shadow-md flex items-center gap-2 cursor-pointer"
-                >
-                  {submittingFile ? <FaSpinner className="animate-spin" /> : <FaPaperclip />}
-                  Submit Homework Attachment
-                </button>
-              )}
-
+            {/* Modal Close Action */}
+            <div className="pt-3 border-t border-slate-100 dark:border-white/5 flex justify-end">
               <button
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setAttachmentFile(null);
-                  setAttachmentPreview("");
-                }}
-                className="px-4 py-2.5 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl text-xs font-bold transition cursor-pointer"
+                onClick={() => setShowDetailModal(false)}
+                className="px-4 py-2 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl text-xs font-bold transition cursor-pointer"
               >
                 Close
               </button>

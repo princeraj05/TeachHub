@@ -1317,3 +1317,71 @@ exports.deleteTeacherDiary = async (req, res) => {
   }
 };
 
+exports.getTeacherClassSignatureReport = async (req, res) => {
+  try {
+    const { classId, date } = req.query;
+    const targetDate = date || new Date().toISOString().split("T")[0];
+
+    let students = [];
+    if (classId && classId !== "All") {
+      const cls = await Class.findById(classId).populate("students", "name email rollNo").lean();
+      if (cls && cls.students && cls.students.length > 0) {
+        students = cls.students;
+      }
+    }
+
+    if (!students || students.length === 0) {
+      students = await User.find({ role: "student" }).select("name email rollNo").limit(30).lean();
+    }
+
+    const query = { homeworkDate: targetDate };
+    if (classId && classId !== "All") query.classId = classId;
+
+    const homeworks = await MyDiary.find(query).lean();
+
+    const report = students.map((std, idx) => {
+      let completedHomeworksCount = 0;
+      let signatures = [];
+
+      homeworks.forEach((hw) => {
+        const comp = (hw.studentCompletions || []).find(
+          (sc) => sc.studentId?.toString() === std._id?.toString()
+        );
+        if (comp && (comp.status === "Completed" || comp.status === "Submitted" || comp.status === "Reviewed")) {
+          completedHomeworksCount++;
+          if (comp.parentSignatureName) {
+            signatures.push({
+              subject: hw.subjectName,
+              parentSignatureName: comp.parentSignatureName,
+              signedAt: comp.parentSignedAt || comp.completedAt
+            });
+          }
+        }
+      });
+
+      const totalHw = homeworks.length;
+      const isSigned = signatures.length > 0 || (totalHw > 0 && completedHomeworksCount === totalHw);
+
+      return {
+        _id: std._id,
+        name: std.name || `Student ${idx + 1}`,
+        rollNo: std.rollNo || idx + 1,
+        totalHomeworks: totalHw,
+        completedHomeworks: completedHomeworksCount,
+        isSigned: isSigned,
+        parentSignatureName: signatures[0]?.parentSignatureName || (isSigned ? "Parent Signed" : ""),
+        parentSignedAt: signatures[0]?.signedAt || null
+      };
+    });
+
+    res.json({
+      date: targetDate,
+      totalStudents: report.length,
+      report
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+

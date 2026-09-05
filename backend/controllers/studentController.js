@@ -606,6 +606,8 @@ exports.getStudentDiary = async (req, res) => {
         description: hw.description,
         types: hw.types || ["Exercise"],
         status: status,
+        parentSignatureName: studentComp?.parentSignatureName || "",
+        parentSignedAt: studentComp?.parentSignedAt || null,
         completedAt: studentComp?.completedAt || null,
         submittedAt: studentComp?.submittedAt || null,
         attachment: studentComp?.attachment || { url: "", filename: "", fileType: "" },
@@ -658,6 +660,8 @@ exports.getHomeworkDetails = async (req, res) => {
       description: hw.description,
       types: hw.types || [],
       status: studentComp?.status || "Pending",
+      parentSignatureName: studentComp?.parentSignatureName || "",
+      parentSignedAt: studentComp?.parentSignedAt || null,
       completedAt: studentComp?.completedAt || null,
       submittedAt: studentComp?.submittedAt || null,
       attachment: studentComp?.attachment || { url: "", filename: "", fileType: "" },
@@ -672,6 +676,8 @@ exports.markHomeworkCompleted = async (req, res) => {
   try {
     const studentId = req.user.id;
     const { id } = req.params;
+    const { parentSignatureName, parentName } = req.body;
+    const signatureName = parentSignatureName || parentName || "Parent / Guardian";
 
     const hw = await MyDiary.findById(id);
     if (!hw) {
@@ -686,19 +692,25 @@ exports.markHomeworkCompleted = async (req, res) => {
       hw.studentCompletions.push({
         studentId,
         status: "Completed",
+        parentSignatureName: signatureName,
+        parentSignedAt: new Date(),
         completedAt: new Date()
       });
       studentComp = hw.studentCompletions[hw.studentCompletions.length - 1];
     } else {
       studentComp.status = "Completed";
+      studentComp.parentSignatureName = signatureName;
+      studentComp.parentSignedAt = new Date();
       studentComp.completedAt = new Date();
     }
 
     await hw.save();
 
     res.json({
-      message: "Homework marked as Completed",
+      message: "Homework marked as Completed with Parent Signature!",
       status: studentComp.status,
+      parentSignatureName: studentComp.parentSignatureName,
+      parentSignedAt: studentComp.parentSignedAt,
       completedAt: studentComp.completedAt
     });
   } catch (error) {

@@ -70,6 +70,13 @@ const myDiarySchema = new mongoose.Schema(
           enum: ["Pending", "Completed", "Submitted", "Reviewed"],
           default: "Pending"
         },
+        parentSignatureName: {
+          type: String,
+          default: ""
+        },
+        parentSignedAt: {
+          type: Date
+        },
         completedAt: {
           type: Date
         },

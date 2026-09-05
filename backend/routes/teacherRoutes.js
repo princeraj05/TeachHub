@@ -14,7 +14,8 @@ getTeacherExams,
   getProctorSessions,
   getTeacherDiary,
   createTeacherDiary,
-  deleteTeacherDiary
+  deleteTeacherDiary,
+  getTeacherClassSignatureReport
 } = require("../controllers/teacherController");
 
 const { protect } = require("../middleware/authMiddleware");
@@ -49,6 +50,7 @@ router.put("/notifications/read-all", protect, teacherNotificationController.mar
 router.put("/notifications/:id/read", protect, teacherNotificationController.markSingleNotificationRead);
 
 router.get("/mydiary", protect, getTeacherDiary);
+router.get("/mydiary/signatures", protect, getTeacherClassSignatureReport);
 router.post("/mydiary", protect, createTeacherDiary);
 router.delete("/mydiary/:id", protect, deleteTeacherDiary);
 
