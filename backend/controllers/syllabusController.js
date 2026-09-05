@@ -43,19 +43,31 @@ exports.getSubjectSyllabus = async (req, res) => {
       .populate("subject", "name code classes")
       .lean();
 
-    // Check master syllabus template with flexible matching
-    const masterQuery = {
-      className: { $in: [targetClassName, rawClassName, targetClassName.replace("Class ", "")] },
-      subjectName: new RegExp("^" + subjectObj.name.trim() + "$", "i")
-    };
+    // Check master syllabus template with multi-tier fallback matching
+    const escapeRegex = (str) => String(str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const classCandidates = [targetClassName, rawClassName, targetClassName.replace("Class ", ""), "Class " + targetClassName.replace("Class ", ""), "1"];
+    
+    let master = null;
     if (req.user.schoolName) {
-      masterQuery.$or = [
-        { schoolName: new RegExp("^" + req.user.schoolName.trim() + "$", "i") },
-        { schoolName: "" },
-        { schoolName: { $exists: false } }
-      ];
+      master = await MasterSyllabus.findOne({
+        schoolName: new RegExp("^" + escapeRegex(req.user.schoolName) + "$", "i"),
+        className: { $in: classCandidates },
+        subjectName: new RegExp("^" + escapeRegex(subjectObj.name) + "$", "i")
+      }).lean();
     }
-    const master = await MasterSyllabus.findOne(masterQuery).lean();
+
+    if (!master) {
+      master = await MasterSyllabus.findOne({
+        subjectName: new RegExp("^" + escapeRegex(subjectObj.name) + "$", "i"),
+        className: { $in: classCandidates }
+      }).lean();
+    }
+
+    if (!master) {
+      master = await MasterSyllabus.findOne({
+        subjectName: new RegExp("^" + escapeRegex(subjectObj.name) + "$", "i")
+      }).lean();
+    }
 
     const masterChapters = (master && master.chapters && master.chapters.length > 0)
       ? master.chapters.map(ch => ({

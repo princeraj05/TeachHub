@@ -46,11 +46,19 @@ export default function Subjects() {
 
   const sortClassesList = (list) => {
     if (!Array.isArray(list)) return [];
-    return [...list].sort((a, b) => {
+    const uniqueMap = new Map();
+    list.forEach((cls) => {
+      const className = String(cls.name || "").trim();
+      if (className && !uniqueMap.has(className)) {
+        uniqueMap.set(className, cls);
+      }
+    });
+    const uniqueList = Array.from(uniqueMap.values());
+    return uniqueList.sort((a, b) => {
       const numA = parseInt(String(a.name).replace(/\D/g, ""), 10) || 0;
       const numB = parseInt(String(b.name).replace(/\D/g, ""), 10) || 0;
       if (numA !== numB) return numA - numB;
-      return String(a.section || "").localeCompare(String(b.section || ""));
+      return String(a.name || "").localeCompare(String(b.name || ""));
     });
   };
 
@@ -455,8 +463,8 @@ export default function Subjects() {
                         ? syllabusSubject.classes
                         : classes
                     ).map((cls) => (
-                      <option key={cls._id || cls.name} value={cls.name}>
-                        Class {cls.name} {cls.section ? `(Section ${cls.section})` : ""}
+                      <option key={cls.name} value={cls.name}>
+                        Class {cls.name}
                       </option>
                     ))}
                   </select>
