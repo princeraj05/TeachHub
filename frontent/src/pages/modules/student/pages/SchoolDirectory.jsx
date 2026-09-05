@@ -173,7 +173,7 @@ function SchoolDirectory() {
         </div>
       </div>
 
-      {/* Search and Filters toolbar */}
+      {/* Search toolbar */}
       <div className="flex gap-3 mb-6 px-1">
         <div className="relative flex-1">
           <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
@@ -185,15 +185,6 @@ function SchoolDirectory() {
             className="w-full pl-11 pr-4 py-3.5 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-2xl text-slate-800 dark:text-white placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold text-xs shadow-sm"
           />
         </div>
-        <button className="flex items-center gap-2 px-5 py-3.5 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-2xl text-[#38BDF8] hover:bg-slate-500/10 dark:hover:bg-white/5 transition-all text-xs font-black shadow-sm cursor-pointer shrink-0">
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" />
-            <line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" />
-            <line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" />
-            <line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" />
-          </svg>
-          Filters
-        </button>
       </div>
 
       {/* Schools Cards List */}
