@@ -31,12 +31,15 @@ exports.getSubjectSyllabus = async (req, res) => {
     // Determine target className (e.g. "Class 1")
     const rawClassName = req.query.className || (subjectObj.classes?.[0] ? `Class ${subjectObj.classes[0].name}` : "Class 1");
     const targetClassName = extractBaseClassName(rawClassName);
+    const classNum = (String(rawClassName).match(/\d+/) || [String(targetClassName).match(/\d+/)?.[0] || "1"])[0];
 
     let syllabus = await SubjectSyllabus.findOne({
       subject: subjectId,
       $or: [
         { className: targetClassName },
         { className: rawClassName },
+        { className: classNum },
+        { className: `Class ${classNum}` },
         { className: targetClassName.replace("Class ", "") }
       ]
     })
@@ -45,10 +48,17 @@ exports.getSubjectSyllabus = async (req, res) => {
 
     // Check master syllabus template with multi-tier fallback matching
     const escapeRegex = (str) => String(str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const classCandidates = [targetClassName, rawClassName, targetClassName.replace("Class ", ""), "Class " + targetClassName.replace("Class ", ""), "1"];
+    const classCandidates = [
+      targetClassName,
+      rawClassName,
+      classNum,
+      `Class ${classNum}`,
+      targetClassName.replace("Class ", ""),
+      "Class " + targetClassName.replace("Class ", "")
+    ];
     
     let master = null;
-    if (req.user.schoolName) {
+    if (req.user && req.user.schoolName) {
       master = await MasterSyllabus.findOne({
         schoolName: new RegExp("^" + escapeRegex(req.user.schoolName) + "$", "i"),
         className: { $in: classCandidates },
@@ -82,22 +92,42 @@ exports.getSubjectSyllabus = async (req, res) => {
 
     if (!syllabus) {
       // Create new SubjectSyllabus doc for this class
-      const newSyllabusDoc = await SubjectSyllabus.create({
-        subject: subjectId,
-        className: targetClassName,
-        teacher: teacherId,
-        schoolName: req.user.schoolName || "",
-        chapters: masterChapters
-      });
+      try {
+        const newSyllabusDoc = await SubjectSyllabus.create({
+          subject: subjectId,
+          className: targetClassName,
+          teacher: teacherId,
+          schoolName: req.user.schoolName || "",
+          chapters: masterChapters
+        });
 
-      syllabus = await SubjectSyllabus.findById(newSyllabusDoc._id)
-        .populate("subject", "name code classes")
-        .lean();
+        syllabus = await SubjectSyllabus.findById(newSyllabusDoc._id)
+          .populate("subject", "name code classes")
+          .lean();
+      } catch (createErr) {
+        // If duplicate key error due to legacy subject_1 index, drop index and retry once
+        if (createErr.code === 11000) {
+          await SubjectSyllabus.collection.dropIndex("subject_1").catch(() => {});
+          const newSyllabusDoc = await SubjectSyllabus.create({
+            subject: subjectId,
+            className: targetClassName,
+            teacher: teacherId,
+            schoolName: req.user.schoolName || "",
+            chapters: masterChapters
+          });
+
+          syllabus = await SubjectSyllabus.findById(newSyllabusDoc._id)
+            .populate("subject", "name code classes")
+            .lean();
+        } else {
+          throw createErr;
+        }
+      }
     } else {
       let updated = false;
       const currentChs = syllabus.chapters || [];
       
-      if (currentChs.length === 0 && masterChapters.length > 0) {
+      if (masterChapters.length > 0 && (currentChs.length === 0 || currentChs.length < masterChapters.length)) {
         await SubjectSyllabus.updateOne(
           { _id: syllabus._id },
           { $set: { chapters: masterChapters } }

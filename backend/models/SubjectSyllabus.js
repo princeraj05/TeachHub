@@ -49,4 +49,9 @@ const subjectSyllabusSchema = new mongoose.Schema(
 
 subjectSyllabusSchema.index({ subject: 1, className: 1, schoolName: 1 }, { unique: true });
 
-module.exports = mongoose.model("SubjectSyllabus", subjectSyllabusSchema);
+const SubjectSyllabus = mongoose.model("SubjectSyllabus", subjectSyllabusSchema);
+
+// Auto-drop obsolete single-field unique index if present in MongoDB
+SubjectSyllabus.collection.dropIndex("subject_1").catch(() => {});
+
+module.exports = SubjectSyllabus;
