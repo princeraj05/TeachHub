@@ -477,71 +477,18 @@ exports.getStudentExamResult = async (req, res) => {
 
 const MyDiary = require("../models/MyDiary");
 
-// Helper to seed realistic demo homework if database has no homework for class/date
-const seedStudentDiaryIfNeeded = async (schoolName, classId, className, section, targetDate) => {
-  const existingCount = await MyDiary.countDocuments({
-    homeworkDate: targetDate,
-    $or: [{ classId: classId }, { schoolName: schoolName }]
-  });
-
-  if (existingCount > 0) return;
-
-  const sampleHomeworks = [
-    {
-      schoolName: schoolName || "G.D Academy",
-      classId: classId || null,
-      className: className || "Class 5",
-      section: section || "A",
-      subjectName: "Hindi",
-      teacherName: "Kavita Ma'am",
-      homeworkDate: targetDate,
-      dueDate: targetDate,
-      title: "पाठ 2 के प्रश्न उत्तर एवं सुलेख",
-      description: "• पाठ 2 के प्रश्न 1 से 5 तक हल करना है।\n• एक पेज सुलेख लिखना है।\n• कठिन शब्दों के अर्थ याद करने हैं।",
-      types: ["Question / Exercise", "Writing", "Learn / Memorize"]
-    },
-    {
-      schoolName: schoolName || "G.D Academy",
-      classId: classId || null,
-      className: className || "Class 5",
-      section: section || "A",
-      subjectName: "English",
-      teacherName: "Rohan Sir",
-      homeworkDate: targetDate,
-      dueDate: targetDate,
-      title: "Chapter 3 Reading & Vocabulary",
-      description: "• Read Chapter 3 thoroughly.\n• Write new words and meanings in notebook.\n• Answer Questions 1 to 5.",
-      types: ["Reading", "Writing", "Question / Exercise"]
-    },
-    {
-      schoolName: schoolName || "G.D Academy",
-      classId: classId || null,
-      className: className || "Class 5",
-      section: section || "A",
-      subjectName: "Mathematics",
-      teacherName: "Singh Sir",
-      homeworkDate: targetDate,
-      dueDate: targetDate,
-      title: "Unit 2 Practice & Tables",
-      description: "• Solve Unit 2, Question 1 to 5.\n• Practice Tables from 2 to 10 in fair notebook.",
-      types: ["Practice", "Question / Exercise"]
-    },
-    {
-      schoolName: schoolName || "G.D Academy",
-      classId: classId || null,
-      className: className || "Class 5",
-      section: section || "A",
-      subjectName: "EVS",
-      teacherName: "Anjali Ma'am",
-      homeworkDate: targetDate,
-      dueDate: targetDate,
-      title: "Plant Life Cycle Project",
-      description: "• Draw a neat diagram of a plant life cycle.\n• Label all parts clearly.\n• Write 5 key points about photosynthesis.",
-      types: ["Project", "Worksheet"]
-    }
-  ];
-
-  await MyDiary.insertMany(sampleHomeworks);
+// Helper to clean up any legacy dummy/seed homework entries from database
+const purgeDummyDiaryEntries = async () => {
+  try {
+    await MyDiary.deleteMany({
+      $or: [
+        { teacherName: { $in: ["Kavita Ma'am", "Rohan Sir", "Singh Sir", "Anjali Ma'am"] } },
+        { title: { $in: ["पाठ 2 के प्रश्न उत्तर एवं सुलेख", "Chapter 3 Reading & Vocabulary", "Unit 2 Practice & Tables", "Plant Life Cycle Project"] } }
+      ]
+    });
+  } catch (e) {
+    console.warn("Dummy diary cleanup warning:", e);
+  }
 };
 
 exports.getStudentDiary = async (req, res) => {
@@ -558,8 +505,8 @@ exports.getStudentDiary = async (req, res) => {
     const todayStr = new Date().toISOString().split("T")[0];
     const targetDate = req.query.date || todayStr;
 
-    // Auto-seed if empty for requested date
-    await seedStudentDiaryIfNeeded(schoolName, classData?._id, className, section, targetDate);
+    // Purge any legacy dummy seed entries from DB
+    await purgeDummyDiaryEntries();
 
     const query = {
       homeworkDate: targetDate,

@@ -1261,6 +1261,14 @@ exports.getTeacherDiary = async (req, res) => {
     if (date) query.homeworkDate = date;
     if (classId && classId !== "All") query.classId = classId;
 
+    // Purge any legacy dummy seed entries from DB
+    await MyDiary.deleteMany({
+      $or: [
+        { teacherName: { $in: ["Kavita Ma'am", "Rohan Sir", "Singh Sir", "Anjali Ma'am"] } },
+        { title: { $in: ["पाठ 2 के प्रश्न उत्तर एवं सुलेख", "Chapter 3 Reading & Vocabulary", "Unit 2 Practice & Tables", "Plant Life Cycle Project"] } }
+      ]
+    }).catch(() => {});
+
     const homeworks = await MyDiary.find(query).sort({ createdAt: -1 }).lean();
     res.json(homeworks);
   } catch (error) {
