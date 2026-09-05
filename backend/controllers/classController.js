@@ -4,34 +4,52 @@ const Class = require("../models/Class");
 // ================= ADD CLASS =================
 
 exports.addClass = async (req, res) => {
-
   try {
-
     const { name, section } = req.body;
     
     if (!req.user || !req.user.schoolName) {
       return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
     }
 
-    const newClass = await Class.create({
-      name,
-      section: section || "",
-      schoolName: req.user.schoolName
-    });
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: "Class name is required" });
+    }
+
+    const cleanName = name.trim();
+    const rawSectionString = String(section || "").trim();
+    const sectionList = rawSectionString
+      ? rawSectionString.split(",").map(s => s.trim()).filter(Boolean)
+      : [""];
+
+    const createdClasses = [];
+    for (const sec of sectionList) {
+      let cls = await Class.findOne({
+        name: cleanName,
+        section: sec,
+        schoolName: req.user.schoolName
+      });
+
+      if (!cls) {
+        cls = await Class.create({
+          name: cleanName,
+          section: sec,
+          schoolName: req.user.schoolName
+        });
+      }
+      createdClasses.push(cls);
+    }
 
     res.json({
-      message: "Class added",
-      newClass
+      message: sectionList.length > 1 ? `${createdClasses.length} section(s) processed for Class ${cleanName}` : "Class added successfully",
+      newClass: createdClasses[0],
+      createdClasses
     });
 
   } catch (error) {
-
     res.status(500).json({
       message: error.message
     });
-
   }
-
 };
 
 
