@@ -409,11 +409,13 @@ export default function SyllabusTab({ subjectId, subjectName, assignedClasses = 
 
             <div className="space-y-3">
               <div>
-                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Chapter Title</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
+                  Chapter Title (Next: Chapter {chapters.length + 1})
+                </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Chapter 11: Sample Paper Revision 2026"
+                  placeholder={`e.g. Chapter ${chapters.length + 1}: Sample Paper Revision 2026`}
                   value={customTitle}
                   onChange={(e) => setCustomTitle(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs focus:outline-none focus:border-purple-500"
@@ -445,7 +447,7 @@ export default function SyllabusTab({ subjectId, subjectName, assignedClasses = 
 
             <div className="flex justify-end gap-2 pt-2">
               <button type="button" onClick={() => setShowCustomChapterModal(false)} className="px-4 py-2 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-500">Cancel</button>
-              <button type="submit" disabled={saving} className="px-4 py-2 bg-purple-600 text-white rounded-xl text-xs font-bold shadow">{saving ? "Saving..." : "Add Chapter"}</button>
+              <button type="submit" disabled={saving} className="px-4 py-2 bg-purple-600 text-white rounded-xl text-xs font-bold shadow">{saving ? "Saving..." : `+ Add Chapter ${chapters.length + 1}`}</button>
             </div>
           </form>
         </div>

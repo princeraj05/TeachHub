@@ -26,6 +26,7 @@ export default function Subjects() {
   const [newChapterTitle, setNewChapterTitle] = useState("");
   const [newChapterDesc, setNewChapterDesc] = useState("");
   const [selectedSyllabusClass, setSelectedSyllabusClass] = useState("10");
+  const [modalNotice, setModalNotice] = useState("");
 
   const loadClassMasterSyllabus = async (subject, targetClassName) => {
     try {
@@ -55,6 +56,7 @@ export default function Subjects() {
 
   const openSyllabusModal = async (subject) => {
     setSyllabusSubject(subject);
+    setModalNotice("");
     const sorted = sortClassesList(subject.classes && subject.classes.length > 0 ? subject.classes : classes);
     const firstClass = sorted.length > 0 ? sorted[0].name : "1";
     setSelectedSyllabusClass(firstClass);
@@ -63,6 +65,7 @@ export default function Subjects() {
 
   const handleSyllabusClassChange = async (newClassName) => {
     setSelectedSyllabusClass(newClassName);
+    setModalNotice("");
     if (syllabusSubject) {
       await loadClassMasterSyllabus(syllabusSubject, newClassName);
     }
@@ -71,15 +74,18 @@ export default function Subjects() {
   const addChapterToMaster = () => {
     if (!newChapterTitle.trim()) return;
     const nextNo = syllabusChapters.length + 1;
+    const titleAdded = newChapterTitle.trim();
     setSyllabusChapters(prev => [
       ...prev,
       {
         chapterNo: nextNo,
-        title: newChapterTitle.trim(),
+        title: titleAdded,
         description: newChapterDesc.trim(),
         defaultTopics: []
       }
     ]);
+    setModalNotice(`Chapter ${nextNo} ("${titleAdded}") added! Click "Save Master Syllabus" below to save to Database.`);
+    setTimeout(() => setModalNotice(""), 4000);
     setNewChapterTitle("");
     setNewChapterDesc("");
   };
@@ -109,9 +115,11 @@ export default function Subjects() {
         { headers: headers() }
       );
 
-      setNotice(`Master Syllabus for ${syllabusSubject.name} saved successfully!`);
-      setSyllabusSubject(null);
-      setTimeout(() => setNotice(""), 3000);
+      setModalNotice(`✔ Master Syllabus (${formattedChapters.length} Chapters) saved successfully for Class ${selectedSyllabusClass}!`);
+      setTimeout(() => {
+        setModalNotice("");
+        setSyllabusSubject(null);
+      }, 2000);
     } catch (err) {
       setErrorNotice(err.response?.data?.message || "Failed to save Master Syllabus.");
       setTimeout(() => setErrorNotice(""), 4000);
@@ -455,16 +463,28 @@ export default function Subjects() {
                 </div>
               </div>
 
+              {/* Modal Toast Notice */}
+              {modalNotice && (
+                <div className="p-3 bg-[#7C3AED]/10 border border-[#7C3AED]/30 text-[#7C3AED] dark:text-[#38BDF8] rounded-xl text-xs font-bold text-center animate-fadeIn">
+                  {modalNotice}
+                </div>
+              )}
+
               {/* Add New Chapter Form */}
               <div className="bg-slate-50/80 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 p-4 rounded-2xl space-y-3">
-                <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-white flex items-center gap-1.5">
-                  <FaPlus className="text-[10px] text-[#7C3AED] dark:text-[#38BDF8]" /> Add Chapter for Class {selectedSyllabusClass} ({syllabusSubject.name})
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-white flex items-center justify-between gap-1.5">
+                  <span className="flex items-center gap-1.5">
+                    <FaPlus className="text-[10px] text-[#7C3AED] dark:text-[#38BDF8]" /> Add Chapter for Class {selectedSyllabusClass} ({syllabusSubject.name})
+                  </span>
+                  <span className="text-[10px] font-bold text-[#7C3AED] dark:text-[#38BDF8] bg-[#7C3AED]/10 px-2 py-0.5 rounded-full">
+                    Next: Chapter {syllabusChapters.length + 1}
+                  </span>
                 </h4>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <input
                     type="text"
-                    placeholder="Chapter Title (e.g. Chapter 1: Kabirdas Sakhi)"
+                    placeholder={`Chapter Title (e.g. Chapter ${syllabusChapters.length + 1}: ${syllabusChapters.length === 0 ? 'Basic Concepts' : syllabusChapters.length === 1 ? 'Advanced Topics' : 'Revision'})`}
                     value={newChapterTitle}
                     onChange={(e) => setNewChapterTitle(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#7C3AED]"
@@ -485,7 +505,7 @@ export default function Subjects() {
                     disabled={!newChapterTitle.trim()}
                     className="px-4 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] disabled:opacity-50 text-white text-xs font-extrabold rounded-xl transition cursor-pointer shadow-sm"
                   >
-                    + Add Chapter
+                    + Add Chapter {syllabusChapters.length + 1}
                   </button>
                 </div>
               </div>
