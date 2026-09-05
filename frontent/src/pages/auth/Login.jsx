@@ -115,14 +115,15 @@ function Login() {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
+      if (!auth) {
+        throw new Error("Firebase Auth is not initialized. Please check network connection.");
+      }
       let idToken;
       if (Capacitor.isNativePlatform()) {
         const user = await GoogleAuth.signIn();
         const googleIdToken = user.authentication.idToken;
-        // Sign in to Firebase Auth locally
         const credential = GoogleAuthProvider.credential(googleIdToken);
         const userCredential = await signInWithCredential(auth, credential);
-        // Get the actual Firebase ID Token!
         idToken = await userCredential.user.getIdToken();
       } else {
         const userCredential = await signInWithPopup(auth, googleProvider);
