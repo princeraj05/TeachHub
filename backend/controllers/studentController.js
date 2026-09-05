@@ -471,3 +471,286 @@ exports.getStudentExamResult = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+// ================= MY DIARY (STUDENT HOMEWORK) =================
+
+const MyDiary = require("../models/MyDiary");
+
+// Helper to seed realistic demo homework if database has no homework for class/date
+const seedStudentDiaryIfNeeded = async (schoolName, classId, className, section, targetDate) => {
+  const existingCount = await MyDiary.countDocuments({
+    homeworkDate: targetDate,
+    $or: [{ classId: classId }, { schoolName: schoolName }]
+  });
+
+  if (existingCount > 0) return;
+
+  const sampleHomeworks = [
+    {
+      schoolName: schoolName || "G.D Academy",
+      classId: classId || null,
+      className: className || "Class 5",
+      section: section || "A",
+      subjectName: "Hindi",
+      teacherName: "Kavita Ma'am",
+      homeworkDate: targetDate,
+      dueDate: targetDate,
+      title: "पाठ 2 के प्रश्न उत्तर एवं सुलेख",
+      description: "• पाठ 2 के प्रश्न 1 से 5 तक हल करना है।\n• एक पेज सुलेख लिखना है।\n• कठिन शब्दों के अर्थ याद करने हैं।",
+      types: ["Question / Exercise", "Writing", "Learn / Memorize"]
+    },
+    {
+      schoolName: schoolName || "G.D Academy",
+      classId: classId || null,
+      className: className || "Class 5",
+      section: section || "A",
+      subjectName: "English",
+      teacherName: "Rohan Sir",
+      homeworkDate: targetDate,
+      dueDate: targetDate,
+      title: "Chapter 3 Reading & Vocabulary",
+      description: "• Read Chapter 3 thoroughly.\n• Write new words and meanings in notebook.\n• Answer Questions 1 to 5.",
+      types: ["Reading", "Writing", "Question / Exercise"]
+    },
+    {
+      schoolName: schoolName || "G.D Academy",
+      classId: classId || null,
+      className: className || "Class 5",
+      section: section || "A",
+      subjectName: "Mathematics",
+      teacherName: "Singh Sir",
+      homeworkDate: targetDate,
+      dueDate: targetDate,
+      title: "Unit 2 Practice & Tables",
+      description: "• Solve Unit 2, Question 1 to 5.\n• Practice Tables from 2 to 10 in fair notebook.",
+      types: ["Practice", "Question / Exercise"]
+    },
+    {
+      schoolName: schoolName || "G.D Academy",
+      classId: classId || null,
+      className: className || "Class 5",
+      section: section || "A",
+      subjectName: "EVS",
+      teacherName: "Anjali Ma'am",
+      homeworkDate: targetDate,
+      dueDate: targetDate,
+      title: "Plant Life Cycle Project",
+      description: "• Draw a neat diagram of a plant life cycle.\n• Label all parts clearly.\n• Write 5 key points about photosynthesis.",
+      types: ["Project", "Worksheet"]
+    }
+  ];
+
+  await MyDiary.insertMany(sampleHomeworks);
+};
+
+exports.getStudentDiary = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+    const user = await User.findById(studentId).lean();
+    if (!user) return res.status(404).json({ message: "Student not found" });
+
+    const classData = await Class.findOne({ students: studentId }).lean();
+    const schoolName = user.schoolName || classData?.schoolName || "G.D Academy";
+    const className = classData ? `Class ${classData.name}` : "Class 5";
+    const section = classData?.section || "A";
+
+    const todayStr = new Date().toISOString().split("T")[0];
+    const targetDate = req.query.date || todayStr;
+
+    // Auto-seed if empty for requested date
+    await seedStudentDiaryIfNeeded(schoolName, classData?._id, className, section, targetDate);
+
+    const query = {
+      homeworkDate: targetDate,
+      $or: [
+        { classId: classData?._id },
+        { schoolName: schoolName }
+      ]
+    };
+
+    if (req.query.subject && req.query.subject !== "All") {
+      query.subjectName = new RegExp(req.query.subject, "i");
+    }
+
+    const rawHomeworks = await MyDiary.find(query).sort({ createdAt: -1 }).lean();
+
+    let completedCount = 0;
+    let pendingCount = 0;
+    const subjectSet = new Set();
+
+    const formattedHomeworks = rawHomeworks.map((hw) => {
+      subjectSet.add(hw.subjectName);
+
+      const studentComp = (hw.studentCompletions || []).find(
+        (sc) => sc.studentId?.toString() === studentId.toString()
+      );
+
+      const status = studentComp?.status || "Pending";
+      if (status === "Completed" || status === "Submitted" || status === "Reviewed") {
+        completedCount++;
+      } else {
+        pendingCount++;
+      }
+
+      return {
+        _id: hw._id,
+        schoolName: hw.schoolName,
+        className: hw.className,
+        section: hw.section,
+        subjectName: hw.subjectName,
+        teacherName: hw.teacherName || "Assigned Teacher",
+        homeworkDate: hw.homeworkDate,
+        dueDate: hw.dueDate || hw.homeworkDate,
+        title: hw.title,
+        description: hw.description,
+        types: hw.types || ["Exercise"],
+        status: status,
+        completedAt: studentComp?.completedAt || null,
+        submittedAt: studentComp?.submittedAt || null,
+        attachment: studentComp?.attachment || { url: "", filename: "", fileType: "" },
+        reviewNote: studentComp?.reviewNote || ""
+      };
+    });
+
+    res.json({
+      schoolName,
+      className,
+      section,
+      date: targetDate,
+      summary: {
+        totalHomework: formattedHomeworks.length,
+        completed: completedCount,
+        pending: pendingCount,
+        subjectsCount: subjectSet.size
+      },
+      homeworks: formattedHomeworks
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getHomeworkDetails = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+    const { id } = req.params;
+
+    const hw = await MyDiary.findById(id).lean();
+    if (!hw) {
+      return res.status(404).json({ message: "Homework entry not found" });
+    }
+
+    const studentComp = (hw.studentCompletions || []).find(
+      (sc) => sc.studentId?.toString() === studentId.toString()
+    );
+
+    res.json({
+      _id: hw._id,
+      schoolName: hw.schoolName,
+      className: hw.className,
+      section: hw.section,
+      subjectName: hw.subjectName,
+      teacherName: hw.teacherName || "Assigned Teacher",
+      homeworkDate: hw.homeworkDate,
+      dueDate: hw.dueDate || hw.homeworkDate,
+      title: hw.title,
+      description: hw.description,
+      types: hw.types || [],
+      status: studentComp?.status || "Pending",
+      completedAt: studentComp?.completedAt || null,
+      submittedAt: studentComp?.submittedAt || null,
+      attachment: studentComp?.attachment || { url: "", filename: "", fileType: "" },
+      reviewNote: studentComp?.reviewNote || ""
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.markHomeworkCompleted = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+    const { id } = req.params;
+
+    const hw = await MyDiary.findById(id);
+    if (!hw) {
+      return res.status(404).json({ message: "Homework entry not found" });
+    }
+
+    let studentComp = hw.studentCompletions.find(
+      (sc) => sc.studentId?.toString() === studentId.toString()
+    );
+
+    if (!studentComp) {
+      hw.studentCompletions.push({
+        studentId,
+        status: "Completed",
+        completedAt: new Date()
+      });
+      studentComp = hw.studentCompletions[hw.studentCompletions.length - 1];
+    } else {
+      studentComp.status = "Completed";
+      studentComp.completedAt = new Date();
+    }
+
+    await hw.save();
+
+    res.json({
+      message: "Homework marked as Completed",
+      status: studentComp.status,
+      completedAt: studentComp.completedAt
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.submitHomework = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+    const { id } = req.params;
+    const { attachmentUrl, filename, fileType } = req.body;
+
+    const hw = await MyDiary.findById(id);
+    if (!hw) {
+      return res.status(404).json({ message: "Homework entry not found" });
+    }
+
+    let studentComp = hw.studentCompletions.find(
+      (sc) => sc.studentId?.toString() === studentId.toString()
+    );
+
+    const attachmentObj = {
+      url: attachmentUrl || "",
+      filename: filename || "homework_submission",
+      fileType: fileType || "image/png"
+    };
+
+    if (!studentComp) {
+      hw.studentCompletions.push({
+        studentId,
+        status: "Submitted",
+        submittedAt: new Date(),
+        attachment: attachmentObj
+      });
+      studentComp = hw.studentCompletions[hw.studentCompletions.length - 1];
+    } else {
+      studentComp.status = "Submitted";
+      studentComp.submittedAt = new Date();
+      studentComp.attachment = attachmentObj;
+    }
+
+    await hw.save();
+
+    res.json({
+      message: "Homework submitted successfully!",
+      status: studentComp.status,
+      submittedAt: studentComp.submittedAt,
+      attachment: studentComp.attachment
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

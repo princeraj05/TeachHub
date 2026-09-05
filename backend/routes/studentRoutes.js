@@ -81,4 +81,41 @@ router.get(
 );
 
 
+// ================= MY DIARY (STUDENT HOMEWORK) =================
+router.get(
+  "/mydiary",
+  protect,
+  authorize("student"),
+  studentController.getStudentDiary
+);
+
+router.get(
+  "/mydiary/:id",
+  protect,
+  authorize("student"),
+  studentController.getHomeworkDetails
+);
+
+router.post(
+  "/mydiary/:id/complete",
+  protect,
+  authorize("student"),
+  studentController.markHomeworkCompleted
+);
+
+router.patch(
+  "/mydiary/:id/complete",
+  protect,
+  authorize("student"),
+  studentController.markHomeworkCompleted
+);
+
+router.post(
+  "/mydiary/:id/submit",
+  protect,
+  authorize("student"),
+  studentController.submitHomework
+);
+
+
 module.exports = router;

@@ -5,6 +5,7 @@ import { CallProvider } from "../../../context/CallContext";
 import { lazyWithRetry as lazy } from "../../../utils/lazyWithRetry";
 
 const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
+const StudentMyDiary = lazy(() => import("./pages/StudentMyDiary"));
 const StudentSubjects = lazy(() => import("./pages/StudentSubjects"));
 const StudentAttendance = lazy(() => import("./pages/StudentAttendance"));
 const Exam = lazy(() => import("./pages/Exam"));
@@ -36,6 +37,7 @@ function StudentRoutes() {
       <Route path="/" element={<CallProvider><StudentLayout /></CallProvider>}>
         <Route index element={<Navigate to="dashboard" />} />
         <Route path="dashboard" element={<Suspense fallback={<PageLoader />}><StudentDashboard /></Suspense>} />
+        <Route path="mydiary" element={<Suspense fallback={<PageLoader />}><StudentMyDiary /></Suspense>} />
         <Route path="subjects" element={<Suspense fallback={<PageLoader />}><StudentSubjects /></Suspense>} />
         <Route path="attendance" element={<Suspense fallback={<PageLoader />}><StudentAttendance /></Suspense>} />
         <Route path="exams" element={<Suspense fallback={<PageLoader />}><Exam /></Suspense>} />

@@ -95,6 +95,7 @@ function StudentLayout() {
 
   const navLinks = [
     { to: "/student/dashboard", icon: <FaTachometerAlt className="text-xl" />, label: "Dashboard" },
+    { to: "/student/mydiary", icon: <FaBookOpen className="text-xl text-[#7C3AED] dark:text-[#38BDF8]" />, label: "MyDiary" },
     { to: "/student/subjects", icon: <FaBook className="text-xl" />, label: "My Subjects" },
     { to: "/student/attendance", icon: <FaClipboardCheck className="text-xl" />, label: "My Attendance" },
     { to: "/student/exams", icon: <FaFileAlt className="text-xl" />, label: "My Exams" },
