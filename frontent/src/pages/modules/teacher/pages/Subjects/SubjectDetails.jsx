@@ -61,6 +61,76 @@ function SVGProgressRing({ value }) {
   );
 }
 
+// Helper: Download Base64 or URL file
+const downloadFile = (fileUrl, fileName = "note") => {
+  if (!fileUrl) return;
+
+  if (fileUrl.startsWith("data:")) {
+    try {
+      const parts = fileUrl.split(";base64,");
+      const mimeType = parts[0].replace("data:", "");
+      const base64Data = parts[1];
+      const binaryStr = atob(base64Data);
+      const len = binaryStr.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryStr.charCodeAt(i);
+      }
+      
+      let ext = "pdf";
+      if (mimeType.includes("png")) ext = "png";
+      else if (mimeType.includes("jpeg") || mimeType.includes("jpg")) ext = "jpg";
+      else if (mimeType.includes("webp")) ext = "webp";
+      else if (mimeType.includes("pdf")) ext = "pdf";
+
+      let finalName = fileName || "study_material";
+      if (!finalName.toLowerCase().endsWith(`.${ext}`)) {
+        finalName = `${finalName}.${ext}`;
+      }
+
+      const blob = new Blob([bytes], { type: mimeType });
+      const blobUrl = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = finalName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+      return;
+    } catch (err) {
+      console.error("Data URL download error:", err);
+    }
+  }
+
+  fetch(fileUrl)
+    .then((res) => {
+      if (!res.ok) throw new Error("Network response error");
+      return res.blob();
+    })
+    .then((blob) => {
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = fileName || "file";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+    })
+    .catch(() => {
+      const a = document.createElement("a");
+      a.href = fileUrl;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.download = fileName || "file";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    });
+};
+
 function SubjectDetails() {
   const { subjectId } = useParams();
   const [searchParams] = useSearchParams();
@@ -615,14 +685,13 @@ function SubjectDetails() {
                         </div>
                       </div>
                       {nt.fileUrl && (
-                        <a
-                          href={nt.fileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[9px] font-bold text-purple-500 hover:underline shrink-0"
+                        <button
+                          type="button"
+                          onClick={() => downloadFile(nt.fileUrl, nt.fileName || nt.title)}
+                          className="text-[9px] font-bold text-purple-500 hover:underline shrink-0 cursor-pointer"
                         >
-                          View
-                        </a>
+                          View / Download
+                        </button>
                       )}
                     </div>
                   ))}
@@ -948,14 +1017,13 @@ function SubjectDetails() {
                     </span>
 
                     {note.fileUrl ? (
-                      <a
-                        href={note.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-xs font-black text-purple-600 dark:text-purple-400 hover:underline"
+                      <button
+                        type="button"
+                        onClick={() => downloadFile(note.fileUrl, note.fileName || note.title)}
+                        className="flex items-center gap-1.5 text-xs font-black text-purple-600 dark:text-purple-400 hover:underline cursor-pointer"
                       >
                         View / Download <FaExternalLinkAlt className="text-[9px]" />
-                      </a>
+                      </button>
                     ) : (
                       <span className="text-[9px] text-slate-400 italic">No attachment</span>
                     )}

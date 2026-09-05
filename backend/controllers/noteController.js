@@ -69,14 +69,35 @@ exports.createNote = async (req, res) => {
       if (hasCloudinary) {
         try {
           const resourceType = fileType === "image" ? "image" : "raw";
-          const uploadRes = await cloudinary.uploader.upload(req.file.path, {
-            folder: "teachhub/notes",
-            resource_type: resourceType,
-            timeout: 15000
-          });
+          let uploadRes;
+          if (req.file.size > 5 * 1024 * 1024) {
+            uploadRes = await cloudinary.uploader.upload_large(req.file.path, {
+              folder: "teachhub/notes",
+              resource_type: resourceType,
+              chunk_size: 6000000,
+              timeout: 600000
+            });
+          } else {
+            uploadRes = await cloudinary.uploader.upload(req.file.path, {
+              folder: "teachhub/notes",
+              resource_type: resourceType,
+              timeout: 600000
+            });
+          }
           fileUrl = uploadRes.secure_url;
         } catch (cErr) {
-          console.error("Cloudinary note upload error, falling back to base64:", cErr.message);
+          console.error("Cloudinary note upload error:", cErr.message);
+          // Try auto resource_type fallback
+          try {
+            const uploadRes = await cloudinary.uploader.upload(req.file.path, {
+              folder: "teachhub/notes",
+              resource_type: "auto",
+              timeout: 600000
+            });
+            fileUrl = uploadRes.secure_url;
+          } catch (cErr2) {
+            console.error("Cloudinary auto note upload fallback error:", cErr2.message);
+          }
         }
       }
 
