@@ -34,17 +34,28 @@ exports.getSubjectSyllabus = async (req, res) => {
 
     let syllabus = await SubjectSyllabus.findOne({
       subject: subjectId,
-      className: targetClassName
+      $or: [
+        { className: targetClassName },
+        { className: rawClassName },
+        { className: targetClassName.replace("Class ", "") }
+      ]
     })
       .populate("subject", "name code classes")
       .lean();
 
-    // Check master syllabus template
-    const master = await MasterSyllabus.findOne({
-      schoolName: req.user.schoolName || "",
-      className: targetClassName,
+    // Check master syllabus template with flexible matching
+    const masterQuery = {
+      className: { $in: [targetClassName, rawClassName, targetClassName.replace("Class ", "")] },
       subjectName: new RegExp("^" + subjectObj.name.trim() + "$", "i")
-    }).lean();
+    };
+    if (req.user.schoolName) {
+      masterQuery.$or = [
+        { schoolName: new RegExp("^" + req.user.schoolName.trim() + "$", "i") },
+        { schoolName: "" },
+        { schoolName: { $exists: false } }
+      ];
+    }
+    const master = await MasterSyllabus.findOne(masterQuery).lean();
 
     const masterChapters = (master && master.chapters && master.chapters.length > 0)
       ? master.chapters.map(ch => ({
@@ -70,16 +81,34 @@ exports.getSubjectSyllabus = async (req, res) => {
       syllabus = await SubjectSyllabus.findById(newSyllabusDoc._id)
         .populate("subject", "name code classes")
         .lean();
-    } else if ((!syllabus.chapters || syllabus.chapters.length === 0) && masterChapters.length > 0) {
-      // If existing syllabus is empty but Master now has chapters, auto-sync
-      await SubjectSyllabus.updateOne(
-        { _id: syllabus._id },
-        { $set: { chapters: masterChapters } }
-      );
+    } else {
+      let updated = false;
+      const currentChs = syllabus.chapters || [];
+      
+      if (currentChs.length === 0 && masterChapters.length > 0) {
+        await SubjectSyllabus.updateOne(
+          { _id: syllabus._id },
+          { $set: { chapters: masterChapters } }
+        );
+        updated = true;
+      } else if (masterChapters.length > 0) {
+        const existingTitles = new Set(currentChs.map(c => c.title.trim().toLowerCase()));
+        const missingMasterChs = masterChapters.filter(ch => !existingTitles.has(ch.title.trim().toLowerCase()));
+        
+        if (missingMasterChs.length > 0) {
+          await SubjectSyllabus.updateOne(
+            { _id: syllabus._id },
+            { $push: { chapters: { $each: missingMasterChs } } }
+          );
+          updated = true;
+        }
+      }
 
-      syllabus = await SubjectSyllabus.findById(syllabus._id)
-        .populate("subject", "name code classes")
-        .lean();
+      if (updated) {
+        syllabus = await SubjectSyllabus.findById(syllabus._id)
+          .populate("subject", "name code classes")
+          .lean();
+      }
     }
 
     // Calculate progression stats
@@ -298,7 +327,7 @@ exports.createMasterSyllabus = async (req, res) => {
       { new: true, upsert: true }
     );
 
-    // Auto-update any existing SubjectSyllabus for this school + subject + className if empty
+    // Auto-update any existing SubjectSyllabus for this school + subject + className
     const subjectObj = await Subject.findOne({ name: new RegExp("^" + subjectName.trim() + "$", "i") });
     if (subjectObj) {
       const initialChapters = chapters.map(ch => ({
@@ -312,14 +341,24 @@ exports.createMasterSyllabus = async (req, res) => {
 
       const existingDocs = await SubjectSyllabus.find({
         subject: subjectObj._id,
-        className: targetClassName,
-        schoolName: req.user.schoolName || ""
+        $or: [
+          { className: targetClassName },
+          { className: className },
+          { className: targetClassName.replace("Class ", "") }
+        ]
       });
 
       for (const doc of existingDocs) {
         if (!doc.chapters || doc.chapters.length === 0) {
           doc.chapters = initialChapters;
           await doc.save();
+        } else {
+          const existingTitles = new Set(doc.chapters.map(c => c.title.trim().toLowerCase()));
+          const newChs = initialChapters.filter(ch => !existingTitles.has(ch.title.trim().toLowerCase()));
+          if (newChs.length > 0) {
+            doc.chapters.push(...newChs);
+            await doc.save();
+          }
         }
       }
     }
