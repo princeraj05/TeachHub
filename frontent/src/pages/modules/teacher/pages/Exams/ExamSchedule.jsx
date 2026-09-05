@@ -104,7 +104,7 @@ function ExamSchedule() {
       </div>
 
       {/* Summary KPI Cards - 100% Real Database Data */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {/* Upcoming Exams */}
         <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm flex items-center gap-4">
           <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 border border-purple-500/15 flex items-center justify-center shrink-0">
@@ -141,34 +141,6 @@ function ExamSchedule() {
             <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{pastExams.length}</span>
             <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">
               {pastExams.length > 0 ? "Finished Log" : "0 Completed"}
-            </p>
-          </div>
-        </div>
-
-        {/* Total Subjects */}
-        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/15 flex items-center justify-center shrink-0">
-            <FaBook className="text-sm" />
-          </div>
-          <div>
-            <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Total Subjects</p>
-            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{uniqueSubjectsCount}</span>
-            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">
-              {uniqueSubjectsCount > 0 ? `${uniqueSubjectsCount} ${uniqueSubjectsCount === 1 ? "Subject" : "Subjects"}` : "0 Subjects"}
-            </p>
-          </div>
-        </div>
-
-        {/* Total Classes */}
-        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/15 flex items-center justify-center shrink-0">
-            <FaLayerGroup className="text-sm" />
-          </div>
-          <div>
-            <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Total Classes</p>
-            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{uniqueClassesCount}</span>
-            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">
-              {uniqueClassesCount > 0 ? `${uniqueClassesCount} ${uniqueClassesCount === 1 ? "Class" : "Classes"}` : "0 Classes"}
             </p>
           </div>
         </div>

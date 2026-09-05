@@ -6,6 +6,7 @@ import { performLogout } from "../../../utils/logout";
 import {
   FaTachometerAlt,
   FaBook,
+  FaBookOpen,
   FaClipboardCheck,
   FaFileAlt,
   FaSignOutAlt,
