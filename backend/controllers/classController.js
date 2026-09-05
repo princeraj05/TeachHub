@@ -15,7 +15,7 @@ exports.addClass = async (req, res) => {
 
     const newClass = await Class.create({
       name,
-      section,
+      section: section || "",
       schoolName: req.user.schoolName
     });
 

@@ -9,7 +9,7 @@ required:true
 
 section:{
 type:String,
-required:true
+default: ""
 },
 
 schoolName: {

@@ -36,8 +36,8 @@ function Classes() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name || !form.section) {
-      setError("Please fill all fields");
+    if (!form.name) {
+      setError("Please enter class name / level");
       setTimeout(() => setError(""), 5000);
       return;
     }
@@ -174,7 +174,7 @@ function Classes() {
             <FaLayerGroup className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 text-sm pointer-events-none" />
             <input
               name="section"
-              placeholder="Section Identifier  (e.g. A)"
+              placeholder="Section Identifier (Optional, e.g. A)"
               value={form.section}
               onChange={handleChange}
               className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white shadow-inner transition-all duration-200"
@@ -248,14 +248,16 @@ function Classes() {
                     </div>
                     <div>
                       <p className="text-sm font-extrabold text-slate-800">Class {c.name}</p>
-                      <p className="text-xs text-slate-500 font-semibold mt-0.5">Section {c.section}</p>
+                      <p className="text-xs text-slate-500 font-semibold mt-0.5">
+                        {c.section ? `Section ${c.section}` : "No Section"}
+                      </p>
                     </div>
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => {
                         setEditingClass(c);
-                        setForm({ name: c.name, section: c.section });
+                        setForm({ name: c.name, section: c.section || "" });
                       }}
                       className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all active:scale-95"
                     >
@@ -310,9 +312,9 @@ function Classes() {
                         </div>
                       </td>
                       <td className="px-6 py-4.5">
-                        <span className={`inline-flex items-center gap-1.5 ${color.light} px-3 py-1.5 rounded-full text-xs font-bold`}>
+                        <span className={`inline-flex items-center gap-1.5 ${c.section ? color.light : "bg-slate-100 border border-slate-200 text-slate-500"} px-3 py-1.5 rounded-full text-xs font-bold`}>
                           <FaLayerGroup className="text-xs" />
-                          Section {c.section}
+                          {c.section ? `Section ${c.section}` : "No Section"}
                         </span>
                       </td>
                       <td className="px-6 py-4.5">
@@ -320,7 +322,7 @@ function Classes() {
                           <button
                             onClick={() => {
                               setEditingClass(c);
-                              setForm({ name: c.name, section: c.section });
+                              setForm({ name: c.name, section: c.section || "" });
                             }}
                             className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all duration-150 active:scale-95"
                           >
@@ -366,7 +368,7 @@ function Classes() {
 
             <div className="space-y-4">
               <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                Are you sure you want to delete class <span className="font-extrabold text-slate-805">{confirmDelete.name} - {confirmDelete.section}</span>?
+                Are you sure you want to delete class <span className="font-extrabold text-slate-805">Class {confirmDelete.name}{confirmDelete.section ? ` - Section ${confirmDelete.section}` : ""}</span>?
                 This action will delete all assignments and records related to this class.
               </p>
 

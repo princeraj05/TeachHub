@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaUserGraduate, FaSchool, FaCheckCircle } from "react-icons/fa";
+import { FaUserGraduate, FaSchool, FaLayerGroup, FaCheckCircle } from "react-icons/fa";
 
 function AssignStudentClass() {
   const API = import.meta.env.VITE_API_URL;
@@ -8,29 +8,63 @@ function AssignStudentClass() {
 
   const [classes, setClasses] = useState([]);
   const [students, setStudents] = useState([]);
+  const [selectedClassName, setSelectedClassName] = useState("");
   const [classId, setClassId] = useState("");
   const [studentId, setStudentId] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => { fetchClasses(); fetchStudents(); }, []);
+  useEffect(() => {
+    fetchClasses();
+    fetchStudents();
+  }, []);
 
   const fetchClasses = async () => {
-    const res = await axios.get(`${API}/api/admin/classes`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setClasses(res.data);
+    try {
+      const res = await axios.get(`${API}/api/admin/classes`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setClasses(res.data);
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const fetchStudents = async () => {
-    const res = await axios.get(`${API}/api/admin/users/students`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setStudents(res.data);
+    try {
+      const res = await axios.get(`${API}/api/admin/users/students`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setStudents(res.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const uniqueClassNames = Array.from(new Set(classes.map((c) => c.name))).sort((a, b) => {
+    const numA = parseInt(String(a).replace(/\D/g, ""), 10) || 0;
+    const numB = parseInt(String(b).replace(/\D/g, ""), 10) || 0;
+    return numA - numB;
+  });
+
+  const matchingClasses = classes.filter((c) => c.name === selectedClassName);
+
+  const handleClassLevelChange = (cName) => {
+    setSelectedClassName(cName);
+    const matching = classes.filter((c) => c.name === cName);
+    if (matching.length === 1) {
+      setClassId(matching[0]._id);
+    } else {
+      setClassId("");
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!classId) {
+      alert("Please select a class and section");
+      return;
+    }
     setLoading(true);
     try {
       await axios.post(
@@ -39,6 +73,7 @@ function AssignStudentClass() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSuccess(true);
+      setSelectedClassName("");
       setClassId("");
       setStudentId("");
       setTimeout(() => setSuccess(false), 3000);
@@ -49,7 +84,7 @@ function AssignStudentClass() {
     }
   };
 
-  const selectedClass   = classes.find((c) => c._id === classId);
+  const selectedClass = classes.find((c) => c._id === classId);
   const selectedStudent = students.find((s) => s._id === studentId);
 
   return (
@@ -80,41 +115,80 @@ function AssignStudentClass() {
               </div>
               <div>
                 <h2 className="text-base font-bold text-slate-800">Assign Student to Class</h2>
-                <p className="text-xs text-slate-400 font-medium">Select a class section and matching student profile</p>
+                <p className="text-xs text-slate-400 font-medium">Select class level, section, and matching student profile</p>
               </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Select Class */}
+              {/* Step 1: Select Class Level */}
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
-                  Class Room
+                  1. Select Class Level
                 </label>
                 <div className="relative">
                   <FaSchool className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 text-sm pointer-events-none" />
                   <select
-                    value={classId}
-                    onChange={(e) => setClassId(e.target.value)}
+                    value={selectedClassName}
+                    onChange={(e) => handleClassLevelChange(e.target.value)}
                     required
                     className="w-full pl-11 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white shadow-sm appearance-none cursor-pointer transition-all duration-200"
                   >
-                    <option value="">Select Class</option>
-                    {classes.map((cls) => (
-                      <option key={cls._id} value={cls._id}>
-                        Class {cls.name} — Section {cls.section}
+                    <option value="">Choose Class</option>
+                    {uniqueClassNames.map((cName) => (
+                      <option key={cName} value={cName}>
+                        Class {cName}
                       </option>
                     ))}
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
-                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                    </svg>
                   </div>
                 </div>
               </div>
 
-              {/* Select Student */}
+              {/* Step 2: Select Section */}
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
-                  Student Name
+                  2. Select Section
+                </label>
+                <div className="relative">
+                  <FaLayerGroup className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 text-sm pointer-events-none" />
+                  <select
+                    value={classId}
+                    onChange={(e) => setClassId(e.target.value)}
+                    disabled={!selectedClassName}
+                    required
+                    className="w-full pl-11 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white shadow-sm appearance-none cursor-pointer transition-all duration-200 disabled:opacity-50"
+                  >
+                    {!selectedClassName ? (
+                      <option value="">Select Class Level First</option>
+                    ) : matchingClasses.length === 1 && !matchingClasses[0].section ? (
+                      <option value={matchingClasses[0]._id}>No section created for this class</option>
+                    ) : (
+                      <>
+                        <option value="">Select Section</option>
+                        {matchingClasses.map((cls) => (
+                          <option key={cls._id} value={cls._id}>
+                            {cls.section ? `Section ${cls.section}` : "No Section"}
+                          </option>
+                        ))}
+                      </>
+                    )}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3: Select Student */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+                  3. Student Name
                 </label>
                 <div className="relative">
                   <FaUserGraduate className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 text-sm pointer-events-none" />
@@ -126,11 +200,15 @@ function AssignStudentClass() {
                   >
                     <option value="">Select Student</option>
                     {students.map((s) => (
-                      <option key={s._id} value={s._id}>{s.name} ({s.email})</option>
+                      <option key={s._id} value={s._id}>
+                        {s.name} ({s.email})
+                      </option>
                     ))}
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
-                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -140,7 +218,7 @@ function AssignStudentClass() {
                 <div className="flex items-center flex-wrap gap-2.5 bg-teal-50/50 border border-teal-100 rounded-xl p-4 animate-fadeIn">
                   <span className="inline-flex items-center gap-1.5 bg-white border border-teal-150 text-teal-700 text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm">
                     <FaSchool className="text-xs text-teal-500" />
-                    Class {selectedClass.name} – Section {selectedClass.section}
+                    Class {selectedClass.name} {selectedClass.section ? `– Section ${selectedClass.section}` : "(No Section)"}
                   </span>
                   <span className="text-slate-400 text-xs font-bold font-sans">to</span>
                   <span className="inline-flex items-center gap-1.5 bg-white border border-emerald-150 text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm">
@@ -153,7 +231,7 @@ function AssignStudentClass() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-teal-600 to-emerald-500 hover:from-teal-500 hover:to-emerald-400 active:scale-[0.98] text-white py-3.5 rounded-xl text-sm font-bold shadow-md shadow-teal-600/10 hover:shadow-teal-500/20 transition-all disabled:opacity-60 mt-4"
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-teal-600 to-emerald-500 hover:from-teal-500 hover:to-emerald-400 active:scale-[0.98] text-white py-3.5 rounded-xl text-sm font-bold shadow-md shadow-teal-600/10 hover:shadow-teal-500/20 transition-all disabled:opacity-60 mt-4 cursor-pointer"
               >
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

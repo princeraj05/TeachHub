@@ -264,7 +264,7 @@ function AssignTeacherClass() {
                               : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-teal-400"
                           }`}
                         >
-                          <span className="truncate pr-1">Class {cls.name} - {cls.section}</span>
+                          <span className="truncate pr-1">Class {cls.name}{cls.section ? ` - Sec ${cls.section}` : ""}</span>
                           {isSelected && <FaCheckCircle className="text-white text-xs flex-shrink-0" />}
                         </button>
                       );
@@ -348,7 +348,7 @@ function AssignTeacherClass() {
                         return cls ? (
                           <span key={id} className="inline-flex items-center gap-1 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 text-[11px] font-bold px-2.5 py-1 rounded-lg">
                             <FaSchool className="text-[10px] text-teal-500" />
-                            Class {cls.name}-{cls.section}
+                            Class {cls.name}{cls.section ? `-${cls.section}` : ""}
                           </span>
                         ) : null;
                       })}
@@ -473,7 +473,7 @@ function AssignTeacherClass() {
                             className="inline-flex items-center gap-1 bg-teal-50 dark:bg-teal-950/40 border border-teal-150 dark:border-teal-800 text-teal-700 dark:text-teal-300 text-[11px] font-bold px-2.5 py-1 rounded-lg"
                           >
                             <FaSchool className="text-[10px] text-teal-500" />
-                            Class {cls.name}-{cls.section}
+                            Class {cls.name}{cls.section ? `-${cls.section}` : ""}
                           </span>
                         ))}
                       </div>
