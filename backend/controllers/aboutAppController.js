@@ -16,11 +16,6 @@ exports.getAboutInfo = async (req, res) => {
 // PUT /api/about-app
 exports.updateAboutInfo = async (req, res) => {
   try {
-    let info = await AboutApp.findOne();
-    if (!info) {
-      info = new AboutApp();
-    }
-    
     const fields = [
       "platformName", "tagline", "version", "platformWebsite", "logoUrl",
       "developerName", "developerAddress", "developerEmail", "developerPhone",
@@ -30,13 +25,19 @@ exports.updateAboutInfo = async (req, res) => {
       "socialFacebook", "socialTwitter", "socialInstagram", "socialYoutube", "socialLinkedin"
     ];
 
+    const updateData = {};
     for (const key of fields) {
       if (req.body[key] !== undefined) {
-        info[key] = req.body[key];
+        updateData[key] = req.body[key];
       }
     }
 
-    await info.save();
+    const info = await AboutApp.findOneAndUpdate(
+      {},
+      { $set: updateData },
+      { new: true, upsert: true }
+    );
+
     res.json({ message: "About App configuration updated successfully", info });
   } catch (error) {
     res.status(500).json({ message: error.message });

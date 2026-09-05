@@ -63,8 +63,8 @@ export default function StudentPayments() {
     socket.on("payment:updated", handleRealtimeUpdate);
     socket.on("payment:created", handleRealtimeUpdate);
 
-    // 3-second background polling fallback to guarantee real-time updates even if WebSockets are blocked
-    const intervalId = setInterval(load, 3000);
+    // 15-second background polling fallback to guarantee real-time updates even if WebSockets are blocked
+    const intervalId = setInterval(load, 15000);
 
     const handleFocus = () => load();
     window.addEventListener("focus", handleFocus);

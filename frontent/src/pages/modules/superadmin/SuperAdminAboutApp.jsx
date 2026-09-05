@@ -84,11 +84,13 @@ function SuperAdminAboutApp() {
     fetchConfig();
   }, []);
 
+  const getToken = () => localStorage.getItem("token") || "";
+
   const fetchConfig = async () => {
     try {
       setErrorMsg("");
       const res = await axios.get(`${API}/api/about-app`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${getToken()}` }
       });
       if (res.data) {
         const d = res.data;
@@ -184,13 +186,19 @@ function SuperAdminAboutApp() {
     try {
       const res = await axios.post(`${API}/api/about-app/logo`, formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${getToken()}`,
           "Content-Type": "multipart/form-data"
         }
       });
-      setLogoUrl(res.data.url);
+      if (res.data?.url) {
+        setLogoUrl(res.data.url);
+        // Persist logo URL to DB
+        await axios.put(`${API}/api/about-app`, { logoUrl: res.data.url }, {
+          headers: { Authorization: `Bearer ${getToken()}` }
+        });
+      }
       window.dispatchEvent(new CustomEvent("platformConfigUpdate"));
-      setSuccessMsg("Logo uploaded successfully!");
+      setSuccessMsg("Logo uploaded and saved successfully!");
       setTimeout(() => setSuccessMsg(""), 3000);
     } catch (err) {
       setErrorMsg("Failed to upload platform logo.");
@@ -201,7 +209,7 @@ function SuperAdminAboutApp() {
 
   // Save changes handler
   const handleSaveChanges = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     setSaving(true);
     setSuccessMsg("");
     setErrorMsg("");
@@ -237,15 +245,17 @@ function SuperAdminAboutApp() {
       };
 
       const res = await axios.put(`${API}/api/about-app`, payload, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${getToken()}` }
       });
 
-      setOriginalData(res.data.info);
+      if (res.data?.info) {
+        setOriginalData(res.data.info);
+      }
       window.dispatchEvent(new CustomEvent("platformConfigUpdate"));
-      setSuccessMsg("Platform settings updated successfully!");
-      setTimeout(() => setSuccessMsg(""), 3000);
+      setSuccessMsg("Platform settings updated & saved to database successfully!");
+      setTimeout(() => setSuccessMsg(""), 4000);
     } catch (err) {
-      setErrorMsg(err.response?.data?.message || "Failed to update configuration.");
+      setErrorMsg(err.response?.data?.message || "Failed to update configuration in database.");
     } finally {
       setSaving(false);
     }

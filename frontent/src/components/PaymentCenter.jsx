@@ -19,23 +19,55 @@ export default function PaymentCenter({ role }) {
   const [activeModal, setActiveModal] = useState(null);
   const [modalData, setModalData] = useState({});
 
+  const [purposeFilter, setPurposeFilter] = useState("All");
+
   const load = useCallback(async () => {
+    let dashboardLoaded = false;
+
     try {
-      const calls = [
-        axios.get(`${api}/api/payments/dashboard`, { headers: headers() }),
-        axios.get(`${api}/api/payments`, { headers: headers() })
-      ];
-      if (role === "admin") calls.push(axios.get(`${api}/api/admin/subscription`, { headers: headers() }));
-      if (["superadmin", "admin", "teacher"].includes(role)) calls.push(axios.get(`${api}/api/payment-settings`, { headers: headers() }));
-      const results = await Promise.all(calls);
-      setData(results[0].data);
-      setPayments(results[1].data);
-      if (role === "admin") setSubscription(results[2].data);
-      setSettings(results[role === "admin" ? 3 : 2]?.data || null);
-    } catch (error) {
-      setMessage(error.response?.data?.message || "Could not load payment data.");
+      const dashRes = await axios.get(`${api}/api/payments/dashboard`, { headers: headers() });
+      if (dashRes.data) {
+        setData(dashRes.data);
+        dashboardLoaded = true;
+      }
+    } catch (err) {
+      console.error("Payment dashboard load error:", err);
     }
-  }, [api, role]);
+
+    try {
+      const purposeParam = role === "superadmin" && purposeFilter !== "All" ? `?purpose=${purposeFilter}` : "";
+      const paymentsRes = await axios.get(`${api}/api/payments${purposeParam}`, { headers: headers() });
+      if (Array.isArray(paymentsRes.data)) {
+        setPayments(paymentsRes.data);
+      }
+    } catch (err) {
+      console.error("Payments list load error:", err);
+    }
+
+    if (role === "admin") {
+      try {
+        const subRes = await axios.get(`${api}/api/admin/subscription`, { headers: headers() });
+        if (subRes.data) setSubscription(subRes.data);
+      } catch (err) {
+        console.error("Subscription load error:", err);
+      }
+    }
+
+    if (["superadmin", "admin", "teacher"].includes(role)) {
+      try {
+        const setRes = await axios.get(`${api}/api/payment-settings`, { headers: headers() });
+        if (setRes.data) setSettings(setRes.data);
+      } catch (err) {
+        console.error("Payment settings load error:", err);
+      }
+    }
+
+    if (!dashboardLoaded) {
+      setMessage("Note: High network traffic. Showing available payment records.");
+    } else {
+      setMessage("");
+    }
+  }, [api, role, purposeFilter]);
 
   useEffect(() => {
     load();
@@ -54,8 +86,8 @@ export default function PaymentCenter({ role }) {
     socket.on("payment:created", handleRealtimeUpdate);
     socket.on("subscription:updated", handleRealtimeUpdate);
 
-    // 3-second background polling fallback to guarantee real-time updates even if WebSockets are blocked
-    const intervalId = setInterval(load, 3000);
+    // 15-second background polling fallback to prevent connection timeout errors
+    const intervalId = setInterval(load, 15000);
 
     const handleFocus = () => load();
     window.addEventListener("focus", handleFocus);
@@ -201,17 +233,82 @@ export default function PaymentCenter({ role }) {
     <div className="flex flex-wrap justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED]">Secure payment center</p><h1 className="text-2xl font-extrabold text-slate-800 dark:text-white">{role === "teacher" ? "My Payments" : role === "admin" ? "School Payments" : "Payment Dashboard"}</h1></div>{["superadmin", "admin", "teacher"].includes(role) && <button onClick={changeSettings} className="rounded-xl border px-4 py-2 text-sm font-bold"><FaCog className="inline mr-2" />Payment settings</button>}</div>
     {message && <p className="rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-800">{message}</p>}
     {settings && <p className="text-xs text-slate-500">Gateway: Razorpay ({settings.environment}) · Online {settings.onlineEnabled ? "enabled" : "disabled"} · Offline {settings.offlineEnabled ? "enabled" : "disabled"}</p>}
-    <div className={`grid grid-cols-1 ${role === "admin" ? "sm:grid-cols-4" : "sm:grid-cols-3"} gap-4`}>
-      <Metric icon={<FaMoneyBillWave />} label={role === "teacher" ? "Salary received" : role === "superadmin" ? "Total revenue" : "Total received"} value={rupees(data.totalRevenue ?? data.totalReceived)} />
+    <div className={`grid grid-cols-1 ${role === "superadmin" ? "sm:grid-cols-4" : role === "admin" ? "sm:grid-cols-4" : "sm:grid-cols-3"} gap-4`}>
+      <Metric icon={<FaMoneyBillWave />} label={role === "teacher" ? "Salary received" : role === "superadmin" ? "Super Admin Revenue" : "Total received"} value={rupees(data.platformRevenue ?? data.totalRevenue ?? data.totalReceived)} />
+      {role === "superadmin" && <Metric icon={<FaMoneyBillWave />} label="Total System Volume" value={rupees(data.totalSystemVolume)} />}
       {role === "admin" && <Metric icon={<FaMoneyBillWave />} label="Subscription paid" value={rupees(data.subscriptionPaid || data.totalPaid)} />}
       <Metric icon={<FaHistory />} label={role === "superadmin" ? "Due schools" : "Pending payments"} value={role === "superadmin" ? data.dueSchools || 0 : data.pendingPayments || 0} />
       <Metric icon={<FaReceipt />} label={role === "admin" ? "Unpaid students" : role === "superadmin" ? "Free schools" : "Payment records"} value={role === "admin" ? data.unpaidStudents || 0 : role === "superadmin" ? data.freeSchools || 0 : data.paymentCount || 0} />
     </div>
+
+    {role === "superadmin" && data.schoolRevenueBreakdown && data.schoolRevenueBreakdown.length > 0 && (
+      <section className="rounded-2xl bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 p-5 space-y-3">
+        <div className="flex justify-between items-center flex-wrap gap-2">
+          <div>
+            <h3 className="font-bold text-slate-800 dark:text-white text-base flex items-center gap-2">
+              <span>Super Admin Revenue by School</span>
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-700/50">Platform SaaS</span>
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">Actual platform earnings received per school vs total system volume</p>
+          </div>
+          <span className="text-xs font-extrabold px-3.5 py-1.5 bg-purple-600 text-white rounded-xl shadow-sm">
+            Total Earned: {rupees(data.platformRevenue ?? data.totalRevenue)}
+          </span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-white/10 text-slate-500 uppercase text-[10px] tracking-wider">
+                <th className="py-2.5 px-3">School Name</th>
+                <th className="py-2.5 px-3 font-bold text-purple-600 dark:text-purple-400">Super Admin Revenue (SaaS)</th>
+                <th className="py-2.5 px-3">Student Fees Collected</th>
+                <th className="py-2.5 px-3">Teacher Salaries Paid</th>
+                <th className="py-2.5 px-3 text-right">Total Volume</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-white/10">
+              {data.schoolRevenueBreakdown.map((item, idx) => (
+                <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                  <td className="py-3 px-3 font-bold text-slate-800 dark:text-white">{item.schoolName}</td>
+                  <td className="py-3 px-3 font-extrabold text-purple-600 dark:text-purple-400">{rupees(item.superAdminRevenue)}</td>
+                  <td className="py-3 px-3 text-slate-600 dark:text-slate-300">{rupees(item.totalStudentFees)}</td>
+                  <td className="py-3 px-3 text-slate-600 dark:text-slate-300">{rupees(item.totalTeacherSalaries)}</td>
+                  <td className="py-3 px-3 text-right font-bold text-emerald-600 dark:text-emerald-400">{rupees(item.totalVolume)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    )}
+
     {role === "teacher" && <section className="rounded-2xl bg-white dark:bg-[#0B132A] border p-5 text-sm"><b>Current salary: {data.currentPayment ? rupees(data.currentPayment.amount) : "Not configured"}</b><p className="mt-1 text-slate-500">Due: {data.currentPayment?.dueDate ? new Date(data.currentPayment.dueDate).toLocaleDateString() : "Not set"} · Last payment: {data.lastPayment ? rupees(data.lastPayment.amount) : "None"}</p></section>}
     {role === "superadmin" && <section className="rounded-2xl bg-white dark:bg-[#0B132A] border p-5 text-sm"><b>Upcoming school payments</b><div className="mt-2 space-y-1 text-slate-500">{data.upcomingPayments?.slice(0, 5).map(item => <p key={item.schoolName}>{item.schoolName} · {rupees(item.amount)} · {item.status}</p>) || <p>None</p>}</div></section>}
     {role === "admin" && subscription && <section className="rounded-2xl bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 p-5 flex flex-wrap justify-between gap-4"><div><b className="text-slate-800 dark:text-white">School subscription: {subscription.billing?.status}{subscription.billing?.remainingDays !== undefined && ` (${subscription.billing.remainingDays} Days Left)`}</b><p className="text-sm text-slate-500 mt-1">Amount due: {rupees(subscription.billing?.amountDue)} · Next billing: {subscription.subscription?.nextBillingDate ? new Date(subscription.subscription.nextBillingDate).toLocaleDateString() : "Not set"}</p></div>{subscription.billing?.paymentRequired && <button disabled={busy} onClick={paySubscription} className="rounded-xl bg-[#7C3AED] px-4 py-2 text-sm font-bold text-white">Pay subscription</button>}</section>}
     <PaymentManagement role={role} apiBase={api} onChange={load} />
-    <section className="rounded-2xl bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 overflow-hidden"><div className="p-5 font-bold text-slate-800 dark:text-white">Payment history, pending payments & receipts</div><div className="divide-y divide-slate-100 dark:divide-white/10">{payments.length ? payments.map(payment => <div className="p-4 flex flex-wrap justify-between items-center gap-3" key={payment._id}><div><p className="font-bold text-sm text-slate-800 dark:text-white">{rupees(payment.amount)} · {payment.purpose.replaceAll("_", " ")}</p><p className="text-xs text-slate-500">{new Date(payment.createdAt).toLocaleDateString()} {payment.receiptNumber ? ` · ${payment.receiptNumber}` : ""}</p></div><div className="flex flex-wrap gap-2 items-center"><span className="text-xs font-bold rounded-full bg-slate-100 dark:bg-white/10 px-3 py-1">{payment.status}</span>{["Pending", "Processing"].includes(payment.status) && payment.gateway === "razorpay" && <button onClick={async () => { setMessage("Checking payment status with Razorpay..."); try { const { data } = await axios.post(`${api}/api/payments/${payment._id}/verify-status`, {}, { headers: headers() }); if (data.status === "Successful") { setMessage("Payment verified successfully."); } else { setMessage(data.message || "Payment is still processing or failed."); } load(); } catch (err) { setMessage(err.response?.data?.message || "Failed to verify payment status."); } }} className="text-xs rounded-lg border border-indigo-300 px-3 py-1.5 font-bold text-indigo-650 hover:bg-indigo-50">Verify Status</button>}{payment.receiptNumber && <><button onClick={() => receipt(payment._id)} className="text-xs rounded-lg border px-3 py-1.5 font-bold">View receipt</button><button onClick={() => receipt(payment._id, true)} className="text-xs rounded-lg border px-3 py-1.5 font-bold">Download</button></>}{role === "superadmin" && ["Successful", "Partially Refunded"].includes(payment.status) && payment.gateway === "razorpay" && <button onClick={() => refund(payment)} className="text-xs rounded-lg border border-rose-300 px-3 py-1.5 font-bold text-rose-700">Refund</button>}{role === "admin" && payment.status === "PendingVerification" && <><button onClick={() => decideOffline(payment._id, "approve")} className="text-xs rounded-lg bg-emerald-600 px-3 py-1.5 font-bold text-white"><FaCheck className="inline mr-1" />Approve</button><button onClick={() => decideOffline(payment._id, "reject")} className="text-xs rounded-lg border px-3 py-1.5 font-bold">Reject</button></>}</div></div>) : <p className="p-5 text-sm text-slate-500">No payment records found.</p>}</div></section>
+    <section className="rounded-2xl bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 overflow-hidden">
+      <div className="p-5 flex flex-wrap justify-between items-center gap-3 font-bold text-slate-800 dark:text-white">
+        <span>Payment history, pending payments & receipts</span>
+        {role === "superadmin" && (
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-white/5 p-1 rounded-xl text-xs font-semibold">
+            {[
+              { id: "All", label: "All Payments" },
+              { id: "SCHOOL_SUBSCRIPTION", label: "Super Admin Revenue" },
+              { id: "STUDENT_SCHOOL_FEE", label: "Student Fees" },
+              { id: "TEACHER_SALARY", label: "Teacher Salaries" }
+            ].map(f => (
+              <button
+                key={f.id}
+                onClick={() => setPurposeFilter(f.id)}
+                className={`px-3 py-1 rounded-lg transition-all ${purposeFilter === f.id ? "bg-[#7C3AED] text-white font-bold shadow-sm" : "text-slate-500 hover:text-slate-800 dark:hover:text-white"}`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="divide-y divide-slate-100 dark:divide-white/10">{payments.length ? payments.map(payment => <div className="p-4 flex flex-wrap justify-between items-center gap-3" key={payment._id}><div><p className="font-bold text-sm text-slate-800 dark:text-white">{rupees(payment.amount)} · {payment.purpose.replaceAll("_", " ")} {payment.schoolName ? `(${payment.schoolName})` : ""}</p><p className="text-xs text-slate-500">{new Date(payment.createdAt).toLocaleDateString()} {payment.receiptNumber ? ` · ${payment.receiptNumber}` : ""}</p></div><div className="flex flex-wrap gap-2 items-center"><span className="text-xs font-bold rounded-full bg-slate-100 dark:bg-white/10 px-3 py-1">{payment.status}</span>{["Pending", "Processing"].includes(payment.status) && payment.gateway === "razorpay" && <button onClick={async () => { setMessage("Checking payment status with Razorpay..."); try { const { data } = await axios.post(`${api}/api/payments/${payment._id}/verify-status`, {}, { headers: headers() }); if (data.status === "Successful") { setMessage("Payment verified successfully."); } else { setMessage(data.message || "Payment is still processing or failed."); } load(); } catch (err) { setMessage(err.response?.data?.message || "Failed to verify payment status."); } }} className="text-xs rounded-lg border border-indigo-300 px-3 py-1.5 font-bold text-indigo-650 hover:bg-indigo-50">Verify Status</button>}{payment.receiptNumber && <><button onClick={() => receipt(payment._id)} className="text-xs rounded-lg border px-3 py-1.5 font-bold">View receipt</button><button onClick={() => receipt(payment._id, true)} className="text-xs rounded-lg border px-3 py-1.5 font-bold">Download</button></>}{role === "superadmin" && ["Successful", "Partially Refunded"].includes(payment.status) && payment.gateway === "razorpay" && <button onClick={() => refund(payment)} className="text-xs rounded-lg border border-rose-300 px-3 py-1.5 font-bold text-rose-700">Refund</button>}{role === "admin" && payment.status === "PendingVerification" && <><button onClick={() => decideOffline(payment._id, "approve")} className="text-xs rounded-lg bg-emerald-600 px-3 py-1.5 font-bold text-white"><FaCheck className="inline mr-1" />Approve</button><button onClick={() => decideOffline(payment._id, "reject")} className="text-xs rounded-lg border px-3 py-1.5 font-bold">Reject</button></>}</div></div>) : <p className="p-5 text-sm text-slate-500">No payment records found.</p>}</div></section>
       {/* ── MODALS CONTAINER ── */}
       {activeModal === "reject" && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-4">

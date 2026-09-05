@@ -35,6 +35,8 @@ function SuperAdminRoutes() {
         <Route path="profile" element={<Suspense fallback={<PageLoader />}><SuperAdminProfile /></Suspense>} />
         <Route path="events" element={<Suspense fallback={<PageLoader />}><SuperAdminEvents /></Suspense>} />
         <Route path="about" element={<Suspense fallback={<PageLoader />}><SuperAdminAboutApp /></Suspense>} />
+        <Route path="about-app" element={<Suspense fallback={<PageLoader />}><SuperAdminAboutApp /></Suspense>} />
+        <Route path="about_app" element={<Suspense fallback={<PageLoader />}><SuperAdminAboutApp /></Suspense>} />
         <Route path="notifications" element={<Suspense fallback={<PageLoader />}><SuperAdminNotifications /></Suspense>} />
         <Route path="payments" element={<Suspense fallback={<PageLoader />}><PaymentCenter role="superadmin" /></Suspense>} />
       </Route>

@@ -157,19 +157,75 @@ function SuperAdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-5 shadow-lg flex items-center justify-between">
+        <div className="bg-[#131B2E] border border-purple-500/30 rounded-2xl p-5 shadow-lg flex items-center justify-between relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full blur-xl pointer-events-none" />
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Revenue</p>
-            <h3 className="text-2xl font-extrabold text-emerald-400 mt-1">
-              ₹{(stats?.financials?.totalRevenue || 0).toLocaleString()}
+            <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">Super Admin Revenue</p>
+            <h3 className="text-2xl font-extrabold text-purple-300 mt-1">
+              ₹{(stats?.financials?.platformRevenue ?? stats?.financials?.totalRevenue ?? 0).toLocaleString()}
             </h3>
-            <span className="text-xs text-slate-400 font-medium mt-1 inline-block">Verified transactions</span>
+            <span className="text-xs text-purple-400/80 font-medium mt-1 inline-block">Actual SaaS / Subs Revenue</span>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xl">
+          <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 text-xl shadow-inner">
             <FaDollarSign />
           </div>
         </div>
       </div>
+
+      {/* System Volume Banner & School Breakdown */}
+      {stats?.financials?.schoolRevenueBreakdown && stats.financials.schoolRevenueBreakdown.length > 0 && (
+        <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-6 shadow-xl mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-4 border-b border-slate-800">
+            <div>
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <span>School Platform Revenue Breakdown</span>
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">Super Admin Special</span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">Actual platform earnings received per school vs total system volume</p>
+            </div>
+            <div className="bg-[#0B0F19] px-4 py-2 rounded-xl border border-slate-800 flex items-center gap-3">
+              <span className="text-xs text-slate-400 font-medium">Total System Volume:</span>
+              <span className="text-sm font-extrabold text-emerald-400">₹{(stats?.financials?.totalSystemVolume || 0).toLocaleString()}</span>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-slate-800 text-slate-400 uppercase text-[10px] tracking-wider">
+                  <th className="py-2.5 px-3">School Name</th>
+                  <th className="py-2.5 px-3">Super Admin Revenue (SaaS)</th>
+                  <th className="py-2.5 px-3">Student Fees Collected</th>
+                  <th className="py-2.5 px-3">Teacher Salaries Paid</th>
+                  <th className="py-2.5 px-3 text-right">Total Volume</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60">
+                {stats.financials.schoolRevenueBreakdown.map((item, idx) => (
+                  <tr key={idx} className="hover:bg-slate-800/30 transition-colors">
+                    <td className="py-3 px-3 font-bold text-white flex items-center gap-2">
+                      <FaSchool className="text-slate-500 text-xs" />
+                      <span>{item.schoolName}</span>
+                    </td>
+                    <td className="py-3 px-3 font-extrabold text-purple-400">
+                      ₹{(item.superAdminRevenue || 0).toLocaleString()}
+                    </td>
+                    <td className="py-3 px-3 text-slate-300">
+                      ₹{(item.totalStudentFees || 0).toLocaleString()}
+                    </td>
+                    <td className="py-3 px-3 text-slate-300">
+                      ₹{(item.totalTeacherSalaries || 0).toLocaleString()}
+                    </td>
+                    <td className="py-3 px-3 text-right font-bold text-emerald-400">
+                      ₹{(item.totalVolume || 0).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Quick Actions & Recent Database Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

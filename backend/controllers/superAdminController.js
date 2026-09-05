@@ -187,17 +187,44 @@ exports.getDashboardStats = async (req, res) => {
     
     // 4. Financial overview
     const payments = await Payment.find({ status: "Successful" });
-    const totalRevenue = payments.reduce((sum, p) => sum + (p.amount / 100), 0);
+    const totalSystemVolume = payments.reduce((sum, p) => sum + (p.amount / 100), 0);
     
+    // Super Admin actual platform revenue (from school subscriptions)
+    const platformRevenue = payments
+      .filter(p => p.purpose === "SCHOOL_SUBSCRIPTION" || p.receiverRole === "superadmin")
+      .reduce((sum, p) => sum + (p.amount / 100), 0);
+
     const pendingPayments = await Payment.find({ status: { $in: ["Pending", "PendingVerification", "Processing"] } });
     const pendingAmount = pendingPayments.reduce((sum, p) => sum + (p.amount / 100), 0);
     const pendingSchools = new Set(pendingPayments.map(p => p.schoolName)).size;
     
-    const successfulSchoolSubs = await Payment.find({ 
-      purpose: "SCHOOL_SUBSCRIPTION", 
-      status: "Successful" 
-    });
+    const successfulSchoolSubs = payments.filter(p => p.purpose === "SCHOOL_SUBSCRIPTION" || p.receiverRole === "superadmin");
     const paidSchools = new Set(successfulSchoolSubs.map(p => p.schoolName)).size;
+
+    // School-wise platform revenue breakdown
+    const schoolBreakdownMap = {};
+    for (const p of payments) {
+      const sName = (p.schoolName || "Other").trim();
+      if (!schoolBreakdownMap[sName]) {
+        schoolBreakdownMap[sName] = {
+          schoolName: sName,
+          superAdminRevenue: 0,
+          totalStudentFees: 0,
+          totalTeacherSalaries: 0,
+          totalVolume: 0
+        };
+      }
+      const amt = p.amount / 100;
+      schoolBreakdownMap[sName].totalVolume += amt;
+      if (p.purpose === "SCHOOL_SUBSCRIPTION" || p.receiverRole === "superadmin") {
+        schoolBreakdownMap[sName].superAdminRevenue += amt;
+      } else if (p.purpose === "STUDENT_SCHOOL_FEE") {
+        schoolBreakdownMap[sName].totalStudentFees += amt;
+      } else if (p.purpose === "TEACHER_SALARY") {
+        schoolBreakdownMap[sName].totalTeacherSalaries += amt;
+      }
+    }
+    const schoolRevenueBreakdown = Object.values(schoolBreakdownMap);
 
     // 5. Recent Activity
     const recentUsers = await User.find({ role: { $ne: "superadmin" } })
@@ -232,10 +259,13 @@ exports.getDashboardStats = async (req, res) => {
         teachers,
         students,
         financials: {
-          totalRevenue,
+          platformRevenue,
+          totalRevenue: platformRevenue,
+          totalSystemVolume,
           pendingAmount,
           pendingSchools,
-          paidSchools
+          paidSchools,
+          schoolRevenueBreakdown
         },
         support: {
           openConversations,
