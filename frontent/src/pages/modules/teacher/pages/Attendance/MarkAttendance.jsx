@@ -118,10 +118,11 @@ function MarkAttendance() {
           
           // Only include if scheduled today AND assigned to this teacher
           if (subId && (myTeacherSubjectIds.size === 0 || myTeacherSubjectIds.has(String(subId)))) {
-            if (!seenSubIds.has(String(subId))) {
-              seenSubIds.add(String(subId));
+            const strSubId = String(subId);
+            if (!seenSubIds.has(strSubId)) {
+              seenSubIds.add(strSubId);
               orderedList.push({
-                _id: String(subId),
+                _id: strSubId,
                 name: subName,
                 startTime: e.startTime || "",
                 endTime: e.endTime || ""
@@ -129,6 +130,29 @@ function MarkAttendance() {
             }
           }
         });
+
+        // Fallback: If no timetable entries exist for today, include teacher's assigned subjects for this class
+        if (orderedList.length === 0 && subjects.length > 0) {
+          const classSubjects = subjects.filter(subject => {
+            if (subject.classes && Array.isArray(subject.classes)) {
+              return subject.classes.some(c => String(c._id || c) === String(selectedClassId));
+            }
+            return true;
+          });
+
+          classSubjects.forEach(sub => {
+            const subId = String(sub._id);
+            if (!seenSubIds.has(subId)) {
+              seenSubIds.add(subId);
+              orderedList.push({
+                _id: subId,
+                name: sub.name,
+                startTime: "",
+                endTime: ""
+              });
+            }
+          });
+        }
 
         setTimetableSubjects(orderedList);
 
@@ -141,18 +165,18 @@ function MarkAttendance() {
               { headers: { Authorization: `Bearer ${token}` } }
             );
             if (checkRes.data && checkRes.data.alreadyMarked) {
-              completedSet.add(sub._id);
+              completedSet.add(String(sub._id));
             }
           } catch (e) {}
         }
         setCompletedSubjectIds(completedSet);
 
         // 3. Auto-select the first pending subject in sequence
-        const firstPending = orderedList.find(sub => !completedSet.has(sub._id));
+        const firstPending = orderedList.find(sub => !completedSet.has(String(sub._id)));
         if (firstPending) {
-          setSelectedSubjectId(firstPending._id);
+          setSelectedSubjectId(String(firstPending._id));
         } else if (orderedList.length > 0) {
-          setSelectedSubjectId(orderedList[0]._id);
+          setSelectedSubjectId(String(orderedList[0]._id));
         } else {
           setSelectedSubjectId("");
         }
@@ -166,7 +190,7 @@ function MarkAttendance() {
 
   // Check if selectedSubjectId is already marked for today
   useEffect(() => {
-    if (selectedSubjectId && completedSubjectIds.has(selectedSubjectId)) {
+    if (selectedSubjectId && completedSubjectIds.has(String(selectedSubjectId))) {
       setIsCurrentSubjectCompleted(true);
     } else {
       setIsCurrentSubjectCompleted(false);
@@ -316,23 +340,25 @@ function MarkAttendance() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const currentSubObj = timetableSubjects.find(s => s._id === selectedSubjectId);
+      const currentSubIdStr = String(selectedSubjectId);
+      const currentSubObj = timetableSubjects.find(s => String(s._id) === currentSubIdStr);
       const currentSubName = currentSubObj ? currentSubObj.name : "Subject";
 
-      // Update completed set
+      // Update completed set with normalized string ID
       const nextCompleted = new Set(completedSubjectIds);
-      nextCompleted.add(selectedSubjectId);
+      nextCompleted.add(currentSubIdStr);
       setCompletedSubjectIds(nextCompleted);
 
       // Find next pending subject in timetable sequence
-      const currentIdx = timetableSubjects.findIndex(s => s._id === selectedSubjectId);
-      const nextPending = timetableSubjects.find((s, idx) => idx > currentIdx && !nextCompleted.has(s._id))
-        || timetableSubjects.find(s => !nextCompleted.has(s._id));
+      const currentIdx = timetableSubjects.findIndex(s => String(s._id) === currentSubIdStr);
+      const nextPending = timetableSubjects.find((s, idx) => idx > currentIdx && !nextCompleted.has(String(s._id)))
+        || timetableSubjects.find(s => !nextCompleted.has(String(s._id)));
 
-      if (nextPending) {
-        setSelectedSubjectId(nextPending._id);
+      if (nextPending && String(nextPending._id) !== currentSubIdStr) {
+        setSelectedSubjectId(String(nextPending._id));
         alert(`Attendance saved for ${currentSubName}! Next pending subject (${nextPending.name}) selected.`);
       } else {
+        setIsCurrentSubjectCompleted(true);
         alert(`Attendance saved for ${currentSubName}! All subjects completed for today.`);
       }
 
