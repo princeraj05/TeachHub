@@ -408,59 +408,40 @@ exports.uploadVideos = async (req, res) => {
       let filename = file.filename;
 
       if (hasCloudinary) {
+        // Try upload_large first with 6MB chunks and 10min (600,000ms) timeout
         try {
-          // Try standard video upload first with 15s timeout
-          const result = await cloudinary.uploader.upload(file.path, {
+          const result = await cloudinary.uploader.upload_large(file.path, {
             folder: "teachhub/events/videos",
             resource_type: "video",
-            timeout: 15000
+            chunk_size: 6000000,
+            timeout: 600000
           });
           uploadedIds.push(result.public_id);
           videoUrl = result.secure_url;
           filename = result.public_id;
           deletePhysicalFile(file.filename);
         } catch (cErr) {
-          console.error("Cloudinary video upload error:", cErr.message);
-          const isAuthError = cErr.http_code === 401 || cErr.http_code === 403 || 
-            (cErr.message && (cErr.message.includes("Invalid Signature") || cErr.message.includes("Must supply") || cErr.message.includes("disabled")));
-          
-          if (!isAuthError && file.size > 10 * 1024 * 1024) {
-            try {
-              const result = await cloudinary.uploader.upload_large(file.path, {
-                folder: "teachhub/events/videos",
-                resource_type: "video",
-                chunk_size: 20000000,
-                timeout: 25000
-              });
-              uploadedIds.push(result.public_id);
-              videoUrl = result.secure_url;
-              filename = result.public_id;
-              deletePhysicalFile(file.filename);
-            } catch (cErr2) {
-              console.error("Cloudinary upload_large video upload error:", cErr2.message);
-            }
-          }
-        }
-      }
-
-      if (!videoUrl) {
-        try {
-          if (fs.existsSync(file.path)) {
-            const fileBuffer = fs.readFileSync(file.path);
-            const base64Str = fileBuffer.toString("base64");
-            const mime = file.mimetype || "video/mp4";
-            videoUrl = `data:${mime};base64,${base64Str}`;
+          console.error("Cloudinary video upload_large error:", cErr.message);
+          // Fallback to standard upload with 10min timeout
+          try {
+            const result = await cloudinary.uploader.upload(file.path, {
+              folder: "teachhub/events/videos",
+              resource_type: "video",
+              timeout: 600000
+            });
+            uploadedIds.push(result.public_id);
+            videoUrl = result.secure_url;
+            filename = result.public_id;
             deletePhysicalFile(file.filename);
+          } catch (cErr2) {
+            console.error("Cloudinary video upload error fallback failed:", cErr2.message);
           }
-        } catch (fErr) {
-          console.error("Failed to convert video to base64 Data URL:", fErr);
         }
       }
 
-      if (!videoUrl) {
-        if (fs.existsSync(file.path)) {
-          videoUrl = `/uploads/${file.filename}`;
-        }
+      // If Cloudinary failed or isn't configured, fallback to serving physical file path /uploads/filename
+      if (!videoUrl && fs.existsSync(file.path)) {
+        videoUrl = `/uploads/${file.filename}`;
       }
 
       if (videoUrl) {
