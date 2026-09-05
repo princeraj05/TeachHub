@@ -186,7 +186,9 @@ function StudentSubjects() {
       else if (progress > 0) grade = "B";
       else grade = "N/A";
       
-      const chaptersCount = typeof s.chapters === "number" ? s.chapters : 0;
+      const chaptersCount = Array.isArray(s.chaptersList) 
+        ? s.chaptersList.length 
+        : (typeof s.chapters === "number" ? s.chapters : (Array.isArray(s.chapters) ? s.chapters.length : 0));
       const notesCount = typeof s.notesCount === "number" ? s.notesCount : 0;
       
       const days = ["Today, 10:00 AM", "Today, 11:00 AM", "Tomorrow", "Today, 02:00 PM"];

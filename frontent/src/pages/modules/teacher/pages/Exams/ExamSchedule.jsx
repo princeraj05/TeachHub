@@ -43,10 +43,20 @@ function ExamSchedule() {
       });
   }, [API, token]);
 
-  // Split into upcoming and past
-  const now = new Date();
+  // Dynamic Calculations from Database Exams Array
   const upcomingExams = exams.filter(e => e.status === "Upcoming");
+  const ongoingExams = exams.filter(e => e.status === "Ongoing");
   const pastExams = exams.filter(e => e.status === "Completed");
+
+  // Dynamic unique subjects and classes with exams
+  const uniqueSubjectsCount = new Set(exams.map(e => e.subject).filter(Boolean)).size;
+  const uniqueClassesCount = new Set(exams.map(e => e.className).filter(Boolean)).size;
+
+  // Dynamic next upcoming exam date
+  const sortedUpcoming = [...upcomingExams].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const nextExamDateText = sortedUpcoming[0]?.date
+    ? `Next: ${new Date(sortedUpcoming[0].date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
+    : "No Upcoming Exam";
 
   // Filter based on class select & search query
   const getFilteredList = (list) => {
@@ -93,7 +103,7 @@ function ExamSchedule() {
         </button>
       </div>
 
-      {/* Summary KPI Cards */}
+      {/* Summary KPI Cards - 100% Real Database Data */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         {/* Upcoming Exams */}
         <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm flex items-center gap-4">
@@ -102,8 +112,8 @@ function ExamSchedule() {
           </div>
           <div>
             <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Upcoming Exams</p>
-            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{upcomingExams.length || 7}</span>
-            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">Next: 28 May 2026</p>
+            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{upcomingExams.length}</span>
+            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">{nextExamDateText}</p>
           </div>
         </div>
 
@@ -114,8 +124,10 @@ function ExamSchedule() {
           </div>
           <div>
             <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Ongoing Exams</p>
-            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">1</span>
-            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">In Progress</p>
+            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{ongoingExams.length}</span>
+            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">
+              {ongoingExams.length > 0 ? "Active Now" : "None Active"}
+            </p>
           </div>
         </div>
 
@@ -126,8 +138,10 @@ function ExamSchedule() {
           </div>
           <div>
             <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Completed Exams</p>
-            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{pastExams.length || 12}</span>
-            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">This Term</p>
+            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{pastExams.length}</span>
+            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">
+              {pastExams.length > 0 ? "Finished Log" : "0 Completed"}
+            </p>
           </div>
         </div>
 
@@ -138,8 +152,10 @@ function ExamSchedule() {
           </div>
           <div>
             <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Total Subjects</p>
-            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">6</span>
-            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">With Exams</p>
+            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{uniqueSubjectsCount}</span>
+            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">
+              {uniqueSubjectsCount > 0 ? `${uniqueSubjectsCount} ${uniqueSubjectsCount === 1 ? "Subject" : "Subjects"}` : "0 Subjects"}
+            </p>
           </div>
         </div>
 
@@ -150,8 +166,10 @@ function ExamSchedule() {
           </div>
           <div>
             <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Total Classes</p>
-            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">8</span>
-            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">With Exams</p>
+            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{uniqueClassesCount}</span>
+            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">
+              {uniqueClassesCount > 0 ? `${uniqueClassesCount} ${uniqueClassesCount === 1 ? "Class" : "Classes"}` : "0 Classes"}
+            </p>
           </div>
         </div>
       </div>
