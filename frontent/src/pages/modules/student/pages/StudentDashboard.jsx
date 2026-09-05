@@ -245,7 +245,7 @@ function StudentDashboard() {
       <div>
         <h2 className="text-base font-black text-slate-900 dark:text-white tracking-tight mb-4 px-1">Today's Overview</h2>
         
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4">
           
           {/* Card 1: Subjects Enrolled */}
           <div className="bg-white dark:bg-[#0B132A]/80 border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
@@ -283,19 +283,6 @@ function StudentDashboard() {
             </p>
             <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide truncate">
               Upcoming Exams
-            </p>
-          </div>
-
-          {/* Card 4: Achievements Earned */}
-          <div className="bg-white dark:bg-[#0B132A]/80 border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 text-amber-555 border border-amber-500/25 flex items-center justify-center mb-3 sm:mb-4">
-              <FaTrophy className="text-xs sm:text-sm" />
-            </div>
-            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
-              {data.achievements}
-            </p>
-            <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide truncate">
-              Achievements Earned
             </p>
           </div>
 

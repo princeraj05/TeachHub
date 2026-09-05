@@ -333,16 +333,15 @@ function StudentProfile() {
                   <p className="text-[9px] text-slate-400 font-semibold">{theme === "dark" ? "Dark Mode Active" : "Light Mode Active"}</p>
                 </div>
               </div>
-              <button
-                type="button"
-                className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-250 shrink-0 ${
+              <div
+                className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-250 shrink-0 pointer-events-none ${
                   theme === "dark" ? "bg-indigo-600" : "bg-slate-300"
                 }`}
               >
                 <div className={`w-4 h-4 rounded-full bg-white transition-transform duration-250 ${
                   theme === "dark" ? "translate-x-4" : "translate-x-0"
                 }`} />
-              </button>
+              </div>
             </div>
 
             {/* Language Selector */}

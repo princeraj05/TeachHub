@@ -94,14 +94,14 @@ export default function TodayTimetableWidget() {
             <div
               key={card._id}
               onClick={() => navigate("/student/showtimetable")}
-              className="w-48 sm:w-56 shrink-0 rounded-2xl shadow-sm dark:shadow-xl border border-purple-500/30 dark:border-purple-500/25 overflow-hidden flex flex-col bg-white dark:bg-[#0D1326] hover:border-purple-500/60 transition-all duration-200 group cursor-pointer active:scale-[0.98]"
+              className="w-48 sm:w-56 shrink-0 rounded-2xl shadow-sm dark:shadow-xl border border-slate-200 dark:border-purple-500/25 overflow-hidden flex flex-col bg-white dark:bg-[#0D1326] hover:border-purple-500/60 transition-all duration-200 group cursor-pointer active:scale-[0.98]"
             >
               {/* Top Card Section - App Theme Matching Gradient */}
-              <div className="bg-gradient-to-br from-[#7C3AED]/20 via-[#131B35] to-[#0B132A] p-4 flex flex-col gap-1.5 text-left border-b border-purple-500/20">
-                <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight leading-tight group-hover:text-purple-300 transition-colors">
+              <div className="bg-gradient-to-br from-purple-500/10 via-indigo-50/50 to-slate-50 dark:from-[#7C3AED]/20 dark:via-[#131B35] dark:to-[#0B132A] p-4 flex flex-col gap-1.5 text-left border-b border-slate-200/60 dark:border-purple-500/20">
+                <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight leading-tight group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">
                   {card.subjectCode}
                 </h3>
-                <p className="text-xs font-bold text-slate-600 dark:text-purple-300/70">
+                <p className="text-xs font-bold text-slate-500 dark:text-purple-300/70">
                   {card.room}
                 </p>
 
@@ -122,8 +122,8 @@ export default function TodayTimetableWidget() {
                 </div>
               </div>
 
-              {/* Bottom Dark Time Bar */}
-              <div className="bg-slate-100 dark:bg-[#070B18] text-purple-700 dark:text-purple-300 py-2.5 px-3 text-center text-xs font-black tracking-wide flex items-center justify-center gap-1.5 border-t border-slate-200/60 dark:border-purple-500/20">
+              {/* Bottom Time Bar */}
+              <div className="bg-slate-50 dark:bg-[#070B18] text-purple-700 dark:text-purple-300 py-2.5 px-3 text-center text-xs font-black tracking-wide flex items-center justify-center gap-1.5 border-t border-slate-200/60 dark:border-purple-500/20">
                 <FaClock className="text-[11px] text-purple-500 dark:text-purple-400" />
                 <span>{timeText}</span>
               </div>

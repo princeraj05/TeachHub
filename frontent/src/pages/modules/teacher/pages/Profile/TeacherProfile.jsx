@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import axios from "axios";
 import { 
   FaUser, 
@@ -18,7 +18,8 @@ import {
   FaInfoCircle,
   FaExclamationCircle,
   FaGraduationCap,
-  FaIdCard
+  FaIdCard,
+  FaSchool
 } from "react-icons/fa";
 import { compressAvatar } from "../../../../../utils/mediaCompression";
 
@@ -38,7 +39,7 @@ const formatDateForInput = (dateStr) => {
 function TeacherProfile() {
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const token = localStorage.getItem("token");
-  const headers = { Authorization: `Bearer ${token}` };
+  const headers = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
 
   const fileInputRef = useRef(null);
 
@@ -66,6 +67,7 @@ function TeacherProfile() {
 
   const [saveMessage, setSaveMessage] = useState("");
   const [saveError, setSaveError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -100,27 +102,24 @@ function TeacherProfile() {
   };
 
   useEffect(() => {
-    // Load authentication profile
     axios.get(`${API}/api/auth/profile`, { headers })
       .then(res => {
         const u = res.data;
         setProfile(u);
         
-        // Initialize form states
         setName(u.name || "");
         setEmail(u.email || "");
         setDob(u.dob || "1990-05-12");
         setGender(u.gender || "Male");
         setPhoneNumber(u.phoneNumber || "");
         setAddress(u.address || "");
-        setDepartment(u.department || "Faculty");
+        setDepartment(u.department || "Academic Faculty");
         setQualification(u.qualification || "M.Sc, B.Ed");
         setExperience(u.experience || "6 Years");
         setEmployeeId(u.employeeId || `TCH${String(u._id).slice(-4).toUpperCase()}`);
         setBio(u.bio || "Passionate educator dedicated to academic excellence and student success.");
         setAvatar(u.avatar || "");
 
-        // Set subjects and classes assigned by admin
         setAssignedSubjects(u.subjects || []);
         setAssignedClasses(u.classes || []);
         
@@ -130,7 +129,7 @@ function TeacherProfile() {
         console.error("Error loading profile:", err);
         setLoading(false);
       });
-  }, [API, token]);
+  }, [API, headers]);
 
   const handleAvatarFileChange = async (e) => {
     const file = e.target.files?.[0];
@@ -138,9 +137,7 @@ function TeacherProfile() {
       try {
         const compressedBase64 = await compressAvatar(file);
         setAvatar(compressedBase64);
-        try {
-          localStorage.setItem("avatar", compressedBase64);
-        } catch (err) {}
+        try { localStorage.setItem("avatar", compressedBase64); } catch (err) {}
         window.dispatchEvent(new Event("profileUpdate"));
       } catch (err) {
         console.error("Error uploading avatar:", err);
@@ -153,6 +150,7 @@ function TeacherProfile() {
     e.preventDefault();
     setSaveMessage("");
     setSaveError("");
+    setSaving(true);
 
     try {
       const res = await axios.put(`${API}/api/teacher/profile/update`, {
@@ -177,7 +175,7 @@ function TeacherProfile() {
       }
       window.dispatchEvent(new Event("profileUpdate"));
 
-      setSaveMessage("Profile changes saved successfully!");
+      setSaveMessage("Profile updated successfully!");
       if (res.data?.teacher) {
         setProfile(prev => ({ ...prev, ...res.data.teacher }));
       }
@@ -185,6 +183,8 @@ function TeacherProfile() {
     } catch (err) {
       setSaveError(err.response?.data?.error || err.response?.data?.message || "Could not save profile changes.");
       setTimeout(() => setSaveError(""), 4000);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -196,29 +196,26 @@ function TeacherProfile() {
 
   const handleAvatarRemove = () => {
     setAvatar("");
-    try {
-      localStorage.setItem("avatar", "");
-    } catch (e) {}
+    try { localStorage.setItem("avatar", ""); } catch (e) {}
     window.dispatchEvent(new Event("profileUpdate"));
   };
 
+  const userInitials = useMemo(() => {
+    if (!name) return "T";
+    return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+  }, [name]);
+
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-40 gap-3 text-slate-400" style={{ fontFamily: SORA }}>
-        <div className="w-8 h-8 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
-        <p className="text-xs font-semibold">Loading profile settings...</p>
+      <div className="py-24 flex flex-col items-center justify-center text-center space-y-3" style={{ fontFamily: SORA }}>
+        <div className="w-10 h-10 border-4 border-[#7C3AED] border-t-transparent rounded-full animate-spin" />
+        <p className="text-slate-500 dark:text-slate-400 font-black text-xs">Syncing instructor records...</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full text-slate-800 dark:text-white pb-10 font-sans" style={{ fontFamily: SORA }}>
-      
-      {/* Header title */}
-      <div className="mb-6 select-none">
-        <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Teacher Profile</h1>
-      </div>
-
+    <div style={{ fontFamily: SORA }} className="space-y-6 max-w-5xl mx-auto pb-12 select-none text-left">
       <input 
         type="file" 
         ref={fileInputRef} 
@@ -227,290 +224,399 @@ function TeacherProfile() {
         onChange={handleAvatarFileChange} 
       />
 
-      <form onSubmit={handleSaveChanges} className="flex flex-col gap-6">
-        
-        {/* Upper Grid: Photo and Personal Info */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* Card 1: Profile Photo & Basic Identity */}
-          <div className="lg:col-span-1 bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm flex flex-col items-center justify-between min-h-[380px]">
-            <div className="w-full select-none">
-              <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider pb-3 border-b border-slate-100 dark:border-white/[0.03] text-left">
-                Profile Photo & ID
-              </h3>
-            </div>
+      {/* 1. Hero Identity Banner */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#3B82F6] p-6 sm:p-8 text-white shadow-xl shadow-[#7C3AED]/20">
+        {/* Ambient Glow Effects */}
+        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-black/10 blur-2xl pointer-events-none" />
 
-            <div className="relative group my-4 select-none flex flex-col items-center">
-              {avatar ? (
-                <img 
-                  src={avatar} 
-                  alt="Teacher avatar" 
-                  className="w-32 h-32 rounded-full border-2 border-purple-500/30 object-cover shadow-lg"
-                />
-              ) : (
-                <div className="w-32 h-32 rounded-full bg-purple-500/10 border-2 border-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-400 text-3xl font-black shadow-inner">
-                  {name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)}
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5">
+            {/* Avatar Container */}
+            <div className="relative shrink-0">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/20 backdrop-blur-md p-1 border-2 border-white/40 shadow-xl overflow-hidden">
+                <div className="w-full h-full rounded-xl bg-gradient-to-tr from-cyan-400 to-indigo-600 flex items-center justify-center text-white font-black text-3xl overflow-hidden">
+                  {avatar ? (
+                    <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    userInitials
+                  )}
                 </div>
-              )}
-              <button 
-                type="button"
-                onClick={handleAvatarUpload}
-                className="absolute bottom-1 right-1 w-8 h-8 rounded-full bg-purple-600 hover:bg-purple-700 text-white border-2 border-white dark:border-[#111827] flex items-center justify-center shadow-lg transition-all cursor-pointer"
-              >
-                <FaCamera className="text-xs" />
-              </button>
-            </div>
-
-            <div className="w-full text-center space-y-1 my-2">
-              <h2 className="text-base font-black text-slate-900 dark:text-white leading-tight">{name}</h2>
-              <p className="text-[11px] font-bold text-purple-600 dark:text-purple-400 flex items-center justify-center gap-1">
-                <FaIdCard className="text-xs" /> Employee ID: {employeeId}
-              </p>
-              <p className="text-[10px] text-slate-400 font-semibold">{profile?.schoolName || "TeachHub Academy"}</p>
-            </div>
-
-            <div className="w-full flex flex-col gap-2 pt-3 border-t border-slate-100 dark:border-white/[0.03]">
+              </div>
               <button
                 type="button"
                 onClick={handleAvatarUpload}
-                className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-sm"
+                className="absolute -bottom-1 -right-1 w-7 h-7 bg-white text-purple-700 hover:bg-slate-100 rounded-full flex items-center justify-center text-xs shadow-md border-2 border-purple-600 transition cursor-pointer"
+                title="Change Photo"
               >
-                <FaUpload className="text-[10px]" /> Upload New Photo
+                <FaCamera className="text-[10px]" />
               </button>
+            </div>
 
+            {/* Identity Details */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                  {name || "Instructor"}
+                </h2>
+                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider bg-white/20 backdrop-blur-md border border-white/30 text-white px-3 py-0.5 rounded-full shadow-sm">
+                  Faculty Account
+                </span>
+              </div>
+
+              <p className="text-xs sm:text-sm text-white/85 font-medium flex items-center justify-center sm:justify-start gap-1.5">
+                <FaEnvelope className="text-[11px] text-white/70" /> {email || "Instructor Console"}
+              </p>
+
+              {/* Quick Institution Badges */}
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-2 text-[11px] font-semibold text-white/90">
+                {profile?.schoolName && (
+                  <span className="inline-flex items-center gap-1.5 bg-black/25 backdrop-blur-md px-3 py-1 rounded-xl border border-white/10">
+                    <FaSchool className="text-cyan-300 text-xs" />
+                    {profile.schoolName}
+                  </span>
+                )}
+                <span className="inline-flex items-center gap-1.5 bg-black/25 backdrop-blur-md px-3 py-1 rounded-xl border border-white/10">
+                  <FaIdCard className="text-amber-300 text-xs" />
+                  ID: {employeeId}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Banner Action Buttons */}
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={handleAvatarUpload}
+              className="flex items-center gap-2 bg-white text-slate-900 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-lg active:scale-95"
+            >
+              <FaUpload className="text-xs text-purple-600" />
+              Upload Photo
+            </button>
+            {avatar && (
               <button
                 type="button"
                 onClick={handleAvatarRemove}
-                disabled={!avatar}
-                className={`w-full py-2 border rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
-                  avatar
-                    ? "border-rose-500/20 text-rose-500 bg-transparent hover:bg-rose-500/5 cursor-pointer"
-                    : "border-slate-200/30 text-slate-400 bg-slate-50/20 dark:bg-white/[0.01] cursor-not-allowed"
-                }`}
+                className="flex items-center gap-2 bg-rose-500/20 hover:bg-rose-500/30 backdrop-blur-md border border-rose-300/40 text-white px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer active:scale-95"
+                title="Remove Photo"
               >
-                <FaTrash className="text-[10px]" /> Remove Photo
+                <FaTrash className="text-xs" />
               </button>
-            </div>
+            )}
           </div>
+        </div>
+      </div>
 
-          {/* Card 2: Personal & Academic Details Form */}
-          <div className="lg:col-span-2 bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-white/[0.05] p-6 rounded-2xl shadow-sm flex flex-col justify-between">
-            <div className="pb-3 border-b border-slate-100 dark:border-white/[0.03] mb-4 select-none flex items-center justify-between">
-              <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider">Teacher Information & Credentials</h3>
-              <span className="text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                Active Faculty Status
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              
-              {/* Employee ID (Read Only) */}
-              <div>
-                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Employee ID (Assigned by Admin)</label>
-                <input
-                  type="text"
-                  disabled
-                  value={employeeId}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-100/70 dark:bg-white/[0.03] text-xs font-black text-slate-500 dark:text-slate-400 cursor-not-allowed"
-                />
-              </div>
-
-              {/* Full Name */}
-              <div>
-                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Full Name <span className="text-rose-500">*</span></label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
-                />
-              </div>
-
-              {/* Email Address */}
-              <div>
-                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Email Address <span className="text-rose-500">*</span></label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
-                />
-              </div>
-
-              {/* Phone Number */}
-              <div>
-                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Phone Number <span className="text-rose-500">*</span></label>
-                <input
-                  type="text"
-                  required
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
-                />
-              </div>
-
-              {/* Date of Birth */}
-              <div>
-                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Date of Birth</label>
-                <input
-                  type="date"
-                  value={formatDateForInput(dob)}
-                  onChange={(e) => setDob(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-slate-800 dark:text-white"
-                />
-              </div>
-
-              {/* Gender */}
-              <div>
-                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Gender</label>
-                <select
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
-                >
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
-              {/* Qualification */}
-              <div>
-                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Qualification</label>
-                <input
-                  type="text"
-                  placeholder="M.Sc, B.Ed"
-                  value={qualification}
-                  onChange={(e) => setQualification(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
-                />
-              </div>
-
-              {/* Experience */}
-              <div>
-                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Teaching Experience</label>
-                <input
-                  type="text"
-                  placeholder="6 Years"
-                  value={experience}
-                  onChange={(e) => setExperience(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
-                />
-              </div>
-
-              {/* Address with Geolocation */}
-              <div className="sm:col-span-2">
-                <div className="flex items-center justify-between mb-1 select-none">
-                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Residential Address</label>
-                  <button
-                    type="button"
-                    onClick={handleGetCurrentLocation}
-                    disabled={gettingLocation}
-                    className="text-[9px] font-black text-purple-600 hover:text-purple-700 dark:text-purple-400 flex items-center gap-1 cursor-pointer bg-purple-500/10 px-2.5 py-1 rounded-lg border border-purple-500/20 hover:bg-purple-500/20 transition-all active:scale-95 disabled:opacity-50"
-                  >
-                    <FaMapMarkerAlt className="text-[10px]" />
-                    {gettingLocation ? "Detecting Location..." : "Use Current Location"}
-                  </button>
-                </div>
-                <input
-                  type="text"
-                  placeholder="123, Green Avenue, Siwan, Bihar"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
-                />
-              </div>
-
-              {/* Bio description */}
-              <div className="sm:col-span-2">
-                <div className="flex items-center justify-between mb-1 select-none">
-                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block">Professional Summary / Bio</label>
-                  <span className="text-[8px] font-bold text-slate-400">{bio.length}/250</span>
-                </div>
-                <textarea
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value.slice(0, 250))}
-                  rows="2"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 resize-none"
-                />
-              </div>
-
-            </div>
+      {/* 2. Key Metadata Badges */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        
+        {/* Badge 1: Employee ID */}
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center shrink-0">
+            <FaIdCard className="text-base" />
           </div>
-
+          <div>
+            <p className="text-[9px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Employee ID</p>
+            <p className="text-xs font-black text-slate-900 dark:text-white mt-0.5 truncate max-w-[120px]">
+              {employeeId}
+            </p>
+          </div>
         </div>
 
-        {/* Lower Section: ASSIGNED SUBJECTS & CLASSES (READ-ONLY FOR TEACHER) */}
+        {/* Badge 2: Faculty Status */}
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <FaShieldAlt className="text-base" />
+          </div>
+          <div>
+            <p className="text-[9px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Status</p>
+            <span className="inline-block text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mt-0.5">
+              Active Faculty
+            </span>
+          </div>
+        </div>
+
+        {/* Badge 3: Department */}
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0">
+            <FaBriefcase className="text-base" />
+          </div>
+          <div>
+            <p className="text-[9px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Department</p>
+            <p className="text-xs font-black text-slate-900 dark:text-white mt-0.5 truncate max-w-[120px]">
+              {department || "Academic Faculty"}
+            </p>
+          </div>
+        </div>
+
+        {/* Badge 4: Experience */}
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
+            <FaGraduationCap className="text-base" />
+          </div>
+          <div>
+            <p className="text-[9px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Experience</p>
+            <p className="text-xs font-black text-slate-900 dark:text-white mt-0.5 truncate max-w-[120px]">
+              {experience || "Faculty"}
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      {/* 3. Main Form Section */}
+      <form onSubmit={handleSaveChanges} className="space-y-6">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-sm space-y-5">
+          
+          {/* Section Header */}
+          <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5">
+            <div>
+              <h3 className="text-base font-black text-slate-900 dark:text-white">Instructor Information & Credentials</h3>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Manage personal & professional profile details</p>
+            </div>
+            <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-xl border border-emerald-500/20 flex items-center gap-1.5">
+              <FaCheck className="text-[9px]" /> Verified Teacher Profile
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            {/* Employee ID (Read-only) */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 space-y-1">
+              <label className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider flex items-center gap-1.5">
+                <FaLock className="text-[9px] text-slate-400" /> Employee ID (Assigned by Admin)
+              </label>
+              <input
+                type="text"
+                disabled
+                value={employeeId}
+                className="w-full bg-transparent text-xs font-black text-slate-500 dark:text-slate-400 outline-none cursor-not-allowed"
+              />
+            </div>
+
+            {/* Full Name */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 space-y-1 focus-within:border-purple-500/50 transition">
+              <label className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider flex items-center gap-1.5">
+                <FaUser className="text-[9px] text-purple-500" /> Full Name <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full bg-transparent text-xs font-black text-slate-900 dark:text-white outline-none placeholder:text-slate-400"
+              />
+            </div>
+
+            {/* Email Address */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 space-y-1 focus-within:border-purple-500/50 transition">
+              <label className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider flex items-center gap-1.5">
+                <FaEnvelope className="text-[9px] text-purple-500" /> Email Address <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-transparent text-xs font-black text-slate-900 dark:text-white outline-none placeholder:text-slate-400"
+              />
+            </div>
+
+            {/* Phone Number */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 space-y-1 focus-within:border-purple-500/50 transition">
+              <label className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider flex items-center gap-1.5">
+                <FaPhone className="text-[9px] text-purple-500" /> Phone Number <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="w-full bg-transparent text-xs font-black text-slate-900 dark:text-white outline-none placeholder:text-slate-400"
+              />
+            </div>
+
+            {/* Date of Birth */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 space-y-1 focus-within:border-purple-500/50 transition">
+              <label className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider flex items-center gap-1.5">
+                <FaCalendarAlt className="text-[9px] text-purple-500" /> Date of Birth
+              </label>
+              <input
+                type="date"
+                value={formatDateForInput(dob)}
+                onChange={(e) => setDob(e.target.value)}
+                className="w-full bg-transparent text-xs font-black text-slate-900 dark:text-white outline-none"
+              />
+            </div>
+
+            {/* Gender */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 space-y-1 focus-within:border-purple-500/50 transition">
+              <label className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider flex items-center gap-1.5">
+                <FaUser className="text-[9px] text-purple-500" /> Gender
+              </label>
+              <select
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className="w-full bg-transparent text-xs font-black text-slate-900 dark:text-white outline-none cursor-pointer"
+              >
+                <option value="Male" className="bg-white dark:bg-[#0B132A]">Male</option>
+                <option value="Female" className="bg-white dark:bg-[#0B132A]">Female</option>
+                <option value="Other" className="bg-white dark:bg-[#0B132A]">Other</option>
+              </select>
+            </div>
+
+            {/* Qualification */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 space-y-1 focus-within:border-purple-500/50 transition">
+              <label className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider flex items-center gap-1.5">
+                <FaGraduationCap className="text-[9px] text-purple-500" /> Qualification
+              </label>
+              <input
+                type="text"
+                placeholder="M.Sc, B.Ed"
+                value={qualification}
+                onChange={(e) => setQualification(e.target.value)}
+                className="w-full bg-transparent text-xs font-black text-slate-900 dark:text-white outline-none placeholder:text-slate-400"
+              />
+            </div>
+
+            {/* Teaching Experience */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 space-y-1 focus-within:border-purple-500/50 transition">
+              <label className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider flex items-center gap-1.5">
+                <FaBriefcase className="text-[9px] text-purple-500" /> Teaching Experience
+              </label>
+              <input
+                type="text"
+                placeholder="6 Years"
+                value={experience}
+                onChange={(e) => setExperience(e.target.value)}
+                className="w-full bg-transparent text-xs font-black text-slate-900 dark:text-white outline-none placeholder:text-slate-400"
+              />
+            </div>
+
+            {/* Address with Geolocation */}
+            <div className="sm:col-span-2 p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 space-y-2 focus-within:border-purple-500/50 transition">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider flex items-center gap-1.5">
+                  <FaMapMarkerAlt className="text-[9px] text-purple-500" /> Residential Address
+                </label>
+                <button
+                  type="button"
+                  onClick={handleGetCurrentLocation}
+                  disabled={gettingLocation}
+                  className="text-[9px] font-extrabold text-purple-600 dark:text-purple-400 bg-purple-500/10 hover:bg-purple-500/20 px-2.5 py-1 rounded-xl border border-purple-500/20 transition flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                >
+                  <FaMapMarkerAlt className="text-[8px]" />
+                  {gettingLocation ? "Detecting Location..." : "Use Current Location"}
+                </button>
+              </div>
+              <input
+                type="text"
+                placeholder="Residential location details"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="w-full bg-transparent text-xs font-black text-slate-900 dark:text-white outline-none placeholder:text-slate-400"
+              />
+            </div>
+
+            {/* Professional Summary / Bio */}
+            <div className="sm:col-span-2 p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 space-y-1 focus-within:border-purple-500/50 transition">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider flex items-center gap-1.5">
+                  <FaInfoCircle className="text-[9px] text-purple-500" /> Professional Summary / Bio
+                </label>
+                <span className="text-[9px] font-extrabold text-slate-400">{bio.length}/250</span>
+              </div>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value.slice(0, 250))}
+                rows="2"
+                className="w-full bg-transparent text-xs font-medium text-slate-900 dark:text-white outline-none resize-none leading-relaxed placeholder:text-slate-400"
+              />
+            </div>
+
+          </div>
+        </div>
+
+        {/* 4. Lower Cards: Assigned Subjects & Assigned Classes */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
-          {/* Card 1: Assigned Subjects (Read Only) */}
-          <div className="bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/[0.03] pb-3 mb-4 select-none">
+          {/* Card 1: Assigned Subjects */}
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
               <div className="flex items-center gap-2">
-                <FaBook className="text-purple-500 text-sm" />
-                <h3 className="text-xs font-black uppercase text-slate-800 dark:text-slate-200 tracking-wider">Assigned Subjects</h3>
+                <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs border border-purple-500/20">
+                  <FaBook />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white">Assigned Subjects</h3>
+                  <p className="text-[9px] text-slate-400 font-semibold">Course responsibilities</p>
+                </div>
               </div>
-              <span className="text-[9px] font-extrabold text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-full flex items-center gap-1">
-                <FaLock className="text-[8px]" /> Read Only (Managed by Admin)
+              <span className="text-[9px] font-extrabold text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-xl border border-slate-200/60 dark:border-white/10 flex items-center gap-1">
+                <FaLock className="text-[8px]" /> Read-Only
               </span>
             </div>
 
-            <p className="text-[10px] text-slate-400 font-medium mb-3">
-              Subjects are assigned to you by the School Administrator. Teachers cannot modify their subject assignments.
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+              Subjects assigned to your profile by the School Administrator.
             </p>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 pt-1">
               {assignedSubjects.length > 0 ? (
                 assignedSubjects.map((sub, idx) => (
                   <div
                     key={sub._id || idx}
-                    className="flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 px-3 py-2 rounded-xl text-xs font-black shadow-sm"
+                    className="flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 px-3.5 py-2 rounded-xl text-xs font-black shadow-sm"
                   >
-                    <FaBook className="text-xs text-purple-500" />
+                    <FaBook className="text-xs" />
                     <span>{sub.name}</span>
                     {sub.code && <span className="text-[9px] font-bold text-slate-400">({sub.code})</span>}
                   </div>
                 ))
               ) : (
-                <div className="w-full py-4 text-center border border-dashed border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-400 font-bold italic">
-                  No subjects assigned yet. Please contact School Admin to assign course subjects.
+                <div className="w-full py-4 text-center border border-dashed border-slate-200 dark:border-white/10 rounded-2xl text-xs text-slate-400 font-bold italic">
+                  No subjects assigned yet. Contact School Admin for course allocation.
                 </div>
               )}
             </div>
           </div>
 
-          {/* Card 2: Assigned Classes (Read Only) */}
-          <div className="bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/[0.03] pb-3 mb-4 select-none">
+          {/* Card 2: Assigned Classes */}
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
               <div className="flex items-center gap-2">
-                <FaChalkboardTeacher className="text-indigo-500 text-sm" />
-                <h3 className="text-xs font-black uppercase text-slate-800 dark:text-slate-200 tracking-wider">Assigned Classes</h3>
+                <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs border border-indigo-500/20">
+                  <FaChalkboardTeacher />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white">Assigned Classes</h3>
+                  <p className="text-[9px] text-slate-400 font-semibold">Teaching schedule</p>
+                </div>
               </div>
-              <span className="text-[9px] font-extrabold text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-full flex items-center gap-1">
-                <FaLock className="text-[8px]" /> Read Only (Managed by Admin)
+              <span className="text-[9px] font-extrabold text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-xl border border-slate-200/60 dark:border-white/10 flex items-center gap-1">
+                <FaLock className="text-[8px]" /> Read-Only
               </span>
             </div>
 
-            <p className="text-[10px] text-slate-400 font-medium mb-3">
-              Classes and sections assigned to your teaching schedule.
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+              Class sections allocated to your teaching schedule.
             </p>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 pt-1">
               {assignedClasses.length > 0 ? (
                 assignedClasses.map((cls, idx) => (
                   <div
                     key={cls._id || idx}
-                    className="flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 px-3 py-2 rounded-xl text-xs font-black shadow-sm"
+                    className="flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 px-3.5 py-2 rounded-xl text-xs font-black shadow-sm"
                   >
-                    <FaChalkboardTeacher className="text-xs text-indigo-500" />
+                    <FaChalkboardTeacher className="text-xs" />
                     <span>Class {cls.name} - {cls.section || "A"}</span>
                   </div>
                 ))
               ) : (
-                <div className="w-full py-4 text-center border border-dashed border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-400 font-bold italic">
-                  No classes assigned yet. Please contact School Admin to assign classes.
+                <div className="w-full py-4 text-center border border-dashed border-slate-200 dark:border-white/10 rounded-2xl text-xs text-slate-400 font-bold italic">
+                  No classes assigned yet. Contact School Admin for class allocation.
                 </div>
               )}
             </div>
@@ -518,34 +624,33 @@ function TeacherProfile() {
 
         </div>
 
-        {/* Bottom Alert messages and submit save trigger */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
+        {/* 5. Save Action Footer */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
           
-          {/* Feedback alerts */}
           <div className="flex-1 w-full">
             {saveMessage && (
-              <div className="flex items-center gap-2 p-3 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-xl text-[11px] font-extrabold select-none leading-relaxed w-fit shadow-sm">
+              <div className="flex items-center gap-2 p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-2xl text-xs font-black shadow-sm">
                 <FaCheck className="text-xs shrink-0" /> {saveMessage}
               </div>
             )}
             {saveError && (
-              <div className="flex items-center gap-2 p-3 bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded-xl text-[11px] font-extrabold select-none leading-relaxed w-fit shadow-sm">
+              <div className="flex items-center gap-2 p-3 bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 rounded-2xl text-xs font-black shadow-sm">
                 <FaExclamationCircle className="text-xs shrink-0" /> {saveError}
               </div>
             )}
           </div>
 
-          {/* Submit Save Button */}
           <button 
             type="submit"
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-md shadow-purple-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap select-none active:scale-95"
+            disabled={saving}
+            className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black text-xs shadow-lg shadow-purple-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50 shrink-0"
           >
-            <FaCheck className="text-xs" /> Save Profile Changes
+            <FaCheck className="text-xs" />
+            {saving ? "Saving Changes..." : "Save Profile Changes"}
           </button>
         </div>
 
       </form>
-
     </div>
   );
 }
