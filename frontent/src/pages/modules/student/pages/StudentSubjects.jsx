@@ -125,6 +125,30 @@ function StudentSubjects() {
       .finally(() => setLoadingStudentNotes(false));
   };
 
+  // Student Chapters Modal State
+  const [chaptersModalSubject, setChaptersModalSubject] = useState(null);
+  const [studentChapters, setStudentChapters] = useState([]);
+  const [loadingStudentChapters, setLoadingStudentChapters] = useState(false);
+
+  const openStudentChapters = (sub) => {
+    setChaptersModalSubject(sub);
+    if (sub.chaptersList && sub.chaptersList.length > 0) {
+      setStudentChapters(sub.chaptersList);
+    } else {
+      setLoadingStudentChapters(true);
+      const token = localStorage.getItem("token");
+      axios.get(`${API}/api/student/subjects`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => {
+          const matchingSub = (res.data || []).find(s => s._id === sub._id);
+          setStudentChapters(matchingSub?.chaptersList || []);
+        })
+        .catch(err => console.error("Error loading chapters:", err))
+        .finally(() => setLoadingStudentChapters(false));
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     
@@ -449,14 +473,20 @@ function StudentSubjects() {
                 <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-slate-100 dark:border-white/5 text-[10px] text-slate-505 dark:text-slate-400 font-black">
                   
                   {/* Stat 1: Chapters */}
-                  <div className="flex items-center gap-2.5">
+                  <div
+                    onClick={() => openStudentChapters(sub)}
+                    className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity"
+                    title="Click to view chapter list & syllabus"
+                  >
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${visuals.style}`}>
                       <FaBook className="text-xs" />
                     </div>
                     <div>
-                      <p className="text-[9px] text-slate-450 dark:text-slate-550 font-bold uppercase tracking-wide leading-none">Chapters</p>
-                      <p className="text-xs font-black text-slate-900 dark:text-white mt-1 leading-none">
-                        {sub.chaptersCount || 0} Total
+                      <p className="text-[9px] text-slate-450 dark:text-slate-550 font-bold uppercase tracking-wide leading-none flex items-center gap-1">
+                        Chapters <FaExternalLinkAlt className="text-[7px] text-[#7C3AED]" />
+                      </p>
+                      <p className="text-xs font-black text-purple-600 dark:text-purple-400 hover:underline mt-1 leading-none">
+                        {sub.chaptersCount || sub.chaptersList?.length || 0} Total
                       </p>
                     </div>
                   </div>
@@ -589,6 +619,117 @@ function StudentSubjects() {
                     )}
                   </div>
                 ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Student Chapters Overlay Modal */}
+      {chaptersModalSubject && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 max-w-xl w-full shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
+              <div>
+                <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                  <FaBookOpen className="text-purple-600 dark:text-purple-400 text-sm" />
+                  {chaptersModalSubject.name} — Syllabus & Chapters
+                </h3>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                  {studentChapters.length} {studentChapters.length === 1 ? "Chapter" : "Chapters"} Configured by Admin / Teacher
+                </p>
+              </div>
+              <button
+                onClick={() => setChaptersModalSubject(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs font-bold transition cursor-pointer"
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            {/* Chapters List */}
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+              {loadingStudentChapters ? (
+                <div className="py-12 text-center text-slate-400 text-xs font-bold">
+                  Fetching chapter details...
+                </div>
+              ) : studentChapters.length === 0 ? (
+                <div className="py-12 text-center text-slate-400 space-y-2">
+                  <FaBook className="text-3xl text-purple-400 mx-auto mb-1" />
+                  <p className="text-xs font-bold text-slate-700 dark:text-white">No chapters configured for this subject yet.</p>
+                  <p className="text-[10px]">Your teacher or admin will add chapter titles & descriptions here.</p>
+                </div>
+              ) : (
+                studentChapters.map((ch, idx) => {
+                  const chNo = ch.chapterNo || idx + 1;
+                  const title = ch.title || ch.name || `Chapter ${chNo}`;
+                  const desc = ch.description || "No description provided.";
+                  const status = ch.status || "Not Started";
+
+                  let statusBadge = "bg-slate-500/10 text-slate-500 border-slate-500/20";
+                  if (status === "Completed") {
+                    statusBadge = "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
+                  } else if (status === "In Progress") {
+                    statusBadge = "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20";
+                  }
+
+                  return (
+                    <div
+                      key={ch._id || idx}
+                      className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 space-y-2.5 hover:border-purple-500/30 transition"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <span className="w-8 h-8 rounded-xl bg-purple-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm">
+                            {chNo}
+                          </span>
+                          <div>
+                            <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">
+                              {title}
+                            </h4>
+                            <p className="text-[9px] text-slate-400 font-semibold mt-0.5">
+                              Chapter {chNo}
+                            </p>
+                          </div>
+                        </div>
+
+                        <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-md border ${statusBadge}`}>
+                          {status}
+                        </span>
+                      </div>
+
+                      {/* Description */}
+                      <div className="pt-0.5">
+                        <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed font-medium bg-white dark:bg-white/[0.02] p-3 rounded-xl border border-slate-200/60 dark:border-white/5">
+                          {desc}
+                        </p>
+                      </div>
+
+                      {/* Topics */}
+                      {ch.topics && ch.topics.length > 0 && (
+                        <div className="pt-1 select-none">
+                          <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Topics Covered:</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {ch.topics.map((tp, tIdx) => (
+                              <span
+                                key={tIdx}
+                                className={`text-[9px] font-bold px-2.5 py-1 rounded-lg border ${
+                                  tp.completed
+                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                                    : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10"
+                                }`}
+                              >
+                                {tp.completed ? "✓ " : "• "}{tp.title}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>

@@ -139,6 +139,7 @@ exports.getStudentSubjects = async (req, res) => {
       enrichedSubjects.push({
         ...sub,
         chapters: totalChapters,
+        chaptersList: chapters,
         progress: progressPct,
         notesCount
       });
