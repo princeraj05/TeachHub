@@ -43,7 +43,6 @@ function StudentProfile() {
 
   // Modal controls
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [showAchievementsModal, setShowAchievementsModal] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
 
@@ -155,7 +154,7 @@ function StudentProfile() {
       </div>
 
       {/* 2. Key Metadata Badges */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
         <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
           <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center shrink-0">
             <FaIdCard className="text-base" />
@@ -187,18 +186,6 @@ function StudentProfile() {
           <div>
             <p className="text-[9px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Academic Term</p>
             <p className="text-xs font-black text-slate-900 dark:text-white mt-0.5">Session 2026</p>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
-            <FaTrophy className="text-base" />
-          </div>
-          <div className="cursor-pointer" onClick={() => setShowAchievementsModal(true)}>
-            <p className="text-[9px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Achievements</p>
-            <p className="text-xs font-black text-purple-600 dark:text-purple-400 mt-0.5 flex items-center gap-1 hover:underline">
-              View Honors &rarr;
-            </p>
           </div>
         </div>
       </div>
@@ -447,63 +434,6 @@ function StudentProfile() {
             <div className="mt-2">
               <UserProfile />
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* OVERLAY MODAL 2: Achievements List */}
-      {showAchievementsModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl relative select-none animate-fadeIn text-slate-800 dark:text-white">
-            <button
-              onClick={() => setShowAchievementsModal(false)}
-              className="absolute top-4.5 right-4.5 text-slate-400 hover:text-slate-655 dark:hover:text-white cursor-pointer"
-            >
-              <FaTimes className="text-sm" />
-            </button>
-            
-            <div className="mb-6 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-555 border border-emerald-500/20 flex items-center justify-center">
-                <FaTrophy className="text-sm" />
-              </div>
-              <div>
-                <h3 className="text-sm sm:text-base font-black">My Achievements</h3>
-                <p className="text-[9px] text-slate-455 uppercase font-bold tracking-wide">Awards & Honors</p>
-              </div>
-            </div>
-            
-            <div className="space-y-4 max-h-60 overflow-y-auto pr-1">
-              <div className="flex items-start gap-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.04] p-3 rounded-2xl">
-                <span className="text-lg">🥇</span>
-                <div>
-                  <h4 className="text-xs font-black text-slate-900 dark:text-white">Perfect Attendance (May 2026)</h4>
-                  <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-0.5">Achieved a 100% attendance score in classes.</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.04] p-3 rounded-2xl">
-                <span className="text-lg">🎓</span>
-                <div>
-                  <h4 className="text-xs font-black text-slate-900 dark:text-white">Vanguard Academics</h4>
-                  <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-0.5">Ranked top 5% on subjects performance metrics.</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.04] p-3 rounded-2xl">
-                <span className="text-lg">🚀</span>
-                <div>
-                  <h4 className="text-xs font-black text-slate-900 dark:text-white">Pioneer Learner</h4>
-                  <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-0.5">Completed online proctored examinations successfully.</p>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowAchievementsModal(false)}
-              className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white py-3 rounded-xl text-xs font-bold transition cursor-pointer mt-6"
-            >
-              Done
-            </button>
           </div>
         </div>
       )}
