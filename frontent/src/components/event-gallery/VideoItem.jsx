@@ -22,7 +22,7 @@ export default function VideoItem({ media, index, total, getMediaUrl, videoRefs,
   return <article ref={itemRef} className="snap-start min-h-full w-full shrink-0 flex flex-col items-center justify-center py-3">
     <div className="w-full max-w-[34rem] overflow-hidden rounded-2xl border border-slate-200/60 bg-slate-950 shadow-lg dark:border-white/10">
       <div className="flex items-center justify-center bg-black">
-        <video src={url} ref={(node) => registerVideo(index, node)} controls preload="metadata" playsInline onLoadedMetadata={(event) => setRatio(event.currentTarget.videoWidth / event.currentTarget.videoHeight)} onPlay={pauseOthers} className="max-h-[calc(min(70vh,42rem)-5rem)] max-w-full object-contain" style={ratio ? { aspectRatio: String(ratio) } : undefined}>
+        <video src={url} ref={(node) => registerVideo(index, node)} controls preload="metadata" playsInline crossOrigin={url?.startsWith("http") ? "anonymous" : undefined} onLoadedMetadata={(event) => setRatio(event.currentTarget.videoWidth / event.currentTarget.videoHeight)} onPlay={pauseOthers} className="max-h-[calc(min(70vh,42rem)-5rem)] max-w-full object-contain" style={ratio ? { aspectRatio: String(ratio) } : undefined}>
           <source src={url} type="video/mp4" />
           <source src={url} />
           Your browser does not support playing this video.
