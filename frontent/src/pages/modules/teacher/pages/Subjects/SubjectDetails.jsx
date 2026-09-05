@@ -383,7 +383,7 @@ function SubjectDetails() {
       </div>
 
       {/* Main Subject Header Card */}
-      <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm mb-6 flex flex-col md:flex-row items-stretch gap-6 relative overflow-hidden">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-3.5 sm:p-5 rounded-2.5xl sm:rounded-3xl shadow-sm mb-6 flex flex-col md:flex-row items-stretch gap-6 relative overflow-hidden">
         
         {/* Left Column: Subject Name and description */}
         <div className="flex-1 flex flex-col justify-between">

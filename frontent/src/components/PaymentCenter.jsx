@@ -233,7 +233,7 @@ export default function PaymentCenter({ role }) {
     <div className="flex flex-wrap justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED]">Secure payment center</p><h1 className="text-2xl font-extrabold text-slate-800 dark:text-white">{role === "teacher" ? "My Payments" : role === "admin" ? "School Payments" : "Payment Dashboard"}</h1></div>{["superadmin", "admin", "teacher"].includes(role) && <button onClick={changeSettings} className="rounded-xl border px-4 py-2 text-sm font-bold"><FaCog className="inline mr-2" />Payment settings</button>}</div>
     {message && <p className="rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-800">{message}</p>}
     {settings && <p className="text-xs text-slate-500">Gateway: Razorpay ({settings.environment}) · Online {settings.onlineEnabled ? "enabled" : "disabled"} · Offline {settings.offlineEnabled ? "enabled" : "disabled"}</p>}
-    <div className={`grid grid-cols-1 ${role === "superadmin" ? "sm:grid-cols-4" : role === "admin" ? "sm:grid-cols-4" : "sm:grid-cols-3"} gap-4`}>
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-4">
       <Metric icon={<FaMoneyBillWave />} label={role === "teacher" ? "Salary received" : role === "superadmin" ? "Super Admin Revenue" : "Total received"} value={rupees(data.platformRevenue ?? data.totalRevenue ?? data.totalReceived)} />
       {role === "superadmin" && <Metric icon={<FaMoneyBillWave />} label="Total System Volume" value={rupees(data.totalSystemVolume)} />}
       {role === "admin" && <Metric icon={<FaMoneyBillWave />} label="Subscription paid" value={rupees(data.subscriptionPaid || data.totalPaid)} />}

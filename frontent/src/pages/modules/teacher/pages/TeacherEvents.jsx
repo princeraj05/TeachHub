@@ -70,18 +70,18 @@ function TeacherEvents() {
   };
 
   return (
-    <div className="font-sans space-y-6" style={{ fontFamily: SORA }}>
+    <div className="font-sans space-y-4 sm:space-y-6" style={{ fontFamily: SORA }}>
       {/* Page Title Header */}
-      <div className="border-b border-slate-200/60 dark:border-white/10 pb-4 select-none">
-        <h2 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">School Events</h2>
+      <div className="border-b border-slate-200/60 dark:border-white/10 pb-3 sm:pb-4 select-none">
+        <h2 className="text-lg sm:text-xl font-black text-slate-800 dark:text-white tracking-tight">School Events</h2>
         <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest mt-0.5">Explore upcoming calendar schedule & event galleries</p>
       </div>
 
       {/* Tabs list */}
-      <div className="flex bg-white dark:bg-[#0B132A] p-1.5 border border-slate-200/50 dark:border-white/10 rounded-2xl shadow-sm w-fit gap-1 select-none">
+      <div className="flex flex-wrap bg-white dark:bg-[#0B132A] p-1.5 border border-slate-200/50 dark:border-white/10 rounded-2.5xl sm:rounded-3xl shadow-sm w-full sm:w-fit gap-1 select-none">
         <button
           onClick={() => setActiveTab("upcoming")}
-          className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer ${
+          className={`flex-1 sm:flex-initial px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer text-center ${
             activeTab === "upcoming"
               ? "bg-[#7C3AED] text-white dark:bg-[#38BDF8] dark:text-[#090F1C] shadow-md shadow-[#7C3AED]/10"
               : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white"
@@ -91,7 +91,7 @@ function TeacherEvents() {
         </button>
         <button
           onClick={() => setActiveTab("completed")}
-          className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer ${
+          className={`flex-1 sm:flex-initial px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer text-center ${
             activeTab === "completed"
               ? "bg-[#7C3AED] text-white dark:bg-[#38BDF8] dark:text-[#090F1C] shadow-md shadow-[#7C3AED]/10"
               : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white"
@@ -108,8 +108,8 @@ function TeacherEvents() {
           <p className="text-slate-400 text-xs font-bold">Synchronizing school events...</p>
         </div>
       ) : events.length === 0 ? (
-        <div className="py-20 text-center select-none bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl p-8 animate-fadeIn">
-          <div className="w-16 h-16 rounded-3xl bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] flex items-center justify-center text-2xl mx-auto mb-4 animate-bounce">
+        <div className="py-20 text-center select-none bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-2.5xl sm:rounded-3xl p-6 sm:p-8 animate-fadeIn">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2.5xl bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] flex items-center justify-center text-xl sm:text-2xl mx-auto mb-4 animate-bounce">
             <FaCalendarAlt />
           </div>
           <h3 className="text-sm font-bold text-slate-700 dark:text-white uppercase tracking-wider">No events scheduled</h3>
@@ -119,7 +119,7 @@ function TeacherEvents() {
         </div>
       ) : (
         /* Event Grid */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6 animate-fadeIn">
           {events.map((ev) => {
             const hasCover = ev.photos && ev.photos.length > 0 && ev.photos[0]?.url;
             const coverUrl = ev.coverPhoto ? getMediaUrl(ev.coverPhoto) : (hasCover ? getMediaUrl(ev.photos[0].url) : null);
@@ -127,23 +127,23 @@ function TeacherEvents() {
             return (
               <div 
                 key={ev._id}
-                className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl overflow-hidden shadow-sm relative flex flex-col justify-between"
+                className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-2.5xl sm:rounded-3xl overflow-hidden shadow-sm relative flex flex-col justify-between"
               >
                 <div>
                   {(coverUrl || activeTab === "completed") && (
-                    <div className="h-44 bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b border-slate-150 dark:border-white/5">
+                    <div className="h-36 sm:h-44 bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b border-slate-150 dark:border-white/5">
                       {coverUrl ? (
                         <img src={coverUrl} alt={ev.title || "Cover"} className="w-full h-full object-cover" />
                       ) : (
                         <div className="text-center text-slate-400 dark:text-slate-500">
-                          <FaImage className="text-3xl mb-2 opacity-50 mx-auto" />
+                          <FaImage className="text-2xl sm:text-3xl mb-1.5 opacity-50 mx-auto" />
                           <p className="text-[10px] font-bold">No Photos Uploaded</p>
                         </div>
                       )}
                     </div>
                   )}
 
-                  <div className="p-6">
+                  <div className="p-4 sm:p-6">
                     <h3 className="text-sm font-black text-slate-800 dark:text-white leading-snug">{ev.title}</h3>
                     {ev.subtitle && (
                       <p className="text-[10px] font-bold text-[#7C3AED] dark:text-[#38BDF8] mt-1 uppercase tracking-wider">{ev.subtitle}</p>

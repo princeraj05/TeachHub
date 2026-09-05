@@ -401,50 +401,50 @@ export default function StudentMyDiary() {
       </div>
 
       {/* Summary Stats Cards Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/10 rounded-3xl p-4 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-black text-sm shrink-0">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/10 rounded-2.5xl sm:rounded-3xl p-3 sm:p-4 shadow-sm flex items-center gap-2.5 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-black text-xs sm:text-sm shrink-0">
             📚
           </div>
           <div>
-            <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Total Homework</p>
-            <p className="text-xl font-black text-slate-900 dark:text-white leading-tight">
+            <p className="text-[9px] sm:text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Total Homework</p>
+            <p className="text-lg sm:text-xl font-black text-slate-900 dark:text-white leading-tight">
               {diaryData.summary?.totalHomework || 0}
             </p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/10 rounded-3xl p-4 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-black text-sm shrink-0">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/10 rounded-2.5xl sm:rounded-3xl p-3 sm:p-4 shadow-sm flex items-center gap-2.5 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-black text-xs sm:text-sm shrink-0">
             🟢
           </div>
           <div>
-            <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Completed</p>
-            <p className="text-xl font-black text-emerald-600 dark:text-emerald-400 leading-tight">
+            <p className="text-[9px] sm:text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Completed</p>
+            <p className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400 leading-tight">
               {diaryData.summary?.completed || 0}
             </p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/10 rounded-3xl p-4 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center font-black text-sm shrink-0">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/10 rounded-2.5xl sm:rounded-3xl p-3 sm:p-4 shadow-sm flex items-center gap-2.5 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center font-black text-xs sm:text-sm shrink-0">
             🟠
           </div>
           <div>
-            <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Pending</p>
-            <p className="text-xl font-black text-amber-600 dark:text-amber-400 leading-tight">
+            <p className="text-[9px] sm:text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Pending</p>
+            <p className="text-lg sm:text-xl font-black text-amber-600 dark:text-amber-400 leading-tight">
               {diaryData.summary?.pending || 0}
             </p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/10 rounded-3xl p-4 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center font-black text-sm shrink-0">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/10 rounded-2.5xl sm:rounded-3xl p-3 sm:p-4 shadow-sm flex items-center gap-2.5 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center font-black text-xs sm:text-sm shrink-0">
             📑
           </div>
           <div>
-            <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Subjects</p>
-            <p className="text-xl font-black text-purple-600 dark:text-purple-400 leading-tight">
+            <p className="text-[9px] sm:text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Subjects</p>
+            <p className="text-lg sm:text-xl font-black text-purple-600 dark:text-purple-400 leading-tight">
               {diaryData.summary?.subjectsCount || 0}
             </p>
           </div>

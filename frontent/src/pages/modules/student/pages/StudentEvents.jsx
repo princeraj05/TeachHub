@@ -238,7 +238,7 @@ function StudentEvents() {
       </div>
 
       {/* Search and Filters row */}
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
         <div className="relative flex-1">
           <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
           <input
@@ -254,7 +254,7 @@ function StudentEvents() {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="appearance-none bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white py-3 pl-9 pr-8 rounded-xl text-xs font-bold focus:outline-none focus:border-[#7C3AED] cursor-pointer"
+            className="w-full sm:w-auto appearance-none bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white py-3 pl-9 pr-8 rounded-xl text-xs font-bold focus:outline-none focus:border-[#7C3AED] cursor-pointer"
           >
             <option value="All">All Events</option>
             <option value="Celebration">Celebration</option>
@@ -310,12 +310,12 @@ function StudentEvents() {
                   className={`bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] ${cardGlow} rounded-2.5xl overflow-hidden flex flex-col transition-all duration-200 shadow-sm relative`}
                 >
                   {coverUrl && (
-                    <div className="h-44 w-full bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b border-slate-150 dark:border-white/5">
+                    <div className="h-32 sm:h-44 w-full bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b border-slate-150 dark:border-white/5">
                       <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
                     </div>
                   )}
 
-                  <div className="p-5 flex items-center justify-between">
+                  <div className="p-3.5 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-4 min-w-0">
                       {!coverUrl && (
                         <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2.5xl flex items-center justify-center shrink-0 ${
@@ -397,7 +397,7 @@ function StudentEvents() {
                 className={`bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] ${cardGlow} rounded-2.5xl overflow-hidden flex flex-col sm:flex-row shadow-sm transition-all duration-200`}
               >
                 {/* Cover Image left/top */}
-                <div className="w-full sm:w-44 h-40 shrink-0 bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b sm:border-b-0 sm:border-r border-slate-200/50 dark:border-white/10 select-none">
+                <div className="w-full sm:w-44 h-32 sm:h-40 shrink-0 bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b sm:border-b-0 sm:border-r border-slate-200/50 dark:border-white/10 select-none">
                   {coverUrl ? (
                     <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
                   ) : (
@@ -409,7 +409,7 @@ function StudentEvents() {
                 </div>
 
                 {/* Details main body */}
-                <div className="p-5 flex-1 flex flex-col justify-between min-w-0">
+                <div className="p-3.5 sm:p-5 flex-1 flex flex-col justify-between min-w-0">
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 select-none">
                       <span className={`w-2 h-2 rounded-full ${dotBg}`} />
@@ -437,7 +437,7 @@ function StudentEvents() {
                 </div>
 
                 {/* Completed Details (Right) */}
-                <div className="p-5 sm:border-l border-slate-100 dark:border-white/5 flex flex-col justify-between items-center sm:items-end justify-center shrink-0 gap-3 text-center sm:text-right select-none bg-slate-50/20 dark:bg-white/[0.005]">
+                <div className="p-3.5 sm:p-5 sm:border-l border-slate-100 dark:border-white/5 flex flex-col justify-between items-center sm:items-end justify-center shrink-0 gap-3 text-center sm:text-right select-none bg-slate-50/20 dark:bg-white/[0.005]">
                   <div className="flex flex-col items-center sm:items-end gap-1">
                     <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider ${
                       ev.badgeBg || "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"

@@ -435,7 +435,7 @@ function MarkAttendance() {
       </div>
 
       {/* Select Filters Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6 bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-3.5 sm:p-4 rounded-2.5xl sm:rounded-3xl shadow-sm">
         {/* Date Selector */}
         <div className="flex flex-col gap-1.5">
           <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Select Date</label>

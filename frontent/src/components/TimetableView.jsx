@@ -166,7 +166,7 @@ export default function TimetableView() {
     <div className="w-full text-slate-800 dark:text-white select-none pb-12 font-sans">
       
       {/* 1. Header Bar with Back Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 select-none bg-white dark:bg-[#0B132A] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 select-none bg-white dark:bg-[#0B132A] p-3.5 sm:p-5 rounded-2.5xl sm:rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
@@ -189,7 +189,7 @@ export default function TimetableView() {
       </div>
 
       {/* 2. Horizontal Scrollable Day Selector Tab Bar */}
-      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 p-3 sm:p-3.5 rounded-2xl shadow-sm mb-6">
+      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 p-2.5 sm:p-3.5 rounded-2.5xl sm:rounded-3xl shadow-sm mb-6">
         <div className="flex items-center gap-2.5 overflow-x-auto scrollbar-none max-w-4xl mx-auto px-1">
           {DAYS_OF_WEEK.map((day) => {
             const isSelected = selectedDay === day;
@@ -264,10 +264,10 @@ export default function TimetableView() {
               return (
                 <div
                   key={entry._id || idx}
-                  className={`rounded-2xl border ${theme.border} ${theme.bg} shadow-md dark:shadow-xl hover:scale-[1.01] transition-all duration-200 overflow-hidden flex flex-col justify-between`}
+                  className={`rounded-2.5xl sm:rounded-3xl border ${theme.border} ${theme.bg} shadow-md dark:shadow-xl hover:scale-[1.01] transition-all duration-200 overflow-hidden flex flex-col justify-between`}
                 >
                   {/* Top Time Header Banner */}
-                  <div className={`px-4 py-2.5 flex items-center justify-between ${theme.headerBg}`}>
+                  <div className={`px-3.5 py-2 sm:px-4 sm:py-2.5 flex items-center justify-between ${theme.headerBg}`}>
                     <div className="flex items-center gap-2">
                       <FaClock className="text-xs opacity-90" />
                       <span className="text-xs font-black tracking-wide">{timeRange}</span>
@@ -278,7 +278,7 @@ export default function TimetableView() {
                   </div>
 
                   {/* Card Content Body */}
-                  <div className="p-4 space-y-3.5">
+                  <div className="p-3.5 sm:p-4 space-y-3">
                     
                     {/* Subject Row */}
                     <div className="flex items-start justify-between gap-2">

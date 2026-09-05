@@ -403,10 +403,10 @@ function AttendanceHistory() {
           <div className="w-8 h-8 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-4 mb-6">
           
           {/* Avg Attendance */}
-          <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-3.5 sm:p-4 rounded-2.5xl sm:rounded-3xl shadow-sm">
             <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Average Attendance</p>
             <div className="flex items-baseline gap-2 mt-1">
               <span className="text-2xl font-black text-slate-900 dark:text-white">{summary.avgAttendance || 0}%</span>

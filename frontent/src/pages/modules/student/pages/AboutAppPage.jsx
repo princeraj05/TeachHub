@@ -183,15 +183,15 @@ function AboutAppPage() {
 
       {/* Tab Panel contents */}
       {activeTab === "app" ? (
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* Main App card */}
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm flex gap-4 items-start relative overflow-hidden">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-4 sm:p-6 shadow-sm flex flex-col sm:flex-row gap-3.5 sm:gap-4 items-start relative overflow-hidden">
             <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-[#7C3AED]/5 blur-[60px] pointer-events-none" />
-            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center justify-center shrink-0 text-xl shadow-sm">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center justify-center shrink-0 text-xl shadow-sm">
               <FaFileAlt />
             </div>
             <div>
-              <h3 className="text-xs font-black text-[#6366F1] dark:text-[#818CF8] uppercase tracking-wider mb-2">ABOUT APPLICATION</h3>
+              <h3 className="text-xs font-black text-[#6366F1] dark:text-[#818CF8] uppercase tracking-wider mb-1.5">ABOUT APPLICATION</h3>
               <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed font-semibold">
                 {info?.aboutApp || "TeachHub is a modern school management system designed to simplify school operations and enhance the learning experience."}
               </p>
@@ -199,14 +199,14 @@ function AboutAppPage() {
           </div>
 
           {/* Section title divider */}
-          <div className="flex items-center gap-4 my-6 py-2">
+          <div className="flex items-center gap-4 my-5 py-1">
             <div className="flex-1 h-[1px] bg-slate-250/60 dark:bg-white/[0.08]" />
             <span className="text-[10px] font-black uppercase text-slate-405 dark:text-slate-500 tracking-widest">KEY FEATURES & INFORMATION</span>
             <div className="flex-1 h-[1px] bg-slate-250/60 dark:bg-white/[0.08]" />
           </div>
 
           {/* Features cards list */}
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-4 sm:p-7 shadow-sm space-y-4 sm:space-y-6">
             {features.map((feat, idx) => (
               <div key={idx} className="flex gap-4 items-start select-none">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-base shadow-sm ${feat.iconStyle}`}>
@@ -231,15 +231,15 @@ function AboutAppPage() {
           </div>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* Top Developer card */}
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm flex gap-4 items-start relative overflow-hidden">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-4 sm:p-6 shadow-sm flex flex-col sm:flex-row gap-3.5 sm:gap-4 items-start relative overflow-hidden">
             <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-[#06B6D4]/5 blur-[60px] pointer-events-none" />
-            <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 flex items-center justify-center shrink-0 text-xl shadow-sm">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 flex items-center justify-center shrink-0 text-xl shadow-sm">
               <FaCode />
             </div>
             <div>
-              <h3 className="text-xs font-black text-cyan-600 dark:text-cyan-400 uppercase tracking-wider mb-2">DEVELOPER INFORMATION</h3>
+              <h3 className="text-xs font-black text-cyan-600 dark:text-cyan-400 uppercase tracking-wider mb-1.5">DEVELOPER INFORMATION</h3>
               <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed font-semibold">
                 Information about the developer and creator of TeachHub.
               </p>
@@ -247,32 +247,32 @@ function AboutAppPage() {
           </div>
 
           {/* Profile Card */}
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm flex items-center gap-4 select-none">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-4 sm:p-6 shadow-sm flex items-center gap-3.5 sm:gap-4 select-none">
             {/* Avatar block */}
-            <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#2563EB] to-[#06B6D4] flex items-center justify-center text-white text-base font-black shadow-md border-2 border-white dark:border-[#0B132A] shrink-0">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-tr from-[#2563EB] to-[#06B6D4] flex items-center justify-center text-white text-sm sm:text-base font-black shadow-md border-2 border-white dark:border-[#0B132A] shrink-0">
               PR
             </div>
             <div className="min-w-0">
               <h3 className="text-sm font-black text-slate-900 dark:text-white">Prince Raj</h3>
               <p className="text-xs font-bold text-blue-550 dark:text-[#38BDF8] mt-0.5">Full Stack Developer</p>
-              <p className="text-[11px] text-slate-555 dark:text-slate-400 font-semibold mt-1.5 leading-relaxed">
+              <p className="text-[11px] text-slate-555 dark:text-slate-400 font-semibold mt-1 leading-relaxed">
                 {info?.aboutDeveloper || "Designed and Developed TeachHub School Management System."}
               </p>
             </div>
           </div>
 
           {/* Section Divider */}
-          <div className="flex items-center gap-4 my-6 py-2">
+          <div className="flex items-center gap-4 my-5 py-1">
             <div className="flex-1 h-[1px] bg-slate-250/60 dark:bg-white/[0.08]" />
             <span className="text-[10px] font-black uppercase text-slate-405 dark:text-slate-500 tracking-widest">DEVELOPER DETAILS</span>
             <div className="flex-1 h-[1px] bg-slate-250/60 dark:bg-white/[0.08]" />
           </div>
 
           {/* Details cards grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {devDetails.map((item, idx) => (
-              <div key={idx} className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.06] rounded-2.5xl p-4.5 flex items-center gap-4 select-none">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-base shadow-sm ${item.iconStyle}`}>
+              <div key={idx} className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.06] rounded-2.5xl p-3.5 sm:p-4.5 flex items-center gap-3.5 select-none">
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 text-sm sm:text-base shadow-sm ${item.iconStyle}`}>
                   {item.icon}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -295,7 +295,7 @@ function AboutAppPage() {
           </div>
 
           {/* Graphic Neon Card */}
-          <div className="bg-[#090F21] border border-white/[0.04] rounded-3xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden select-none">
+          <div className="bg-[#090F21] border border-white/[0.04] rounded-2.5xl sm:rounded-3xl p-5 sm:p-7 flex flex-col items-center justify-center text-center relative overflow-hidden select-none">
             {/* Glow behind */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full bg-cyan-500/10 blur-[80px] pointer-events-none" />
             

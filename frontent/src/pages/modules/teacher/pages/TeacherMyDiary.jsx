@@ -324,7 +324,7 @@ export default function TeacherMyDiary() {
       )}
 
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#38BDF8] p-6 sm:p-8 text-white shadow-xl shadow-[#7C3AED]/15">
+      <div className="relative overflow-hidden rounded-2.5xl sm:rounded-3xl bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#38BDF8] p-4 sm:p-7 text-white shadow-xl shadow-[#7C3AED]/15">
         <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-white/10 blur-2xl pointer-events-none" />
         <div className="absolute right-1/3 -top-10 w-36 h-36 rounded-full bg-white/10 blur-xl pointer-events-none" />
 
@@ -353,10 +353,10 @@ export default function TeacherMyDiary() {
       </div>
 
       {/* View Selector Tabs */}
-      <div className="flex items-center gap-3 border-b border-slate-200 dark:border-white/10 pb-1">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 border-b border-slate-200 dark:border-white/10 pb-1">
         <button
           onClick={() => setActiveTab("homework")}
-          className={`px-5 py-2.5 text-xs font-black rounded-2xl transition flex items-center gap-2 cursor-pointer ${
+          className={`px-4 sm:px-5 py-2.5 text-xs font-black rounded-2xl transition flex items-center gap-2 cursor-pointer ${
             activeTab === "homework"
               ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/20"
               : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10"
@@ -367,7 +367,7 @@ export default function TeacherMyDiary() {
 
         <button
           onClick={() => setActiveTab("signature-check")}
-          className={`px-5 py-2.5 text-xs font-black rounded-2xl transition flex items-center gap-2 cursor-pointer ${
+          className={`px-4 sm:px-5 py-2.5 text-xs font-black rounded-2xl transition flex items-center gap-2 cursor-pointer ${
             activeTab === "signature-check"
               ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/20"
               : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10"

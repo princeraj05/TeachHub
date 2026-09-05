@@ -326,10 +326,10 @@ function TeacherDashboard() {
       </div>
 
       {/* Row 1 Widgets: Donut Chart, Timetable timeline, Upcoming Exams countdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5 sm:gap-6">
         
         {/* Attendance Summary */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-6 flex flex-col justify-between shadow-sm">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 flex flex-col justify-between shadow-sm">
           <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-white/5 pb-3">
             <div>
               <h2 className="text-sm font-extrabold text-slate-800 dark:text-white">Attendance Summary</h2>
@@ -406,7 +406,7 @@ function TeacherDashboard() {
         </div>
 
         {/* Today's Timetable */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-6 flex flex-col justify-between shadow-sm">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 flex flex-col justify-between shadow-sm">
           <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-white/5 pb-3">
             <div>
               <h2 className="text-sm font-extrabold text-slate-800 dark:text-white">Today's Timetable</h2>
@@ -473,7 +473,7 @@ function TeacherDashboard() {
         </div>
 
         {/* Upcoming Exams list */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-6 flex flex-col justify-between shadow-sm">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 flex flex-col justify-between shadow-sm">
           <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-white/5 pb-3">
             <div>
               <h2 className="text-sm font-extrabold text-slate-800 dark:text-white">Upcoming Exams</h2>

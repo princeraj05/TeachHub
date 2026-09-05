@@ -626,20 +626,20 @@ function Exam() {
               <h3 className="text-sm font-black text-slate-900 dark:text-white tracking-tight">Exam Schedule Overview</h3>
               
               {/* Status toggle pills selector */}
-              <div className="flex bg-slate-100 dark:bg-[#0B132A] p-1 rounded-xl border border-slate-250/60 dark:border-white/[0.04] select-none self-start sm:self-auto">
+              <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-[#0B132A] p-1 rounded-xl border border-slate-250/60 dark:border-white/[0.04] select-none self-start sm:self-auto">
                 {["All", "Upcoming", "Completed", "Cancelled"].map((filter) => {
                   const isActive = activeFilter === filter;
                   return (
                     <button
                       key={filter}
                       onClick={() => setActiveFilter(filter)}
-                      className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                      className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer ${
                         isActive
                           ? "bg-[#2563EB] text-white shadow-sm"
                           : "text-slate-505 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                       }`}
                     >
-                      {filter} Exams
+                      {filter}
                     </button>
                   );
                 })}
@@ -739,61 +739,61 @@ function Exam() {
           </div>
 
           {/* Actions Buttons Grid row */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 select-none">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mt-4 sm:mt-6 select-none">
             
             {/* Button 1: View Timetable */}
             <div 
               onClick={() => navigate("/student/showtimetable")}
-              className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-[#7C3AED]/30 rounded-3xl p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
+              className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-[#7C3AED]/30 rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
             >
-              <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/20 flex items-center justify-center mb-4">
-                <FaCalendarAlt className="text-sm" />
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/20 flex items-center justify-center mb-2 sm:mb-4">
+                <FaCalendarAlt className="text-xs sm:text-sm" />
               </div>
               <div>
                 <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">View Timetable</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-1.5">See your class schedule</p>
+                <p className="text-[9px] sm:text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-1">See your class schedule</p>
               </div>
             </div>
 
             {/* Button 2: Exam Instructions */}
             <div 
               onClick={() => setShowInstructionsModal(true)}
-              className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-blue-500/30 rounded-3xl p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
+              className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-blue-500/30 rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
             >
-              <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/20 flex items-center justify-center mb-4">
-                <FaBookOpen className="text-sm" />
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/20 flex items-center justify-center mb-2 sm:mb-4">
+                <FaBookOpen className="text-xs sm:text-sm" />
               </div>
               <div>
                 <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Exam Instructions</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-1.5">Guidelines & rules</p>
+                <p className="text-[9px] sm:text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-1">Guidelines & rules</p>
               </div>
             </div>
 
             {/* Button 3: Study Materials */}
             <div 
               onClick={() => navigate("/student/about")}
-              className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-amber-500/30 rounded-3xl p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
+              className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-amber-500/30 rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
             >
-              <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center mb-4">
-                <FaBookOpen className="text-sm" />
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center mb-2 sm:mb-4">
+                <FaBookOpen className="text-xs sm:text-sm" />
               </div>
               <div>
                 <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Study Materials</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-1.5">Notes & resources</p>
+                <p className="text-[9px] sm:text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-1">Notes & resources</p>
               </div>
             </div>
 
             {/* Button 4: Performance */}
             <div 
               onClick={() => navigate("/student/dashboard")}
-              className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-emerald-500/30 rounded-3xl p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
+              className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-emerald-500/30 rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
             >
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center mb-4">
-                <FaChartPie className="text-sm" />
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center mb-2 sm:mb-4">
+                <FaChartPie className="text-xs sm:text-sm" />
               </div>
               <div>
                 <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Performance</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-1.5">Detailed analytics</p>
+                <p className="text-[9px] sm:text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-1">Detailed analytics</p>
               </div>
             </div>
 

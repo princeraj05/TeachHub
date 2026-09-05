@@ -164,7 +164,7 @@ export default function StudentPayments() {
         <Stat label="Validity Remaining" value={summary?.remainingDays ? `${summary.remainingDays} Days` : "—"} />
       </div>
 
-      <section className="rounded-2xl bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 p-6 shadow-sm flex flex-col sm:flex-row justify-between gap-5">
+      <section className="rounded-2.5xl sm:rounded-3xl bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 p-4 sm:p-6 shadow-sm flex flex-col sm:flex-row justify-between gap-5">
         <div>
           <div className="flex items-center gap-2 text-[#7C3AED] font-bold"><FaCreditCard /> Current school fee</div>
           <p className="mt-3 text-3xl font-extrabold text-slate-800 dark:text-white">{isPlanConfigured ? money(plan.monthlyFee) : "Not configured"}</p>
@@ -217,16 +217,16 @@ export default function StudentPayments() {
         </div>
       </section>
 
-      <section className="rounded-2xl bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 overflow-hidden">
-        <div className="p-5 border-b border-slate-100 dark:border-white/10 font-bold text-slate-800 dark:text-white flex justify-between items-center">
+      <section className="rounded-2.5xl sm:rounded-3xl bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm">
+        <div className="p-3.5 sm:p-5 border-b border-slate-100 dark:border-white/10 font-bold text-slate-800 dark:text-white flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div><FaHistory className="inline mr-2 text-[#7C3AED]" />Payment history & receipts</div>
-          <span className="text-xs font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 px-3 py-1 rounded-full border border-purple-200 dark:border-purple-900/50">
+          <span className="text-xs font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 px-3 py-1 rounded-full border border-purple-200 dark:border-purple-900/50 self-start sm:self-auto">
             Total Paid: {money(totalPaid)}
           </span>
         </div>
         <div className="divide-y divide-slate-100 dark:divide-white/10">
           {payments.length ? payments.map(p => (
-            <div key={p._id} className="p-4 flex flex-wrap items-center justify-between gap-2 text-sm">
+            <div key={p._id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm">
               <div>
                 <p className="font-bold text-slate-800 dark:text-white">
                   {money(p.amount)} · {p.purpose.replaceAll("_", " ")}
@@ -235,7 +235,7 @@ export default function StudentPayments() {
                   {new Date(p.createdAt).toLocaleDateString()} {p.receiptNumber ? ` · Receipt ${p.receiptNumber}` : ""}
                 </p>
               </div>
-              <div className="flex gap-2 items-center">
+              <div className="flex gap-2 items-center flex-wrap">
                 <span className={`rounded-full px-3 py-1 text-xs font-bold ${
                   p.status === "Successful" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300" :
                   p.status === "PendingVerification" ? "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" :
@@ -257,20 +257,20 @@ export default function StudentPayments() {
                     } catch (err) {
                       setMessage(err.response?.data?.message || "Failed to verify payment status.");
                     }
-                  }} className="rounded-lg border border-indigo-300 px-2 py-1 text-xs font-bold text-indigo-600 hover:bg-indigo-50">
+                  }} className="rounded-lg border border-indigo-300 px-2.5 py-1 text-xs font-bold text-indigo-600 hover:bg-indigo-50 cursor-pointer">
                     Verify
                   </button>
                 )}
                 {p.receiptNumber && (
                   <>
-                    <button onClick={() => getReceipt(p._id, false)} className="rounded-lg border px-2 py-1 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800">View</button>
-                    <button onClick={() => getReceipt(p._id, true)} className="rounded-lg border px-2 py-1 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800">Download</button>
+                    <button onClick={() => getReceipt(p._id, false)} className="rounded-lg border border-slate-200 dark:border-white/10 px-2.5 py-1 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">View</button>
+                    <button onClick={() => getReceipt(p._id, true)} className="rounded-lg border border-slate-200 dark:border-white/10 px-2.5 py-1 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">Download</button>
                   </>
                 )}
               </div>
             </div>
           )) : (
-            <p className="p-6 text-sm text-slate-500">No payments yet.</p>
+            <p className="p-5 text-sm text-slate-500 font-medium">No payments yet.</p>
           )}
         </div>
       </section>
@@ -280,9 +280,9 @@ export default function StudentPayments() {
 
 function Stat({ label, value, highlight }) {
   return (
-    <div className={`rounded-xl bg-white dark:bg-[#0B132A] border p-4 text-sm ${highlight ? "border-purple-300 dark:border-purple-800 bg-purple-50/30 dark:bg-purple-950/10" : "border-slate-200 dark:border-white/10"}`}>
-      <b className="text-slate-500 text-xs uppercase tracking-wider">{label}</b>
-      <p className={`text-lg font-extrabold mt-1 ${highlight ? "text-purple-600 dark:text-purple-400" : "text-slate-800 dark:text-white"}`}>{value}</p>
+    <div className={`rounded-2.5xl sm:rounded-3xl bg-white dark:bg-[#0B132A] border p-3 sm:p-4 text-sm ${highlight ? "border-purple-300 dark:border-purple-800 bg-purple-50/30 dark:bg-purple-950/10" : "border-slate-200 dark:border-white/10"}`}>
+      <b className="text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider block">{label}</b>
+      <p className={`text-base sm:text-lg font-extrabold mt-1 truncate ${highlight ? "text-purple-600 dark:text-purple-400" : "text-slate-800 dark:text-white"}`}>{value}</p>
     </div>
   );
 }

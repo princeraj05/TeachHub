@@ -121,7 +121,7 @@ function LiveProctoring() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
         {/* Left Side: Candidates List (1 col) */}
         <div className="lg:col-span-1 space-y-4">
-          <div className="bg-white dark:bg-[#0B132A] rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-sm p-4">
+          <div className="bg-white dark:bg-[#0B132A] rounded-2.5xl sm:rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm p-3.5 sm:p-4">
             <h3 className="text-xs font-black uppercase tracking-widest text-[#7C3AED] dark:text-[#38BDF8] mb-3 px-1">
               Active Candidates
             </h3>
@@ -177,7 +177,7 @@ function LiveProctoring() {
         {/* Right Side: Streaming Canvas (3 cols) */}
         <div className="lg:col-span-3">
           {selectedStudent ? (
-            <div className="bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl p-6 space-y-6">
+            <div className="bg-white dark:bg-[#0B132A] rounded-2.5xl sm:rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl p-4 sm:p-6 space-y-6">
               {/* Active Header */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 dark:border-white/5 pb-4 gap-3">
                 <div className="flex items-center gap-3">

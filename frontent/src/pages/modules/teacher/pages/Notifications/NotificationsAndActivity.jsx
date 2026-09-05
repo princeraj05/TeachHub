@@ -288,52 +288,52 @@ function NotificationsAndActivity() {
         <div className="flex flex-col gap-6">
           
           {/* Notification Summary */}
-          <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-3.5 sm:p-5 rounded-2.5xl sm:rounded-3xl shadow-sm">
             <div className="pb-3 border-b border-slate-100 dark:border-white/[0.03] mb-4 select-none">
               <h3 className="text-xs font-black uppercase text-slate-450 tracking-wider">Notification Summary</h3>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 select-none">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-4 select-none">
               {/* Total Box */}
-              <div className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.03] flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-500 border border-purple-500/15 flex items-center justify-center shrink-0">
+              <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.03] flex items-center gap-2.5 sm:gap-3">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 text-purple-500 border border-purple-500/15 flex items-center justify-center shrink-0">
                   <FaBell className="text-xs" />
                 </div>
                 <div>
-                  <span className="text-lg font-black text-slate-900 dark:text-white leading-none block">{summary.total}</span>
+                  <span className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-none block">{summary.total}</span>
                   <span className="text-[7px] font-bold text-slate-450 uppercase tracking-wide block mt-1">Total alerts</span>
                 </div>
               </div>
 
               {/* Unread Box */}
-              <div className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.03] flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/15 flex items-center justify-center shrink-0">
+              <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.03] flex items-center gap-2.5 sm:gap-3">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/15 flex items-center justify-center shrink-0">
                   <FaCheckCircle className="text-xs" />
                 </div>
                 <div>
-                  <span className="text-lg font-black text-slate-900 dark:text-white leading-none block">{summary.unread}</span>
+                  <span className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-none block">{summary.unread}</span>
                   <span className="text-[7px] font-bold text-slate-450 uppercase tracking-wide block mt-1">Unread Alerts</span>
                 </div>
               </div>
 
               {/* This Week */}
-              <div className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.03] flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 border border-blue-500/15 flex items-center justify-center shrink-0">
+              <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.03] flex items-center gap-2.5 sm:gap-3">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 text-blue-500 border border-blue-500/15 flex items-center justify-center shrink-0">
                   <FaCalendarWeek className="text-xs" />
                 </div>
                 <div>
-                  <span className="text-lg font-black text-slate-900 dark:text-white leading-none block">{summary.thisWeek}</span>
+                  <span className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-none block">{summary.thisWeek}</span>
                   <span className="text-[7px] font-bold text-slate-450 uppercase tracking-wide block mt-1">This Week</span>
                 </div>
               </div>
 
               {/* This Month */}
-              <div className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.03] flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/15 flex items-center justify-center shrink-0">
+              <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.03] flex items-center gap-2.5 sm:gap-3">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/15 flex items-center justify-center shrink-0">
                   <FaCalendarCheck className="text-xs" />
                 </div>
                 <div>
-                  <span className="text-lg font-black text-slate-900 dark:text-white leading-none block">{summary.thisMonth}</span>
+                  <span className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-none block">{summary.thisMonth}</span>
                   <span className="text-[7px] font-bold text-slate-450 uppercase tracking-wide block mt-1">This Month</span>
                 </div>
               </div>

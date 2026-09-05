@@ -687,7 +687,7 @@ function MyClasses() {
             return (
               <div
                 key={c._id}
-                className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative flex flex-col justify-between group"
+                className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-4 sm:p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative flex flex-col justify-between group"
               >
                 {/* Header card row */}
                 <div className="flex justify-between items-start mb-4">

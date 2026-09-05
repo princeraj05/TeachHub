@@ -166,27 +166,27 @@ function StudentAttendance() {
         </div>
       </div>
 
-      {/* Statistics Cards Row Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Top Cards grid row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         
         {/* Card 1: Total Sessions */}
-        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm overflow-hidden">
-          <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/25 flex items-center justify-center mb-4">
-            <FaCalendarAlt className="text-sm" />
+        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm overflow-hidden">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/25 flex items-center justify-center mb-2 sm:mb-4">
+            <FaCalendarAlt className="text-xs sm:text-sm" />
           </div>
-          <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{stats.total}</p>
+          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{stats.total}</p>
           <div className="flex justify-between items-center text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">
             <span>TOTAL SESSIONS</span>
-            <span className="text-[9px] lowercase text-[#7C3AED] dark:text-[#A78BFA]">Live Records</span>
+            <span className="text-[9px] lowercase text-[#7C3AED] dark:text-[#A78BFA] hidden sm:inline">Live</span>
           </div>
         </div>
 
         {/* Card 2: Present */}
-        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm overflow-hidden">
-          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/25 flex items-center justify-center mb-4">
-            <FaCheckCircle className="text-sm" />
+        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm overflow-hidden">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/25 flex items-center justify-center mb-2 sm:mb-4">
+            <FaCheckCircle className="text-xs sm:text-sm" />
           </div>
-          <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{stats.present}</p>
+          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{stats.present}</p>
           <div className="flex justify-between items-center text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">
             <span>PRESENT</span>
             <span className="text-[9px] text-emerald-500 font-bold">{stats.presentRate}%</span>
@@ -194,11 +194,11 @@ function StudentAttendance() {
         </div>
 
         {/* Card 3: Absent */}
-        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm overflow-hidden">
-          <div className="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/25 flex items-center justify-center mb-4">
-            <FaTimesCircle className="text-sm" />
+        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm overflow-hidden">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/25 flex items-center justify-center mb-2 sm:mb-4">
+            <FaTimesCircle className="text-xs sm:text-sm" />
           </div>
-          <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{stats.absent}</p>
+          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{stats.absent}</p>
           <div className="flex justify-between items-center text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">
             <span>ABSENT</span>
             <span className="text-[9px] text-rose-500 font-bold">{stats.absentRate}%</span>
@@ -206,13 +206,13 @@ function StudentAttendance() {
         </div>
 
         {/* Card 4: Attendance Rate */}
-        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm overflow-hidden">
-          <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/25 flex items-center justify-center mb-4">
-            <FaChartPie className="text-sm" />
+        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm overflow-hidden">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/25 flex items-center justify-center mb-2 sm:mb-4">
+            <FaChartPie className="text-xs sm:text-sm" />
           </div>
-          <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{stats.presentRate}%</p>
+          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{stats.presentRate}%</p>
           <div className="flex justify-between items-center text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">
-            <span>ATTENDANCE RATE</span>
+            <span>RATE</span>
             <span className="text-[9px] inline-flex items-center gap-1 text-emerald-500 font-bold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Good
             </span>
@@ -222,7 +222,7 @@ function StudentAttendance() {
       </div>
 
       {/* Attendance Overview layout block */}
-      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-sm">
+      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
         <div className="flex items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100 dark:border-white/5">
           <h3 className="text-sm font-black text-slate-900 dark:text-white tracking-tight">Attendance Overview</h3>
           

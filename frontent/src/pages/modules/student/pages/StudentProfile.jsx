@@ -79,7 +79,7 @@ function StudentProfile() {
     <div style={{ fontFamily: SORA }} className="space-y-6 max-w-5xl mx-auto pb-12 select-none text-left">
       
       {/* 1. Hero Identity Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#3B82F6] p-6 sm:p-8 text-white shadow-xl shadow-[#7C3AED]/20">
+      <div className="relative overflow-hidden rounded-2.5xl sm:rounded-3xl bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#3B82F6] p-4 sm:p-7 text-white shadow-xl shadow-[#7C3AED]/20">
         {/* Ambient Glow Effects */}
         <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-white/10 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-black/10 blur-2xl pointer-events-none" />
@@ -196,7 +196,7 @@ function StudentProfile() {
         {/* Left Column (2 Cols): Student Account Details Card */}
         <div className="lg:col-span-2 space-y-6">
           
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-sm space-y-5">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-2.5xl sm:rounded-3xl p-4 sm:p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5">
               <div>
                 <h3 className="text-base font-black text-slate-900 dark:text-white">Account Details</h3>
@@ -313,7 +313,7 @@ function StudentProfile() {
         <div className="space-y-6">
           
           {/* App Preferences Box */}
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-3xl p-5 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm space-y-3.5">
             <div className="pb-3 border-b border-slate-100 dark:border-white/5">
               <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">App Preferences</h3>
               <p className="text-[10px] text-slate-400 font-bold">Theme, language & settings</p>

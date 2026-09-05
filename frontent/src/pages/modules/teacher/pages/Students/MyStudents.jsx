@@ -655,9 +655,9 @@ function MyStudents() {
       </div>
 
       {/* Top Stats Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-5">
         {/* Total Students */}
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-5 relative overflow-hidden flex flex-col justify-between group shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 relative overflow-hidden flex flex-col justify-between group shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-[9px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total Students</p>

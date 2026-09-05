@@ -303,42 +303,42 @@ function StudentSubjects() {
       </div>
 
       {/* Metrics Stats Row Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4">
         
         {/* Card 1: Total Subjects */}
-        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm overflow-hidden">
-          <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/25 flex items-center justify-center mb-4">
-            <FaBookOpen className="text-sm" />
+        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm overflow-hidden">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/25 flex items-center justify-center mb-2 sm:mb-4">
+            <FaBookOpen className="text-xs sm:text-sm" />
           </div>
-          <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{metrics.total}</p>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">Total Subjects</p>
+          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{metrics.total}</p>
+          <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">Total Subjects</p>
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-purple-600 dark:bg-purple-500" />
         </div>
 
         {/* Card 2: Active Subjects */}
-        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm overflow-hidden">
-          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/25 flex items-center justify-center mb-4">
-            <FaClipboardCheck className="text-sm" />
+        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm overflow-hidden">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/25 flex items-center justify-center mb-2 sm:mb-4">
+            <FaClipboardCheck className="text-xs sm:text-sm" />
           </div>
-          <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{metrics.active}</p>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">Active Subjects</p>
+          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{metrics.active}</p>
+          <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">Active Subjects</p>
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-emerald-500" />
         </div>
 
         {/* Card 3: Average Progress */}
-        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm overflow-hidden">
-          <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/25 flex items-center justify-center mb-4">
-            <FaChartPie className="text-sm" />
+        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm overflow-hidden col-span-2 sm:col-span-1">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/25 flex items-center justify-center mb-2 sm:mb-4">
+            <FaChartPie className="text-xs sm:text-sm" />
           </div>
-          <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{metrics.avgProgress}%</p>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">Average Progress</p>
+          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{metrics.avgProgress}%</p>
+          <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">Average Progress</p>
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 dark:bg-blue-500" />
         </div>
 
       </div>
 
       {/* Filter and Search Bar Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-1 sm:py-2">
         {/* Search input bar */}
         <div className="relative flex-1 max-w-md">
           <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-405 dark:text-slate-500 text-xs" />
@@ -347,7 +347,7 @@ function StudentSubjects() {
             placeholder="Search subjects or teachers..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-2xl pl-10 pr-10 py-3 text-xs font-bold focus:outline-none focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] transition-all placeholder:text-slate-400"
+            className="w-full bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-2xl pl-10 pr-10 py-2.5 sm:py-3 text-xs font-bold focus:outline-none focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] transition-all placeholder:text-slate-400"
           />
           {searchQuery && (
             <button
@@ -360,14 +360,14 @@ function StudentSubjects() {
         </div>
 
         {/* Status toggle pill switcher */}
-        <div className="flex bg-slate-100 dark:bg-[#0B132A] p-1.5 rounded-2xl border border-slate-250/60 dark:border-white/[0.06] select-none self-start sm:self-auto">
+        <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-[#0B132A] p-1.5 rounded-2xl border border-slate-250/60 dark:border-white/[0.06] select-none self-start sm:self-auto">
           {["All", "Active", "Completed"].map((filter) => {
             const isActive = activeFilter === filter;
             return (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`px-4.5 py-1.5 rounded-xl text-xs font-black tracking-wide transition-all cursor-pointer ${
+                className={`px-3 sm:px-4.5 py-1.5 rounded-xl text-xs font-black tracking-wide transition-all cursor-pointer ${
                   isActive
                     ? "bg-[#2563EB] text-white shadow-sm"
                     : "text-slate-505 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -382,13 +382,13 @@ function StudentSubjects() {
 
       {/* Subject Cards list */}
       {filteredSubjects.length > 0 ? (
-        <div className="grid grid-cols-1 gap-5">
+        <div className="grid grid-cols-1 gap-4 sm:gap-5">
           {filteredSubjects.map((sub) => {
             const visuals = getSubjectVisuals(sub.name);
             return (
               <div
                 key={sub._id}
-                className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-slate-350 dark:hover:border-white/15 rounded-3xl p-5 shadow-sm hover:shadow-md transition-all duration-200"
+                className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-slate-350 dark:hover:border-white/15 rounded-2.5xl sm:rounded-3xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all duration-200"
               >
                 {/* Header Section */}
                 <div className="flex items-center justify-between gap-4 mb-4 select-none">

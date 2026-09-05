@@ -1,1 +1,95 @@
-import { useEffect,useState } from "react";import axios from "axios";export default function TeacherOnLeave(){const API=import.meta.env.VITE_API_URL,[data,setData]=useState([]),[error,setError]=useState("");useEffect(()=>{axios.get(`${API}/api/teacher-leaves/active/list`,{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}}).then(r=>setData(r.data)).catch(e=>setError(e.response?.data?.message||"Could not load leave information"))},[]);return <div className="max-w-3xl mx-auto space-y-5"><h1 className="text-2xl font-extrabold dark:text-white">Teacher On Leave</h1>{error&&<p className="text-rose-600">{error}</p>}{data.length===0?<p className="rounded-2xl bg-white dark:bg-[#0B132A] border p-8 text-slate-500">No teachers are currently on approved leave.</p>:data.map(x=><div className="rounded-2xl bg-white dark:bg-[#0B132A] border p-5 dark:text-white" key={x._id}><b>{x.teacher?.name}</b>{x.subject&&<p className="mt-1 text-sm text-slate-500">Subject: {x.subject}</p>}<p className="text-sm text-slate-500">{new Date(x.startDate).toLocaleDateString()} – {new Date(x.endDate).toLocaleDateString()} · {x.status}</p></div>)}</div>}
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { FaUserTimes, FaCalendarAlt, FaBookOpen } from "react-icons/fa";
+
+const SORA = "'Sora', sans-serif";
+
+export default function TeacherOnLeave() {
+  const API = import.meta.env.VITE_API_URL;
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    setLoading(true);
+    axios
+      .get(`${API}/api/teacher-leaves/active/list`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      })
+      .then((r) => setData(r.data))
+      .catch((e) => setError(e.response?.data?.message || "Could not load leave information"))
+      .finally(() => setLoading(false));
+  }, [API]);
+
+  return (
+    <div style={{ fontFamily: SORA }} className="max-w-4xl mx-auto space-y-5 pb-12 select-none text-left">
+      {/* Header */}
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA]">
+          FACULTY UPDATES
+        </p>
+        <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5">
+          Teacher On Leave
+        </h1>
+        <p className="text-xs text-slate-450 dark:text-slate-400 font-semibold mt-0.5">
+          View teachers who are currently on leave or scheduled absence.
+        </p>
+      </div>
+
+      {error && (
+        <div className="rounded-2xl bg-rose-500/10 border border-rose-500/20 p-4 text-xs font-bold text-rose-600 dark:text-rose-400">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="py-20 text-center flex flex-col items-center justify-center">
+          <div className="w-8 h-8 border-4 border-[#7C3AED] border-t-transparent rounded-full animate-spin mb-3" />
+          <p className="text-xs font-bold text-slate-400">Checking faculty attendance...</p>
+        </div>
+      ) : data.length === 0 ? (
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-6 sm:p-10 text-center shadow-sm flex flex-col items-center justify-center gap-3">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center text-2xl">
+            <FaUserTimes />
+          </div>
+          <h3 className="text-sm font-black text-slate-800 dark:text-white">All Teachers Present</h3>
+          <p className="text-xs text-slate-450 dark:text-slate-400 font-medium max-w-sm">
+            No teachers are currently on approved leave. All scheduled classes will proceed normally.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+          {data.map((x) => (
+            <div
+              key={x._id}
+              className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-4 sm:p-5 shadow-sm space-y-3 flex flex-col justify-between"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white leading-tight">
+                    {x.teacher?.name || "Instructor"}
+                  </h3>
+                  {x.subject && (
+                    <p className="text-[11px] font-bold text-[#7C3AED] dark:text-[#A78BFA] mt-1 flex items-center gap-1.5">
+                      <FaBookOpen className="text-[10px]" /> {x.subject}
+                    </p>
+                  )}
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[9px] font-black uppercase tracking-wider shrink-0">
+                  {x.status || "On Leave"}
+                </span>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                <span className="flex items-center gap-1.5">
+                  <FaCalendarAlt className="text-slate-400" />
+                  {new Date(x.startDate).toLocaleDateString()} – {new Date(x.endDate).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

@@ -104,9 +104,9 @@ function ExamSchedule() {
       </div>
 
       {/* Summary KPI Cards - 100% Real Database Data */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4 mb-6">
         {/* Upcoming Exams */}
-        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm flex items-center gap-4">
+        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-3.5 sm:p-4 rounded-2.5xl sm:rounded-3xl shadow-sm flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 border border-purple-500/15 flex items-center justify-center shrink-0">
             <FaCalendarAlt className="text-sm" />
           </div>

@@ -197,7 +197,7 @@ function SchoolDirectory() {
             const cardBgColor = getSchoolDetails(school.name, "color");
 
             return (
-              <div key={school._id} className="w-full bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm p-6 flex flex-col gap-5 text-left transition hover:shadow-md duration-200">
+              <div key={school._id} className="w-full bg-white dark:bg-[#0B132A] rounded-2.5xl sm:rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm p-3.5 sm:p-5 flex flex-col gap-3.5 sm:gap-5 text-left transition hover:shadow-md duration-200">
                 
                 {/* School Card Header Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -233,54 +233,54 @@ function SchoolDirectory() {
                 </div>
 
                 {/* Stats Row Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-50 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.04] p-4 rounded-2.5xl">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 bg-slate-50 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.04] p-3 sm:p-4 rounded-2.5xl">
                   {/* Students stat */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 border border-purple-500/20">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 border border-purple-500/20">
                       <FaUser className="text-xs" />
                     </div>
                     <div>
                       <p className="text-xs font-extrabold text-slate-950 dark:text-white leading-none">{getSchoolDetails(school.name, "students", school.totalStudents)}</p>
-                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1.5 uppercase tracking-wider">Students</p>
+                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1 uppercase tracking-wider">Students</p>
                     </div>
                   </div>
 
                   {/* Teachers stat */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0 border border-blue-500/20">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0 border border-blue-500/20">
                       <FaGraduationCap className="text-xs" />
                     </div>
                     <div>
                       <p className="text-xs font-extrabold text-slate-955 dark:text-white leading-none">{getSchoolDetails(school.name, "teachers", school.totalTeachers)}</p>
-                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1.5 uppercase tracking-wider">Teachers</p>
+                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1 uppercase tracking-wider">Teachers</p>
                     </div>
                   </div>
 
                   {/* Classes stat */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 border border-amber-500/20">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 border border-amber-500/20">
                       <FaBook className="text-xs" />
                     </div>
                     <div>
-                      <p className="text-xs font-extrabold text-slate-950 dark:text-white leading-none">{getSchoolDetails(school.name, "classes", school.totalClasses)}</p>
-                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1.5 uppercase tracking-wider">Classes</p>
+                      <p className="text-xs font-extrabold text-slate-955 dark:text-white leading-none">{getSchoolDetails(school.name, "classes", school.totalClasses)}</p>
+                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1 uppercase tracking-wider">Classes</p>
                     </div>
                   </div>
 
                   {/* Events stat */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20">
                       <FaCalendarAlt className="text-xs" />
                     </div>
                     <div>
-                      <p className="text-xs font-extrabold text-slate-950 dark:text-white leading-none">{getSchoolDetails(school.name, "events", school.totalEvents)}</p>
-                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1.5 uppercase tracking-wider">Events</p>
+                      <p className="text-xs font-extrabold text-slate-955 dark:text-white leading-none">{getSchoolDetails(school.name, "events", school.totalEvents)}</p>
+                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1 uppercase tracking-wider">Events</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Actions Bottom Bar */}
-                <div className="flex items-center gap-3 w-full border-t border-slate-100 dark:border-white/5 pt-4">
+                <div className="flex items-center gap-2.5 sm:gap-3 w-full border-t border-slate-100 dark:border-white/5 pt-3 sm:pt-4">
                   <button
                     onClick={() => handleViewDetails(school.name)}
                     className="flex-1 border border-slate-200/60 dark:border-white/10 text-slate-655 dark:text-slate-300 py-3 rounded-2xl text-xs font-bold transition hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer text-center font-sans"

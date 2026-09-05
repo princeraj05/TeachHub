@@ -195,54 +195,54 @@ function TeacherLeave() {
         </div>
       </div>
 
-      {/* KPI Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* KPI Cards Row (2 COLUMNS ON MOBILE) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-6">
         
         {/* Total Balance */}
-        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 border border-purple-500/15 flex items-center justify-center shrink-0">
-            <FaCalendarDay className="text-sm" />
+        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-3.5 sm:p-4 rounded-2.5xl sm:rounded-3xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-purple-500/10 text-purple-500 border border-purple-500/15 flex items-center justify-center shrink-0">
+            <FaCalendarDay className="text-xs sm:text-sm" />
           </div>
           <div>
             <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Total Leave Balance</p>
-            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{summary.totalBalance} Days</span>
-            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">As of today</p>
+            <span className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{summary.totalBalance} Days</span>
+            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-0.5 font-semibold">As of today</p>
           </div>
         </div>
 
         {/* Approved Leaves */}
-        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/15 flex items-center justify-center shrink-0">
-            <FaCheckCircle className="text-sm" />
+        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-3.5 sm:p-4 rounded-2.5xl sm:rounded-3xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/15 flex items-center justify-center shrink-0">
+            <FaCheckCircle className="text-xs sm:text-sm" />
           </div>
           <div>
             <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Approved Leaves</p>
-            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{summary.approved} Days</span>
-            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">This Year</p>
+            <span className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{summary.approved} Days</span>
+            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-0.5 font-semibold">This Year</p>
           </div>
         </div>
 
         {/* Pending Requests */}
-        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/15 flex items-center justify-center shrink-0">
-            <FaClock className="text-sm" />
+        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-3.5 sm:p-4 rounded-2.5xl sm:rounded-3xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/15 flex items-center justify-center shrink-0">
+            <FaClock className="text-xs sm:text-sm" />
           </div>
           <div>
             <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Pending Requests</p>
-            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{summary.pending} Day(s)</span>
-            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">Awaiting Approval</p>
+            <span className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{summary.pending} Day(s)</span>
+            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-0.5 font-semibold">Awaiting Approval</p>
           </div>
         </div>
 
         {/* Rejected Leaves */}
-        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/15 flex items-center justify-center shrink-0">
-            <FaTimesCircle className="text-sm" />
+        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-3.5 sm:p-4 rounded-2.5xl sm:rounded-3xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/15 flex items-center justify-center shrink-0">
+            <FaTimesCircle className="text-xs sm:text-sm" />
           </div>
           <div>
             <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Rejected Leaves</p>
-            <span className="text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{summary.rejected} Day(s)</span>
-            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">This Year</p>
+            <span className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-0.5 block">{summary.rejected} Day(s)</span>
+            <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-0.5 font-semibold">This Year</p>
           </div>
         </div>
 
