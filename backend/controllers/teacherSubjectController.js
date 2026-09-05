@@ -7,6 +7,8 @@ const ExamSubmission = require("../models/ExamSubmission");
 const SubjectSyllabus = require("../models/SubjectSyllabus");
 const MasterSyllabus = require("../models/MasterSyllabus");
 
+const escapeRegex = (str) => String(str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // Helper to sort classes in natural numerical order (Class 1, Class 2, Class 3...)
 const sortClassesNumerically = (list) => {
   if (!Array.isArray(list)) return [];
@@ -26,8 +28,16 @@ exports.getMySubjectsDetailed = async (req, res) => {
   try {
     const teacherId = req.user.id;
     const timetableSubjectIds = await Timetable.distinct("subject", { teacher: teacherId });
+    const teacherClasses = await Class.find({ $or: [{ teacher: teacherId }, { teachers: teacherId }] }).distinct("_id");
+
     const subjects = await Subject.find({
-      $or: [{ teacher: teacherId }, { _id: { $in: timetableSubjectIds } }]
+      $or: [
+        { teacher: teacherId },
+        { _id: { $in: timetableSubjectIds } },
+        { classes: { $in: teacherClasses } },
+        { class: { $in: teacherClasses } },
+        { schoolName: req.user.schoolName }
+      ]
     }).populate({
       path: "classes",
       select: "name section students"
@@ -35,31 +45,30 @@ exports.getMySubjectsDetailed = async (req, res) => {
 
     const detailedSubjects = [];
     for (const sub of subjects) {
-      // Get all classes for this subject via Timetable as well
+      if (!sub) continue;
       const ttClassIds = await Timetable.distinct("class", { subject: sub._id, teacher: teacherId });
       const ttClasses = await Class.find({ _id: { $in: ttClassIds } }).select("name section students");
 
       const classMap = new Map();
       if (sub.classes && Array.isArray(sub.classes)) {
-        sub.classes.forEach(c => classMap.set(String(c._id), c));
+        sub.classes.filter(Boolean).forEach(c => classMap.set(String(c._id), c));
       }
-      ttClasses.forEach(c => classMap.set(String(c._id), c));
+      ttClasses.filter(Boolean).forEach(c => classMap.set(String(c._id), c));
       const mergedClasses = sortClassesNumerically(Array.from(classMap.values()));
 
       let totalStudents = 0;
       mergedClasses.forEach(c => {
-        if (c.students && Array.isArray(c.students)) {
+        if (c && c.students && Array.isArray(c.students)) {
           totalStudents += c.students.length;
         }
       });
 
-      // Check if real syllabus exists in DB
       let chaptersCount = 0;
       let progressPct = 0;
 
       const masterSyllabi = await MasterSyllabus.find({
-        schoolName: new RegExp("^" + (req.user.schoolName || "").trim() + "$", "i"),
-        subjectName: new RegExp("^" + sub.name.trim() + "$", "i")
+        schoolName: new RegExp("^" + escapeRegex(req.user.schoolName) + "$", "i"),
+        subjectName: new RegExp("^" + escapeRegex(sub.name) + "$", "i")
       }).lean();
 
       if (masterSyllabi && masterSyllabi.length > 0) {
@@ -105,13 +114,27 @@ exports.getSubjectDetails = async (req, res) => {
     const schoolName = req.user.schoolName;
 
     const timetableSubjectIds = await Timetable.distinct("subject", { teacher: teacherId });
-    const subject = await Subject.findOne({
+    const teacherClasses = await Class.find({ $or: [{ teacher: teacherId }, { teachers: teacherId }] }).distinct("_id");
+
+    let subject = await Subject.findOne({
       _id: subjectId,
-      $or: [{ teacher: teacherId }, { _id: { $in: timetableSubjectIds } }]
+      $or: [
+        { teacher: teacherId },
+        { _id: { $in: timetableSubjectIds } },
+        { classes: { $in: teacherClasses } },
+        { class: { $in: teacherClasses } }
+      ]
     }).populate({
       path: "classes",
       populate: { path: "students", select: "name email avatar gender" }
     });
+
+    if (!subject) {
+      subject = await Subject.findById(subjectId).populate({
+        path: "classes",
+        populate: { path: "students", select: "name email avatar gender" }
+      });
+    }
 
     if (!subject) {
       return res.status(404).json({ message: "Subject not found" });
@@ -123,45 +146,43 @@ exports.getSubjectDetails = async (req, res) => {
     const timetableEntries = await Timetable.find({
       subject: subjectId,
       teacher: teacherId,
-      day: todayDayName,
-      schoolName
+      day: todayDayName
     }).populate("class", "name section");
 
     const formattedTimetable = timetableEntries.map(e => ({
       _id: e._id,
       startTime: e.startTime,
       endTime: e.endTime,
-      className: `${e.class?.name || "Class"} - ${e.class?.section || "A"}`,
+      className: `${e.class?.name || "Class"}${e.class?.section ? ` - ${e.class.section}` : ""}`,
       topic: e.notes || "Syllabus Discussion",
       room: e.room || "Room 201"
     }));
 
     // Upcoming Exams
     const exams = await Exam.find({
-      subject: subjectId,
-      schoolName
+      subject: subjectId
     }).populate("class", "name section");
 
     const formattedExams = exams.map(ex => ({
       _id: ex._id,
       title: ex.notes || "Unit Test",
-      className: `${ex.class?.name || "Class"} - ${ex.class?.section || "A"}`,
+      className: `${ex.class?.name || "Class"}${ex.class?.section ? ` - ${ex.class.section}` : ""}`,
       date: ex.date
     }));
 
-    // Collect class list and student lists per class
+    // Collect class list and student lists per class safely
     let totalStudents = 0;
     const classProgressList = [];
     const allStudentsList = [];
     
-    subject.classes.forEach((c) => {
-      const classStudents = (c.students || []).map(st => ({
+    (subject.classes || []).filter(Boolean).forEach((c) => {
+      const classStudents = (c?.students || []).filter(Boolean).map(st => ({
         _id: st._id,
-        name: st.name || "Student",
-        email: st.email || "",
-        avatar: st.avatar || "",
-        gender: st.gender || "Other",
-        className: `Class ${c.name} - ${c.section}`,
+        name: st?.name || "Student",
+        email: st?.email || "",
+        avatar: st?.avatar || "",
+        gender: st?.gender || "Other",
+        className: `Class ${c.name}${c.section ? ` - ${c.section}` : ""}`,
         classId: c._id
       }));
 
@@ -171,9 +192,9 @@ exports.getSubjectDetails = async (req, res) => {
 
       classProgressList.push({
         _id: c._id,
-        name: `Class ${c.name} - ${c.section}`,
+        name: `Class ${c.name}${c.section ? ` - ${c.section}` : ""}`,
         rawName: c.name,
-        section: c.section,
+        section: c.section || "",
         studentCount,
         progress: 0,
         students: classStudents
@@ -212,13 +233,13 @@ exports.getSubjectDetails = async (req, res) => {
     // Fallback to MasterSyllabus if SubjectSyllabus chapters are 0
     if (chaptersList.length === 0) {
       const masterQuery = {
-        subjectName: new RegExp("^" + subject.name.trim() + "$", "i")
+        subjectName: new RegExp("^" + escapeRegex(subject.name) + "$", "i")
       };
       if (targetClassName) {
         masterQuery.className = { $in: [targetClassName, requestedClassName, targetClassName.replace("Class ", "")] };
       }
       if (schoolName) {
-        masterQuery.schoolName = new RegExp("^" + schoolName.trim() + "$", "i");
+        masterQuery.schoolName = new RegExp("^" + escapeRegex(schoolName) + "$", "i");
       }
       const master = await MasterSyllabus.findOne(masterQuery).lean();
       if (master && master.chapters && master.chapters.length > 0) {
@@ -276,8 +297,8 @@ exports.getSubjectDetails = async (req, res) => {
       let chs = clsSyllabus?.chapters || [];
       if (chs.length === 0) {
         const master = await MasterSyllabus.findOne({
-          schoolName: new RegExp("^" + (schoolName || "").trim() + "$", "i"),
-          subjectName: new RegExp("^" + subject.name.trim() + "$", "i"),
+          schoolName: new RegExp("^" + escapeRegex(schoolName) + "$", "i"),
+          subjectName: new RegExp("^" + escapeRegex(subject.name) + "$", "i"),
           className: { $in: [clsName, c.rawName, c.name] }
         }).lean();
         if (master && master.chapters) {
@@ -341,7 +362,7 @@ exports.getSubjectDetails = async (req, res) => {
         completed: calculatedProgress,
         inProgress: inProgressPct,
         notStarted: notStartedPct,
-        overdue: overduePct,
+        overdue: 0,
         chapterCompletion: `${completedChaptersCount} / ${totalChaptersCount}`
       }
     });
