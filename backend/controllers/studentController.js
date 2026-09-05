@@ -72,34 +72,82 @@ exports.getStudentDashboard = async (req, res) => {
 
 // ================= GET STUDENT SUBJECTS =================
 
-exports.getStudentSubjects = async (req,res)=>{
-
-  try{
-
+exports.getStudentSubjects = async (req, res) => {
+  try {
     const studentId = req.user.id;
+    const SubjectSyllabus = require("../models/SubjectSyllabus");
+    const MasterSyllabus = require("../models/MasterSyllabus");
+    const SubjectNote = require("../models/SubjectNote");
 
     const classData = await Class.findOne({
       students: studentId
-    });
+    }).lean();
 
-    if(!classData){
+    if (!classData) {
       return res.json([]);
     }
 
     const subjects = await Subject.find({
       $or: [{ class: classData._id }, { classes: classData._id }]
-    }).populate("teacher","name");
+    }).populate("teacher", "name").lean();
 
-    res.json(subjects);
+    const classNameStr = `Class ${classData.name}`;
+    const sectionStr = classData.section || "A";
 
-  }catch(err){
+    const enrichedSubjects = [];
+    for (const sub of subjects) {
+      if (!sub) continue;
 
-    res.status(500).json({
-      message:err.message
-    });
+      let syllabus = await SubjectSyllabus.findOne({
+        subject: sub._id,
+        $or: [
+          { className: classNameStr },
+          { className: classData.name },
+          { className: `${classData.name}-${sectionStr}` }
+        ]
+      }).lean();
 
+      let chapters = syllabus?.chapters || [];
+      if (chapters.length === 0) {
+        const master = await MasterSyllabus.findOne({
+          subjectName: new RegExp("^" + (sub.name || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "$", "i"),
+          className: { $in: [classNameStr, classData.name] }
+        }).lean();
+        if (master && master.chapters) {
+          chapters = master.chapters;
+        }
+      }
+
+      const totalChapters = chapters.length;
+      const completedChapters = chapters.filter(c => c.status === "Completed").length;
+      const inProgressChapters = chapters.filter(c => c.status === "In Progress").length;
+
+      let progressPct = 0;
+      if (totalChapters > 0) {
+        progressPct = Math.round(
+          (completedChapters / totalChapters) * 100 + (inProgressChapters / totalChapters) * 40
+        );
+        if (progressPct > 100) progressPct = 100;
+      }
+
+      const notesCount = await SubjectNote.countDocuments({
+        subject: sub._id,
+        className: { $in: [classNameStr, classData.name] },
+        section: { $in: [sectionStr.toUpperCase(), "ALL", ""] }
+      });
+
+      enrichedSubjects.push({
+        ...sub,
+        chapters: totalChapters,
+        progress: progressPct,
+        notesCount
+      });
+    }
+
+    res.json(enrichedSubjects);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
-
 };
 
 

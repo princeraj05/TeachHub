@@ -14,7 +14,13 @@ import {
   FaGlobe,
   FaTimes,
   FaCalendarAlt,
-  FaRegFileAlt
+  FaRegFileAlt,
+  FaBook,
+  FaFilePdf,
+  FaFileImage,
+  FaFileAlt,
+  FaExternalLinkAlt,
+  FaDownload
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
 
@@ -31,6 +37,23 @@ function StudentSubjects() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All"); // "All", "Active", "Completed"
+
+  // Student Notes Modal State
+  const [notesModalSubject, setNotesModalSubject] = useState(null);
+  const [studentNotes, setStudentNotes] = useState([]);
+  const [loadingStudentNotes, setLoadingStudentNotes] = useState(false);
+
+  const openStudentNotes = (sub) => {
+    setNotesModalSubject(sub);
+    setLoadingStudentNotes(true);
+    const token = localStorage.getItem("token");
+    axios.get(`${API}/api/notes/subject/${sub._id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => setStudentNotes(res.data || []))
+      .catch(err => console.error("Error loading notes:", err))
+      .finally(() => setLoadingStudentNotes(false));
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -59,22 +82,18 @@ function StudentSubjects() {
     }
 
     return dbSubjects.map((s, i) => {
-      // Deterministic stats based on subject ID or Index
       const salt = s._id ? s._id.charCodeAt(s._id.length - 1) : i;
-      const progress = 60 + (salt % 31); // 60% - 90%
+      const progress = typeof s.progress === "number" ? s.progress : 0;
       
       let grade = "B";
       if (progress >= 85) grade = "A";
       else if (progress >= 75) grade = "A-";
       else if (progress >= 65) grade = "B+";
+      else if (progress > 0) grade = "B";
+      else grade = "N/A";
       
-      const assignmentsTotal = 12 + (salt % 6);
-      const assignmentsCompleted = Math.floor(assignmentsTotal * (progress / 100));
-      
-      const quizzesTotal = 10;
-      const quizzesCompleted = Math.floor(quizzesTotal * (progress / 100));
-      
-      const notesCount = 15 + (salt % 10);
+      const chaptersCount = typeof s.chapters === "number" ? s.chapters : 0;
+      const notesCount = typeof s.notesCount === "number" ? s.notesCount : 0;
       
       const days = ["Today, 10:00 AM", "Today, 11:00 AM", "Tomorrow", "Today, 02:00 PM"];
       const nextClass = days[salt % days.length];
@@ -84,10 +103,7 @@ function StudentSubjects() {
         teacher: s.teacher || { name: "No Teacher Assigned" },
         progress,
         grade,
-        assignmentsCompleted,
-        assignmentsTotal,
-        quizzesCompleted,
-        quizzesTotal,
+        chaptersCount,
         notesCount,
         nextClass,
         status: progress === 100 ? "Completed" : "Active"
@@ -360,46 +376,41 @@ function StudentSubjects() {
                 </div>
 
                 {/* Inner stats row */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-slate-100 dark:border-white/5 text-[10px] text-slate-505 dark:text-slate-400 font-black">
+                <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-slate-100 dark:border-white/5 text-[10px] text-slate-505 dark:text-slate-400 font-black">
                   
-                  {/* Stat 1: Assignments */}
+                  {/* Stat 1: Chapters */}
                   <div className="flex items-center gap-2.5">
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${visuals.style}`}>
-                      <FaRegFileAlt className="text-xs" />
+                      <FaBook className="text-xs" />
                     </div>
                     <div>
-                      <p className="text-[9px] text-slate-450 dark:text-slate-550 font-bold uppercase tracking-wide leading-none">Assignments</p>
+                      <p className="text-[9px] text-slate-450 dark:text-slate-550 font-bold uppercase tracking-wide leading-none">Chapters</p>
                       <p className="text-xs font-black text-slate-900 dark:text-white mt-1 leading-none">
-                        {sub.assignmentsCompleted} / {sub.assignmentsTotal}
+                        {sub.chaptersCount || 0} Total
                       </p>
                     </div>
                   </div>
 
-                  {/* Stat 2: Quizzes */}
-                  <div className="flex items-center gap-2.5">
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${visuals.style}`}>
-                      <FaClipboardCheck className="text-xs" />
-                    </div>
-                    <div>
-                      <p className="text-[9px] text-slate-450 dark:text-slate-550 font-bold uppercase tracking-wide leading-none">Quizzes</p>
-                      <p className="text-xs font-black text-slate-900 dark:text-white mt-1 leading-none">
-                        {sub.quizzesCompleted} / {sub.quizzesTotal}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Stat 3: Notes */}
-                  <div className="flex items-center gap-2.5">
+                  {/* Stat 2: Notes */}
+                  <div
+                    onClick={() => openStudentNotes(sub)}
+                    className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity"
+                    title="Click to view uploaded notes"
+                  >
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${visuals.style}`}>
                       <FaBookOpen className="text-xs" />
                     </div>
                     <div>
-                      <p className="text-[9px] text-slate-450 dark:text-slate-550 font-bold uppercase tracking-wide leading-none">Notes</p>
-                      <p className="text-xs font-black text-slate-900 dark:text-white mt-1 leading-none">{sub.notesCount}</p>
+                      <p className="text-[9px] text-slate-450 dark:text-slate-550 font-bold uppercase tracking-wide leading-none flex items-center gap-1">
+                        Notes <FaExternalLinkAlt className="text-[7px] text-[#7C3AED]" />
+                      </p>
+                      <p className="text-xs font-black text-purple-600 dark:text-purple-400 mt-1 leading-none">
+                        {sub.notesCount} {sub.notesCount === 1 ? "Note" : "Notes"}
+                      </p>
                     </div>
                   </div>
 
-                  {/* Stat 4: Next Class */}
+                  {/* Stat 3: Next Class */}
                   <div className="flex items-center gap-2.5">
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${visuals.style}`}>
                       <FaCalendarAlt className="text-xs" />
@@ -429,7 +440,91 @@ function StudentSubjects() {
         </div>
       )}
 
+      {/* Student Notes Overlay Modal */}
+      {notesModalSubject && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
+              <div>
+                <h3 className="text-base font-black text-slate-900 dark:text-white">
+                  {notesModalSubject.name} - Class Notes
+                </h3>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                  Uploaded by Teacher
+                </p>
+              </div>
+              <button
+                onClick={() => setNotesModalSubject(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs font-bold transition cursor-pointer"
+              >
+                <FaTimes />
+              </button>
+            </div>
 
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+              {loadingStudentNotes ? (
+                <div className="py-12 text-center text-slate-400 text-xs font-bold">
+                  Fetching notes...
+                </div>
+              ) : studentNotes.length === 0 ? (
+                <div className="py-12 text-center text-slate-400 space-y-2">
+                  <FaBookOpen className="text-3xl text-purple-400 mx-auto mb-1" />
+                  <p className="text-xs font-bold text-slate-700 dark:text-white">No notes uploaded for your class yet.</p>
+                  <p className="text-[10px]">Your teacher will upload chapter PDFs & study photos here.</p>
+                </div>
+              ) : (
+                studentNotes.map((note) => (
+                  <div
+                    key={note._id}
+                    className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 space-y-2 hover:border-purple-500/30 transition"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2.5">
+                        {note.fileType === "pdf" ? (
+                          <div className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center font-black text-xs shrink-0">
+                            <FaFilePdf />
+                          </div>
+                        ) : note.fileType === "image" ? (
+                          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-black text-xs shrink-0">
+                            <FaFileImage />
+                          </div>
+                        ) : (
+                          <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center font-black text-xs shrink-0">
+                            <FaFileAlt />
+                          </div>
+                        )}
+                        <div>
+                          <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">{note.title}</h4>
+                          <p className="text-[9px] text-slate-400 font-semibold mt-0.5">
+                            {note.className} &bull; Section {note.section}
+                          </p>
+                        </div>
+                      </div>
+
+                      {note.fileUrl && (
+                        <a
+                          href={note.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-[10px] font-black flex items-center gap-1.5 shrink-0 transition"
+                        >
+                          <FaDownload className="text-[8px]" /> Download
+                        </a>
+                      )}
+                    </div>
+
+                    {note.description && (
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium pl-1">
+                        {note.description}
+                      </p>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
