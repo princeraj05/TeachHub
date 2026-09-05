@@ -20,7 +20,15 @@ import {
   FaTimes,
   FaCheck,
   FaUser,
-  FaEnvelope
+  FaEnvelope,
+  FaPhone,
+  FaIdCard,
+  FaEdit,
+  FaCreditCard,
+  FaFileAlt,
+  FaSun,
+  FaMoon,
+  FaShieldAlt
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -60,7 +68,7 @@ function StudentProfile() {
   }, [API, token]);
 
   const userInitials = useMemo(() => {
-    if (!profile?.name) return "I";
+    if (!profile?.name) return "S";
     return profile.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
   }, [profile]);
 
@@ -69,22 +77,20 @@ function StudentProfile() {
   };
 
   return (
-    <div style={{ fontFamily: SORA }} className="space-y-6 max-w-6xl mx-auto pb-6">
-      {/* Premium Hero Profile Card */}
-      <div 
-        onClick={() => setShowProfileModal(true)}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#3B82F6] p-6 text-white shadow-xl shadow-[#7C3AED]/20 cursor-pointer transition-all duration-300 hover:scale-[1.005] hover:shadow-2xl hover:shadow-[#7C3AED]/30 select-none group"
-      >
-        {/* Ambient Decorative Blurs & Shapes */}
-        <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-white/10 blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-        <div className="absolute -bottom-20 -left-20 w-48 h-48 rounded-full bg-black/10 blur-xl pointer-events-none" />
+    <div style={{ fontFamily: SORA }} className="space-y-6 max-w-5xl mx-auto pb-12 select-none text-left">
+      
+      {/* 1. Hero Identity Banner */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#3B82F6] p-6 sm:p-8 text-white shadow-xl shadow-[#7C3AED]/20">
+        {/* Ambient Glow Effects */}
+        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-black/10 blur-2xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-          <div className="flex items-center gap-5">
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5">
             {/* Avatar Circle */}
             <div className="relative shrink-0">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/20 backdrop-blur-md p-1 border-2 border-white/40 shadow-inner overflow-hidden">
-                <div className="w-full h-full rounded-xl bg-gradient-to-tr from-cyan-400 to-indigo-600 flex items-center justify-center text-white font-black text-2xl overflow-hidden">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/20 backdrop-blur-md p-1 border-2 border-white/40 shadow-xl overflow-hidden">
+                <div className="w-full h-full rounded-xl bg-gradient-to-tr from-cyan-400 to-indigo-600 flex items-center justify-center text-white font-black text-3xl overflow-hidden">
                   {profile?.avatar ? (
                     <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
                   ) : (
@@ -92,328 +98,334 @@ function StudentProfile() {
                   )}
                 </div>
               </div>
-              <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-400 border-2 border-white rounded-full flex items-center justify-center text-[10px] text-emerald-950 font-black shadow-sm">
+              <span className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-400 border-2 border-white rounded-full flex items-center justify-center text-xs text-emerald-950 font-black shadow-md">
                 ✓
               </span>
             </div>
 
-            {/* Profile Brief Info */}
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
-                  Hello, {profile?.name || "Learner"}! <span className="animate-bounce">👋</span>
+            {/* Identity Info */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                  {profile?.name || "Student"}
                 </h2>
-                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider bg-white/20 backdrop-blur-md border border-white/30 text-white px-2.5 py-0.5 rounded-full shadow-sm">
+                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider bg-white/20 backdrop-blur-md border border-white/30 text-white px-3 py-0.5 rounded-full shadow-sm">
                   Student Account
                 </span>
               </div>
-              <p className="text-xs text-white/80 font-medium max-w-md">
-                {profile?.email || "Stay connected, track your progress, and excel."}
+
+              <p className="text-xs sm:text-sm text-white/85 font-medium">
+                {profile?.email || "Learner Console"}
               </p>
-              
-              {/* Quick Metadata Chips */}
-              <div className="flex items-center gap-3 pt-2 text-[11px] font-semibold text-white/90">
+
+              {/* Quick Tags */}
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-2 text-[11px] font-semibold text-white/90">
                 {profile?.schoolName && (
-                  <span className="inline-flex items-center gap-1.5 bg-black/20 backdrop-blur-sm px-2.5 py-1 rounded-lg">
+                  <span className="inline-flex items-center gap-1.5 bg-black/25 backdrop-blur-md px-3 py-1 rounded-xl border border-white/10">
                     <FaSchool className="text-cyan-300 text-xs" />
                     {profile.schoolName}
                   </span>
                 )}
-                {profile?.className && (
-                  <span className="inline-flex items-center gap-1.5 bg-black/20 backdrop-blur-sm px-2.5 py-1 rounded-lg">
-                    <FaGraduationCap className="text-amber-300 text-xs" />
-                    Class {profile.className}
-                  </span>
-                )}
+                <span className="inline-flex items-center gap-1.5 bg-black/25 backdrop-blur-md px-3 py-1 rounded-xl border border-white/10">
+                  <FaGraduationCap className="text-amber-300 text-xs" />
+                  {profile?.className ? `Class ${profile.className}` : "Class 1"} {profile?.section ? `- Sec ${profile.section}` : "- Sec A"}
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Action Link Arrow */}
-          <div className="self-end sm:self-center shrink-0 flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 px-4 py-2 rounded-xl text-xs font-bold transition-all">
-            <span>View Full Profile</span>
-            <FaChevronRight className="text-xs group-hover:translate-x-1 transition-transform" />
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={() => setShowProfileModal(true)}
+              className="flex items-center gap-2 bg-white text-slate-900 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-lg active:scale-95"
+            >
+              <FaEdit className="text-xs text-purple-600" />
+              Edit Profile
+            </button>
+            <button
+              onClick={() => navigate("/student/support")}
+              className="flex items-center gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/30 text-white px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer active:scale-95"
+            >
+              <FaComments className="text-xs" />
+              Help Chat
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Section 1: CONNECT */}
-      <div>
-        <p className="text-[10px] font-black uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA] mb-3 px-1">Connect</p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 select-none">
-          
-          {/* Card 1: Support Chat */}
-          <div 
-            onClick={() => navigate("/student/support")}
-            className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-purple-500/30 rounded-2.5xl p-4 flex items-center justify-between cursor-pointer group transition-all shadow-sm"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/20 flex items-center justify-center shrink-0">
-                <FaComments className="text-base" />
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Support Chat</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-bold mt-0.5">Get help & support</p>
-              </div>
-            </div>
-            <FaChevronRight className="text-slate-400 text-xs shrink-0 group-hover:text-slate-655 dark:group-hover:text-white transition-colors" />
+      {/* 2. Key Metadata Badges */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center shrink-0">
+            <FaIdCard className="text-base" />
           </div>
-
-          {/* Card 2: Announcements */}
-          <div 
-            onClick={() => navigate("/student/dashboard")}
-            className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-blue-500/30 rounded-2.5xl p-4 flex items-center justify-between cursor-pointer group transition-all shadow-sm"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/20 flex items-center justify-center shrink-0">
-                <FaBullhorn className="text-base" />
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Announcements</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-bold mt-0.5">Latest updates</p>
-              </div>
-            </div>
-            <FaChevronRight className="text-slate-400 text-xs shrink-0 group-hover:text-slate-655 dark:group-hover:text-white transition-colors" />
+          <div>
+            <p className="text-[9px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Student ID</p>
+            <p className="text-xs font-black text-slate-900 dark:text-white mt-0.5 truncate max-w-[120px]">
+              {profile?.rollNo || profile?._id?.slice(-6).toUpperCase() || "STU-2026"}
+            </p>
           </div>
+        </div>
 
-          {/* Card 3: Events */}
-          <div 
-            onClick={() => navigate("/student/events")}
-            className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-emerald-500/30 rounded-2.5xl p-4 flex items-center justify-between cursor-pointer group transition-all shadow-sm"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-555 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                <FaCalendarAlt className="text-base" />
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Events</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-bold mt-0.5">School events</p>
-              </div>
-            </div>
-            <FaChevronRight className="text-slate-400 text-xs shrink-0 group-hover:text-slate-655 dark:group-hover:text-white transition-colors" />
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <FaShieldAlt className="text-base" />
           </div>
+          <div>
+            <p className="text-[9px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Status</p>
+            <span className="inline-block text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mt-0.5">
+              Active Student
+            </span>
+          </div>
+        </div>
 
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0">
+            <FaCalendarAlt className="text-base" />
+          </div>
+          <div>
+            <p className="text-[9px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Academic Term</p>
+            <p className="text-xs font-black text-slate-900 dark:text-white mt-0.5">Session 2026</p>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
+            <FaTrophy className="text-base" />
+          </div>
+          <div className="cursor-pointer" onClick={() => setShowAchievementsModal(true)}>
+            <p className="text-[9px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Achievements</p>
+            <p className="text-xs font-black text-purple-600 dark:text-purple-400 mt-0.5 flex items-center gap-1 hover:underline">
+              View Honors &rarr;
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Section 2: ACADEMICS & SCHOOL */}
-      <div>
-        <p className="text-[10px] font-black uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA] mb-3 px-1">Academics & School</p>
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl overflow-hidden divide-y divide-slate-100 dark:divide-white/[0.04] shadow-sm select-none">
+      {/* 3. Main 2-Column Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Left Column (2 Cols): Student Account Details Card */}
+        <div className="lg:col-span-2 space-y-6">
           
-          {/* Row 1: School Directory */}
-          <div 
-            onClick={() => navigate("/student/schools")}
-            className="p-4.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/[0.01] cursor-pointer group transition-all"
-          >
-            <div className="flex items-center gap-3.5">
-              <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/20 flex items-center justify-center shrink-0">
-                <FaSchool className="text-sm" />
-              </div>
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-sm space-y-5">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5">
               <div>
-                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">School Directory</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-0.5">Explore schools & centers</p>
+                <h3 className="text-base font-black text-slate-900 dark:text-white">Account Details</h3>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Personal & Institutional Records</p>
+              </div>
+              <button
+                onClick={() => setShowProfileModal(true)}
+                className="px-3.5 py-1.5 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/20 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5"
+              >
+                <FaEdit className="text-xs" /> Edit Info
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Full Name */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
+                <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Full Name</p>
+                <p className="text-xs font-black text-slate-900 dark:text-white mt-1">{profile?.name || "—"}</p>
+              </div>
+
+              {/* Email Address */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
+                <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Email Address</p>
+                <p className="text-xs font-black text-slate-900 dark:text-white mt-1 truncate">{profile?.email || "—"}</p>
+              </div>
+
+              {/* Phone Number */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
+                <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Phone Number</p>
+                <p className="text-xs font-black text-slate-900 dark:text-white mt-1">{profile?.phoneNumber || "Not Provided"}</p>
+              </div>
+
+              {/* School Name */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
+                <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">School Name</p>
+                <p className="text-xs font-black text-slate-900 dark:text-white mt-1">{profile?.schoolName || "TeachHub School"}</p>
+              </div>
+
+              {/* Father Mobile */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
+                <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Father Mobile</p>
+                <p className="text-xs font-black text-slate-900 dark:text-white mt-1">{profile?.fatherMobileNumber || "Not Provided"}</p>
+              </div>
+
+              {/* Mother Mobile */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
+                <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Mother Mobile</p>
+                <p className="text-xs font-black text-slate-900 dark:text-white mt-1">{profile?.motherMobileNumber || "Not Provided"}</p>
               </div>
             </div>
-            <FaChevronRight className="text-slate-400 text-xs shrink-0 group-hover:text-slate-655 dark:group-hover:text-white transition-colors" />
           </div>
 
-          {/* Row 2: My Profile */}
-          <div 
-            onClick={() => setShowProfileModal(true)}
-            className="p-4.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/[0.01] cursor-pointer group transition-all"
-          >
-            <div className="flex items-center gap-3.5">
-              <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/20 flex items-center justify-center shrink-0">
-                <FaGraduationCap className="text-sm" />
+          {/* Quick Academic Navigation Cards */}
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA] mb-3 px-1">Academic Tools</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div
+                onClick={() => navigate("/student/subjects")}
+                className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 hover:border-purple-500/40 p-4 rounded-2xl flex flex-col items-center text-center gap-2.5 cursor-pointer group transition-all shadow-sm"
+              >
+                <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <FaGraduationCap className="text-base" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-slate-900 dark:text-white">My Subjects</h4>
+                  <p className="text-[9px] text-slate-400 font-bold mt-0.5">Enrolled courses</p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">My Profile</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-0.5">View & manage your profile</p>
-              </div>
-            </div>
-            <FaChevronRight className="text-slate-400 text-xs shrink-0 group-hover:text-slate-655 dark:group-hover:text-white transition-colors" />
-          </div>
 
-          {/* Row 3: Achievements */}
-          <div 
-            onClick={() => setShowAchievementsModal(true)}
-            className="p-4.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/[0.01] cursor-pointer group transition-all"
-          >
-            <div className="flex items-center gap-3.5">
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-555 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                <FaTrophy className="text-sm" />
+              <div
+                onClick={() => navigate("/student/showtimetable")}
+                className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 hover:border-blue-500/40 p-4 rounded-2xl flex flex-col items-center text-center gap-2.5 cursor-pointer group transition-all shadow-sm"
+              >
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <FaCalendarAlt className="text-base" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-slate-900 dark:text-white">Timetable</h4>
+                  <p className="text-[9px] text-slate-400 font-bold mt-0.5">Class schedule</p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Achievements</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-0.5">Your academic achievements</p>
-              </div>
-            </div>
-            <FaChevronRight className="text-slate-400 text-xs shrink-0 group-hover:text-slate-655 dark:group-hover:text-white transition-colors" />
-          </div>
 
-          {/* Row 4: Progress Report */}
-          <div 
-            onClick={() => navigate("/student/subjects")}
-            className="p-4.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/[0.01] cursor-pointer group transition-all"
-          >
-            <div className="flex items-center gap-3.5">
-              <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-555 border border-amber-500/20 flex items-center justify-center shrink-0">
-                <FaChartLine className="text-sm" />
+              <div
+                onClick={() => navigate("/student/exams")}
+                className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 hover:border-emerald-500/40 p-4 rounded-2xl flex flex-col items-center text-center gap-2.5 cursor-pointer group transition-all shadow-sm"
+              >
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <FaFileAlt className="text-base" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-slate-900 dark:text-white">My Exams</h4>
+                  <p className="text-[9px] text-slate-400 font-bold mt-0.5">Exams & marks</p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Progress Report</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-0.5">View your academic progress</p>
+
+              <div
+                onClick={() => navigate("/student/payments")}
+                className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 hover:border-amber-500/40 p-4 rounded-2xl flex flex-col items-center text-center gap-2.5 cursor-pointer group transition-all shadow-sm"
+              >
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <FaCreditCard className="text-base" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-slate-900 dark:text-white">School Fee</h4>
+                  <p className="text-[9px] text-slate-400 font-bold mt-0.5">Pay & receipts</p>
+                </div>
               </div>
             </div>
-            <FaChevronRight className="text-slate-400 text-xs shrink-0 group-hover:text-slate-655 dark:group-hover:text-white transition-colors" />
           </div>
 
         </div>
-      </div>
 
-      {/* Section 3: APP & PREFERENCES */}
-      <div>
-        <p className="text-[10px] font-black uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA] mb-3 px-1">App & Preferences</p>
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl overflow-hidden divide-y divide-slate-100 dark:divide-white/[0.04] shadow-sm select-none">
+        {/* Right Column (1 Col): Preferences & Quick Actions */}
+        <div className="space-y-6">
           
-          {/* Row 1: About App */}
-          <div 
-            onClick={() => navigate("/student/about")}
-            className="p-4.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/[0.01] cursor-pointer group transition-all"
-          >
-            <div className="flex items-center gap-3.5">
-              <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/20 flex items-center justify-center shrink-0">
-                <FaInfoCircle className="text-sm" />
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">About App</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-0.5">Learn more about TeachHub</p>
-              </div>
+          {/* App Preferences Box */}
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-3xl p-5 shadow-sm space-y-4">
+            <div className="pb-3 border-b border-slate-100 dark:border-white/5">
+              <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">App Preferences</h3>
+              <p className="text-[10px] text-slate-400 font-bold">Theme, language & settings</p>
             </div>
-            <FaChevronRight className="text-slate-400 text-xs shrink-0 group-hover:text-slate-655 dark:group-hover:text-white transition-colors" />
-          </div>
 
-          {/* Row 1.5: Contact Us */}
-          <div 
-            onClick={() => navigate("/student/contact")}
-            className="p-4.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/[0.01] cursor-pointer group transition-all"
-          >
-            <div className="flex items-center gap-3.5">
-              <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/20 flex items-center justify-center shrink-0">
-                <FaEnvelope className="text-sm" />
+            {/* Toggle Theme */}
+            <div
+              onClick={toggleTheme}
+              className="p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 flex items-center justify-between cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 transition"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs">
+                  {theme === "dark" ? <FaMoon /> : <FaSun className="text-amber-500" />}
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Appearance</h4>
+                  <p className="text-[9px] text-slate-400 font-semibold">{theme === "dark" ? "Dark Mode Active" : "Light Mode Active"}</p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Contact Us</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-0.5">Get in touch with support desk</p>
-              </div>
+              <button
+                type="button"
+                className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-250 shrink-0 ${
+                  theme === "dark" ? "bg-indigo-600" : "bg-slate-300"
+                }`}
+              >
+                <div className={`w-4 h-4 rounded-full bg-white transition-transform duration-250 ${
+                  theme === "dark" ? "translate-x-4" : "translate-x-0"
+                }`} />
+              </button>
             </div>
-            <FaChevronRight className="text-slate-400 text-xs shrink-0 group-hover:text-slate-655 dark:group-hover:text-white transition-colors" />
-          </div>
 
-          {/* Row 2: Change Theme */}
-          <div 
-            onClick={toggleTheme}
-            className="p-4.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/[0.01] cursor-pointer group transition-all"
-          >
-            <div className="flex items-center gap-3.5">
-              <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/20 flex items-center justify-center shrink-0">
-                <FaPalette className="text-sm" />
+            {/* Language Selector */}
+            <div
+              onClick={() => setShowLanguageModal(true)}
+              className="p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 flex items-center justify-between cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 transition"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs">
+                  <FaGlobe />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Language</h4>
+                  <p className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">{language}</p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Change Theme</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-0.5">Customize your app experience</p>
-              </div>
+              <FaChevronRight className="text-slate-400 text-xs" />
             </div>
-            
-            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm">{theme === "dark" ? "🌙" : "☀️"}</span>
-                {/* Custom toggle slider container */}
-                <button
-                  onClick={toggleTheme}
-                  className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-250 shrink-0 cursor-pointer ${
-                    theme === "dark" ? "bg-indigo-650" : "bg-slate-300"
-                  }`}
-                >
-                  <div className={`w-4 h-4 rounded-full bg-white transition-transform duration-250 ${
-                    theme === "dark" ? "translate-x-4" : "translate-x-0"
-                  }`} />
-                </button>
-              </div>
-            </div>
-          </div>
 
-          {/* Row 3: Language */}
-          <div 
-            onClick={() => setShowLanguageModal(true)}
-            className="p-4.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/[0.01] cursor-pointer group transition-all"
-          >
-            <div className="flex items-center gap-3.5">
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-555 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                <FaGlobe className="text-sm" />
+            {/* Manage Settings */}
+            <div
+              onClick={() => setShowSettingsModal(true)}
+              className="p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 flex items-center justify-between cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 transition"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs">
+                  <FaCog />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Settings</h4>
+                  <p className="text-[9px] text-slate-400 font-semibold">Alerts & notifications</p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Language</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-0.5">Select app language</p>
-              </div>
+              <FaChevronRight className="text-slate-400 text-xs" />
             </div>
-            
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400">{language}</span>
-              <FaChevronRight className="text-slate-400 text-xs shrink-0 group-hover:text-slate-655 dark:group-hover:text-white transition-colors" />
+
+            {/* About App */}
+            <div
+              onClick={() => navigate("/student/about")}
+              className="p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 flex items-center justify-between cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 transition"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs">
+                  <FaInfoCircle />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">About App</h4>
+                  <p className="text-[9px] text-slate-400 font-semibold">TeachHub v2.0</p>
+                </div>
+              </div>
+              <FaChevronRight className="text-slate-400 text-xs" />
             </div>
           </div>
 
-          {/* Row 4: Settings */}
-          <div 
-            onClick={() => setShowSettingsModal(true)}
-            className="p-4.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/[0.01] cursor-pointer group transition-all"
-          >
-            <div className="flex items-center gap-3.5">
-              <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-555 border border-amber-500/20 flex items-center justify-center shrink-0">
-                <FaCog className="text-sm" />
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">Settings</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-0.5">Manage app preferences</p>
-              </div>
-            </div>
-            <FaChevronRight className="text-slate-400 text-xs shrink-0 group-hover:text-slate-655 dark:group-hover:text-white transition-colors" />
-          </div>
-
-        </div>
-      </div>
-
-      {/* Section 4: SECURITY & ACCOUNT */}
-      <div>
-        <p className="text-[10px] font-black uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA] mb-3 px-1">Security & Account</p>
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl overflow-hidden shadow-sm select-none">
-          
-          {/* Row 1: Logout */}
-          <div 
+          {/* Logout Box */}
+          <button
             onClick={handleLogout}
-            className="p-4.5 flex items-center justify-between hover:bg-rose-500/5 cursor-pointer group transition-all"
+            className="w-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 p-4 rounded-3xl font-black text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-sm active:scale-98"
           >
-            <div className="flex items-center gap-3.5">
-              <div className="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-555 border border-rose-500/20 flex items-center justify-center shrink-0">
-                <FaSignOutAlt className="text-sm" />
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-rose-600 dark:text-rose-455 leading-tight">Logout</h4>
-                <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold mt-0.5">Sign out from your account</p>
-              </div>
-            </div>
-            <FaChevronRight className="text-rose-500 text-xs shrink-0" />
-          </div>
+            <FaSignOutAlt className="text-sm" /> Sign Out of Account
+          </button>
 
         </div>
+
       </div>
 
-      {/* Bottom Footer Credits */}
-      <div className="py-4 text-center select-none">
-        <p className="text-[10px] text-slate-455 dark:text-slate-550 font-bold">
-          TeachHub &copy; 2026 &bull; All rights reserved
+      {/* Footer Credits */}
+      <div className="pt-6 text-center select-none">
+        <p className="text-[10px] text-slate-400 font-bold">
+          TeachHub &copy; 2026 &bull; School Management Platform
         </p>
       </div>
 
@@ -461,7 +473,6 @@ function StudentProfile() {
             </div>
             
             <div className="space-y-4 max-h-60 overflow-y-auto pr-1">
-              {/* Achievement 1 */}
               <div className="flex items-start gap-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.04] p-3 rounded-2xl">
                 <span className="text-lg">🥇</span>
                 <div>
@@ -470,7 +481,6 @@ function StudentProfile() {
                 </div>
               </div>
 
-              {/* Achievement 2 */}
               <div className="flex items-start gap-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.04] p-3 rounded-2xl">
                 <span className="text-lg">🎓</span>
                 <div>
@@ -479,7 +489,6 @@ function StudentProfile() {
                 </div>
               </div>
 
-              {/* Achievement 3 */}
               <div className="flex items-start gap-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.04] p-3 rounded-2xl">
                 <span className="text-lg">🚀</span>
                 <div>
@@ -565,8 +574,6 @@ function StudentProfile() {
             </div>
             
             <div className="space-y-4 border-t border-slate-100 dark:border-white/5 pt-4 text-xs font-semibold text-slate-655 dark:text-slate-400">
-              
-              {/* Push notifications */}
               <div className="flex items-center justify-between p-1">
                 <div>
                   <h5 className="font-extrabold text-slate-900 dark:text-white text-xs">Push Notifications</h5>
@@ -584,7 +591,6 @@ function StudentProfile() {
                 </button>
               </div>
 
-              {/* Weekly Digest */}
               <div className="flex items-center justify-between p-1">
                 <div>
                   <h5 className="font-extrabold text-slate-900 dark:text-white text-xs">Weekly digest reports</h5>
@@ -601,7 +607,6 @@ function StudentProfile() {
                   }`} />
                 </button>
               </div>
-
             </div>
 
             <button
