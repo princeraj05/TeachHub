@@ -311,35 +311,35 @@ function SuperAdminLayout() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-screen overflow-y-auto min-w-0 pl-0 md:pl-20 lg:pl-64 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0 relative z-10">
         {/* Header */}
-        <header className="flex items-center justify-between bg-white/70 dark:bg-[#0B132A]/70 backdrop-blur-xl px-5 py-4 sm:px-8 sm:py-5.5 md:py-6 mx-3 md:mx-6 mt-3 md:mt-4 border border-slate-200/80 dark:border-white/15 rounded-3xl shadow-md z-30 select-none">
+        <header className="flex items-center justify-between bg-white/80 dark:bg-[#0B132A]/80 backdrop-blur-xl px-4 py-2.5 sm:px-6 sm:py-3 mx-3 md:mx-6 mt-2 md:mt-3 border border-slate-200/80 dark:border-white/15 rounded-2xl shadow-sm z-30 select-none">
           <div className="min-w-0">
-            <h1 className="text-sm sm:text-xl md:text-2xl font-black text-slate-800 dark:text-white tracking-tight truncate max-w-[200px] sm:max-w-md md:max-w-xl">
+            <h1 className="text-sm sm:text-base md:text-lg font-black text-slate-800 dark:text-white tracking-tight truncate max-w-[200px] sm:max-w-md md:max-w-xl">
               Super Admin Workspace
             </h1>
-            <p className="text-[9px] sm:text-xs text-[#7C3AED] dark:text-[#38BDF8] font-black uppercase tracking-widest mt-1">Control Center</p>
+            <p className="text-[9px] sm:text-[10px] text-[#7C3AED] dark:text-[#38BDF8] font-extrabold uppercase tracking-widest mt-0.5">Control Center</p>
           </div>
 
-          <div className="relative flex items-center gap-3 sm:gap-4 shrink-0">
+          <div className="relative flex items-center gap-2.5 sm:gap-3 shrink-0">
             {/* Quick theme switch in header for convenience */}
             <button
               onClick={toggleTheme}
-              className="p-2 sm:p-2.5 rounded-2xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400 cursor-pointer transition text-sm sm:text-lg"
+              className="p-1.5 sm:p-2 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400 cursor-pointer transition text-xs sm:text-sm"
             >
               {theme === "dark" ? <FaSun className="text-amber-500" /> : <FaMoon />}
             </button>
 
             <div
-              className="flex items-center gap-2.5 sm:gap-3.5 cursor-pointer group"
+              className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group"
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
             >
               <div className="hidden sm:flex flex-col items-end">
-                <p className="text-xs sm:text-sm font-bold text-[#0F172A] dark:text-slate-200 group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition duration-200">
+                <p className="text-xs font-bold text-[#0F172A] dark:text-slate-200 group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition duration-200">
                   {name}
                 </p>
-                <p className="text-[9px] sm:text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">System Owner</p>
+                <p className="text-[8px] sm:text-[9px] text-slate-400 font-extrabold uppercase tracking-wider">System Owner</p>
               </div>
 
-              <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-sm sm:text-base shadow-md border border-white/20 overflow-hidden">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-xs sm:text-sm shadow-sm border border-white/20 overflow-hidden">
                 {avatar ? (
                   <img src={avatar} alt="" onError={() => setAvatar("")} className="w-full h-full object-cover" />
                 ) : (

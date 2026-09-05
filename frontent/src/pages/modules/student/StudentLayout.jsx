@@ -299,47 +299,47 @@ function StudentLayout() {
       <div className="flex-1 flex flex-col h-screen overflow-y-auto min-w-0 pl-0 md:pl-20 lg:pl-64 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-6 relative z-10">
         
         {/* Top Header */}
-        <header className="flex items-center justify-between bg-white/70 dark:bg-[#0B132A]/70 backdrop-blur-xl px-5 py-4 sm:px-8 sm:py-5.5 md:py-6 mx-3 md:mx-6 mt-3 md:mt-4 border border-slate-200/80 dark:border-white/15 rounded-3xl shadow-md z-30 select-none">
+        <header className="flex items-center justify-between bg-white/80 dark:bg-[#0B132A]/80 backdrop-blur-xl px-4 py-2.5 sm:px-6 sm:py-3 mx-3 md:mx-6 mt-2 md:mt-3 border border-slate-200/80 dark:border-white/15 rounded-2xl shadow-sm z-30 select-none">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="min-w-0">
-              <h1 className="text-sm sm:text-xl md:text-2xl font-black text-slate-800 dark:text-white tracking-tight truncate max-w-[200px] sm:max-w-md md:max-w-xl" style={{ fontFamily: SORA }}>
+              <h1 className="text-sm sm:text-base md:text-lg font-black text-slate-800 dark:text-white tracking-tight truncate max-w-[200px] sm:max-w-md md:max-w-xl" style={{ fontFamily: SORA }}>
                 Student Workspace
               </h1>
-              <p className="text-[9px] sm:text-xs text-[#7C3AED] dark:text-[#38BDF8] font-black uppercase tracking-widest mt-1">Learner Console</p>
+              <p className="text-[9px] sm:text-[10px] text-[#7C3AED] dark:text-[#38BDF8] font-extrabold uppercase tracking-widest mt-0.5">Learner Console</p>
             </div>
           </div>
 
           {/* User profile avatar section */}
-          <div className="relative flex items-center gap-3 sm:gap-4 shrink-0">
+          <div className="relative flex items-center gap-2.5 sm:gap-3 shrink-0">
             {/* Quick theme switch in header */}
             <button
               onClick={toggleTheme}
-              className="p-2 sm:p-2.5 rounded-2xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400 cursor-pointer transition text-sm sm:text-lg"
+              className="p-1.5 sm:p-2 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400 cursor-pointer transition text-xs sm:text-sm"
             >
               {theme === "dark" ? <FaSun className="text-amber-500" /> : <FaMoon />}
             </button>
 
             <div
-              className="flex items-center gap-2.5 sm:gap-3.5 cursor-pointer group"
+              className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group"
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
             >
               <div className="hidden sm:flex flex-col items-end">
-                <p className="text-xs sm:text-sm font-bold text-[#0F172A] dark:text-slate-250 group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition duration-200">
+                <p className="text-xs font-bold text-[#0F172A] dark:text-slate-250 group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition duration-200">
                   {name}
                 </p>
-                <p className="text-[9px] sm:text-[10px] text-slate-450 font-extrabold uppercase tracking-wider">Student</p>
+                <p className="text-[8px] sm:text-[9px] text-slate-450 font-extrabold uppercase tracking-wider">Student</p>
               </div>
 
               {/* Circular Avatar */}
               <div className="relative">
-                <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-sm sm:text-base shadow-md border border-white/20 overflow-hidden">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-xs sm:text-sm shadow-sm border border-white/20 overflow-hidden">
                   {avatar ? (
                     <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
                   ) : (
                     name.charAt(0).toUpperCase()
                   )}
                 </div>
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-emerald-450 rounded-full border-2 border-white dark:border-[#0B132A] shadow-sm" />
+                <span className="absolute bottom-0 right-0 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-emerald-450 rounded-full border-2 border-white dark:border-[#0B132A] shadow-sm" />
               </div>
             </div>
 
