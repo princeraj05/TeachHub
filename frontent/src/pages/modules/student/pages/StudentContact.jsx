@@ -34,49 +34,22 @@ function StudentContact() {
   return (
     <div style={{ fontFamily: SORA }} className="space-y-6">
       
-      {/* Top Header Row */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+      {/* Main Headers segment */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 select-none pt-2">
+        <div className="flex items-center gap-3.5 max-w-xl">
           <button 
             onClick={() => navigate(-1)} 
-            className="w-10 h-10 rounded-full bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/[0.08] text-slate-600 dark:text-slate-350 hover:border-slate-350 dark:hover:border-white/15 flex items-center justify-center transition-all cursor-pointer shrink-0"
+            className="w-10 h-10 rounded-full bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/[0.08] text-slate-600 dark:text-slate-350 hover:border-slate-350 dark:hover:border-white/15 flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-sm"
           >
             <FaArrowLeft className="text-xs" />
           </button>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-              Student Workspace
-            </h1>
-            <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] dark:text-[#38BDF8] mt-1">
-              LEARNER CONSOLE
+            <p className="text-[10px] font-black uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA]">CONTACT</p>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5">Contact Us</h2>
+            <p className="text-xs text-slate-450 dark:text-slate-400 font-semibold mt-1 leading-relaxed">
+              We're here to help! Reach out to us for any queries, feedback or support.
             </p>
           </div>
-        </div>
-        
-        {/* Right Buttons Container */}
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={toggleTheme}
-            className="w-10 h-10 rounded-full bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/[0.08] text-slate-555 dark:text-amber-400 hover:border-slate-350 dark:hover:border-white/15 flex items-center justify-center transition-all cursor-pointer"
-            aria-label="Toggle Theme"
-          >
-            {theme === "dark" ? "☀️" : "🌙"}
-          </button>
-          
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-800 text-white flex items-center justify-center font-black text-sm shadow-md border-2 border-white dark:border-[#0B132A]">
-            {userInitials}
-          </div>
-        </div>
-      </div>
-
-      {/* Main Headers segment */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 select-none border-t border-slate-200 dark:border-white/5 pt-6">
-        <div className="max-w-xl">
-          <p className="text-[10px] font-black uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA] px-1">CONTACT</p>
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">Contact Us</h2>
-          <p className="text-xs text-slate-450 dark:text-slate-400 font-semibold mt-1 leading-relaxed">
-            We're here to help! Reach out to us for any queries, feedback or support.
-          </p>
         </div>
 
         {/* Right mail envelope illustration */}

@@ -288,33 +288,6 @@ function StudentSubjects() {
   return (
     <div style={{ fontFamily: SORA }} className="w-full max-w-4xl mx-auto space-y-6 text-left select-none pb-8">
       
-      {/* Top Header Row */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            Student Workspace
-          </h1>
-          <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] dark:text-[#38BDF8] mt-1">
-            LEARNER CONSOLE
-          </p>
-        </div>
-        
-        {/* Right Buttons Container */}
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={toggleTheme}
-            className="w-10 h-10 rounded-full bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/[0.08] text-slate-550 dark:text-amber-400 hover:border-slate-350 dark:hover:border-white/15 flex items-center justify-center transition-all cursor-pointer"
-            aria-label="Toggle Theme"
-          >
-            {theme === "dark" ? "☀️" : "🌙"}
-          </button>
-          
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-800 text-white flex items-center justify-center font-black text-sm shadow-md border-2 border-white dark:border-[#0B132A]">
-            {userInitials}
-          </div>
-        </div>
-      </div>
-
       {/* Subjects section title row */}
       <div className="flex items-center justify-between gap-4 mb-4">
         <div>
@@ -330,7 +303,7 @@ function StudentSubjects() {
       </div>
 
       {/* Metrics Stats Row Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         
         {/* Card 1: Total Subjects */}
         <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm overflow-hidden">
@@ -360,16 +333,6 @@ function StudentSubjects() {
           <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{metrics.avgProgress}%</p>
           <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">Average Progress</p>
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 dark:bg-blue-500" />
-        </div>
-
-        {/* Card 4: Overall Performance */}
-        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm overflow-hidden">
-          <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/25 flex items-center justify-center mb-4">
-            <FaStar className="text-sm" />
-          </div>
-          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{metrics.performance}</p>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">Overall Performance</p>
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-amber-500" />
         </div>
 
       </div>
@@ -447,12 +410,8 @@ function StudentSubjects() {
                     </div>
                   </div>
 
-                  {/* Grade Badge and Link arrow */}
+                  {/* Link arrow */}
                   <div className="flex items-center gap-3">
-                    <div className="text-right select-none">
-                      <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wide">Grade</p>
-                      <p className={`text-sm sm:text-base font-black ${visuals.gradeColor}`}>{sub.grade}</p>
-                    </div>
                     <FaChevronRight className="text-slate-400 text-xs shrink-0 cursor-pointer" />
                   </div>
                 </div>

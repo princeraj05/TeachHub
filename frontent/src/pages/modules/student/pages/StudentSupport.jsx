@@ -293,33 +293,6 @@ function StudentSupport() {
   return (
     <div style={{ fontFamily: SORA }} className="space-y-6">
       
-      {/* Top Header Row */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            Student Workspace
-          </h1>
-          <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] dark:text-[#38BDF8] mt-1">
-            LEARNER CONSOLE
-          </p>
-        </div>
-        
-        {/* Right Buttons Container */}
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={toggleTheme}
-            className="w-10 h-10 rounded-full bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/[0.08] text-slate-555 dark:text-amber-400 hover:border-slate-350 dark:hover:border-white/15 flex items-center justify-center transition-all cursor-pointer"
-            aria-label="Toggle Theme"
-          >
-            {theme === "dark" ? "☀️" : "🌙"}
-          </button>
-          
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-800 text-white flex items-center justify-center font-black text-sm shadow-md border-2 border-white dark:border-[#0B132A]">
-            {userInitials}
-          </div>
-        </div>
-      </div>
-
       {/* Support Title Cards */}
       <div className="select-none">
         <p className="text-[10px] font-black uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA] px-1">SUPPORT CHAT</p>
