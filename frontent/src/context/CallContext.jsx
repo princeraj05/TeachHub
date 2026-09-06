@@ -46,6 +46,7 @@ export const CallProvider = ({ children }) => {
   const localStreamRef = useRef(null);
   const audioContextRef = useRef(null);
   const soundIntervalRef = useRef(null);
+  const vibrateIntervalRef = useRef(null);
   const timerRef = useRef(null);
 
   // Helper functions for safe ICE candidate processing
@@ -172,6 +173,13 @@ export const CallProvider = ({ children }) => {
       clearInterval(soundIntervalRef.current);
       soundIntervalRef.current = null;
     }
+    if (vibrateIntervalRef.current) {
+      clearInterval(vibrateIntervalRef.current);
+      vibrateIntervalRef.current = null;
+    }
+    if (navigator.vibrate) {
+      try { navigator.vibrate(0); } catch (e) {}
+    }
     if (audioContextRef.current) {
       audioContextRef.current.close().catch(() => {});
       audioContextRef.current = null;
@@ -192,6 +200,19 @@ export const CallProvider = ({ children }) => {
       socket.connect();
     }
 
+    const handleRecheckConnection = () => {
+      const currentToken = localStorage.getItem("token");
+      if (currentToken) {
+        socket.auth = { token: currentToken };
+        if (!socket.connected) {
+          socket.connect();
+        }
+      }
+    };
+
+    window.addEventListener("focus", handleRecheckConnection);
+    document.addEventListener("visibilitychange", handleRecheckConnection);
+
     socket.on("call:incoming", ({ callId, callerId, callerName, callerAvatar, type }) => {
       if (callStateRef.current !== "idle") {
         if (callPartnerRef.current && (callPartnerRef.current._id?.toString() === callerId?.toString())) {
@@ -207,9 +228,13 @@ export const CallProvider = ({ children }) => {
       setCallState("ringing");
       startSoundEffect("ringing");
 
-      // Mobile Haptic Vibration
+      // Mobile Haptic Vibration Loop
+      if (vibrateIntervalRef.current) clearInterval(vibrateIntervalRef.current);
       if (navigator.vibrate) {
-        try { navigator.vibrate([500, 300, 500, 300, 500]); } catch (e) {}
+        try { navigator.vibrate([800, 400, 800, 400]); } catch (e) {}
+        vibrateIntervalRef.current = setInterval(() => {
+          try { navigator.vibrate([800, 400, 800, 400]); } catch (e) {}
+        }, 2400);
       }
 
       // Just-In-Time Notification request & trigger
@@ -229,11 +254,11 @@ export const CallProvider = ({ children }) => {
 
     socket.on("call:waiting", ({ callId }) => {
       setCurrentCallId(callId);
-      showToast("Waiting for participant to join meeting...");
+      showToast("Calling... Waiting for answer");
     });
 
     socket.on("call:accepted", async ({ callId, isHost, partner }) => {
-      showToast("Participant connected");
+      showToast("Call Connected");
       if (partner) {
         setCallPartner(partner);
       }
@@ -307,7 +332,10 @@ export const CallProvider = ({ children }) => {
     });
 
     return () => {
+      window.removeEventListener("focus", handleRecheckConnection);
+      document.removeEventListener("visibilitychange", handleRecheckConnection);
       socket.off("call:incoming");
+      socket.off("call:waiting");
       socket.off("call:accepted");
       socket.off("call:rejected");
       socket.off("call:cancelled");
@@ -494,8 +522,8 @@ export const CallProvider = ({ children }) => {
 
     setCallPartner(receiver);
     setCallType(type);
-    setCallState("active");
-    stopSoundEffect();
+    setCallState("calling");
+    startSoundEffect("calling");
 
     localStreamRef.current = perm.stream;
     setLocalStream(perm.stream);

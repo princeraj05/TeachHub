@@ -519,64 +519,47 @@ io.on("connection", (socket) => {
 
       if (await canCommunicate(senderUser, receiverId)) {
         const roomId = [userId.toString(), receiverId.toString()].sort().join("_");
-        let room = activeCallRooms.get(roomId);
-
-        if (!room) {
-          // Room does not exist yet: Create call record & set up waiting room
-          const call = await Call.create({
-            caller: userId,
-            receiver: receiverId,
-            type,
-            status: "pending",
-            schoolName: senderUser.schoolName || ""
-          });
-
-          room = {
-            roomId,
-            callId: call._id,
-            hostId: userId.toString(),
-            peerId: receiverId.toString(),
-            type,
-            status: "waiting"
-          };
-          activeCallRooms.set(roomId, room);
-          socket.currentCallId = call._id;
-
-          // Notify caller that they are in room waiting
-          socket.emit("call:waiting", {
-            callId: call._id,
-            roomId,
-            partner: { _id: receiverUser._id, name: receiverUser.name, avatar: receiverUser.avatar }
-          });
-
-          // Send incoming call notification to receiver
-          emitToUser(receiverId.toString(), "call:incoming", {
-            callId: call._id,
-            callerId: userId,
-            callerName: senderUser.name || "School Member",
-            callerAvatar: senderUser.avatar || "",
-            type
-          });
-        } else {
-          // Room ALREADY exists: Second user joining the meeting!
-          room.status = "connected";
-
-          await Call.findByIdAndUpdate(room.callId, { status: "completed", startedAt: new Date() });
-
-          // Emit call:accepted to BOTH host and peer with correct partner details
-          emitToUser(room.hostId, "call:accepted", {
-            callId: room.callId,
-            roomId,
-            isHost: true,
-            partner: { _id: receiverUser._id, name: receiverUser.name, avatar: receiverUser.avatar, role: receiverUser.role }
-          });
-          emitToUser(room.peerId, "call:accepted", {
-            callId: room.callId,
-            roomId,
-            isHost: false,
-            partner: { _id: senderUser._id, name: senderUser.name, avatar: senderUser.avatar, role: senderUser.role }
-          });
+        
+        // Remove any old stale room before starting a fresh call
+        if (activeCallRooms.has(roomId)) {
+          activeCallRooms.delete(roomId);
         }
+
+        // Create call record & set up waiting room
+        const call = await Call.create({
+          caller: userId,
+          receiver: receiverId,
+          type,
+          status: "pending",
+          schoolName: senderUser.schoolName || ""
+        });
+
+        const room = {
+          roomId,
+          callId: call._id,
+          hostId: userId.toString(),
+          peerId: receiverId.toString(),
+          type,
+          status: "waiting"
+        };
+        activeCallRooms.set(roomId, room);
+        socket.currentCallId = call._id;
+
+        // Notify caller that they are in room waiting
+        socket.emit("call:waiting", {
+          callId: call._id,
+          roomId,
+          partner: { _id: receiverUser._id, name: receiverUser.name, avatar: receiverUser.avatar }
+        });
+
+        // Send incoming call notification to receiver
+        emitToUser(receiverId.toString(), "call:incoming", {
+          callId: call._id,
+          callerId: userId,
+          callerName: senderUser.name || "School Member",
+          callerAvatar: senderUser.avatar || "",
+          type
+        });
       } else {
         socket.emit("call:error", { message: "Calling unauthorized user" });
       }
