@@ -30,7 +30,8 @@ import {
   FaFileAlt,
   FaHeadphones,
   FaArrowRight,
-  FaChalkboardTeacher
+  FaChalkboardTeacher,
+  FaComments
 } from "react-icons/fa";
 import UserProfile from "../../components/UserProfile";
 import GlobalEvents from "../modules/student/pages/GlobalEvents";
@@ -56,6 +57,7 @@ function PendingApproval() {
   const { startCall } = useCall() || {};
   const [user, setUser] = useState({ name: "Loading...", email: "", role: "", avatar: "" });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [requestedSchoolData, setRequestedSchoolData] = useState(null);
   const [schoolAdmin, setSchoolAdmin] = useState(null);
@@ -262,6 +264,7 @@ function PendingApproval() {
 
   useEffect(() => {
     setMobileMenuOpen(false);
+    setProfileDropdownOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -1500,10 +1503,114 @@ function PendingApproval() {
         </>
       )}
 
-      {/* Main Content Area */}
-      <main className="flex-1 h-screen overflow-y-auto pl-0 md:pl-20 lg:pl-64 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6 flex items-start justify-center pt-6 md:pt-12 p-6 sm:p-12 transition-all duration-200 select-none">
-        {renderTabContent()}
-      </main>
+      {/* CANVAS: Main Container */}
+      <div className="flex-1 flex flex-col h-screen overflow-y-auto min-w-0 pl-0 md:pl-20 lg:pl-64 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6 relative z-10">
+        
+        {/* Top Header */}
+        <header className="flex items-center justify-between bg-white/80 dark:bg-[#0B132A]/80 backdrop-blur-xl px-4 py-2.5 sm:px-6 sm:py-3 mx-3 md:mx-6 mt-2 md:mt-3 border border-slate-200/80 dark:border-white/15 rounded-2xl shadow-sm z-30 select-none">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="min-w-0 text-left">
+              <h1 className="text-sm sm:text-base md:text-lg font-black text-slate-800 dark:text-white tracking-tight truncate max-w-[200px] sm:max-w-md md:max-w-xl" style={{ fontFamily: SORA }}>
+                {user.requestedSchool ? `${user.requestedSchool} Application` : "TeachHub Portal"}
+              </h1>
+              <p className="text-[9px] sm:text-[10px] text-[#7C3AED] dark:text-[#38BDF8] font-extrabold uppercase tracking-widest mt-0.5">
+                {isTeacher ? "Teacher Applicant Console" : "Student Applicant Console"}
+              </p>
+            </div>
+          </div>
+
+          {/* User profile & actions section */}
+          <div className="relative flex items-center gap-2.5 sm:gap-3 shrink-0">
+            {/* DM / Support Chat Button */}
+            <Link
+              to="/pending/support"
+              className="p-1.5 sm:p-2 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400 cursor-pointer transition text-xs sm:text-sm relative group"
+              title="Support & Direct Messages"
+            >
+              <FaComments className="text-[#7C3AED] dark:text-[#38BDF8]" />
+            </Link>
+
+            {/* Quick theme switch in header */}
+            <button
+              onClick={toggleTheme}
+              className="p-1.5 sm:p-2 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400 cursor-pointer transition text-xs sm:text-sm"
+              title="Toggle Theme"
+            >
+              {theme === "dark" ? <FaSun className="text-amber-500" /> : <FaMoon />}
+            </button>
+
+            {/* User profile avatar clickable */}
+            <div
+              className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group"
+              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+            >
+              <div className="hidden sm:flex flex-col items-end">
+                <p className="text-xs font-bold text-[#0F172A] dark:text-slate-250 group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition duration-200 truncate max-w-[130px]">
+                  {user.name}
+                </p>
+                <p className="text-[8px] sm:text-[9px] text-slate-450 font-extrabold uppercase tracking-wider">
+                  {isTeacher ? "Teacher (Pending)" : "Student (Pending)"}
+                </p>
+              </div>
+
+              {/* Circular Avatar */}
+              <div className="relative">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-xs sm:text-sm shadow-sm border border-white/20 overflow-hidden">
+                  {user.avatar ? (
+                    <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    initials
+                  )}
+                </div>
+                <span className="absolute bottom-0 right-0 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-amber-450 rounded-full border-2 border-white dark:border-[#0B132A] shadow-sm" />
+              </div>
+            </div>
+
+            {/* Profile Dropdown Menu */}
+            {profileDropdownOpen && (
+              <>
+                <div className="fixed inset-0 z-[45]" onClick={() => setProfileDropdownOpen(false)} />
+                <div className="absolute right-0 top-12 w-52 bg-[#0F172A] border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn text-slate-350">
+                  <div className="px-3 py-2 border-b border-white/[0.08] mb-1">
+                    <p className="text-xs font-bold text-white truncate">{user.name}</p>
+                    <span className="inline-flex items-center gap-1 text-[8px] font-extrabold text-[#38BDF8] uppercase tracking-widest mt-1 bg-white/5 border border-white/[0.06] px-1.5 py-0.5 rounded">
+                      {isTeacher ? "Teacher Account" : "Student Account"}
+                    </span>
+                  </div>
+                  <Link
+                    to="/pending/profile"
+                    onClick={() => setProfileDropdownOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition"
+                  >
+                    <FaUserCircle /> My Profile
+                  </Link>
+                  <Link
+                    to="/pending/support"
+                    onClick={() => setProfileDropdownOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition"
+                  >
+                    <FaComments /> Direct Chat & Support
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setProfileDropdownOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 text-xs font-bold text-rose-450 hover:bg-rose-500/10 hover:text-rose-400 rounded-xl transition cursor-pointer"
+                  >
+                    <FaSignOutAlt /> Logout
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </header>
+
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto flex items-start justify-center p-4 sm:p-8 transition-all duration-200 select-none">
+          {renderTabContent()}
+        </main>
+      </div>
 
       {/* Instructions Modal */}
       {showInstructionsModal && (

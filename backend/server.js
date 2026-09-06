@@ -667,21 +667,60 @@ io.on("connection", (socket) => {
     }
   });
 
+  const resolveTargetUserId = async (senderUser, targetId) => {
+    if (!targetId) return null;
+    if (
+      targetId === "admin" ||
+      targetId === "admin_support_fallback" ||
+      targetId === "superadmin" ||
+      targetId === "superadmin_support_fallback"
+    ) {
+      const schoolRegex = senderUser?.schoolName || senderUser?.requestedSchool
+        ? new RegExp("^" + (senderUser.schoolName || senderUser.requestedSchool).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "$", "i")
+        : null;
+
+      let receiverUser = null;
+      if (schoolRegex) {
+        receiverUser = await User.findOne({ role: "admin", $or: [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }] });
+      }
+      if (!receiverUser) {
+        receiverUser = await User.findOne({ role: "admin" }) || await User.findOne({ role: "superadmin" });
+      }
+      return receiverUser ? receiverUser._id.toString() : null;
+    }
+    return targetId.toString();
+  };
+
   socket.on("call:offer", async ({ receiverId, offer }) => {
-    if (await canCommunicate(socket.user, receiverId)) {
-      emitToUser(receiverId, "call:offer", { senderId: userId, offer });
+    try {
+      const targetId = await resolveTargetUserId(socket.user, receiverId);
+      if (targetId && (await canCommunicate(socket.user, targetId))) {
+        emitToUser(targetId, "call:offer", { senderId: userId, offer });
+      }
+    } catch (err) {
+      console.error("Error in call:offer", err);
     }
   });
 
   socket.on("call:answer", async ({ receiverId, answer }) => {
-    if (await canCommunicate(socket.user, receiverId)) {
-      emitToUser(receiverId, "call:answer", { senderId: userId, answer });
+    try {
+      const targetId = await resolveTargetUserId(socket.user, receiverId);
+      if (targetId && (await canCommunicate(socket.user, targetId))) {
+        emitToUser(targetId, "call:answer", { senderId: userId, answer });
+      }
+    } catch (err) {
+      console.error("Error in call:answer", err);
     }
   });
 
   socket.on("call:ice-candidate", async ({ receiverId, candidate }) => {
-    if (await canCommunicate(socket.user, receiverId)) {
-      emitToUser(receiverId, "call:ice-candidate", { senderId: userId, candidate });
+    try {
+      const targetId = await resolveTargetUserId(socket.user, receiverId);
+      if (targetId && (await canCommunicate(socket.user, targetId))) {
+        emitToUser(targetId, "call:ice-candidate", { senderId: userId, candidate });
+      }
+    } catch (err) {
+      console.error("Error in call:ice-candidate", err);
     }
   });
 

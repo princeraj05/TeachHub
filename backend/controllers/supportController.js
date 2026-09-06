@@ -520,3 +520,30 @@ exports.getCallHistory = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// ================= GET ACTIVE INCOMING CALL =================
+exports.getActiveCall = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const activeCall = await Call.findOne({
+      receiver: userId,
+      status: "pending",
+      createdAt: { $gte: new Date(Date.now() - 45000) }
+    }).populate("caller", "name avatar role schoolName");
+
+    if (activeCall && activeCall.caller) {
+      return res.json({
+        activeCall: {
+          callId: activeCall._id,
+          callerId: activeCall.caller._id.toString(),
+          callerName: activeCall.caller.name,
+          callerAvatar: activeCall.caller.avatar || "",
+          type: activeCall.type
+        }
+      });
+    }
+    res.json({ activeCall: null });
+  } catch (error) {
+    res.json({ activeCall: null });
+  }
+};

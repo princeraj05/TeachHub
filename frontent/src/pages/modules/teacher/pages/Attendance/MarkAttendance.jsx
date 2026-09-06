@@ -10,11 +10,8 @@ import {
   FaBook, 
   FaHistory, 
   FaSearch, 
-  FaRegCommentDots, 
   FaRedoAlt, 
-  FaGraduationCap, 
-  FaClock, 
-  FaCalendarCheck 
+  FaGraduationCap 
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
@@ -39,15 +36,12 @@ function MarkAttendance() {
   // Data states
   const [students, setStudents] = useState([]);
   const [attendance, setAttendance] = useState({});
-  const [remarks, setRemarks] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStudentIds, setSelectedStudentIds] = useState(new Set());
   
   // UI states
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [activeRemarkStudent, setActiveRemarkStudent] = useState(null);
-  const [tempRemarkText, setTempRemarkText] = useState("");
 
   const parseTimeToMinutes = (timeStr) => {
     if (!timeStr) return 0;
@@ -301,13 +295,6 @@ function MarkAttendance() {
       });
       return next;
     });
-    setRemarks(prev => {
-      const next = { ...prev };
-      selectedStudentIds.forEach(id => {
-        next[id] = "";
-      });
-      return next;
-    });
   };
 
   // Save/Submit attendance
@@ -326,7 +313,7 @@ function MarkAttendance() {
       const recordsToSave = students.map(s => ({
         studentId: s._id,
         status: attendance[s._id] || "Present",
-        remarks: remarks[s._id] || ""
+        remarks: ""
       }));
 
       await axios.post(
@@ -374,40 +361,20 @@ function MarkAttendance() {
   const totalRoster = students.length;
   let presentCount = 0;
   let absentCount = 0;
-  let lateCount = 0;
-  let leaveCount = 0;
 
   students.forEach(s => {
     const status = attendance[s._id];
-    if (status === "Present") presentCount++;
-    else if (status === "Absent") absentCount++;
-    else if (status === "Late") lateCount++;
-    else if (status === "Leave" || status === "On Leave") leaveCount++;
+    if (status === "Absent") absentCount++;
+    else presentCount++;
   });
 
   const presentPct = totalRoster > 0 ? Math.round((presentCount / totalRoster) * 100) : 0;
   const absentPct = totalRoster > 0 ? Math.round((absentCount / totalRoster) * 100) : 0;
-  const latePct = totalRoster > 0 ? Math.round((lateCount / totalRoster) * 100) : 0;
-  const leavePct = totalRoster > 0 ? Math.round((leaveCount / totalRoster) * 100) : 0;
 
   // Circular gauge config
   const radius = 35;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (presentPct / 100) * circumference;
-
-  // Remarks modal helpers
-  const openRemarksModal = (studentId) => {
-    setActiveRemarkStudent(studentId);
-    setTempRemarkText(remarks[studentId] || "");
-  };
-
-  const saveRemark = () => {
-    setRemarks(prev => ({
-      ...prev,
-      [activeRemarkStudent]: tempRemarkText
-    }));
-    setActiveRemarkStudent(null);
-  };
 
   return (
     <div className="w-full text-slate-800 dark:text-white pb-10" style={{ fontFamily: SORA }}>
@@ -587,7 +554,6 @@ function MarkAttendance() {
                     <th className="px-6 py-4">Student</th>
                     <th className="px-6 py-4">Roll No.</th>
                     <th className="px-6 py-4 text-center">Status</th>
-                    <th className="px-6 py-4 text-center">Remarks (Optional)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-white/[0.03]">
@@ -635,7 +601,7 @@ function MarkAttendance() {
                             {/* Present Button */}
                             <button
                               onClick={() => handleStatusChange(s._id, "Present")}
-                              className={`px-3 py-1.5 rounded-lg font-bold border transition-all cursor-pointer flex items-center gap-1 ${
+                              className={`px-4 py-1.5 rounded-lg font-bold border transition-all cursor-pointer flex items-center gap-1 ${
                                 currentStatus === "Present"
                                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500 shadow-sm"
                                   : "border-slate-200 dark:border-white/[0.05] text-slate-450 hover:bg-slate-100 dark:hover:bg-white/[0.02]"
@@ -647,7 +613,7 @@ function MarkAttendance() {
                             {/* Absent Button */}
                             <button
                               onClick={() => handleStatusChange(s._id, "Absent")}
-                              className={`px-3 py-1.5 rounded-lg font-bold border transition-all cursor-pointer flex items-center gap-1 ${
+                              className={`px-4 py-1.5 rounded-lg font-bold border transition-all cursor-pointer flex items-center gap-1 ${
                                 currentStatus === "Absent"
                                   ? "bg-rose-500/10 border-rose-500/30 text-rose-500 shadow-sm"
                                   : "border-slate-200 dark:border-white/[0.05] text-slate-450 hover:bg-slate-100 dark:hover:bg-white/[0.02]"
@@ -655,50 +621,7 @@ function MarkAttendance() {
                             >
                               <FaTimes className="text-[9px]" /> Absent
                             </button>
-
-                            {/* Late Button */}
-                            <button
-                              onClick={() => handleStatusChange(s._id, "Late")}
-                              className={`px-3 py-1.5 rounded-lg font-bold border transition-all cursor-pointer flex items-center gap-1 ${
-                                currentStatus === "Late"
-                                  ? "bg-amber-500/10 border-amber-500/30 text-amber-500 shadow-sm"
-                                  : "border-slate-200 dark:border-white/[0.05] text-slate-450 hover:bg-slate-100 dark:hover:bg-white/[0.02]"
-                              }`}
-                            >
-                              <FaClock className="text-[9px]" /> Late
-                            </button>
-
-                            {/* Leave Button */}
-                            <button
-                              onClick={() => handleStatusChange(s._id, "Leave")}
-                              className={`px-3 py-1.5 rounded-lg font-bold border transition-all cursor-pointer flex items-center gap-1 ${
-                                currentStatus === "Leave" || currentStatus === "On Leave"
-                                  ? "bg-indigo-500/10 border-indigo-500/30 text-indigo-500 shadow-sm"
-                                  : "border-slate-200 dark:border-white/[0.05] text-slate-450 hover:bg-slate-100 dark:hover:bg-white/[0.02]"
-                              }`}
-                            >
-                              <FaCalendarCheck className="text-[9px]" /> Leave
-                            </button>
                           </div>
-                        </td>
-
-                        {/* Optional Remarks Button */}
-                        <td className="px-6 py-4 text-center">
-                          <button
-                            onClick={() => openRemarksModal(s._id)}
-                            className={`p-2 rounded-xl border transition-all cursor-pointer hover:bg-slate-100 dark:hover:bg-white/[0.04] ${
-                              remarks[s._id]
-                                ? "bg-purple-500/10 border-purple-500/35 text-purple-500"
-                                : "border-slate-200 dark:border-white/[0.05] text-slate-450"
-                            }`}
-                          >
-                            <FaRegCommentDots className="text-sm" />
-                          </button>
-                          {remarks[s._id] && (
-                            <p className="text-[9px] text-slate-400 mt-1 font-semibold truncate max-w-[120px] mx-auto">
-                              {remarks[s._id]}
-                            </p>
-                          )}
                         </td>
                       </tr>
                     );
@@ -764,22 +687,6 @@ function MarkAttendance() {
                   </div>
                   <span className="text-slate-800 dark:text-white font-extrabold">{absentCount} ({absentPct}%)</span>
                 </div>
-
-                <div className="flex items-center justify-between text-[10px] font-bold">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-amber-500" />
-                    <span className="text-slate-450">Late</span>
-                  </div>
-                  <span className="text-slate-800 dark:text-white font-extrabold">{lateCount} ({latePct}%)</span>
-                </div>
-
-                <div className="flex items-center justify-between text-[10px] font-bold">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-indigo-500" />
-                    <span className="text-slate-450">Leave</span>
-                  </div>
-                  <span className="text-slate-800 dark:text-white font-extrabold">{leaveCount} ({leavePct}%)</span>
-                </div>
               </div>
             </div>
 
@@ -834,41 +741,6 @@ function MarkAttendance() {
         </div>
 
       </div>
-
-      {/* Optional Remarks Dialog modal overlay */}
-      {activeRemarkStudent && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-white/[0.08] w-full max-w-sm rounded-2xl p-5 shadow-2xl flex flex-col gap-4">
-            <div>
-              <h3 className="text-sm font-black text-slate-900 dark:text-white">Add Attendance Remark</h3>
-              <p className="text-[10px] text-slate-400 mt-0.5">Write any specific notes or comments for this student's attendance.</p>
-            </div>
-
-            <textarea
-              rows="4"
-              value={tempRemarkText}
-              onChange={(e) => setTempRemarkText(e.target.value)}
-              placeholder="e.g. Arrived 15 minutes late with permission slip..."
-              className="w-full p-3 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
-            />
-
-            <div className="flex items-center justify-end gap-2.5">
-              <button
-                onClick={() => setActiveRemarkStudent(null)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-450 hover:bg-slate-100 dark:hover:bg-white/[0.03] transition-all cursor-pointer border border-transparent"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={saveRemark}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white shadow-sm transition-all cursor-pointer"
-              >
-                Save Note
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
     </div>
   );

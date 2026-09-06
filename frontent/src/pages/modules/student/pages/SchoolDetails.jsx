@@ -10,6 +10,7 @@ import {
   FaCalendarAlt,
   FaClock,
   FaChevronLeft,
+  FaChevronRight,
   FaAward,
   FaFileAlt,
   FaSearch,
@@ -151,6 +152,71 @@ function SchoolDetails() {
       return;
     }
     setShowJoinModal(true);
+  };
+
+  const renderApplyButton = (size = "normal") => {
+    const isApprovedHere = user && (
+      (user.schoolName && school?.name && user.schoolName.toLowerCase() === school.name.toLowerCase()) ||
+      (user.school && school?.name && String(user.school).toLowerCase() === school.name.toLowerCase())
+    );
+    const isThisApplied = user && (
+      (user.requestedSchool && school?.name && user.requestedSchool.toLowerCase() === school.name.toLowerCase()) ||
+      (user.requestStatus && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus))
+    );
+    const hasActiveRequest = user && (
+      ["pending", "scheduled", "exam_completed"].includes(user.requestStatus) || Boolean(user.requestedSchool)
+    );
+
+    const basePadding = size === "large" ? "py-3 px-6 rounded-2xl" : "py-2.5 px-5 rounded-xl";
+
+    if (isApprovedHere) {
+      return (
+        <div className={`bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 ${basePadding} text-xs font-black uppercase tracking-wider text-center flex items-center justify-center gap-1.5 shadow-sm`}>
+          <FaCheckCircle className="text-emerald-500 text-xs shrink-0" />
+          <span>Enrolled</span>
+        </div>
+      );
+    }
+
+    if (isThisApplied || (hasActiveRequest && (!user.requestedSchool || user.requestedSchool.toLowerCase() === school?.name?.toLowerCase()))) {
+      let label = "Applied";
+      let colorClasses = "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/25";
+
+      if (user.requestStatus === "scheduled") {
+        label = "Exam Scheduled";
+        colorClasses = "bg-teal-500/15 text-teal-600 dark:text-teal-400 border-teal-500/25";
+      } else if (user.requestStatus === "exam_completed") {
+        label = "Exam Completed";
+        colorClasses = "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/25";
+      }
+
+      return (
+        <div className={`${colorClasses} border ${basePadding} text-xs font-black uppercase tracking-wider text-center flex items-center justify-center gap-1.5 shadow-sm`}>
+          <FaCheckCircle className="text-xs shrink-0" />
+          <span>{label}</span>
+        </div>
+      );
+    }
+
+    if (hasActiveRequest) {
+      return (
+        <button
+          disabled
+          className={`bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 text-slate-400 dark:text-slate-500 ${basePadding} text-xs font-bold cursor-not-allowed text-center opacity-70`}
+        >
+          Applied Elsewhere
+        </button>
+      );
+    }
+
+    return (
+      <button
+        onClick={handleApplyClick}
+        className={`bg-[#7C3AED] hover:bg-[#6D28D9] text-white ${basePadding} text-xs font-bold transition shadow-md shadow-[#7C3AED]/20 cursor-pointer text-center flex items-center justify-center gap-1.5`}
+      >
+        <span>Apply for Admission</span>
+      </button>
+    );
   };
 
   const handleJoinSubmit = (e) => {
@@ -405,12 +471,7 @@ function SchoolDetails() {
 
             {/* Actions Panel */}
             <div className="flex flex-row md:flex-col gap-3.5 self-stretch justify-end md:justify-start shrink-0">
-              <button
-                onClick={handleApplyClick}
-                className="flex-1 bg-[#7C3AED] hover:bg-[#6D28D9] text-white py-2.5 px-5 rounded-xl text-xs font-bold transition shadow-md shadow-[#7C3AED]/20 cursor-pointer text-center"
-              >
-                Apply for Admission
-              </button>
+              {renderApplyButton("normal")}
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(window.location.href);
@@ -647,12 +708,9 @@ function SchoolDetails() {
               <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Ready to be a part of {school.name}?</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">Begin your admission journey today and give your child the best start.</p>
             </div>
-            <button
-              onClick={handleApplyClick}
-              className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white py-3 px-6 rounded-2xl text-xs font-extrabold transition shadow-md shadow-[#7C3AED]/20 cursor-pointer w-full sm:w-auto text-center shrink-0"
-            >
-              Apply for Admission
-            </button>
+            <div className="w-full sm:w-auto text-center shrink-0">
+              {renderApplyButton("large")}
+            </div>
           </div>
         </div>
       ) : (
@@ -1096,68 +1154,106 @@ function ImageLightbox({ images, startIndex, onClose }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [images.length, onClose]);
 
+  if (!images || images.length === 0) return null;
+
   const activeImage = images[currentIndex];
-  const imageUrl = typeof activeImage === "string" ? activeImage : activeImage?.url;
+  const imageUrl = typeof activeImage === "string" ? activeImage : (activeImage?.url || activeImage);
 
   return (
     <div 
-      className="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[150] flex flex-col items-center justify-center select-none"
+      className="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[150] flex flex-col items-center justify-between p-4 select-none"
       onClick={onClose}
     >
       {/* Top Header */}
-      <div className="absolute top-0 inset-x-0 p-4 flex items-center justify-between text-white bg-gradient-to-b from-black/60 to-transparent">
-        <span className="text-xs font-bold tracking-wider">
-          Photo {currentIndex + 1} of {images.length}
-        </span>
+      <div 
+        className="w-full max-w-5xl flex items-center justify-between z-10 pt-2 pb-2 px-2"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button 
           onClick={onClose}
-          className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition cursor-pointer text-sm"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white transition cursor-pointer text-xs font-bold shadow-lg backdrop-blur-md border border-white/10"
+        >
+          <FaChevronLeft className="text-xs" />
+          <span>Back to School Details</span>
+        </button>
+
+        <span className="text-xs font-black tracking-wider text-slate-300 bg-black/40 px-3.5 py-1.5 rounded-full border border-white/10">
+          Photo {currentIndex + 1} of {images.length}
+        </span>
+
+        <button 
+          onClick={onClose}
+          className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white transition cursor-pointer text-xs shadow-lg backdrop-blur-md border border-white/10"
+          title="Close Preview"
         >
           <FaTimes />
         </button>
       </div>
 
       {/* Main Image and Navigation */}
-      <div className="relative w-full max-w-4xl px-12 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+      <div 
+        className="relative w-full max-w-4xl flex-1 flex items-center justify-center my-2" 
+        onClick={(e) => e.stopPropagation()}
+      >
         {images.length > 1 && (
           <button 
             onClick={handlePrev}
-            className="absolute left-4 p-3 rounded-full bg-white/10 hover:bg-white/25 text-white transition cursor-pointer"
+            className="absolute left-2 sm:left-4 z-20 p-3.5 rounded-full bg-black/60 hover:bg-black/80 active:scale-90 text-white transition cursor-pointer border border-white/10 shadow-xl"
+            aria-label="Previous photo"
           >
             <FaChevronLeft className="text-lg" />
           </button>
         )}
         
         <img 
+          key={currentIndex}
           src={imageUrl} 
-          alt="Preview" 
-          className="max-h-[80vh] max-w-full rounded-2xl object-contain shadow-2xl transition-all duration-300 animate-fadeIn"
+          alt={`Photo ${currentIndex + 1}`} 
+          className="max-h-[70vh] max-w-full rounded-2xl object-contain shadow-2xl transition-all duration-300 animate-fadeIn"
         />
 
         {images.length > 1 && (
           <button 
             onClick={handleNext}
-            className="absolute right-4 p-3 rounded-full bg-white/10 hover:bg-white/25 text-white transition cursor-pointer"
+            className="absolute right-2 sm:right-4 z-20 p-3.5 rounded-full bg-black/60 hover:bg-black/80 active:scale-90 text-white transition cursor-pointer border border-white/10 shadow-xl"
+            aria-label="Next photo"
           >
             <FaChevronRight className="text-lg" />
           </button>
         )}
       </div>
 
-      {/* Bottom dots */}
-      {images.length > 1 && (
-        <div className="absolute bottom-6 flex gap-1.5 z-10" onClick={(e) => e.stopPropagation()}>
-          {images.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrentIndex(idx)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                idx === currentIndex ? "bg-white scale-125" : "bg-white/40"
-              }`}
-            />
-          ))}
-        </div>
-      )}
+      {/* Bottom Controls Bar */}
+      <div 
+        className="w-full max-w-2xl flex flex-col items-center gap-3 z-10 pb-2" 
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Pagination Dots */}
+        {images.length > 1 && (
+          <div className="flex items-center gap-2 bg-black/50 px-4 py-2 rounded-full border border-white/10">
+            {images.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentIndex(idx)}
+                className={`transition-all duration-300 cursor-pointer ${
+                  idx === currentIndex 
+                    ? "w-6 h-2 bg-[#7C3AED] dark:bg-[#38BDF8] rounded-full" 
+                    : "w-2 h-2 bg-white/40 hover:bg-white/70 rounded-full"
+                }`}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Secondary Back Button at Bottom */}
+        <button 
+          onClick={onClose}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white active:scale-95 transition cursor-pointer text-xs font-bold shadow-xl shadow-[#7C3AED]/30"
+        >
+          <FaChevronLeft className="text-xs" />
+          <span>Back to School Details</span>
+        </button>
+      </div>
     </div>
   );
 }

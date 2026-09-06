@@ -8,7 +8,8 @@ const {
   handleUpload, 
   addReaction, 
   deleteMessage, 
-  getCallHistory 
+  getCallHistory,
+  getActiveCall
 } = require("../controllers/supportController");
 const multer = require("multer");
 const path = require("path");
@@ -65,5 +66,6 @@ router.post("/upload", upload.single("file"), handleUpload);
 router.post("/react", addReaction);
 router.delete("/message/:id", deleteMessage);
 router.get("/calls", getCallHistory);
+router.get("/active-call", getActiveCall);
 
 module.exports = router;

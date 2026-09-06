@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { FaEnvelope, FaLock, FaGraduationCap, FaCheckCircle, FaSun, FaMoon } from "react-icons/fa";
+import { 
+  FaEnvelope, 
+  FaLock, 
+  FaGraduationCap, 
+  FaCheckCircle, 
+  FaSun, 
+  FaMoon,
+  FaArrowRight
+} from "react-icons/fa";
 import { auth, googleProvider } from "../../config/firebase";
 import { signInWithPopup, signInWithCredential, GoogleAuthProvider } from "firebase/auth";
 import { Capacitor } from "@capacitor/core";
@@ -49,7 +57,6 @@ function Login() {
       else navigate("/pending", { replace: true });
     }
   }, [navigate]);
-
 
   const saveAuthAndNavigate = (data) => {
     localStorage.setItem("token", data.token);
@@ -137,133 +144,144 @@ function Login() {
     }
   };
 
-  // If user is already logged in, show a loading spinner while redirecting
+  // Redirecting loader
   const tokenExists = localStorage.getItem("token");
   const roleExists = localStorage.getItem("role");
   if (tokenExists && roleExists) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] dark:bg-[#090F1C]">
-        <div className="w-8 h-8 border-4 border-[#7C3AED] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#070C18]">
+        <div className="w-9 h-9 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row font-sans bg-[#F8FAFC] dark:bg-[#090F1C] transition-colors duration-200" style={{ fontFamily: SORA }}>
-      {/* Theme Toggle Button */}
+    <div 
+      className="min-h-screen relative flex flex-col lg:flex-row font-sans bg-slate-50 dark:bg-[#070C18] text-slate-900 dark:text-white transition-colors duration-300 overflow-hidden" 
+      style={{ fontFamily: SORA }}
+    >
+      {/* Dynamic Ambient Background Glow Blobs */}
+      <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-purple-600/15 dark:bg-purple-600/20 blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/2 right-0 w-[500px] h-[500px] rounded-full bg-indigo-500/10 dark:bg-indigo-500/15 blur-[140px] pointer-events-none" />
+      <div className="absolute -bottom-32 left-1/3 w-80 h-80 rounded-full bg-sky-500/10 dark:bg-sky-500/15 blur-[100px] pointer-events-none" />
+
+      {/* Subtle Background Pattern */}
+      <div 
+        className="absolute inset-0 opacity-[0.02] dark:opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage: "radial-gradient(#8B5CF6 1px, transparent 1px)",
+          backgroundSize: "24px 24px"
+        }}
+      />
+
+      {/* Floating Theme Toggle */}
       <button
         onClick={toggleTheme}
-        className="fixed top-6 right-6 p-3 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0F172A] text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 shadow-md z-50 transition duration-200 cursor-pointer"
+        className="fixed top-5 right-5 sm:top-7 sm:right-7 p-3 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 shadow-lg shadow-black/5 z-50 transition-all duration-200 cursor-pointer active:scale-95"
         aria-label="Toggle Theme"
       >
-        {theme === "dark" ? <FaSun className="text-amber-500 text-lg animate-pulse" /> : <FaMoon className="text-lg" />}
+        {theme === "dark" ? (
+          <FaSun className="text-amber-400 text-lg animate-pulse" />
+        ) : (
+          <FaMoon className="text-purple-600 text-lg" />
+        )}
       </button>
 
-      {/* ── Left Panel (Branding) ── */}
-      <div className="hidden lg:flex lg:w-1/2 xl:w-7/12 relative bg-[#0F172A] items-center justify-center overflow-hidden">
-        {/* Ambient Gradient Glow Blobs */}
-        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-[#7C3AED]/15 blur-[100px] animate-pulse" />
-        <div className="absolute -bottom-40 right-0 w-[400px] h-[400px] rounded-full bg-[#38BDF8]/10 blur-[100px]" />
-        <div className="absolute top-1/3 left-1/4 w-[300px] h-[300px] rounded-full bg-[#312E81]/20 blur-[80px]" />
-
-        {/* Grid Overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage:
-              "linear-gradient(#f1f5f9 1px, transparent 1px), linear-gradient(90deg, #f1f5f9 1px, transparent 1px)",
-            backgroundSize: "30px 30px",
-          }}
-        />
-
-        <div className="relative z-10 px-16 max-w-xl text-center">
+      {/* ── Left Panel (Desktop Branding) ── */}
+      <div className="hidden lg:flex lg:w-1/2 xl:w-7/12 relative items-center justify-center p-12 lg:p-16 border-r border-slate-200/50 dark:border-white/5">
+        <div className="relative z-10 max-w-lg text-center flex flex-col items-center">
+          
           {/* Logo Badge */}
-          <div className="inline-flex items-center gap-3 bg-white/5 backdrop-blur-md border border-white/10 px-5 py-2.5 rounded-2xl mb-10 shadow-xl shadow-black/10">
+          <div className="inline-flex items-center gap-3.5 bg-white/70 dark:bg-white/[0.04] backdrop-blur-xl border border-slate-200/80 dark:border-white/10 px-5 py-2.5 rounded-2xl mb-8 shadow-xl shadow-purple-950/5">
             {logoUrl ? (
-              <img src={logoUrl} alt={platformName} className="w-10 h-10 object-contain rounded-xl shrink-0" />
+              <img src={logoUrl} alt={platformName} className="w-9 h-9 object-contain rounded-xl shrink-0" />
             ) : (
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center shadow-lg shadow-[#7C3AED]/20 shrink-0">
-                <FaGraduationCap className="text-xl text-white" />
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-md shadow-purple-600/30 shrink-0">
+                <FaGraduationCap className="text-lg text-white" />
               </div>
             )}
-            <span className="text-2xl font-extrabold tracking-tight text-white">
-              {platformName}
+            <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+              {platformName || "TeachHub"}
             </span>
           </div>
 
-          <h1 className="text-4xl xl:text-5xl font-black text-white leading-tight mb-6 tracking-tight text-center">
+          <h1 className="text-4xl xl:text-5xl font-black leading-tight tracking-tight mb-5">
             Where Learning <br />
-            <span className="bg-gradient-to-r from-[#7C3AED] to-[#38BDF8] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-purple-600 via-indigo-500 to-sky-500 bg-clip-text text-transparent">
               Comes Alive
             </span>
           </h1>
-          
-          <p className="text-slate-400 text-sm leading-relaxed mb-12 max-w-md mx-auto">
+
+          <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-10 max-w-md">
             A secure, unified platform for students, teachers, and admins — built to power modern education and streamlined school operations.
           </p>
 
-          {/* SaaS Stats indicators */}
-          <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
+          {/* SaaS Metrics Pills */}
+          <div className="grid grid-cols-3 gap-4 w-full max-w-md">
             {[
-              { label: "Students", count: "10k+", color: "text-[#38BDF8]" },
-              { label: "Teachers", count: "500+", color: "text-[#7C3AED]" },
-              { label: "Admins", count: "50+", color: "text-white" }
-            ].map((role) => (
+              { label: "Students", count: "10k+", accent: "from-purple-500/10 to-purple-500/5 text-purple-600 dark:text-purple-400 border-purple-500/20" },
+              { label: "Teachers", count: "500+", accent: "from-indigo-500/10 to-indigo-500/5 text-indigo-600 dark:text-indigo-400 border-indigo-500/20" },
+              { label: "Admins", count: "50+", accent: "from-sky-500/10 to-sky-500/5 text-sky-600 dark:text-sky-400 border-sky-500/20" }
+            ].map((item) => (
               <div
-                key={role.label}
-                className="bg-white/[0.03] backdrop-blur-sm border border-white/5 rounded-2xl p-4 hover:border-white/10 transition-all hover:bg-white/[0.05]"
+                key={item.label}
+                className={`bg-gradient-to-b ${item.accent} backdrop-blur-md border rounded-2xl p-4 text-center shadow-sm hover:scale-105 transition-transform duration-200`}
               >
-                <p className={`text-xl font-bold ${role.color}`}>{role.count}</p>
-                <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider mt-1">{role.label}</p>
+                <p className="text-xl font-black">{item.count}</p>
+                <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">{item.label}</p>
               </div>
             ))}
           </div>
+
         </div>
       </div>
 
-      {/* ── Right Panel (Form Container) ── */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 sm:px-12 lg:px-16 xl:px-24 relative">
-        {/* Mobile ambient glow */}
-        <div className="fixed lg:hidden top-10 right-10 w-64 h-64 rounded-full bg-[#7C3AED]/5 blur-[80px] pointer-events-none" />
+      {/* ── Right Panel (Modern Glass Card Container) ── */}
+      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 lg:p-12 relative z-10">
         
-        {/* Mobile Header Logo */}
-        <div className="flex lg:hidden items-center gap-2.5 mb-8 sm:mb-10 bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 px-4 py-2 rounded-xl shadow-sm">
-          {logoUrl ? (
-            <img src={logoUrl} alt={platformName} className="w-8 h-8 object-contain rounded-lg shrink-0" />
-          ) : (
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center shadow-md shrink-0">
-              <FaGraduationCap className="text-white text-base" />
+        {/* Glassmorphic Form Card */}
+        <div className="w-full max-w-[440px] bg-white/80 dark:bg-[#0B132B]/80 backdrop-blur-2xl p-6 sm:p-10 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-2xl shadow-purple-950/10 dark:shadow-black/70 transition-all duration-300">
+          
+          {/* Header Brand Badge inside card for both mobile & desktop */}
+          <div className="flex flex-col items-center text-center mb-7">
+            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-purple-500/10 dark:bg-white/[0.05] border border-purple-500/20 dark:border-white/10 mb-4 shadow-sm">
+              {logoUrl ? (
+                <img src={logoUrl} alt={platformName} className="w-6 h-6 object-contain rounded-md" />
+              ) : (
+                <div className="w-6 h-6 rounded-md bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center shadow-xs">
+                  <FaGraduationCap className="text-white text-xs" />
+                </div>
+              )}
+              <span className="text-xs font-black tracking-wide text-purple-700 dark:text-purple-300">
+                {platformName || "Your School"}
+              </span>
             </div>
-          )}
-          <span className="text-lg font-black text-slate-800 dark:text-white tracking-tight">
-            {platformName}
-          </span>
-        </div>
 
-        <div className="w-full max-w-[420px] bg-white dark:bg-[#0F172A] lg:bg-transparent dark:lg:bg-transparent p-6 sm:p-10 lg:p-0 rounded-3xl border border-slate-200/60 dark:border-white/10 lg:border-none shadow-xl shadow-slate-100/40 lg:shadow-none">
-          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
-            Welcome back
-          </h2>
-          <p className="text-slate-500 text-xs mb-8 font-medium">
-            {otpSent ? "Enter the OTP sent to your email to verify" : "Enter your email address to log in"}
-          </p>
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+              Welcome back
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1">
+              {otpSent ? "Enter the verification OTP code sent to your email" : "Enter your registered email address to continue"}
+            </p>
+          </div>
 
+          {/* Dev OTP Notification Banner */}
           {devOtpMessage && (
-            <div className="mb-6 p-4 rounded-xl bg-purple-50 border border-purple-100 text-purple-800 text-xs font-semibold flex items-center gap-2.5 animate-fadeIn">
-              <FaCheckCircle className="text-purple-500 text-sm flex-shrink-0" />
-              <span>{devOtpMessage}</span>
+            <div className="mb-6 p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-semibold flex items-center gap-3 animate-fadeIn">
+              <FaCheckCircle className="text-purple-500 text-base shrink-0" />
+              <span className="leading-snug">{devOtpMessage}</span>
             </div>
           )}
 
           {!otpSent ? (
-            <form onSubmit={handleSendOtp} className="space-y-6">
-              {/* Email */}
+            <form onSubmit={handleSendOtp} className="space-y-5">
+              {/* Email Input */}
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">
+                <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-2">
                   Email Address
                 </label>
                 <div className="relative">
-                  <FaEnvelope className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 text-sm" />
+                  <FaEnvelope className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 dark:text-slate-500 text-sm pointer-events-none" />
                   <input
                     name="email"
                     type="email"
@@ -271,7 +289,7 @@ function Login() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200/80 rounded-xl text-slate-800 placeholder-slate-405 text-xs font-semibold focus:outline-none focus:ring-4 focus:ring-[#7C3AED]/10 focus:border-[#7C3AED] focus:bg-white transition-all shadow-inner"
+                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50/80 dark:bg-[#151D36] border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 focus:bg-white dark:focus:bg-[#1A2444] transition-all shadow-inner"
                   />
                 </div>
               </div>
@@ -280,22 +298,26 @@ function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#312E81] hover:opacity-90 active:scale-[0.98] text-white font-bold text-xs tracking-wider transition-all shadow-md shadow-[#7C3AED]/15 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2 flex items-center justify-center"
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs tracking-wider transition-all duration-300 shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
               >
                 {loading ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  "Send OTP"
+                  <>
+                    <span>Send OTP</span>
+                    <FaArrowRight className="text-[10px]" />
+                  </>
                 )}
               </button>
 
-              <div className="relative my-6">
+              {/* Divider */}
+              <div className="relative my-6 flex items-center justify-center">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-200"></div>
+                  <div className="w-full border-t border-slate-200 dark:border-white/10" />
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-[#F8FAFC] lg:bg-white px-2 text-slate-400 font-bold text-[10px] tracking-widest">Or login with</span>
-                </div>
+                <span className="relative z-10 bg-white dark:bg-[#0B132B] px-3 text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase tracking-widest">
+                  Or login with
+                </span>
               </div>
 
               {/* Google Sign-In Button */}
@@ -303,51 +325,51 @@ function Login() {
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={loading}
-                className="w-full py-3 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-[0.98] text-slate-700 font-bold text-xs tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.08] active:scale-[0.98] text-slate-700 dark:text-slate-200 font-bold text-xs tracking-wider transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z" />
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                 </svg>
-                Continue with Google
+                <span>Continue with Google</span>
               </button>
             </form>
           ) : (
-            <form onSubmit={handleVerifyOtp} className="space-y-6">
-              {/* Email (readonly) */}
+            <form onSubmit={handleVerifyOtp} className="space-y-5">
+              {/* Email (Read-only) */}
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">
+                <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-2">
                   Email Address
                 </label>
                 <div className="relative">
-                  <FaEnvelope className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-350 text-sm" />
+                  <FaEnvelope className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 dark:text-slate-500 text-sm pointer-events-none" />
                   <input
                     type="email"
                     value={email}
                     disabled
-                    className="w-full pl-11 pr-4 py-3 bg-slate-100 border border-slate-200/80 rounded-xl text-slate-500 text-xs font-semibold cursor-not-allowed"
+                    className="w-full pl-11 pr-4 py-3.5 bg-slate-100 dark:bg-[#151D36]/50 border border-slate-200 dark:border-white/5 rounded-2xl text-slate-500 dark:text-slate-400 text-xs font-semibold cursor-not-allowed opacity-80"
                   />
                 </div>
               </div>
 
-              {/* OTP */}
+              {/* OTP Field */}
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">
+                <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-2">
                   One-Time Password (OTP)
                 </label>
                 <div className="relative">
-                  <FaLock className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 text-sm" />
+                  <FaLock className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 dark:text-slate-500 text-sm pointer-events-none" />
                   <input
                     name="otp"
                     type="text"
                     maxLength="6"
-                    placeholder="Enter 6-digit OTP"
+                    placeholder="• • • • • •"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                     required
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200/80 rounded-xl text-slate-800 placeholder-slate-405 text-xs font-semibold focus:outline-none focus:ring-4 focus:ring-[#7C3AED]/10 focus:border-[#7C3AED] focus:bg-white transition-all shadow-inner tracking-[0.2em]"
+                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50/80 dark:bg-[#151D36] border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 text-center tracking-[0.3em] font-mono text-sm font-black focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 focus:bg-white dark:focus:bg-[#1A2444] transition-all shadow-inner"
                   />
                 </div>
               </div>
@@ -356,17 +378,20 @@ function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#312E81] hover:opacity-90 active:scale-[0.98] text-white font-bold text-xs tracking-wider transition-all shadow-md shadow-[#7C3AED]/15 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2 flex items-center justify-center"
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs tracking-wider transition-all duration-300 shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
               >
                 {loading ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  "Verify & Sign In"
+                  <>
+                    <span>Verify & Sign In</span>
+                    <FaArrowRight className="text-[10px]" />
+                  </>
                 )}
               </button>
 
-              {/* Back / Resend */}
-              <div className="flex justify-between items-center text-xs mt-4">
+              {/* Change Email / Resend Actions */}
+              <div className="flex justify-between items-center text-xs pt-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -374,7 +399,7 @@ function Login() {
                     setOtp("");
                     setDevOtpMessage("");
                   }}
-                  className="text-slate-500 hover:text-[#7C3AED] font-bold transition-colors cursor-pointer"
+                  className="text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 font-bold transition-colors cursor-pointer"
                 >
                   Change Email
                 </button>
@@ -384,8 +409,8 @@ function Login() {
                   disabled={loading || cooldown > 0}
                   className={`font-extrabold transition-colors cursor-pointer ${
                     cooldown > 0
-                      ? "text-slate-400 cursor-not-allowed opacity-60"
-                      : "text-[#7C3AED] hover:text-[#6D28D9]"
+                      ? "text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60"
+                      : "text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
                   }`}
                 >
                   {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend OTP"}
@@ -393,7 +418,14 @@ function Login() {
               </div>
             </form>
           )}
+
         </div>
+
+        {/* Footer text */}
+        <p className="text-[11px] text-slate-400 dark:text-slate-500 font-semibold mt-8 text-center">
+          Protected by end-to-end OTP authentication &bull; TeachHub
+        </p>
+
       </div>
     </div>
   );

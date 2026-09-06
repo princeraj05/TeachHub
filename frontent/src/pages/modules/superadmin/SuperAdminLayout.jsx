@@ -179,18 +179,7 @@ function SuperAdminLayout() {
 
         {/* Bottom Actions */}
         <div className="mt-auto flex flex-col gap-2 border-t border-slate-100 dark:border-white/[0.08] pt-4">
-          {/* Appearance Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="flex items-center gap-4 px-3.5 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all duration-200 cursor-pointer text-left w-full"
-          >
-            <div className="flex-shrink-0">
-              {theme === "dark" ? <FaSun className="text-xl text-amber-500 animate-pulse" /> : <FaMoon className="text-xl" />}
-            </div>
-            <span className="hidden lg:block text-sm font-semibold">
-              {theme === "dark" ? "Light Mode" : "Dark Mode"}
-            </span>
-          </button>
+          {/* Logout */}
 
           {/* Logout */}
           <button

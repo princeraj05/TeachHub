@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+import axios from "axios";
 import socket from "../socket";
 import {
   FaPhoneAlt,
@@ -17,6 +18,7 @@ const CallContext = createContext(null);
 export const useCall = () => useContext(CallContext);
 
 export const CallProvider = ({ children }) => {
+  const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
   const currentUserId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
 
@@ -200,6 +202,24 @@ export const CallProvider = ({ children }) => {
       socket.connect();
     }
 
+    const checkActiveIncomingCall = async () => {
+      try {
+        const res = await axios.get(`${API}/api/support/active-call`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data && res.data.activeCall) {
+          const { callId, callerId, callerName, callerAvatar, type } = res.data.activeCall;
+          if (callStateRef.current === "idle") {
+            setCurrentCallId(callId);
+            setCallPartner({ _id: callerId, name: callerName, avatar: callerAvatar, role: "caller" });
+            setCallType(type);
+            setCallState("ringing");
+            startSoundEffect("ringing");
+          }
+        }
+      } catch (e) {}
+    };
+
     const handleRecheckConnection = () => {
       const currentToken = localStorage.getItem("token");
       if (currentToken) {
@@ -208,10 +228,14 @@ export const CallProvider = ({ children }) => {
           socket.connect();
         }
       }
+      checkActiveIncomingCall();
     };
 
     window.addEventListener("focus", handleRecheckConnection);
     document.addEventListener("visibilitychange", handleRecheckConnection);
+
+    // Initial check for any active call when app mounts
+    checkActiveIncomingCall();
 
     socket.on("call:incoming", ({ callId, callerId, callerName, callerAvatar, type }) => {
       if (callStateRef.current !== "idle") {
@@ -224,6 +248,7 @@ export const CallProvider = ({ children }) => {
 
       setCurrentCallId(callId);
       setCallPartner({ _id: callerId, name: callerName, avatar: callerAvatar, role: "caller" });
+      callPartnerRef.current = { _id: callerId, name: callerName, avatar: callerAvatar, role: "caller" };
       setCallType(type);
       setCallState("ringing");
       startSoundEffect("ringing");
@@ -259,8 +284,10 @@ export const CallProvider = ({ children }) => {
 
     socket.on("call:accepted", async ({ callId, isHost, partner }) => {
       showToast("Call Connected");
+      let activePartner = partner || callPartnerRef.current || callPartner;
       if (partner) {
         setCallPartner(partner);
+        callPartnerRef.current = partner;
       }
       setCallState("active");
       stopSoundEffect();
@@ -273,9 +300,9 @@ export const CallProvider = ({ children }) => {
       }
 
       if (isHost) {
-        await setupWebRTC(true);
+        await setupWebRTC(true, null, activePartner);
       } else {
-        await setupLocalStreamOnly(callTypeRef.current);
+        await setupWebRTC(false, null, activePartner);
       }
     });
 
@@ -316,7 +343,7 @@ export const CallProvider = ({ children }) => {
     });
 
     socket.on("call:offer", async ({ senderId, offer }) => {
-      await setupWebRTC(false, offer);
+      await setupWebRTC(false, offer, { _id: senderId });
       await processIceQueue();
     });
 
@@ -421,76 +448,67 @@ export const CallProvider = ({ children }) => {
     }
   };
 
-  const setupWebRTC = async (isCaller, remoteOffer = null) => {
+  const setupWebRTC = async (isCaller, remoteOffer = null, targetPartner = null) => {
     try {
-      if (!isCaller && !remoteOffer) {
-        await setupLocalStreamOnly(callTypeRef.current);
-        return;
-      }
+      const activePartner = targetPartner || callPartnerRef.current || callPartner;
+      const targetId = activePartner?._id ? activePartner._id.toString() : null;
+
       let stream = localStreamRef.current;
       if (!stream) {
         stream = await setupLocalStreamOnly(callTypeRef.current);
       }
       if (!stream) return;
 
-      if (peerConnectionRef.current) {
-        peerConnectionRef.current.close();
-        peerConnectionRef.current = null;
+      if (!peerConnectionRef.current) {
+        const pc = new RTCPeerConnection(ICE_SERVERS);
+        peerConnectionRef.current = pc;
+
+        stream.getTracks().forEach((track) => {
+          pc.addTrack(track, stream);
+        });
+
+        pc.ontrack = (event) => {
+          if (event.streams && event.streams[0]) {
+            setRemoteStream(event.streams[0]);
+          } else if (event.track) {
+            setRemoteStream((prev) => {
+              if (prev) {
+                const existingTracks = prev.getTracks().filter(t => t.id !== event.track.id);
+                return new MediaStream([...existingTracks, event.track]);
+              }
+              return new MediaStream([event.track]);
+            });
+          }
+        };
+
+        pc.onicecandidate = (event) => {
+          if (event.candidate && targetId) {
+            socket.emit("call:ice-candidate", {
+              receiverId: targetId,
+              candidate: event.candidate
+            });
+          }
+        };
       }
 
-      const pc = new RTCPeerConnection(ICE_SERVERS);
-      peerConnectionRef.current = pc;
-
-      stream.getTracks().forEach((track) => {
-        pc.addTrack(track, stream);
-      });
-
-      pc.ontrack = (event) => {
-        if (event.streams && event.streams[0]) {
-          const incomingStream = event.streams[0];
-          setRemoteStream(new MediaStream(incomingStream.getTracks()));
-          incomingStream.onaddtrack = () => {
-            setRemoteStream(new MediaStream(incomingStream.getTracks()));
-          };
-          incomingStream.onremovetrack = () => {
-            setRemoteStream(new MediaStream(incomingStream.getTracks()));
-          };
-        } else if (event.track) {
-          setRemoteStream((prev) => {
-            if (prev) {
-              const existingTracks = prev.getTracks().filter(t => t.id !== event.track.id);
-              return new MediaStream([...existingTracks, event.track]);
-            }
-            return new MediaStream([event.track]);
-          });
-        }
-      };
-
-      pc.onicecandidate = (event) => {
-        if (event.candidate && callPartnerRef.current) {
-          socket.emit("call:ice-candidate", {
-            receiverId: callPartnerRef.current._id,
-            candidate: event.candidate
-          });
-        }
-      };
+      const pc = peerConnectionRef.current;
 
       if (isCaller) {
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
-        if (callPartnerRef.current) {
+        if (targetId) {
           socket.emit("call:offer", {
-            receiverId: callPartnerRef.current._id,
+            receiverId: targetId,
             offer
           });
         }
-      } else {
+      } else if (remoteOffer) {
         await pc.setRemoteDescription(new RTCSessionDescription(remoteOffer));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        if (callPartnerRef.current) {
+        if (targetId) {
           socket.emit("call:answer", {
-            receiverId: callPartnerRef.current._id,
+            receiverId: targetId,
             answer
           });
         }
@@ -630,8 +648,7 @@ export const CallProvider = ({ children }) => {
   const hasRemoteVideo = Boolean(
     remoteStream &&
     remoteStream.getVideoTracks().length > 0 &&
-    remoteStream.getVideoTracks()[0].readyState === "live" &&
-    !remoteStream.getVideoTracks()[0].muted
+    remoteStream.getVideoTracks()[0].readyState === "live"
   );
 
   useEffect(() => {

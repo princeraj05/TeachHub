@@ -1,1212 +1,461 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { 
+  FaBroadcastTower, 
   FaComments, 
-  FaUsers, 
-  FaShieldAlt, 
-  FaGraduationCap, 
+  FaPhone, 
   FaSearch, 
-  FaFilter, 
-  FaInfoCircle, 
-  FaPlus, 
-  FaTimes, 
-  FaPaperPlane,
-  FaFileAlt,
-  FaPhone,
-  FaChevronRight,
-  FaClock
+  FaUsers,
+  FaVideo
 } from "react-icons/fa";
-import { useTheme } from "../../../../context/ThemeContext";
+import { Link } from "react-router-dom";
+import { useCall } from "../../../../context/CallContext";
+import SupportChatEngine from "../../../../components/SupportChatEngine";
 
 const SORA = "'Sora', sans-serif";
-
-const MOCK_GROUPS = [];
-const MOCK_TEACHERS = [];
-const MOCK_CALL_LOGS = [];
 
 function StudentSupport() {
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const token = localStorage.getItem("token");
   const currentUserId = localStorage.getItem("userId");
-  const name = localStorage.getItem("name") || "Student";
-  const { theme, toggleTheme } = useTheme();
 
-  // Tab controls: groups (My Group Chats), admin (School Admin Support), teachers (My Teachers Chat)
-  const [activeTab, setActiveTab] = useState("groups");
-  const [subTab, setSubTab] = useState("personal"); // personal (Teachers Directory), calls (Calls Log)
-  const [callHistoryTab, setCallHistoryTab] = useState("history"); // history, contacts
-
-  // Search states
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState("All"); // All, Unread
-  const [subjectFilter, setSubjectFilter] = useState("All");
-
-  // Group chat lists & window
-  const [groups, setGroups] = useState([]);
-  const [activeGroup, setActiveGroup] = useState(null);
-  const [groupMessages, setGroupMessages] = useState([]);
-  const [groupMessageText, setGroupMessageText] = useState("");
-
-  // Create group modal states
-  const [showNewGroupModal, setShowNewGroupModal] = useState(false);
-  const [newGroupName, setNewGroupName] = useState("");
+  const [activeTab, setActiveTab] = useState("admin"); // admin, teachers
+  const [subTab, setSubTab] = useState("personal"); // personal, broadcast, calls
   const [contacts, setContacts] = useState([]);
-  const [selectedMembers, setSelectedMembers] = useState([]);
+  const [activeContact, setActiveContact] = useState(null);
+  
+  const [broadcastMessages, setBroadcastMessages] = useState([]);
+  const [callsHistory, setCallsHistory] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Admin Conversation Simulated Messages
-  const [adminMessages, setAdminMessages] = useState([
-    {
-      _id: "admin-msg-init",
-      sender: "admin",
-      content: "Hello! 👋\nHow can I help you today?\nFeel free to ask any questions or share your concerns.",
-      time: "11:28 AM"
-    }
-  ]);
-  const [adminInputText, setAdminInputText] = useState("");
+  const { socket } = useCall();
 
-  // Teacher Chat Selected Overlay
-  const [activeTeacher, setActiveTeacher] = useState(null);
-  const [teacherMessages, setTeacherMessages] = useState([]);
-  const [teacherInputText, setTeacherInputText] = useState("");
-
-  const messagesEndRef = useRef(null);
-  const adminMessagesEndRef = useRef(null);
-  const teacherMessagesEndRef = useRef(null);
-
-  const userInitials = useMemo(() => {
-    return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
-  }, [name]);
+  const DEFAULT_ADMIN = {
+    _id: "admin_support_fallback",
+    name: "School Admin Support",
+    email: "admin@school.com",
+    role: "admin",
+    schoolName: "School Management",
+    isOnline: true,
+    avatar: ""
+  };
 
   useEffect(() => {
     fetchContacts();
-    fetchGroupChats();
+
+    const handleCallHistoryUpdate = () => {
+      fetchCallsHistory();
+    };
+    window.addEventListener("call:history-updated", handleCallHistoryUpdate);
+    return () => {
+      window.removeEventListener("call:history-updated", handleCallHistoryUpdate);
+    };
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUserStatusChange = ({ userId, isOnline, lastSeen }) => {
+      setContacts(prev =>
+        prev.map(contact =>
+          contact._id === userId
+            ? { ...contact, isOnline, lastSeen }
+            : contact
+        )
+      );
+
+      setActiveContact(prev => {
+        if (!prev || prev._id !== userId) return prev;
+        return { ...prev, isOnline, lastSeen };
+      });
+    };
+
+    socket.on("user:status-change", handleUserStatusChange);
+
+    return () => {
+      socket.off("user:status-change", handleUserStatusChange);
+    };
+  }, [socket]);
 
   const fetchContacts = async () => {
     try {
+      setLoading(true);
       const res = await axios.get(`${API}/api/support/users`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setContacts(res.data);
+      
+      const admin = res.data.find(c => c.role?.toLowerCase() === "admin" || c.role?.toLowerCase() === "superadmin") || DEFAULT_ADMIN;
+      if (activeTab === "admin") {
+        setActiveContact(admin);
+        fetchBroadcastHistory();
+      }
     } catch (err) {
       console.error("Error fetching contacts:", err);
+      if (activeTab === "admin") {
+        setActiveContact(DEFAULT_ADMIN);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchGroupChats = async () => {
+  const fetchBroadcastHistory = async () => {
     try {
-      const res = await axios.get(`${API}/api/groups`, {
+      const res = await axios.get(`${API}/api/support/history?broadcasts=true`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setGroups(res.data);
+      setBroadcastMessages(res.data);
     } catch (err) {
-      console.error("Error fetching groups:", err);
+      console.error("Error fetching broadcasts:", err);
     }
   };
 
-  const scrollToBottom = (ref) => {
-    setTimeout(() => {
-      ref.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
-  };
-
-  // Group chat messaging handlers
-  const sendGroupMessage = async (e) => {
-    e.preventDefault();
-    if (!groupMessageText.trim() || !activeGroup) return;
-
-    if (activeGroup._id.startsWith("mock-")) {
-      const mockMsg = {
-        _id: `mock-msg-${Date.now()}`,
-        sender: { _id: currentUserId, name: name },
-        content: groupMessageText,
-        createdAt: new Date().toISOString()
-      };
-      setGroupMessages(current => [...current, mockMsg]);
-      setGroupMessageText("");
-      scrollToBottom(messagesEndRef);
-      return;
-    }
-
+  const fetchCallsHistory = async () => {
     try {
-      const res = await axios.post(
-        `${API}/api/groups/${activeGroup._id}/messages`,
-        { content: groupMessageText },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setGroupMessages(current => 
-        current.some(m => m._id === res.data._id) ? current : [...current, res.data]
-      );
-      setGroupMessageText("");
-      scrollToBottom(messagesEndRef);
+      setLoading(true);
+      const res = await axios.get(`${API}/api/support/calls`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCallsHistory(res.data);
     } catch (err) {
-      console.error("Could not send group message:", err);
+      console.error("Error fetching calls:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const createGroupChat = async (e) => {
-    e.preventDefault();
-    if (!newGroupName.trim()) return;
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setActiveContact(null);
+    setBroadcastMessages([]);
+    setSubTab("personal");
 
-    try {
-      const res = await axios.post(
-        `${API}/api/groups`,
-        { name: newGroupName, memberIds: selectedMembers },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setGroups(current => [res.data, ...current]);
-      setActiveGroup(res.data);
-      setNewGroupName("");
-      setSelectedMembers([]);
-      setShowNewGroupModal(false);
-    } catch (err) {
-      console.error("Could not create group:", err);
+    if (tab === "admin") {
+      const admin = contacts.find(c => c.role?.toLowerCase() === "admin" || c.role?.toLowerCase() === "superadmin") || DEFAULT_ADMIN;
+      setActiveContact(admin);
+      fetchBroadcastHistory();
     }
   };
 
-  // Simulated School Admin Auto-Responder replies
-  const handleAdminMessageSubmit = (e) => {
-    if (e) e.preventDefault();
-    if (!adminInputText.trim()) return;
-
-    const studentMsg = {
-      _id: `admin-std-${Date.now()}`,
-      sender: "student",
-      content: adminInputText,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-
-    setAdminMessages(prev => [...prev, studentMsg]);
-    setAdminInputText("");
-    scrollToBottom(adminMessagesEndRef);
-
-    setTimeout(() => {
-      const reply = {
-        _id: `admin-rep-${Date.now()}`,
-        sender: "admin",
-        content: "Thank you for writing to us. A school support coordinator has been notified and will reply to your message shortly.",
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setAdminMessages(prev => [...prev, reply]);
-      scrollToBottom(adminMessagesEndRef);
-    }, 1000);
+  const handleSubTabChange = (sub) => {
+    setSubTab(sub);
+    if (sub === "calls") {
+      fetchCallsHistory();
+    }
   };
 
-  const handleAdminQuickTopic = (topicName, simulatedText) => {
-    const studentMsg = {
-      _id: `admin-std-q-${Date.now()}`,
-      sender: "student",
-      content: `I need help with: ${topicName}`,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-
-    setAdminMessages(prev => [...prev, studentMsg]);
-    scrollToBottom(adminMessagesEndRef);
-
-    setTimeout(() => {
-      const reply = {
-        _id: `admin-rep-q-${Date.now()}`,
-        sender: "admin",
-        content: simulatedText,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setAdminMessages(prev => [...prev, reply]);
-      scrollToBottom(adminMessagesEndRef);
-    }, 1000);
-  };
-
-  // Simulated Teacher Auto-Responder replies
-  const handleTeacherMessageSubmit = (e) => {
-    e.preventDefault();
-    if (!teacherInputText.trim() || !activeTeacher) return;
-
-    const studentMsg = {
-      _id: `teach-std-${Date.now()}`,
-      sender: "student",
-      content: teacherInputText,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-
-    setTeacherMessages(prev => [...prev, studentMsg]);
-    setTeacherInputText("");
-    scrollToBottom(teacherMessagesEndRef);
-
-    setTimeout(() => {
-      const reply = {
-        _id: `teach-rep-${Date.now()}`,
-        sender: "teacher",
-        content: `Hi, thank you for your query. Let's discuss this doubt in detail during my next office hours. Be sure to review the chapters we covered today.`,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setTeacherMessages(prev => [...prev, reply]);
-      scrollToBottom(teacherMessagesEndRef);
-    }, 1200);
-  };
-
-  const handleSelectTeacher = (teacher) => {
-    setActiveTeacher(teacher);
-    setTeacherMessages([
-      {
-        _id: `teach-init-${Date.now()}`,
-        sender: "teacher",
-        content: teacher.lastMessage,
-        time: teacher.time
-      }
-    ]);
-    scrollToBottom(teacherMessagesEndRef);
-  };
-
-  const classmates = useMemo(() => {
-    return contacts.filter(c => c.role === "student" && c._id !== currentUserId);
-  }, [contacts, currentUserId]);
-
-  const displayGroups = useMemo(() => {
-    return groups.filter(g => {
-      const matchesSearch = g.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        (g.lastMessage?.content || "").toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesFilter = filterType === "All" || (filterType === "Unread" && g.unreadCount > 0);
-      
-      return matchesSearch && matchesFilter;
-    });
-  }, [groups, searchQuery, filterType]);
-
-  const displayTeachers = useMemo(() => {
-    const realTeachers = contacts.filter(c => c.role === "teacher");
-    return realTeachers.filter(t => {
-      const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        (t.subject || "").toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesSubject = subjectFilter === "All" || t.subject === subjectFilter;
-      
-      return matchesSearch && matchesSubject;
-    });
-  }, [contacts, searchQuery, subjectFilter]);
-
-  const displayCallLogs = useMemo(() => {
-    return MOCK_CALL_LOGS.filter(c => 
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      c.role.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery]);
+  const teacherContacts = useMemo(() => {
+    return contacts
+      .filter(c => c.role?.toLowerCase() === "teacher")
+      .filter(c => {
+        if (!searchQuery.trim()) return true;
+        const q = searchQuery.toLowerCase();
+        return (
+          c.name?.toLowerCase().includes(q) ||
+          c.email?.toLowerCase().includes(q) ||
+          c.subject?.toLowerCase().includes(q)
+        );
+      });
+  }, [contacts, searchQuery]);
 
   return (
-    <div style={{ fontFamily: SORA }} className="space-y-6">
-      
-      {/* Support Title Cards */}
-      <div className="select-none">
-        <p className="text-[10px] font-black uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA] px-1">SUPPORT CHAT</p>
-        <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">Support Center</h2>
-        <p className="text-xs text-slate-450 dark:text-slate-400 font-semibold mt-0.5">Connect with your school community & get help.</p>
+    <div className="font-sans flex flex-col h-[calc(100vh-130px)] min-h-[500px] bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl overflow-hidden shadow-sm" style={{ fontFamily: SORA }}>
+      {/* Top Header & Tab bar */}
+      <div className="flex flex-wrap items-center justify-between border-b border-slate-100 dark:border-white/[0.05] bg-slate-50/50 dark:bg-[#111827] p-2 sm:p-2.5 gap-2 select-none shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <button
+            onClick={() => handleTabChange("admin")}
+            className={`px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              activeTab === "admin"
+                ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/15"
+                : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
+            }`}
+          >
+            School Admin Support
+          </button>
+          <button
+            onClick={() => handleTabChange("teachers")}
+            className={`px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              activeTab === "teachers"
+                ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/15"
+                : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
+            }`}
+          >
+            My Teachers Chat
+          </button>
+        </div>
+
+        {/* Action Button: Make Group */}
+        <Link 
+          to="/student/support/groups" 
+          className="rounded-xl bg-[#7C3AED] px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-white shadow-sm hover:opacity-90 transition shrink-0 ml-auto flex items-center gap-1.5"
+        >
+          <FaUsers className="text-xs" />
+          <span>+ Make Group</span>
+        </Link>
       </div>
 
-      {/* Toggle Pill Buttons (3 Options) */}
-      <div className="grid grid-cols-3 gap-2.5 bg-slate-100 dark:bg-white/5 p-1 rounded-2xl select-none">
-        <button
-          onClick={() => { setActiveTab("groups"); setSearchQuery(""); }}
-          className={`flex items-center justify-center gap-1.5 py-3.5 rounded-xl text-[10px] font-black transition cursor-pointer ${
-            activeTab === "groups"
-              ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/20"
-              : "text-slate-500 hover:bg-slate-200/50 dark:hover:bg-white/5"
-          }`}
-        >
-          <FaUsers className="text-sm shrink-0" />
-          <span className="hidden sm:inline">My Group Chats</span>
-          <span className="sm:hidden">Groups</span>
-        </button>
+      <div className="flex-1 flex overflow-hidden min-h-0">
+        {/* If Active Tab is Admin Support */}
+        {activeTab === "admin" && (
+          <div className="flex-1 flex flex-col md:flex-row md:divide-x divide-slate-100 dark:divide-white/[0.05] overflow-hidden min-h-0">
+            {/* Mobile Sub-tabs for Admin Announcements vs Personal Chat */}
+            <div className="md:hidden flex border-b border-slate-100 dark:border-white/[0.05] bg-white dark:bg-[#111827] p-1.5 gap-1 select-none shrink-0">
+              <button
+                type="button"
+                onClick={() => setSubTab("broadcast")}
+                className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  subTab === "broadcast"
+                    ? "bg-[#7C3AED] text-white shadow-sm"
+                    : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/[0.05]"
+                }`}
+              >
+                📢 Announcements
+              </button>
+              <button
+                type="button"
+                onClick={() => setSubTab("personal")}
+                className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  subTab === "personal"
+                    ? "bg-[#7C3AED] text-white shadow-sm"
+                    : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/[0.05]"
+                }`}
+              >
+                💬 Admin Chat
+              </button>
+            </div>
 
-        <button
-          onClick={() => { setActiveTab("admin"); setSearchQuery(""); }}
-          className={`flex items-center justify-center gap-1.5 py-3.5 rounded-xl text-[10px] font-black transition cursor-pointer ${
-            activeTab === "admin"
-              ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/20"
-              : "text-slate-500 hover:bg-slate-200/50 dark:hover:bg-white/5"
-          }`}
-        >
-          <FaShieldAlt className="text-sm shrink-0" />
-          <span className="hidden sm:inline">School Admin Support</span>
-          <span className="sm:hidden">Admin</span>
-        </button>
+            {/* Broadcast lists (Left on desktop, toggled on mobile) */}
+            <div className={`w-full md:w-5/12 flex-col h-full bg-slate-50/20 dark:bg-[#111827]/40 select-none min-h-0 ${
+              subTab === "broadcast" ? "flex" : "hidden md:flex"
+            }`}>
+              <div className="p-3 sm:p-4 border-b border-slate-100 dark:border-white/[0.05] bg-white dark:bg-[#111827] shrink-0">
+                <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <FaBroadcastTower className="text-teal-500" /> Admin Announcements
+                </h3>
+              </div>
+              <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
+                {broadcastMessages.length === 0 ? (
+                  <div className="py-12 md:py-20 text-center text-slate-400 text-xs font-semibold">
+                    No announcements from Admin.
+                  </div>
+                ) : (
+                  broadcastMessages.map((msg) => (
+                    <div key={msg._id} className="bg-white dark:bg-[#1f2937] border border-slate-200/60 dark:border-white/[0.05] rounded-2xl p-4 shadow-sm relative overflow-hidden">
+                      <div className="flex items-center justify-between border-b border-slate-50 dark:border-white/[0.03] pb-2 mb-2">
+                        <span className="inline-flex items-center gap-1 text-[8px] font-bold text-teal-600 uppercase bg-teal-50 px-1.5 py-0.5 rounded">
+                          Announcement
+                        </span>
+                        <span className="text-[9px] text-slate-400 font-bold">
+                          {new Date(msg.createdAt).toLocaleDateString()} {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-700 dark:text-slate-350 leading-relaxed">{msg.content}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
 
-        <button
-          onClick={() => { setActiveTab("teachers"); setSubTab("personal"); setSearchQuery(""); }}
-          className={`flex items-center justify-center gap-1.5 py-3.5 rounded-xl text-[10px] font-black transition cursor-pointer ${
-            activeTab === "teachers"
-              ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/20"
-              : "text-slate-500 hover:bg-slate-200/50 dark:hover:bg-white/5"
-          }`}
-        >
-          <FaGraduationCap className="text-sm shrink-0" />
-          <span className="hidden sm:inline">My Teachers Chat</span>
-          <span className="sm:hidden">Teachers</span>
-        </button>
-      </div>
-
-      {/* ======================================= */}
-      {/* VIEW 1: MY GROUP CHATS */}
-      {activeTab === "groups" && (
-        <div className="space-y-4">
-          
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
-              <input
-                type="text"
-                placeholder="Search group chats..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B132A] text-slate-800 dark:text-white placeholder-slate-400 text-xs font-semibold focus:outline-none focus:border-[#7C3AED]"
+            {/* Personal Admin Chat (Right on desktop, toggled on mobile) */}
+            <div className={`w-full md:w-7/12 flex-col h-full bg-white dark:bg-[#111827] relative min-h-0 ${
+              subTab === "personal" ? "flex" : "hidden md:flex"
+            }`}>
+              <SupportChatEngine 
+                activeContact={activeContact || DEFAULT_ADMIN} 
+                onBack={() => setActiveContact(null)} 
+                userRole="student" 
               />
             </div>
-            
-            <div className="relative shrink-0">
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="appearance-none bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white py-3 pl-9 pr-8 rounded-xl text-xs font-bold focus:outline-none focus:border-[#7C3AED] cursor-pointer"
-              >
-                <option value="All">All Chats</option>
-                <option value="Unread">Unread Chats</option>
-              </select>
-              <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none" />
-            </div>
           </div>
+        )}
 
-          <div className="flex items-center justify-between px-1 select-none">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">My Group Chats</span>
-            <button
-              onClick={() => setShowNewGroupModal(true)}
-              className="text-[10px] font-black text-[#7C3AED] dark:text-[#A78BFA] hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              <FaPlus /> New Group Chat
-            </button>
-          </div>
-
-          <div className="space-y-3">
-            {displayGroups.map((group) => {
-              const avatarBg = group.avatarBg || "bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/20";
-              const avatarIcon = group.avatarIcon || <FaUsers />;
-              const timeText = group.timeText || new Date(group.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-              return (
-                <div
-                  key={group._id}
-                  onClick={() => {
-                    setActiveGroup(group);
-                    if (!group._id.startsWith("mock-")) {
-                      axios.get(`${API}/api/groups/${group._id}/messages`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                      }).then(res => setGroupMessages(res.data));
-                    }
-                  }}
-                  className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-purple-500/20 rounded-2.5xl p-4.5 flex items-center justify-between cursor-pointer group transition-all shadow-sm select-none"
-                >
-                  <div className="flex items-center gap-4 min-w-0">
-                    <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 text-lg ${avatarBg}`}>
-                      {avatarIcon}
-                    </div>
-                    <div className="min-w-0">
-                      <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-tight truncate group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition-colors">
-                        {group.name}
-                      </h4>
-                      <p className="text-[10px] text-slate-400 font-bold leading-normal truncate mt-0.5">
-                        {group.description || "General group chat"}
-                      </p>
-                      {group.lastMessage ? (
-                        <p className="text-[10px] text-slate-455 dark:text-slate-500 font-semibold truncate mt-1">
-                          <span className="font-extrabold">{group.lastMessage.sender?.name || "Member"}:</span> {group.lastMessage.content}
-                        </p>
-                      ) : (
-                        <p className="text-[10px] text-slate-500 font-medium italic mt-1">No messages yet</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-end gap-2 shrink-0 ml-3">
-                    <span className="text-[9px] text-slate-455 dark:text-slate-500 font-extrabold">{timeText}</span>
-                    {group.unreadCount > 0 && (
-                      <span className="w-5 h-5 rounded-full bg-[#7C3AED] text-white flex items-center justify-center text-[9px] font-black tracking-tighter">
-                        {group.unreadCount}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="bg-[#7C3AED]/5 dark:bg-white/[0.02] border border-[#7C3AED]/10 dark:border-white/[0.04] p-4.5 rounded-2.5xl flex items-start gap-3 select-none">
-            <FaInfoCircle className="text-base text-[#7C3AED] dark:text-[#38BDF8] shrink-0 mt-0.5" />
-            <p className="text-[10px] sm:text-xs text-slate-555 dark:text-slate-455 leading-relaxed font-semibold">
-              Group chats help you stay connected with classmates, teachers, and school updates in one place.
-            </p>
-          </div>
-
-        </div>
-      )}
-
-      {/* ======================================= */}
-      {/* VIEW 2: SCHOOL ADMIN SUPPORT */}
-      {activeTab === "admin" && (
-        <div className="space-y-6">
-          
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 flex items-center justify-between gap-4 relative">
-            <div className="min-w-0">
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA]">SCHOOL ADMIN SUPPORT</span>
-              <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white mt-1">Chat with School Admin</h3>
-              <p className="text-xs text-slate-450 dark:text-slate-400 font-semibold mt-1 leading-relaxed">
-                Need help? Our school admin team is here to assist you with quick and reliable support.
-              </p>
-            </div>
-
-            <div className="shrink-0 text-center select-none flex flex-col items-center">
-              <div className="relative">
-                <img 
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" 
-                  alt="Admin Profile" 
-                  className="w-12 h-12 rounded-full object-cover border-2 border-slate-100 dark:border-[#0B132A]"
-                />
-                <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-[#0B132A] rounded-full" />
-              </div>
-              <span className="text-[9px] font-black uppercase tracking-wider text-green-555 mt-1.5">Online</span>
-              <span className="text-[7px] font-bold text-slate-400 mt-0.5">Replies in minutes</span>
-            </div>
-          </div>
-
-          <div className="space-y-3 select-none">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Quick Help Topics</span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div 
-                onClick={() => handleAdminQuickTopic("Admission Related Queries", "For admissions, application review takes 24-48 hours. Please check your Status page.")}
-                className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-[#7C3AED]/20 p-4.5 rounded-2.5xl flex items-center justify-between cursor-pointer transition shadow-sm group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] flex items-center justify-center shrink-0">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-                    </svg>
-                  </div>
-                  <span className="text-xs font-black text-slate-805 dark:text-slate-200">Admission Related Queries</span>
-                </div>
-                <span className="text-slate-400 group-hover:translate-x-0.5 transition">&gt;</span>
-              </div>
-
-              <div 
-                onClick={() => handleAdminQuickTopic("Academic Information", "Your class routines, exams schedule, and syllabus are loaded in the Subjects & Exams tabs.")}
-                className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-[#7C3AED]/20 p-4.5 rounded-2.5xl flex items-center justify-between cursor-pointer transition shadow-sm group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] flex items-center justify-center shrink-0">
-                    <FaGraduationCap className="text-lg" />
-                  </div>
-                  <span className="text-xs font-black text-slate-805 dark:text-slate-200">Academic Information</span>
-                </div>
-                <span className="text-slate-400 group-hover:translate-x-0.5 transition">&gt;</span>
-              </div>
-
-              <div 
-                onClick={() => handleAdminQuickTopic("Fee & Payment Support", "All payments can be processed online. For invoices, please contact finance@teachhub.com.")}
-                className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-[#7C3AED]/20 p-4.5 rounded-2.5xl flex items-center justify-between cursor-pointer transition shadow-sm group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] flex items-center justify-center shrink-0 text-base font-black">
-                    ₹
-                  </div>
-                  <span className="text-xs font-black text-slate-805 dark:text-slate-200">Fee & Payment Support</span>
-                </div>
-                <span className="text-slate-400 group-hover:translate-x-0.5 transition">&gt;</span>
-              </div>
-
-              <div 
-                onClick={() => handleAdminQuickTopic("Technical Issues", "If experiencing video stream lag, please refresh the webpage or check bandwidth connectivity.")}
-                className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-[#7C3AED]/20 p-4.5 rounded-2.5xl flex items-center justify-between cursor-pointer transition shadow-sm group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] flex items-center justify-center shrink-0">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </div>
-                  <span className="text-xs font-black text-slate-805 dark:text-slate-200">Technical Issues</span>
-                </div>
-                <span className="text-slate-400 group-hover:translate-x-0.5 transition">&gt;</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 space-y-4">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Start a conversation</span>
-            
-            <div className="space-y-4 max-h-56 overflow-y-auto pr-1">
-              {adminMessages.map((msg) => {
-                const isOwn = msg.sender === "student";
-                return (
-                  <div key={msg._id} className={`flex gap-3 ${isOwn ? "justify-end" : "justify-start"}`}>
-                    {!isOwn && (
-                      <img 
-                        src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" 
-                        alt="Admin Avatar" 
-                        className="w-8 h-8 rounded-full object-cover shrink-0 mt-1"
-                      />
-                    )}
-                    <div className="flex flex-col max-w-[78%]">
-                      <div className={`p-4 rounded-2.5xl text-xs font-semibold leading-relaxed whitespace-pre-wrap shadow-sm ${
-                        isOwn 
-                          ? "bg-[#7C3AED] text-white rounded-tr-none" 
-                          : "bg-slate-100 dark:bg-[#1E293B] text-slate-800 dark:text-slate-200 rounded-tl-none border border-slate-200/30 dark:border-white/5"
-                      }`}>
-                        {msg.content}
-                      </div>
-                      <span className="text-[8px] font-bold text-slate-400 mt-1 px-1">{msg.time}</span>
-                    </div>
-                  </div>
-                );
-              })}
-              <div ref={adminMessagesEndRef} />
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-white/5">
-              <button 
-                onClick={() => handleAdminQuickTopic("General Query", "How can I help you today? Please type your request in the box below.")}
-                className="bg-transparent hover:bg-slate-100 dark:hover:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-350 text-[10px] font-bold py-2 px-4 rounded-xl transition cursor-pointer flex items-center gap-1.5"
-              >
-                <FaComments className="text-[#7C3AED]" /> Ask a Question
-              </button>
-              <button 
-                onClick={() => handleAdminQuickTopic("Raise Request", "To request school certificate or leave letter, please fill out the forms inside Profile desk.")}
-                className="bg-transparent hover:bg-slate-100 dark:hover:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-350 text-[10px] font-bold py-2 px-4 rounded-xl transition cursor-pointer flex items-center gap-1.5"
-              >
-                <FaFileAlt className="text-[#7C3AED]" /> Raise a Request
-              </button>
-              <button 
-                onClick={() => handleAdminQuickTopic("Request Call", "A coordinator will schedule a callback at your registered phone number. Expect a call by tomorrow afternoon.")}
-                className="bg-transparent hover:bg-slate-100 dark:hover:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-350 text-[10px] font-bold py-2 px-4 rounded-xl transition cursor-pointer flex items-center gap-1.5"
-              >
-                <FaPhone className="text-[#7C3AED]" /> Request a Call
-              </button>
-            </div>
-
-            <form onSubmit={handleAdminMessageSubmit} className="flex gap-2 pt-2">
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  placeholder="Type your message..."
-                  value={adminInputText}
-                  onChange={(e) => setAdminInputText(e.target.value)}
-                  className="w-full pl-4 pr-10 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#1E293B] text-slate-800 dark:text-white placeholder-slate-405 text-xs font-semibold focus:outline-none focus:border-[#7C3AED]"
-                />
-                
-                <button 
-                  type="button"
-                  onClick={() => alert("Upload file attachments.")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                  </svg>
-                </button>
-              </div>
-
-              <button
-                type="submit"
-                className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white px-5 rounded-xl transition cursor-pointer flex items-center justify-center"
-              >
-                <FaPaperPlane className="text-xs" />
-              </button>
-            </form>
-          </div>
-
-          <div className="bg-slate-100/50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.04] p-4.5 rounded-2.5xl flex items-start gap-3 select-none">
-            <FaInfoCircle className="text-base text-[#38BDF8] shrink-0 mt-0.5" />
-            <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
-              Our school admin team is available during school working hours (Mon - Sat, 9:00 AM to 5:00 PM).
-            </p>
-          </div>
-
-        </div>
-      )}
-
-      {/* ======================================= */}
-      {/* VIEW 3: MY TEACHERS CHAT */}
-      {activeTab === "teachers" && (
-        <div className="space-y-6">
-          
-          {/* Sub-tab Pill Row Selector (Teachers Directory, Calls) */}
-          <div className="flex gap-2 p-1 bg-slate-100 dark:bg-white/5 rounded-xl select-none max-w-xs">
-            <button
-              onClick={() => { setSubTab("personal"); setSearchQuery(""); }}
-              className={`flex-1 py-2 text-center text-[10px] font-black rounded-lg cursor-pointer transition ${
-                subTab === "personal"
-                  ? "bg-white dark:bg-[#0B132A] text-slate-900 dark:text-white shadow-sm"
-                  : "text-slate-500"
-              }`}
-            >
-              Teachers Directory
-            </button>
-            <button
-              onClick={() => { setSubTab("calls"); setSearchQuery(""); }}
-              className={`flex-1 py-2 text-center text-[10px] font-black rounded-lg cursor-pointer transition ${
-                subTab === "calls"
-                  ? "bg-white dark:bg-[#0B132A] text-slate-900 dark:text-white shadow-sm"
-                  : "text-slate-500"
-              }`}
-            >
-              Calls
-            </button>
-          </div>
-
-          {/* ======================= */}
-          {/* SUB-VIEW 1: TEACHERS DIRECTORY */}
-          {subTab === "personal" && (
-            <div className="space-y-4 animate-fadeIn">
-              
-              {/* Header Description block */}
-              <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 flex items-center justify-between gap-4 relative select-none">
-                <div className="min-w-0">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA]">TEACHERS</span>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white mt-1">Teachers Directory</h3>
-                  <p className="text-xs text-slate-450 dark:text-slate-400 font-semibold mt-1 leading-relaxed">
-                    Explore our experienced and dedicated teachers. Connect with them for guidance and support.
-                  </p>
-                </div>
-
-                {/* Right Open book graphic SVG */}
-                <div className="w-16 h-16 shrink-0 relative flex items-center justify-center text-slate-300 dark:text-slate-700">
-                  <svg className="w-12 h-12 text-[#7C3AED] dark:text-purple-900/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                  {/* User profile outline sitting beside */}
-                  <div className="absolute right-0 bottom-0 bg-[#7C3AED] text-white w-6 h-6 rounded-full flex items-center justify-center text-[10px]">
-                    👤
-                  </div>
-                </div>
-              </div>
-
-              {/* Search & Subject filter dropdown */}
-              <div className="flex gap-3">
-                <div className="relative flex-1">
-                  <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
-                  <input
-                    type="text"
-                    placeholder="Search by name, subject or keyword..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B132A] text-slate-800 dark:text-white placeholder-slate-400 text-xs font-semibold focus:outline-none focus:border-[#7C3AED]"
-                  />
-                </div>
-
-                <div className="relative shrink-0">
-                  <select
-                    value={subjectFilter}
-                    onChange={(e) => setSubjectFilter(e.target.value)}
-                    className="appearance-none bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white py-3 pl-9 pr-8 rounded-xl text-xs font-bold focus:outline-none focus:border-[#7C3AED] cursor-pointer"
+        {/* If Active Tab is Teachers Chat */}
+        {activeTab === "teachers" && (
+          <div className="flex-1 flex">
+            {/* Teacher list sidebar */}
+            <div className={`w-full md:w-1/3 border-r border-slate-100 dark:border-white/[0.05] flex flex-col h-full bg-slate-50/50 dark:bg-[#111827] ${
+              activeContact ? "hidden md:flex" : "flex"
+            }`}>
+              <div className="p-3 border-b border-slate-100 dark:border-white/[0.05] bg-white dark:bg-[#111827] flex flex-col gap-2 select-none">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleSubTabChange("personal")}
+                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold text-center border cursor-pointer ${
+                      subTab === "personal"
+                        ? "bg-slate-800 dark:bg-purple-650 text-white border-slate-800 dark:border-purple-650"
+                        : "bg-slate-50 dark:bg-white/[0.02] text-slate-500 dark:text-slate-450 border-slate-200 dark:border-white/[0.08] hover:bg-slate-100 dark:hover:bg-white/[0.04]"
+                    }`}
                   >
-                    <option value="All">All Subjects</option>
-                    <option value="Mathematics">Mathematics</option>
-                    <option value="Physics">Physics</option>
-                    <option value="English">English</option>
-                    <option value="Chemistry">Chemistry</option>
-                  </select>
-                  <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none" />
+                    Teachers Directory
+                  </button>
+                  <button
+                    onClick={() => handleSubTabChange("calls")}
+                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold text-center border cursor-pointer ${
+                      subTab === "calls"
+                        ? "bg-slate-800 dark:bg-purple-650 text-white border-slate-800 dark:border-purple-650"
+                        : "bg-slate-50 dark:bg-white/[0.02] text-slate-500 dark:text-slate-450 border-slate-200 dark:border-white/[0.08] hover:bg-slate-100 dark:hover:bg-white/[0.04]"
+                    }`}
+                  >
+                    Calls Log
+                  </button>
                 </div>
+
+                {subTab === "personal" && (
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search teachers..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                    <FaSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none" />
+                  </div>
+                )}
               </div>
 
-              {/* Teachers list details */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between px-1 select-none">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Teachers List</span>
-                  <span className="text-[10px] font-black text-slate-455 dark:text-slate-500">Total Teachers: {displayTeachers.length}</span>
-                </div>
-
-                {displayTeachers.map((teacher) => {
-                  const isAvailable = teacher.status === "Available";
-                  return (
-                    <div 
-                      key={teacher._id}
-                      className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-purple-500/20 rounded-2.5xl p-4.5 flex items-center justify-between shadow-sm"
-                    >
-                      <div className="flex items-center gap-4 min-w-0">
-                        <div className="relative shrink-0 select-none">
-                          <img src={teacher.avatar} alt={teacher.name} className="w-14 h-14 rounded-full object-cover border border-slate-200 dark:border-white/5" />
-                          <span className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-[#0B132A] ${
-                            isAvailable ? "bg-green-500" : "bg-gray-400"
-                          }`} />
-                        </div>
-
-                        <div className="min-w-0">
-                          <div className="flex items-center flex-wrap gap-2 select-none">
-                            <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-tight truncate">
-                              {teacher.name}
-                            </h4>
-                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${teacher.badgeBg}`}>
-                              {teacher.subject}
-                            </span>
-                            <span className={`text-[8px] font-black flex items-center gap-1 ${isAvailable ? "text-green-555" : "text-slate-400"}`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${isAvailable ? "bg-green-500" : "bg-gray-400"}`} /> {teacher.status}
-                            </span>
-                          </div>
-                          
-                          {/* Education & Experience info */}
-                          <div className="flex flex-col gap-0.5 mt-2 text-[10px] text-slate-450 dark:text-slate-400 font-extrabold select-none">
-                            <span className="flex items-center gap-1.5">
-                              <span className="text-xs">🎓</span> {teacher.education}
-                            </span>
-                            <span className="flex items-center gap-1.5 mt-0.5">
-                              <span className="text-xs text-amber-500">⭐</span> {teacher.experience}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Message CTA button */}
+              {subTab === "personal" && (
+                <div className="flex-1 overflow-y-auto divide-y divide-slate-100/50 dark:divide-white/[0.03]">
+                  {teacherContacts.length === 0 ? (
+                    <div className="p-6 text-center text-slate-400 text-xs font-semibold select-none">
+                      {loading ? "Loading teachers..." : "No teachers found."}
+                    </div>
+                  ) : (
+                    teacherContacts.map((contact) => (
                       <button
-                        onClick={() => handleSelectTeacher(teacher)}
-                        className="bg-transparent hover:bg-slate-50 dark:hover:bg-white/5 border border-[#7C3AED]/20 hover:border-[#7C3AED]/40 dark:border-[#38BDF8]/20 dark:hover:border-[#38BDF8]/40 text-[#7C3AED] dark:text-[#38BDF8] text-[10px] py-2 px-4.5 rounded-xl font-black transition cursor-pointer flex items-center gap-1.5 select-none"
+                        key={contact._id}
+                        onClick={() => setActiveContact(contact)}
+                        className={`w-full p-4 text-left transition flex items-center gap-3 cursor-pointer ${
+                          activeContact?._id === contact._id 
+                            ? "bg-white dark:bg-white/[0.02] border-l-4 border-[#7C3AED]" 
+                            : "hover:bg-slate-100/60 dark:hover:bg-white/[0.01]"
+                        }`}
                       >
-                        <svg className="w-3.5 h-3.5 fill-none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                        Message
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Bottom can't find teacher CTA banner */}
-              <div 
-                onClick={() => handleTabChange("admin")}
-                className="bg-slate-100/50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.04] p-4.5 rounded-2.5xl flex items-center justify-between cursor-pointer hover:border-[#7C3AED]/20 transition select-none"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#38BDF8]/10 text-[#38BDF8] flex items-center justify-center shrink-0 text-sm font-bold">
-                    i
-                  </div>
-                  <div>
-                    <h5 className="text-[11px] font-black text-slate-800 dark:text-slate-200">Can't find a teacher?</h5>
-                    <p className="text-[9px] text-slate-450 dark:text-slate-400 font-semibold mt-0.5">Contact your school admin for more information.</p>
-                  </div>
-                </div>
-                <FaChevronRight className="text-slate-400 text-xs shrink-0" />
-              </div>
-
-            </div>
-          )}
-
-          {/* ======================= */}
-          {/* SUB-VIEW 2: CALLS LOG */}
-          {subTab === "calls" && (
-            <div className="space-y-4 animate-fadeIn">
-              
-              {/* Header Description block */}
-              <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 flex items-center justify-between gap-4 relative select-none">
-                <div className="min-w-0">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA]">CALLS</span>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white mt-1">Calls / Call History</h3>
-                  <p className="text-xs text-slate-450 dark:text-slate-400 font-semibold mt-1 leading-relaxed">
-                    View your recent calls and connect with your teachers or school admin.
-                  </p>
-                </div>
-
-                {/* Right large Phone handset icon bubble */}
-                <div className="w-16 h-16 rounded-full bg-violet-600/10 text-violet-500 flex items-center justify-center shrink-0 shadow-lg shadow-violet-600/5 relative">
-                  <svg className="w-8 h-8 rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Quick Actions (New Call / Video Call Cards) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 select-none">
-                <div 
-                  onClick={() => alert("Initiating Voice call selection...")}
-                  className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-purple-500/20 p-4.5 rounded-2.5xl flex items-center justify-between cursor-pointer transition shadow-sm group"
-                >
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-[#7C3AED] flex items-center justify-center shrink-0">
-                      <FaPhone className="text-sm" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-black text-slate-805 dark:text-white">New Call</h4>
-                      <p className="text-[9px] text-slate-450 dark:text-slate-400 font-semibold mt-0.5">Make a new call to any contact</p>
-                    </div>
-                  </div>
-                  <span className="text-slate-400 group-hover:translate-x-0.5 transition">&gt;</span>
-                </div>
-
-                <div 
-                  onClick={() => alert("Initiating Video call selection...")}
-                  className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-purple-500/20 p-4.5 rounded-2.5xl flex items-center justify-between cursor-pointer transition shadow-sm group"
-                >
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-[#7C3AED] flex items-center justify-center shrink-0">
-                      {/* Video camera SVG */}
-                      <svg className="w-5 h-5 text-[#7C3AED]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-black text-slate-805 dark:text-white">Video Call</h4>
-                      <p className="text-[9px] text-slate-450 dark:text-slate-400 font-semibold mt-0.5">Start a video call with any contact</p>
-                    </div>
-                  </div>
-                  <span className="text-slate-400 group-hover:translate-x-0.5 transition">&gt;</span>
-                </div>
-              </div>
-
-              {/* Sub-tab pills (Call History, Contacts) */}
-              <div className="flex gap-2 p-1 bg-slate-100 dark:bg-white/5 rounded-xl select-none max-w-xs">
-                <button
-                  onClick={() => setCallHistoryTab("history")}
-                  className={`flex-1 py-2 text-center text-[10px] font-black rounded-lg cursor-pointer transition flex items-center justify-center gap-1.5 ${
-                    callHistoryTab === "history"
-                      ? "bg-white dark:bg-[#0B132A] text-slate-900 dark:text-white shadow-sm"
-                      : "text-slate-500"
-                  }`}
-                >
-                  <FaClock className="text-[9px]" /> Call History
-                </button>
-                <button
-                  onClick={() => setCallHistoryTab("contacts")}
-                  className={`flex-1 py-2 text-center text-[10px] font-black rounded-lg cursor-pointer transition flex items-center justify-center gap-1.5 ${
-                    callHistoryTab === "contacts"
-                      ? "bg-white dark:bg-[#0B132A] text-slate-900 dark:text-white shadow-sm"
-                      : "text-slate-500"
-                  }`}
-                >
-                  👤 Contacts
-                </button>
-              </div>
-
-              {/* Logs block */}
-              {callHistoryTab === "history" ? (
-                <div className="space-y-3">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Today</span>
-                  
-                  {displayCallLogs.map((log) => {
-                    const isSchoolAdmin = log.avatar === "school";
-                    return (
-                      <div 
-                        key={log._id}
-                        className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-purple-500/20 rounded-2.5xl p-4.5 flex items-center justify-between shadow-sm"
-                      >
-                        <div className="flex items-center gap-3.5 min-w-0">
-                          {/* Avatar icon */}
-                          <div className="shrink-0 select-none">
-                            {isSchoolAdmin ? (
-                              <div className="w-11 h-11 rounded-full bg-purple-950/15 border border-purple-500/10 text-purple-400 flex items-center justify-center">
-                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                </svg>
-                              </div>
-                            ) : (
-                              <img src={log.avatar} alt={log.name} className="w-11 h-11 rounded-full object-cover border border-slate-200 dark:border-white/5" />
+                        <div className="w-9 h-9 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black flex-shrink-0 relative">
+                          {contact.avatar ? (
+                            <img src={contact.avatar} alt={contact.name} className="w-full h-full rounded-full object-cover" />
+                          ) : (
+                            contact.name ? contact.name.charAt(0).toUpperCase() : "T"
+                          )}
+                          {contact.isOnline && (
+                            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-[#111827] rounded-full"></span>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs font-bold text-slate-700 dark:text-white truncate">{contact.name}</p>
+                            {contact.unreadCount > 0 && (
+                              <span className="bg-[#7C3AED] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                                {contact.unreadCount}
+                              </span>
                             )}
                           </div>
-
-                          <div className="min-w-0">
-                            <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-tight truncate">
-                              {log.name}
-                            </h4>
-                            <p className="text-[9px] text-slate-400 font-extrabold mt-0.5">{log.role}</p>
-                            
-                            {/* Direction type badge */}
-                            <div className="flex items-center gap-1 mt-2 select-none">
-                              {log.icon}
-                              <span className={`text-[9px] font-black uppercase tracking-wider ${log.typeColor}`}>
-                                {log.type}
-                              </span>
-                            </div>
-                          </div>
+                          <p className="text-[10px] text-slate-400 font-medium truncate">
+                            {contact.lastMessage ? contact.lastMessage.content || "Media Attachment" : (contact.subject || contact.email)}
+                          </p>
                         </div>
-
-                        {/* Call CTA buttons (Right) */}
-                        <div className="flex items-center gap-3 select-none ml-3 shrink-0">
-                          <div className="flex flex-col items-end gap-0.5 text-right mr-1">
-                            <span className="text-[9px] text-slate-455 dark:text-slate-500 font-extrabold">{log.time}</span>
-                            <span className="text-[8px] text-slate-400 font-black font-mono">{log.duration}</span>
-                          </div>
-
-                          {/* Dial receiver icon */}
-                          <button 
-                            onClick={() => alert(`Dialing ${log.name}...`)}
-                            className="w-9 h-9 rounded-xl bg-transparent hover:bg-slate-50 dark:hover:bg-white/5 border border-purple-500/20 hover:border-purple-500/40 text-[#7C3AED] dark:text-[#38BDF8] flex items-center justify-center transition cursor-pointer"
-                          >
-                            <FaPhone className="text-xs" />
-                          </button>
-
-                          {/* Options dots */}
-                          <button className="text-slate-400 hover:text-slate-655 p-1 rounded transition">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="py-20 text-center text-slate-400 text-xs font-semibold select-none bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-6">
-                  No contacts found. Use the search to query directory.
+                      </button>
+                    ))
+                  )}
                 </div>
               )}
 
-              {/* End-to-end encrypted notification banner */}
-              <div className="bg-slate-100/50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.04] p-4.5 rounded-2.5xl flex items-start gap-3 select-none">
-                <FaInfoCircle className="text-base text-[#38BDF8] shrink-0 mt-0.5" />
-                <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
-                  Calls are end-to-end encrypted for your privacy and security.
-                </p>
-              </div>
-
-            </div>
-          )}
-
-        </div>
-      )}
-
-      {/* ======================================= */}
-      {/* OVERLAY MODAL A: Create New Group Chat */}
-      {showNewGroupModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl relative select-none animate-fadeIn text-slate-800 dark:text-white">
-            <button
-              onClick={() => {
-                setShowNewGroupModal(false);
-                setNewGroupName("");
-                setSelectedMembers([]);
-              }}
-              className="absolute top-4.5 right-4.5 text-slate-400 hover:text-slate-655 dark:hover:text-white cursor-pointer"
-            >
-              <FaTimes className="text-sm" />
-            </button>
-
-            <div className="mb-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/20 flex items-center justify-center">
-                <FaUsers className="text-sm" />
-              </div>
-              <h3 className="text-sm sm:text-base font-black">Create Group Chat</h3>
-            </div>
-
-            <form onSubmit={createGroupChat} className="space-y-4">
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-450 dark:text-slate-400 mb-1.5">Group Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Science Project Group"
-                  value={newGroupName}
-                  onChange={(e) => setNewGroupName(e.target.value)}
-                  className="w-full px-4 py-3 text-xs font-semibold rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:border-[#7C3AED]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-455 dark:text-slate-400 mb-1.5">Select Members</label>
-                <div className="border border-slate-200 dark:border-white/10 rounded-xl max-h-44 overflow-y-auto divide-y divide-slate-100 dark:divide-white/5 p-2">
-                  {classmates.length === 0 ? (
-                    <p className="text-[10px] text-slate-455 font-bold text-center py-6">No classmates found to invite.</p>
+              {subTab === "calls" && (
+                <div className="flex-1 overflow-y-auto divide-y divide-slate-100/50 dark:divide-white/[0.03] bg-white dark:bg-[#111827]">
+                  {callsHistory.length === 0 ? (
+                    <div className="p-6 text-center text-slate-400 text-xs font-semibold select-none">
+                      {loading ? "Loading calls..." : "No call history found."}
+                    </div>
                   ) : (
-                    classmates.map((student) => {
-                      const isChecked = selectedMembers.includes(student._id);
+                    callsHistory.map((call) => {
+                      const isOutgoing = call.caller?._id === currentUserId;
+                      const partner = isOutgoing ? call.receiver : call.caller;
+                      if (!partner) return null;
+                      
+                      const isMissed = call.status === "missed";
+                      const isRejected = call.status === "rejected";
+                      const isCompleted = call.status === "completed";
+
                       return (
-                        <label
-                          key={student._id}
-                          className="flex items-center gap-3 p-2.5 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-355"
+                        <div
+                          key={call._id}
+                          className="w-full p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/[0.02] transition border-b border-slate-100/50 dark:border-white/[0.03]"
                         >
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => {
-                              setSelectedMembers(current =>
-                                current.includes(student._id)
-                                  ? current.filter(id => id !== student._id)
-                                  : [...current, student._id]
-                              );
-                            }}
-                            className="rounded border-slate-300 dark:border-white/10 text-[#7C3AED] focus:ring-[#7C3AED]"
-                          />
-                          <span>{student.name}</span>
-                        </label>
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black flex-shrink-0">
+                              {partner.name ? partner.name.charAt(0).toUpperCase() : "U"}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-slate-700 dark:text-white truncate">{partner.name}</p>
+                              <div className="flex items-center gap-1 mt-0.5 select-none">
+                                <span className={`text-[9px] font-bold uppercase tracking-wider ${
+                                  isMissed || isRejected ? "text-rose-500" : isCompleted ? "text-green-500" : "text-amber-500"
+                                }`}>
+                                  {isOutgoing ? "Outgoing" : "Incoming"} · {call.status}
+                                </span>
+                                <span className="text-[9px] text-slate-400 font-medium">
+                                  · {new Date(call.createdAt).toLocaleDateString()} {new Date(call.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                              {isCompleted && call.duration > 0 && (
+                                <p className="text-[9px] text-slate-400 font-semibold font-mono mt-0.5">
+                                  Duration: {Math.floor(call.duration / 60)}m {call.duration % 60}s
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-slate-400 text-xs">
+                            {call.type === "video" ? <FaVideo className="text-purple-500" /> : <FaPhone className="text-[#7C3AED]" />}
+                          </div>
+                        </div>
                       );
                     })
                   )}
                 </div>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white py-3.5 rounded-xl text-xs font-black transition cursor-pointer"
-              >
-                Create Group
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ======================================= */}
-      {/* OVERLAY MODAL B: Selected Group Chat Window */}
-      {activeGroup && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-xl h-[70vh] shadow-2xl flex flex-col overflow-hidden animate-fadeIn text-slate-800 dark:text-white">
-            
-            <header className="p-4.5 border-b border-slate-200 dark:border-white/10 flex items-center justify-between select-none shrink-0 bg-slate-50 dark:bg-white/[0.01]">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-base ${activeGroup.avatarBg || "bg-[#7C3AED]/10 text-[#7C3AED]"}`}>
-                  {activeGroup.avatarIcon || <FaUsers />}
-                </div>
-                <div className="min-w-0">
-                  <h3 className="text-xs sm:text-sm font-black truncate">{activeGroup.name}</h3>
-                  <p className="text-[10px] text-slate-400 font-bold mt-0.5 truncate">
-                    {activeGroup.description || "Group discussion feed"}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setActiveGroup(null);
-                  setGroupMessages([]);
-                }}
-                className="text-slate-400 hover:text-slate-655 dark:hover:text-white bg-slate-100 dark:bg-white/5 p-2 rounded-xl transition cursor-pointer"
-              >
-                <FaTimes className="text-xs" />
-              </button>
-            </header>
-
-            <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-slate-50/50 dark:bg-transparent">
-              {groupMessages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center text-center h-full text-slate-400 p-8 select-none">
-                  <p className="text-xs font-bold uppercase tracking-wider">No Messages Yet</p>
-                  <p className="text-[10px] text-slate-450 mt-1 max-w-xs font-semibold">
-                    Type below and hit send to start conversation in {activeGroup.name}.
-                  </p>
-                </div>
-              ) : (
-                groupMessages.map((msg) => {
-                  const isOwn = msg.sender?._id === currentUserId;
-                  return (
-                    <div
-                      key={msg._id}
-                      className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}
-                    >
-                      <span className="text-[9px] font-extrabold text-slate-455 dark:text-slate-500 mb-0.5 px-1">
-                        {isOwn ? "You" : msg.sender?.name || "Member"}
-                      </span>
-                      <div className={`max-w-[80%] p-3.5 rounded-2xl text-xs font-semibold leading-relaxed ${
-                        isOwn
-                          ? "bg-[#7C3AED] text-white rounded-tr-none"
-                          : "bg-slate-100 dark:bg-[#1E293B] border border-slate-200/60 dark:border-white/5 text-slate-900 dark:text-slate-200 rounded-tl-none shadow-sm"
-                      }`}>
-                        {msg.content}
-                      </div>
-                      <span className="text-[8px] text-slate-400 font-medium mt-0.5 px-1 font-mono">
-                        {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  );
-                })
               )}
-              <div ref={messagesEndRef} />
             </div>
 
-            <form onSubmit={sendGroupMessage} className="p-3 bg-white dark:bg-[#0B132A] border-t border-slate-200 dark:border-white/10 flex gap-2 shrink-0">
-              <input
-                type="text"
-                placeholder="Type a message..."
-                value={groupMessageText}
-                onChange={(e) => setGroupMessageText(e.target.value)}
-                className="flex-1 px-4 py-2.5 text-xs font-semibold rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:border-[#7C3AED]"
-              />
-              <button
-                type="submit"
-                className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white px-4 rounded-xl text-xs font-black transition cursor-pointer flex items-center justify-center"
-              >
-                <FaPaperPlane />
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ======================================= */}
-      {/* OVERLAY MODAL C: Teacher Chat Window */}
-      {activeTeacher && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-xl h-[70vh] shadow-2xl flex flex-col overflow-hidden animate-fadeIn text-slate-800 dark:text-white">
-            
-            <header className="p-4.5 border-b border-slate-200 dark:border-white/10 flex items-center justify-between select-none shrink-0 bg-slate-50 dark:bg-white/[0.01]">
-              <div className="flex items-center gap-3 min-w-0">
-                <img src={activeTeacher.avatar} alt={activeTeacher.name} className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-white/5 shrink-0" />
-                <div className="min-w-0">
-                  <h3 className="text-xs sm:text-sm font-black truncate">{activeTeacher.name}</h3>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${activeTeacher.badgeBg}`}>
-                      {activeTeacher.subject}
-                    </span>
-                    <span className="text-[8px] text-slate-400 font-bold">● {activeTeacher.status}</span>
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setActiveTeacher(null);
-                  setTeacherMessages([]);
-                }}
-                className="text-slate-400 hover:text-slate-655 dark:hover:text-white bg-slate-100 dark:bg-white/5 p-2 rounded-xl transition cursor-pointer"
-              >
-                <FaTimes className="text-xs" />
-              </button>
-            </header>
-
-            <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-slate-50/50 dark:bg-transparent">
-              {teacherMessages.map((msg) => {
-                const isOwn = msg.sender === "student";
-                return (
-                  <div
-                    key={msg._id}
-                    className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}
-                  >
-                    <span className="text-[9px] font-extrabold text-slate-455 dark:text-slate-500 mb-0.5 px-1">
-                      {isOwn ? "You" : activeTeacher.name}
-                    </span>
-                    <div className={`max-w-[80%] p-3.5 rounded-2xl text-xs font-semibold leading-relaxed whitespace-pre-wrap ${
-                      isOwn
-                        ? "bg-[#7C3AED] text-white rounded-tr-none"
-                        : "bg-slate-100 dark:bg-[#1E293B] border border-slate-200/60 dark:border-white/5 text-slate-900 dark:text-slate-200 rounded-tl-none shadow-sm"
-                    }`}>
-                      {msg.content}
+            {/* Chat Area / Chat Engine */}
+            <div className={`flex-1 flex-col h-full bg-white dark:bg-[#111827] relative ${
+              activeContact ? "flex" : "hidden md:flex"
+            }`}>
+              {subTab === "personal" ? (
+                activeContact ? (
+                  <SupportChatEngine 
+                    activeContact={activeContact} 
+                    onBack={() => setActiveContact(null)} 
+                    userRole="student" 
+                  />
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/10 dark:bg-white/[0.01] select-none">
+                    <div className="w-16 h-16 rounded-3xl bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center text-2xl mb-4">
+                      <FaComments />
                     </div>
-                    <span className="text-[8px] text-slate-400 font-medium mt-0.5 px-1 font-mono">
-                      {msg.time}
-                    </span>
+                    <h3 className="text-sm font-bold text-slate-700 dark:text-white uppercase tracking-wider">No Teacher Selected</h3>
+                    <p className="text-xs text-slate-400 mt-1 max-w-xs leading-relaxed">
+                      Select a teacher from the directory on the left to start real-time messaging and voice/video calling.
+                    </p>
                   </div>
-                );
-              })}
-              <div ref={teacherMessagesEndRef} />
+                )
+              ) : (
+                /* Calls tab default Display placeholder */
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/10 dark:bg-white/[0.01] select-none">
+                  <div className="w-16 h-16 rounded-3xl bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center text-2xl mb-4 shadow-sm">
+                    <FaPhone />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-700 dark:text-white uppercase tracking-wider">Calls History Log</h3>
+                  <p className="text-xs text-slate-400 mt-1 max-w-xs leading-relaxed">
+                    View call history in the sidebar on the left. Dial voice or video calls inside active conversation windows.
+                  </p>
+                </div>
+              )}
             </div>
-
-            <form onSubmit={handleTeacherMessageSubmit} className="p-3 bg-white dark:bg-[#0B132A] border-t border-slate-200 dark:border-white/10 flex gap-2 shrink-0">
-              <input
-                type="text"
-                placeholder={`Ask ${activeTeacher.name} a doubt...`}
-                value={teacherInputText}
-                onChange={(e) => setTeacherInputText(e.target.value)}
-                className="flex-1 px-4 py-2.5 text-xs font-semibold rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:border-[#7C3AED]"
-              />
-              <button
-                type="submit"
-                className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white px-4 rounded-xl text-xs font-black transition cursor-pointer flex items-center justify-center"
-              >
-                <FaPaperPlane />
-              </button>
-            </form>
           </div>
-        </div>
-      )}
-
+        )}
+      </div>
     </div>
   );
 }
