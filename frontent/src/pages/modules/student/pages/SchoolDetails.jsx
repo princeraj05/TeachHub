@@ -146,7 +146,7 @@ function SchoolDetails() {
   };
 
   const handleApplyClick = () => {
-    const hasActiveRequest = user && (["pending", "scheduled", "exam_completed"].includes(user.requestStatus) || user.requestedSchool);
+    const hasActiveRequest = user && user.requestStatus !== "rejected" && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
     if (hasActiveRequest) {
       alert("You already have an active or pending join request.");
       return;
@@ -155,17 +155,12 @@ function SchoolDetails() {
   };
 
   const renderApplyButton = (size = "normal") => {
-    const isApprovedHere = user && (
+    const isApprovedHere = user && user.role !== "unassigned" && user.requestStatus !== "rejected" && (
       (user.schoolName && school?.name && user.schoolName.toLowerCase() === school.name.toLowerCase()) ||
       (user.school && school?.name && String(user.school).toLowerCase() === school.name.toLowerCase())
     );
-    const isThisApplied = user && (
-      (user.requestedSchool && school?.name && user.requestedSchool.toLowerCase() === school.name.toLowerCase()) ||
-      (user.requestStatus && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus))
-    );
-    const hasActiveRequest = user && (
-      ["pending", "scheduled", "exam_completed"].includes(user.requestStatus) || Boolean(user.requestedSchool)
-    );
+    const isThisApplied = user && user.requestStatus !== "rejected" && user.requestedSchool && school?.name && user.requestedSchool.toLowerCase() === school.name.toLowerCase() && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
+    const hasActiveRequest = user && user.requestStatus !== "rejected" && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
 
     const basePadding = size === "large" ? "py-3 px-6 rounded-2xl" : "py-2.5 px-5 rounded-xl";
 
@@ -223,7 +218,7 @@ function SchoolDetails() {
     e.preventDefault();
     if (!user) return;
 
-    const hasActiveRequest = ["pending", "scheduled", "exam_completed"].includes(user.requestStatus) || user.requestedSchool;
+    const hasActiveRequest = user && user.requestStatus !== "rejected" && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
     if (hasActiveRequest) {
       alert("You already have an active or pending join request.");
       return;

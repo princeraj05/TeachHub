@@ -64,7 +64,7 @@ function SchoolDirectory() {
     e.preventDefault();
     if (!user) return;
 
-    const hasActiveRequest = ["pending", "scheduled", "exam_completed"].includes(user.requestStatus) || user.requestedSchool;
+    const hasActiveRequest = user && user.requestStatus !== "rejected" && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
     if (hasActiveRequest) {
       alert("You already have an active or pending join request.");
       return;
@@ -191,9 +191,9 @@ function SchoolDirectory() {
       {filteredSchools.length > 0 ? (
         <div className="grid grid-cols-1 gap-5">
           {filteredSchools.map((school) => {
-            const hasActiveRequest = user && (["pending", "scheduled", "exam_completed"].includes(user.requestStatus) || user.requestedSchool);
-            const isThisApplied = user && user.requestedSchool === school.name;
-            const isApprovedHere = user && user.schoolName === school.name;
+            const hasActiveRequest = user && user.requestStatus !== "rejected" && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
+            const isThisApplied = user && user.requestStatus !== "rejected" && user.requestedSchool === school.name && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
+            const isApprovedHere = user && user.role !== "unassigned" && user.requestStatus !== "rejected" && (user.schoolName === school.name || user.school === school.name);
             const cardBgColor = getSchoolDetails(school.name, "color");
 
             return (

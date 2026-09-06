@@ -679,7 +679,7 @@ exports.submitJoinRequest = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (user.requestedSchool || ["pending", "scheduled", "exam_completed"].includes(user.requestStatus)) {
+    if (user.requestStatus && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus)) {
       return res.status(400).json({ message: "You already have an active or pending join request. Please wait for the administrator to approve or reject your request." });
     }
 

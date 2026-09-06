@@ -42,29 +42,12 @@ function StudentSupport() {
     avatar: ""
   };
 
-  const DEFAULT_ADMIN = {
-    _id: "admin_support_fallback",
-    name: "School Admin Support",
-    email: "admin@school.com",
-    role: "admin",
-    schoolName: "School Management",
-    isOnline: true,
-    avatar: ""
-  };
-
   const adminContacts = useMemo(() => {
-    const list = contacts.filter(c => c.role?.toLowerCase() === "admin" || c.role?.toLowerCase() === "superadmin");
-    const result = [...list];
-
-    // Ensure Super Admin entry is present for direct Super Admin communication
-    if (!result.some(c => c.role?.toLowerCase() === "superadmin" || c._id === "superadmin_support_fallback")) {
-      result.unshift(DEFAULT_SUPER_ADMIN);
+    const list = contacts.filter(c => c.role?.toLowerCase() === "superadmin");
+    if (list.length === 0) {
+      return [DEFAULT_SUPER_ADMIN];
     }
-    // Ensure School Admin entry is present
-    if (!result.some(c => c.role?.toLowerCase() === "admin" || c._id === "admin_support_fallback")) {
-      result.push(DEFAULT_ADMIN);
-    }
-    return result;
+    return list;
   }, [contacts]);
 
   useEffect(() => {
@@ -112,9 +95,9 @@ function StudentSupport() {
       });
       setContacts(res.data);
       
-      const admin = res.data.find(c => c.role?.toLowerCase() === "superadmin" || c.role?.toLowerCase() === "admin") || DEFAULT_SUPER_ADMIN;
+      const superAdmin = res.data.find(c => c.role?.toLowerCase() === "superadmin") || DEFAULT_SUPER_ADMIN;
       if (activeTab === "admin") {
-        setActiveContact(admin);
+        setActiveContact(superAdmin);
         fetchBroadcastHistory();
       }
     } catch (err) {
@@ -159,8 +142,8 @@ function StudentSupport() {
     setSubTab("personal");
 
     if (tab === "admin") {
-      const admin = adminContacts[0] || DEFAULT_SUPER_ADMIN;
-      setActiveContact(admin);
+      const superAdmin = adminContacts[0] || DEFAULT_SUPER_ADMIN;
+      setActiveContact(superAdmin);
       fetchBroadcastHistory();
     }
   };
@@ -199,7 +182,7 @@ function StudentSupport() {
                 : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
             }`}
           >
-            School Admin Support
+            Super Admin Support
           </button>
           <button
             onClick={() => handleTabChange("teachers")}
@@ -249,7 +232,7 @@ function StudentSupport() {
                     : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/[0.05]"
                 }`}
               >
-                💬 Admin Chat
+                💬 Super Admin Chat
               </button>
             </div>
 
@@ -259,7 +242,7 @@ function StudentSupport() {
             }`}>
               <div className="p-3 sm:p-4 border-b border-slate-100 dark:border-white/[0.05] bg-white dark:bg-[#111827] shrink-0">
                 <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                  <FaBroadcastTower className="text-teal-500" /> Admin Announcements
+                  <FaBroadcastTower className="text-teal-500" /> System Announcements
                 </h3>
               </div>
               <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
@@ -285,40 +268,38 @@ function StudentSupport() {
               </div>
             </div>
 
-            {/* Personal Admin Chat (Right on desktop, toggled on mobile) */}
+            {/* Personal Super Admin Chat */}
             <div className={`w-full md:w-7/12 flex-col h-full bg-white dark:bg-[#111827] relative min-h-0 ${
               subTab === "personal" ? "flex" : "hidden md:flex"
             }`}>
-              {/* Admin Contact Switcher Bar */}
-              <div className="p-2 sm:p-2.5 border-b border-slate-100 dark:border-white/[0.05] bg-slate-50/70 dark:bg-[#0B132A] flex items-center gap-2 overflow-x-auto select-none shrink-0">
-                <span className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider shrink-0 mr-1">Chat With:</span>
-                {adminContacts.map((adm) => {
-                  const isSelected = activeContact?._id === adm._id;
-                  const isSuper = adm.role?.toLowerCase() === "superadmin" || adm._id === "superadmin_support_fallback";
-                  return (
-                    <button
-                      key={adm._id}
-                      onClick={() => setActiveContact(adm)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
-                        isSelected
-                          ? isSuper
-                            ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/20"
-                            : "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/20"
-                          : "bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10"
-                      }`}
-                    >
-                      <span className="w-2 h-2 rounded-full bg-emerald-450 shrink-0 animate-pulse" />
-                      <span>{adm.name}</span>
-                      <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                        isSelected 
-                          ? isSuper ? "bg-amber-400/25 text-amber-100" : "bg-white/20 text-white"
-                          : isSuper ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" : "bg-purple-500/10 text-purple-600 dark:text-purple-400"
-                      }`}>
-                        {isSuper ? "Super Admin" : "School Admin"}
-                      </span>
-                    </button>
-                  );
-                })}
+              {/* Super Admin Support Header Bar */}
+              <div className="p-2.5 sm:p-3 border-b border-slate-100 dark:border-white/[0.05] bg-slate-50/70 dark:bg-[#0B132A] flex items-center justify-between select-none shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 animate-pulse" />
+                  <span className="text-xs font-black text-slate-800 dark:text-white">
+                    {activeContact?.name || DEFAULT_SUPER_ADMIN.name}
+                  </span>
+                  <span className="text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-sm">
+                    Super Admin
+                  </span>
+                </div>
+                {adminContacts.length > 1 && (
+                  <div className="flex items-center gap-1.5 overflow-x-auto">
+                    {adminContacts.map((adm) => (
+                      <button
+                        key={adm._id}
+                        onClick={() => setActiveContact(adm)}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition cursor-pointer ${
+                          activeContact?._id === adm._id
+                            ? "bg-amber-500 text-white shadow-sm"
+                            : "bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300"
+                        }`}
+                      >
+                        {adm.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <SupportChatEngine 

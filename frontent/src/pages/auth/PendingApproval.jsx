@@ -1311,6 +1311,19 @@ function PendingApproval() {
               </Link>
             )}
 
+            {/* Support Chat */}
+            <Link
+              to="/pending/support"
+              className={`w-full flex items-center justify-center lg:justify-start gap-4 px-4 py-3.5 rounded-2xl text-xs font-bold transition duration-200 ${
+                isLinkActive("support")
+                  ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:bg-[#38BDF8]/10 dark:text-[#38BDF8]"
+                  : "text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-white/5"
+              }`}
+            >
+              <FaHeadphones className="text-xl shrink-0" />
+              <span className="hidden lg:block">Support</span>
+            </Link>
+
             {/* 5. Profile */}
             <Link
               to="/pending/profile"
@@ -1341,17 +1354,6 @@ function PendingApproval() {
 
         {/* Footer controls inside Sidebar */}
         <div className="space-y-4">
-          {/* Theme Toggle Button */}
-          <button
-            onClick={toggleTheme}
-            className="w-full flex items-center justify-center lg:justify-start gap-4 px-4 py-3.5 rounded-2xl text-xs font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-white/5 transition duration-200 cursor-pointer"
-          >
-            {theme === "dark" ? <FaSun className="text-xl text-amber-500" /> : <FaMoon className="text-xl" />}
-            <span className="hidden lg:block">
-              {theme === "dark" ? "Light Mode" : "Dark Mode"}
-            </span>
-          </button>
-
           {/* Logout Button */}
           <button
             onClick={handleLogout}
@@ -1434,6 +1436,17 @@ function PendingApproval() {
           </Link>
         )}
 
+        {/* Support */}
+        <Link
+          to="/pending/support"
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
+            isLinkActive("support") ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400 dark:text-slate-500"
+          }`}
+        >
+          <FaHeadphones className="text-lg" />
+          <span className="text-[9px] font-bold tracking-tight">Support</span>
+        </Link>
+
         {/* More */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -1480,16 +1493,7 @@ function PendingApproval() {
               </div>
 
               {/* Category: Actions */}
-              <div className="pt-4 border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-between">
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    toggleTheme();
-                  }}
-                  className="text-xs font-bold text-[#7C3AED] dark:text-[#38BDF8] hover:underline"
-                >
-                  Change Theme
-                </button>
+              <div className="pt-4 border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-end">
                 <button
                   onClick={handleLogout}
                   className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-550 dark:text-rose-400 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition"
