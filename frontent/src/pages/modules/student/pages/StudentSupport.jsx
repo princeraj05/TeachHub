@@ -8,16 +8,15 @@ import {
   FaUsers,
   FaVideo
 } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useCall } from "../../../../context/CallContext";
 import SupportChatEngine from "../../../../components/SupportChatEngine";
 
 const SORA = "'Sora', sans-serif";
 
 function StudentSupport() {
-  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
-  const token = localStorage.getItem("token");
-  const currentUserId = localStorage.getItem("userId");
+  const location = useLocation();
+  const isPendingPortal = location.pathname.startsWith("/pending");
 
   const [activeTab, setActiveTab] = useState("admin"); // admin, teachers
   const [subTab, setSubTab] = useState("personal"); // personal, broadcast, calls
@@ -42,18 +41,35 @@ function StudentSupport() {
     avatar: ""
   };
 
+  const DEFAULT_SCHOOL_ADMIN = {
+    _id: "admin_support_fallback",
+    name: "School Administration Support",
+    email: "admin@school.com",
+    role: "admin",
+    schoolName: "Campus HQ",
+    isOnline: true,
+    avatar: ""
+  };
+
   const adminContacts = useMemo(() => {
-    const list = contacts
-      .filter(c => c.role?.toLowerCase() === "superadmin")
-      .map(c => ({
-        ...c,
-        avatar: c.avatar || c.photo || c.profilePhoto || ""
-      }));
-    if (list.length === 0) {
-      return [DEFAULT_SUPER_ADMIN];
+    if (isPendingPortal) {
+      const list = contacts
+        .filter(c => c.role?.toLowerCase() === "superadmin")
+        .map(c => ({
+          ...c,
+          avatar: c.avatar || c.photo || c.profilePhoto || ""
+        }));
+      return list.length > 0 ? list : [DEFAULT_SUPER_ADMIN];
+    } else {
+      const list = contacts
+        .filter(c => c.role?.toLowerCase() === "admin")
+        .map(c => ({
+          ...c,
+          avatar: c.avatar || c.photo || c.profilePhoto || ""
+        }));
+      return list.length > 0 ? list : [DEFAULT_SCHOOL_ADMIN];
     }
-    return list;
-  }, [contacts]);
+  }, [contacts, isPendingPortal]);
 
   useEffect(() => {
     fetchContacts();
@@ -100,20 +116,33 @@ function StudentSupport() {
       });
       setContacts(res.data);
       
-      const foundSuper = res.data.find(c => c.role?.toLowerCase() === "superadmin");
-      const superAdmin = foundSuper ? {
-        ...foundSuper,
-        avatar: foundSuper.avatar || foundSuper.photo || foundSuper.profilePhoto || ""
-      } : DEFAULT_SUPER_ADMIN;
+      if (isPendingPortal) {
+        const foundSuper = res.data.find(c => c.role?.toLowerCase() === "superadmin");
+        const superAdmin = foundSuper ? {
+          ...foundSuper,
+          avatar: foundSuper.avatar || foundSuper.photo || foundSuper.profilePhoto || ""
+        } : DEFAULT_SUPER_ADMIN;
 
-      if (activeTab === "admin") {
-        setActiveContact(superAdmin);
-        fetchBroadcastHistory();
+        if (activeTab === "admin") {
+          setActiveContact(superAdmin);
+          fetchBroadcastHistory();
+        }
+      } else {
+        const foundAdmin = res.data.find(c => c.role?.toLowerCase() === "admin") || res.data.find(c => c.role?.toLowerCase() === "superadmin");
+        const schoolAdmin = foundAdmin ? {
+          ...foundAdmin,
+          avatar: foundAdmin.avatar || foundAdmin.photo || foundAdmin.profilePhoto || ""
+        } : DEFAULT_SCHOOL_ADMIN;
+
+        if (activeTab === "admin") {
+          setActiveContact(schoolAdmin);
+          fetchBroadcastHistory();
+        }
       }
     } catch (err) {
       console.error("Error fetching contacts:", err);
       if (activeTab === "admin") {
-        setActiveContact(DEFAULT_SUPER_ADMIN);
+        setActiveContact(isPendingPortal ? DEFAULT_SUPER_ADMIN : DEFAULT_SCHOOL_ADMIN);
       }
     } finally {
       setLoading(false);
@@ -192,7 +221,7 @@ function StudentSupport() {
                 : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
             }`}
           >
-            Super Admin Support
+            {isPendingPortal ? "Super Admin Support" : "School Admin Support"}
           </button>
           <button
             onClick={() => handleTabChange("teachers")}
@@ -242,7 +271,7 @@ function StudentSupport() {
                     : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/[0.05]"
                 }`}
               >
-                💬 Super Admin Chat
+                💬 {isPendingPortal ? "Super Admin Chat" : "School Admin Chat"}
               </button>
             </div>
 
@@ -278,19 +307,23 @@ function StudentSupport() {
               </div>
             </div>
 
-            {/* Personal Super Admin Chat */}
+            {/* Personal Support Chat */}
             <div className={`w-full md:w-7/12 flex-col h-full bg-white dark:bg-[#111827] relative min-h-0 ${
               subTab === "personal" ? "flex" : "hidden md:flex"
             }`}>
-              {/* Super Admin Support Header Bar */}
+              {/* Admin Support Header Bar */}
               <div className="p-2.5 sm:p-3 border-b border-slate-100 dark:border-white/[0.05] bg-slate-50/70 dark:bg-[#0B132A] flex items-center justify-between select-none shrink-0">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 animate-pulse" />
                   <span className="text-xs font-black text-slate-800 dark:text-white">
-                    {activeContact?.name || DEFAULT_SUPER_ADMIN.name}
+                    {activeContact?.name || (isPendingPortal ? DEFAULT_SUPER_ADMIN.name : DEFAULT_SCHOOL_ADMIN.name)}
                   </span>
-                  <span className="text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-sm">
-                    Super Admin
+                  <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded text-white shadow-sm ${
+                    activeContact?.role?.toLowerCase() === "superadmin"
+                      ? "bg-gradient-to-r from-amber-500 to-orange-600"
+                      : "bg-gradient-to-r from-blue-500 to-indigo-600"
+                  }`}>
+                    {activeContact?.role?.toLowerCase() === "superadmin" ? "Super Admin" : "School Admin"}
                   </span>
                 </div>
                 {adminContacts.length > 1 && (
