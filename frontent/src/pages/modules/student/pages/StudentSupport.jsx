@@ -52,24 +52,14 @@ function StudentSupport() {
   };
 
   const adminContacts = useMemo(() => {
-    if (isPendingPortal) {
-      const list = contacts
-        .filter(c => c.role?.toLowerCase() === "superadmin")
-        .map(c => ({
-          ...c,
-          avatar: c.avatar || c.photo || c.profilePhoto || ""
-        }));
-      return list.length > 0 ? list : [DEFAULT_SUPER_ADMIN];
-    } else {
-      const list = contacts
-        .filter(c => c.role?.toLowerCase() === "admin")
-        .map(c => ({
-          ...c,
-          avatar: c.avatar || c.photo || c.profilePhoto || ""
-        }));
-      return list.length > 0 ? list : [DEFAULT_SCHOOL_ADMIN];
-    }
-  }, [contacts, isPendingPortal]);
+    const list = contacts
+      .filter(c => c.role?.toLowerCase() === "admin")
+      .map(c => ({
+        ...c,
+        avatar: c.avatar || c.photo || c.profilePhoto || ""
+      }));
+    return list.length > 0 ? list : [DEFAULT_SCHOOL_ADMIN];
+  }, [contacts]);
 
   useEffect(() => {
     fetchContacts();
@@ -116,33 +106,20 @@ function StudentSupport() {
       });
       setContacts(res.data);
       
-      if (isPendingPortal) {
-        const foundSuper = res.data.find(c => c.role?.toLowerCase() === "superadmin");
-        const superAdmin = foundSuper ? {
-          ...foundSuper,
-          avatar: foundSuper.avatar || foundSuper.photo || foundSuper.profilePhoto || ""
-        } : DEFAULT_SUPER_ADMIN;
+      const foundAdmin = res.data.find(c => c.role?.toLowerCase() === "admin") || res.data.find(c => c.role?.toLowerCase() === "superadmin");
+      const schoolAdmin = foundAdmin ? {
+        ...foundAdmin,
+        avatar: foundAdmin.avatar || foundAdmin.photo || foundAdmin.profilePhoto || ""
+      } : DEFAULT_SCHOOL_ADMIN;
 
-        if (activeTab === "admin") {
-          setActiveContact(superAdmin);
-          fetchBroadcastHistory();
-        }
-      } else {
-        const foundAdmin = res.data.find(c => c.role?.toLowerCase() === "admin") || res.data.find(c => c.role?.toLowerCase() === "superadmin");
-        const schoolAdmin = foundAdmin ? {
-          ...foundAdmin,
-          avatar: foundAdmin.avatar || foundAdmin.photo || foundAdmin.profilePhoto || ""
-        } : DEFAULT_SCHOOL_ADMIN;
-
-        if (activeTab === "admin") {
-          setActiveContact(schoolAdmin);
-          fetchBroadcastHistory();
-        }
+      if (activeTab === "admin") {
+        setActiveContact(schoolAdmin);
+        fetchBroadcastHistory();
       }
     } catch (err) {
       console.error("Error fetching contacts:", err);
       if (activeTab === "admin") {
-        setActiveContact(isPendingPortal ? DEFAULT_SUPER_ADMIN : DEFAULT_SCHOOL_ADMIN);
+        setActiveContact(DEFAULT_SCHOOL_ADMIN);
       }
     } finally {
       setLoading(false);
@@ -181,8 +158,8 @@ function StudentSupport() {
     setSubTab("personal");
 
     if (tab === "admin") {
-      const superAdmin = adminContacts[0] || DEFAULT_SUPER_ADMIN;
-      setActiveContact(superAdmin);
+      const schoolAdmin = adminContacts[0] || DEFAULT_SCHOOL_ADMIN;
+      setActiveContact(schoolAdmin);
       fetchBroadcastHistory();
     }
   };
@@ -221,7 +198,7 @@ function StudentSupport() {
                 : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
             }`}
           >
-            {isPendingPortal ? "Super Admin Support" : "School Admin Support"}
+            School Admin Support
           </button>
           <button
             onClick={() => handleTabChange("teachers")}

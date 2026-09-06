@@ -39,7 +39,6 @@ import SchoolDirectory from "../modules/student/pages/SchoolDirectory";
 import SchoolDetails from "../modules/student/pages/SchoolDetails";
 import RegisterExam from "../modules/student/pages/RegisterExam";
 import AboutAppPage from "../modules/student/pages/AboutAppPage";
-import StudentSupport from "../modules/student/pages/StudentSupport";
 import { useTheme } from "../../context/ThemeContext";
 import { FaVideo } from "react-icons/fa";
 import { useCall } from "../../context/CallContext";
@@ -126,7 +125,6 @@ function PendingApproval() {
     if (path.startsWith("/pending/exams")) return "exams";
     if (path.startsWith("/pending/profile")) return "profile";
     if (path.startsWith("/pending/about")) return "about";
-    if (path.startsWith("/pending/support")) return "support";
     if (path.startsWith("/pending/notifications")) return "notifications";
     return "status"; // default
   };
@@ -412,8 +410,6 @@ function PendingApproval() {
         return <UserProfile />;
       case "about":
         return <AboutAppPage />;
-      case "support":
-        return <StudentSupport />;
       case "notifications":
         const notList = getNotificationsList();
         return (
@@ -1311,19 +1307,6 @@ function PendingApproval() {
               </Link>
             )}
 
-            {/* Support Chat */}
-            <Link
-              to="/pending/support"
-              className={`w-full flex items-center justify-center lg:justify-start gap-4 px-4 py-3.5 rounded-2xl text-xs font-bold transition duration-200 ${
-                isLinkActive("support")
-                  ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:bg-[#38BDF8]/10 dark:text-[#38BDF8]"
-                  : "text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-white/5"
-              }`}
-            >
-              <FaHeadphones className="text-xl shrink-0" />
-              <span className="hidden lg:block">Support</span>
-            </Link>
-
             {/* 5. Profile */}
             <Link
               to="/pending/profile"
@@ -1435,17 +1418,6 @@ function PendingApproval() {
             <span className="text-[9px] font-bold tracking-tight">Exam</span>
           </Link>
         )}
-
-        {/* Support */}
-        <Link
-          to="/pending/support"
-          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
-            isLinkActive("support") ? "text-[#7C3AED] dark:text-[#38BDF8]" : "text-slate-400 dark:text-slate-500"
-          }`}
-        >
-          <FaHeadphones className="text-lg" />
-          <span className="text-[9px] font-bold tracking-tight">Support</span>
-        </Link>
 
         {/* More */}
         <button

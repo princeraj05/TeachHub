@@ -34,12 +34,11 @@ function SuperAdminSupport() {
 
   const [activeContact, setActiveContact] = useState(() => adminContacts[0] || null);
   const [search, setSearch] = useState("");
-  const [tabFilter, setTabFilter] = useState("all"); // "all", "admin", "applicant"
   const [syncing, setSyncing] = useState(false);
 
   const { socket } = useCall();
 
-  // Background fetch of all support contacts (School Admins + Applicants / Support Users)
+  // Background fetch of support contacts (School Admins)
   useEffect(() => {
     fetchContacts();
   }, []);
@@ -80,7 +79,6 @@ function SuperAdminSupport() {
     try {
       setSyncing(true);
 
-      // Fetch contacts via support API and superadmin users API concurrently
       const [supportRes, usersRes] = await Promise.all([
         axios.get(`${API}/api/support/contacts`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
         axios.get(`${API}/api/superadmin/users`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] }))
@@ -91,15 +89,14 @@ function SuperAdminSupport() {
 
       const contactsMap = new Map();
 
-      // First add support contacts (which have lastMessage and unreadCount)
       supportList.forEach((u) => {
-        if (u._id && u._id !== currentUserId) {
+        if (u._id && u._id !== currentUserId && (u.role?.toLowerCase() === "admin")) {
           contactsMap.set(u._id.toString(), {
             _id: u._id,
-            name: u.name || "User",
+            name: u.name || "School Admin",
             email: u.email || "",
-            role: u.role || "unassigned",
-            schoolName: u.schoolName || u.requestedSchool || "TeachHub HQ",
+            role: "admin",
+            schoolName: u.schoolName || u.requestedSchool || "School Campus",
             isOnline: Boolean(u.isOnline),
             lastSeen: u.lastSeen || null,
             avatar: u.avatar || u.photo || u.profilePhoto || "",
@@ -109,15 +106,14 @@ function SuperAdminSupport() {
         }
       });
 
-      // Then add any users from overall user list not yet present
       usersList.forEach((u) => {
-        if (u._id && u._id !== currentUserId && !contactsMap.has(u._id.toString())) {
+        if (u._id && u._id !== currentUserId && (u.role?.toLowerCase() === "admin") && !contactsMap.has(u._id.toString())) {
           contactsMap.set(u._id.toString(), {
             _id: u._id,
-            name: u.name || "User",
+            name: u.name || "School Admin",
             email: u.email || "",
-            role: u.role || "unassigned",
-            schoolName: u.schoolName || u.requestedSchool || "TeachHub HQ",
+            role: "admin",
+            schoolName: u.schoolName || u.requestedSchool || "School Campus",
             isOnline: Boolean(u.isOnline),
             lastSeen: u.lastSeen || null,
             avatar: u.avatar || u.photo || u.profilePhoto || "",
@@ -129,7 +125,6 @@ function SuperAdminSupport() {
 
       const mergedContacts = Array.from(contactsMap.values());
 
-      // Sort contacts: those with recent messages or unread count first
       mergedContacts.sort((a, b) => {
         const timeA = a.lastMessage ? new Date(a.lastMessage.createdAt).getTime() : 0;
         const timeB = b.lastMessage ? new Date(b.lastMessage.createdAt).getTime() : 0;
@@ -154,21 +149,15 @@ function SuperAdminSupport() {
     }
   };
 
-  // Filter contacts by search query & tab
+  // Filter contacts by search query
   const filteredContacts = adminContacts.filter((c) => {
     const query = search.toLowerCase().trim();
-    const matchesSearch =
+    return (
       !query ||
       c.name.toLowerCase().includes(query) ||
       c.schoolName.toLowerCase().includes(query) ||
-      c.email.toLowerCase().includes(query) ||
-      c.role.toLowerCase().includes(query);
-
-    if (!matchesSearch) return false;
-
-    if (tabFilter === "admin") return c.role.toLowerCase() === "admin";
-    if (tabFilter === "applicant") return c.role.toLowerCase() !== "admin";
-    return true;
+      c.email.toLowerCase().includes(query)
+    );
   });
 
   return (
@@ -176,8 +165,8 @@ function SuperAdminSupport() {
       {/* Top Header */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Super Admin Support Workspace</h1>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Direct video calls, voice calls, file sharing & chat with School Admins & Applicant Students.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-[#F8FAFC] tracking-tight">Super Admin Support Workspace</h1>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Direct video calls, voice calls, file sharing & chat with School Admins.</p>
         </div>
         <button
           onClick={fetchContacts}
@@ -194,50 +183,16 @@ function SuperAdminSupport() {
         <div className={`w-full md:w-80 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 flex-col bg-white dark:bg-[#131B2E] ${
           activeContact ? "hidden md:flex" : "flex"
         }`}>
-          {/* Header & Tabs */}
+          {/* Header */}
           <div className="p-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0B0F19]/50 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-2">
                 <FaUserShield className="text-blue-500" />
-                Support Contacts
+                School Admins
               </span>
               <span className="text-[11px] font-semibold bg-blue-500/20 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">
                 {adminContacts.length} Total
               </span>
-            </div>
-
-            {/* Filter Pills */}
-            <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-white/5 p-1 rounded-xl">
-              <button
-                onClick={() => setTabFilter("all")}
-                className={`flex-1 py-1 rounded-lg text-[10px] font-extrabold transition cursor-pointer ${
-                  tabFilter === "all"
-                    ? "bg-white dark:bg-[#131B2E] text-blue-600 dark:text-blue-400 shadow-sm"
-                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setTabFilter("admin")}
-                className={`flex-1 py-1 rounded-lg text-[10px] font-extrabold transition cursor-pointer ${
-                  tabFilter === "admin"
-                    ? "bg-white dark:bg-[#131B2E] text-blue-600 dark:text-blue-400 shadow-sm"
-                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
-                }`}
-              >
-                Admins
-              </button>
-              <button
-                onClick={() => setTabFilter("applicant")}
-                className={`flex-1 py-1 rounded-lg text-[10px] font-extrabold transition cursor-pointer ${
-                  tabFilter === "applicant"
-                    ? "bg-white dark:bg-[#131B2E] text-blue-600 dark:text-blue-400 shadow-sm"
-                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
-                }`}
-              >
-                Applicants
-              </button>
             </div>
           </div>
 

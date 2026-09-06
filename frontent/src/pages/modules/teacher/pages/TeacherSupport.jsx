@@ -76,7 +76,12 @@ function TeacherSupport() {
       });
       setContacts(res.data);
       
-      const admin = res.data.find(c => c.role?.toLowerCase() === "admin" || c.role?.toLowerCase() === "superadmin") || DEFAULT_ADMIN;
+      const foundAdmin = res.data.find(c => c.role?.toLowerCase() === "admin") || res.data.find(c => c.role?.toLowerCase() === "superadmin");
+      const admin = foundAdmin ? {
+        ...foundAdmin,
+        avatar: foundAdmin.avatar || foundAdmin.photo || foundAdmin.profilePhoto || ""
+      } : DEFAULT_ADMIN;
+
       if (activeTab === "admin") {
         setActiveContact(admin);
         fetchBroadcastHistory();
@@ -123,11 +128,13 @@ function TeacherSupport() {
     setSubTab("personal");
 
     if (tab === "admin") {
-      const admin = contacts.find(c => c.role === "admin");
-      if (admin) {
-        setActiveContact(admin);
-        fetchBroadcastHistory();
-      }
+      const foundAdmin = contacts.find(c => c.role?.toLowerCase() === "admin") || contacts.find(c => c.role?.toLowerCase() === "superadmin");
+      const admin = foundAdmin ? {
+        ...foundAdmin,
+        avatar: foundAdmin.avatar || foundAdmin.photo || foundAdmin.profilePhoto || ""
+      } : DEFAULT_ADMIN;
+      setActiveContact(admin);
+      fetchBroadcastHistory();
     }
   };
 
