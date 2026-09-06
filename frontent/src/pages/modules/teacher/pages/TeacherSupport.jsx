@@ -141,41 +141,45 @@ function TeacherSupport() {
   const studentContacts = contacts.filter(c => c.role === "student");
 
   return (
-    <>
-    <div className="mb-3 flex justify-end">
-      <Link to="/teacher/support/groups" className="rounded-xl bg-[#7C3AED] px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-white shadow-sm hover:opacity-90 transition">
-        Make Group
-      </Link>
-    </div>
-    <div className="font-sans flex flex-col h-[calc(100vh-140px)] min-h-[480px] bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl overflow-hidden shadow-sm">
-      {/* Tab bar */}
-      <div className="flex flex-wrap border-b border-slate-100 dark:border-white/[0.05] bg-slate-50/50 dark:bg-[#111827] p-1.5 sm:p-2 gap-1.5 sm:gap-2 select-none">
-        <button
-          onClick={() => handleTabChange("admin")}
-          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-            activeTab === "admin"
-              ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/15"
-              : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
-          }`}
+    <div className="font-sans flex flex-col h-[calc(100vh-130px)] min-h-[500px] bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl overflow-hidden shadow-sm">
+      {/* Top Header & Tab bar */}
+      <div className="flex flex-wrap items-center justify-between border-b border-slate-100 dark:border-white/[0.05] bg-slate-50/50 dark:bg-[#111827] p-2 sm:p-2.5 gap-2 select-none shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <button
+            onClick={() => handleTabChange("admin")}
+            className={`px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              activeTab === "admin"
+                ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/15"
+                : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
+            }`}
+          >
+            School Admin Support
+          </button>
+          <button
+            onClick={() => handleTabChange("students")}
+            className={`px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              activeTab === "students"
+                ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/15"
+                : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
+            }`}
+          >
+            My Students Chat
+          </button>
+        </div>
+
+        {/* Action Button: Make Group */}
+        <Link 
+          to="/teacher/support/groups" 
+          className="rounded-xl bg-[#7C3AED] px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-white shadow-sm hover:opacity-90 transition shrink-0 ml-auto"
         >
-          School Admin Support
-        </button>
-        <button
-          onClick={() => handleTabChange("students")}
-          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-            activeTab === "students"
-              ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/15"
-              : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
-          }`}
-        >
-          My Students Chat
-        </button>
+          + Make Group
+        </Link>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0">
         {/* If Active Tab is Admin Support */}
         {activeTab === "admin" && (
-          <div className="flex-1 flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-white/[0.05] overflow-hidden">
+          <div className="flex-1 flex flex-col md:flex-row md:divide-x divide-slate-100 dark:divide-white/[0.05] overflow-hidden min-h-0">
             {/* Mobile Sub-tabs for Admin Announcements vs Personal Chat */}
             <div className="md:hidden flex border-b border-slate-100 dark:border-white/[0.05] bg-white dark:bg-[#111827] p-1.5 gap-1 select-none shrink-0">
               <button
@@ -203,10 +207,10 @@ function TeacherSupport() {
             </div>
 
             {/* Broadcast lists (Left on desktop, toggled on mobile) */}
-            <div className={`w-full md:w-5/12 flex-col h-full bg-slate-50/20 dark:bg-[#111827]/40 select-none ${
+            <div className={`w-full md:w-5/12 flex-col h-full bg-slate-50/20 dark:bg-[#111827]/40 select-none min-h-0 ${
               subTab === "broadcast" ? "flex" : "hidden md:flex"
             }`}>
-              <div className="p-3 sm:p-4 border-b border-slate-100 dark:border-white/[0.05] bg-white dark:bg-[#111827]">
+              <div className="p-3 sm:p-4 border-b border-slate-100 dark:border-white/[0.05] bg-white dark:bg-[#111827] shrink-0">
                 <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                   <FaBroadcastTower className="text-teal-500" /> Admin Announcements
                 </h3>
@@ -235,7 +239,7 @@ function TeacherSupport() {
             </div>
 
             {/* Personal Admin Chat (Right on desktop, toggled on mobile) */}
-            <div className={`w-full md:w-7/12 flex-col h-full bg-white dark:bg-[#111827] relative ${
+            <div className={`w-full md:w-7/12 flex-col h-full bg-white dark:bg-[#111827] relative min-h-0 ${
               subTab === "personal" ? "flex" : "hidden md:flex"
             }`}>
               <SupportChatEngine 
@@ -413,7 +417,6 @@ function TeacherSupport() {
         )}
       </div>
     </div>
-    </>
   );
 }
 

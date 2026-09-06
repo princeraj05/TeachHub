@@ -239,133 +239,133 @@ function SuperAdminUsers() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-slate-100 p-4 md:p-8 font-sans">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 p-4 md:p-8 font-sans transition-colors duration-200">
       {/* Alerts */}
       {error && (
-        <div className="mb-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-sm flex items-center justify-between">
+        <div className="mb-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 dark:text-rose-400 text-sm flex items-center justify-between">
           <span>{error}</span>
-          <button onClick={() => setError("")} className="text-rose-400 hover:text-white"><FaTimes /></button>
+          <button onClick={() => setError("")} className="text-rose-500 dark:text-rose-400 hover:opacity-80"><FaTimes /></button>
         </div>
       )}
       {success && (
-        <div className="mb-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm flex items-center justify-between">
+        <div className="mb-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm flex items-center justify-between">
           <span>{success}</span>
-          <button onClick={() => setSuccess("")} className="text-emerald-400 hover:text-white"><FaTimes /></button>
+          <button onClick={() => setSuccess("")} className="text-emerald-600 dark:text-emerald-400 hover:opacity-80"><FaTimes /></button>
         </div>
       )}
 
       {/* Header */}
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Users Management</h1>
-          <p className="text-sm text-slate-400 mt-1">Manage platform users, assigned roles, and access approvals.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Users Management</h1>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Manage platform users, assigned roles, and access approvals.</p>
         </div>
         <button
           onClick={fetchUsers}
-          className="flex items-center gap-2 bg-[#131B2E] hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold px-3.5 py-2 rounded-xl transition-all self-start md:self-auto"
+          className="flex items-center gap-2 bg-white dark:bg-[#131B2E] hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold px-3.5 py-2 rounded-xl transition-all self-start md:self-auto"
         >
-          <FaSync className={syncing ? "animate-spin text-blue-400" : "text-blue-400"} />
+          <FaSync className={syncing ? "animate-spin text-blue-500" : "text-blue-500"} />
           <span>{syncing ? "Syncing..." : "Sync Database"}</span>
         </button>
       </div>
 
       {/* Summary Stat Cards - INSTANT LOAD */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
+        <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Users</p>
-            <h3 className="text-2xl font-extrabold text-white mt-1">{stats.total}</h3>
-            <span className="text-xs text-emerald-400 font-medium mt-1 inline-block">Instant Ready</span>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Users</p>
+            <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">{stats.total}</h3>
+            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-1 inline-block">Instant Ready</span>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xl">
+          <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 dark:text-blue-400 text-xl">
             <FaUsers />
           </div>
         </div>
 
-        <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
+        <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pending Approvals</p>
-            <h3 className="text-2xl font-extrabold text-amber-400 mt-1">{stats.pending}</h3>
-            <span className="text-xs text-amber-400/80 font-medium mt-1 inline-block">Requires role assignment</span>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pending Approvals</p>
+            <h3 className="text-2xl font-extrabold text-amber-500 dark:text-amber-400 mt-1">{stats.pending}</h3>
+            <span className="text-xs text-amber-600 dark:text-amber-400/80 font-medium mt-1 inline-block">Requires role assignment</span>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xl">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 dark:text-amber-400 text-xl">
             <FaUserClock />
           </div>
         </div>
 
-        <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
+        <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Admins</p>
-            <h3 className="text-2xl font-extrabold text-white mt-1">{stats.admins}</h3>
-            <span className="text-xs text-cyan-400 font-medium mt-1 inline-block">School & System admins</span>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active Admins</p>
+            <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">{stats.admins}</h3>
+            <span className="text-xs text-cyan-600 dark:text-cyan-400 font-medium mt-1 inline-block">School & System admins</span>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 text-xl">
+          <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-600 dark:text-cyan-400 text-xl">
             <FaUserShield />
           </div>
         </div>
 
-        <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
+        <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Teachers</p>
-            <h3 className="text-2xl font-extrabold text-white mt-1">{stats.teachers}</h3>
-            <span className="text-xs text-purple-400 font-medium mt-1 inline-block">Active staff</span>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Teachers</p>
+            <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">{stats.teachers}</h3>
+            <span className="text-xs text-purple-600 dark:text-purple-400 font-medium mt-1 inline-block">Active staff</span>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-xl">
+          <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 text-xl">
             <FaChalkboardTeacher />
           </div>
         </div>
       </div>
 
       {/* Search & Filters Bar */}
-      <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="relative w-full md:w-96">
-          <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm" />
+          <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-sm" />
           <input
             type="text"
             placeholder="Search users by name, email, school..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[#0B0F19] border border-slate-700/60 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition-colors"
+            className="w-full bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700/60 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-colors"
           />
         </div>
 
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <div className="flex items-center gap-2 bg-[#0B0F19] border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-slate-300">
-            <FaFilter className="text-xs text-slate-500" />
+          <div className="flex items-center gap-2 bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700/60 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-300">
+            <FaFilter className="text-xs text-slate-400 dark:text-slate-500" />
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="bg-transparent text-slate-200 focus:outline-none cursor-pointer"
+              className="bg-transparent text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
             >
-              <option value="All" className="bg-[#131B2E]">Filter by Role: All</option>
-              <option value="superadmin" className="bg-[#131B2E]">SuperAdmin</option>
-              <option value="admin" className="bg-[#131B2E]">Admin</option>
-              <option value="teacher" className="bg-[#131B2E]">Teacher</option>
-              <option value="student" className="bg-[#131B2E]">Student</option>
-              <option value="unassigned" className="bg-[#131B2E]">Unassigned / Pending</option>
+              <option value="All" className="bg-white dark:bg-[#131B2E] text-slate-800 dark:text-slate-200">Filter by Role: All</option>
+              <option value="superadmin" className="bg-white dark:bg-[#131B2E] text-slate-800 dark:text-slate-200">SuperAdmin</option>
+              <option value="admin" className="bg-white dark:bg-[#131B2E] text-slate-800 dark:text-slate-200">Admin</option>
+              <option value="teacher" className="bg-white dark:bg-[#131B2E] text-slate-800 dark:text-slate-200">Teacher</option>
+              <option value="student" className="bg-white dark:bg-[#131B2E] text-slate-800 dark:text-slate-200">Student</option>
+              <option value="unassigned" className="bg-white dark:bg-[#131B2E] text-slate-800 dark:text-slate-200">Unassigned / Pending</option>
             </select>
           </div>
 
-          <div className="flex items-center gap-2 bg-[#0B0F19] border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-slate-300">
+          <div className="flex items-center gap-2 bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700/60 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-300">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-transparent text-slate-200 focus:outline-none cursor-pointer"
+              className="bg-transparent text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
             >
-              <option value="All" className="bg-[#131B2E]">Filter by Status: All</option>
-              <option value="Approved" className="bg-[#131B2E]">Approved</option>
-              <option value="Pending" className="bg-[#131B2E]">Pending</option>
+              <option value="All" className="bg-white dark:bg-[#131B2E] text-slate-800 dark:text-slate-200">Filter by Status: All</option>
+              <option value="Approved" className="bg-white dark:bg-[#131B2E] text-slate-800 dark:text-slate-200">Approved</option>
+              <option value="Pending" className="bg-white dark:bg-[#131B2E] text-slate-800 dark:text-slate-200">Pending</option>
             </select>
           </div>
         </div>
       </div>
 
       {/* Users Table - INSTANT DISPLAY */}
-      <div className="bg-[#131B2E] border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
-              <tr className="bg-[#0B0F19]/60 border-b border-slate-800 text-slate-400 uppercase text-xs tracking-wider">
+              <tr className="bg-slate-50 dark:bg-[#0B0F19]/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase text-xs tracking-wider">
                 <th className="py-4 px-5">User</th>
                 <th className="py-4 px-5">Role</th>
                 <th className="py-4 px-5">School</th>
@@ -373,7 +373,7 @@ function SuperAdminUsers() {
                 <th className="py-4 px-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
               {filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="py-12 text-center text-slate-500">
@@ -388,23 +388,23 @@ function SuperAdminUsers() {
                   const schoolName = user.schoolName || user.requestedSchool || "N/A";
 
                   return (
-                    <tr key={user._id} className="hover:bg-slate-800/30 transition-colors">
+                    <tr key={user._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                       <td className="py-3.5 px-5">
                         <div className="flex items-center gap-3">
                           {user.photo ? (
                             <img
                               src={user.photo}
                               alt={user.name}
-                              className="w-10 h-10 rounded-full object-cover border border-slate-700"
+                              className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700"
                             />
                           ) : (
-                            <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-blue-400">
+                            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold text-xs text-blue-600 dark:text-blue-400">
                               {getInitials(user.name)}
                             </div>
                           )}
                           <div>
-                            <p className="font-semibold text-white text-sm">{user.name || "Unnamed User"}</p>
-                            <p className="text-xs text-slate-400">{user.email}</p>
+                            <p className="font-semibold text-slate-900 dark:text-white text-sm">{user.name || "Unnamed User"}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
                           </div>
                         </div>
                       </td>
@@ -415,15 +415,15 @@ function SuperAdminUsers() {
                         </span>
                       </td>
 
-                      <td className="py-3.5 px-5 text-slate-300 font-medium">
+                      <td className="py-3.5 px-5 text-slate-700 dark:text-slate-300 font-medium">
                         {schoolName}
                       </td>
 
                       <td className="py-3.5 px-5">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full ${
                           displayStatus === "Approved"
-                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                            : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                            ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                            : "bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30"
                         }`}>
                           {displayStatus === "Approved" ? (
                             <FaCheckCircle className="text-[10px]" />
@@ -439,7 +439,7 @@ function SuperAdminUsers() {
                           <button
                             onClick={() => setViewUser(user)}
                             title="View Details"
-                            className="p-2 text-slate-400 hover:text-blue-400 hover:bg-slate-800 rounded-lg transition-colors"
+                            className="p-2 text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                           >
                             <FaEye className="text-sm" />
                           </button>
@@ -456,7 +456,7 @@ function SuperAdminUsers() {
                               });
                             }}
                             title="Assign Role / School"
-                            className="p-2 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-lg transition-colors"
+                            className="p-2 text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                           >
                             <FaEdit className="text-sm" />
                           </button>
@@ -464,7 +464,7 @@ function SuperAdminUsers() {
                             <button
                               onClick={() => setDeleteUserId(user._id)}
                               title="Delete User"
-                              className="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"
+                              className="p-2 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                             >
                               <FaTrash className="text-sm" />
                             </button>
@@ -479,10 +479,10 @@ function SuperAdminUsers() {
           </table>
         </div>
 
-        <div className="p-4 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between">
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
           <span>Showing {filteredUsers.length} of {users.length} users</span>
-          <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             Instant Cache & Live Sync
           </span>
         </div>
@@ -490,40 +490,40 @@ function SuperAdminUsers() {
 
       {/* MODAL 1: View User Details */}
       {viewUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#131B2E] border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
-              <h3 className="text-lg font-bold text-white">User Details</h3>
-              <button onClick={() => setViewUser(null)} className="text-slate-400 hover:text-white"><FaTimes /></button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4 border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">User Details</h3>
+              <button onClick={() => setViewUser(null)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white"><FaTimes /></button>
             </div>
             <div className="flex items-center gap-4 mb-6">
               {viewUser.photo ? (
                 <img src={viewUser.photo} alt={viewUser.name} className="w-14 h-14 rounded-full object-cover border border-blue-500/50" />
               ) : (
-                <div className="w-14 h-14 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-xl font-bold text-blue-400">
+                <div className="w-14 h-14 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-xl font-bold text-blue-500 dark:text-blue-400">
                   {getInitials(viewUser.name)}
                 </div>
               )}
               <div>
-                <h4 className="text-base font-bold text-white">{viewUser.name}</h4>
-                <p className="text-xs text-slate-400">{viewUser.email}</p>
+                <h4 className="text-base font-bold text-slate-900 dark:text-white">{viewUser.name}</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{viewUser.email}</p>
                 <span className={`inline-block mt-2 px-2.5 py-0.5 text-xs font-semibold rounded-full capitalize ${getRoleBadgeStyle(viewUser.role)}`}>
                   {viewUser.role}
                 </span>
               </div>
             </div>
-            <div className="space-y-3 bg-[#0B0F19] p-4 rounded-xl text-sm">
+            <div className="space-y-3 bg-slate-50 dark:bg-[#0B0F19] p-4 rounded-xl text-sm">
               <div className="flex justify-between">
-                <span className="text-slate-500">School:</span>
-                <span className="text-slate-200 font-medium">{viewUser.schoolName || viewUser.requestedSchool || "N/A"}</span>
+                <span className="text-slate-500 dark:text-slate-400">School:</span>
+                <span className="text-slate-800 dark:text-slate-200 font-medium">{viewUser.schoolName || viewUser.requestedSchool || "N/A"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Database ID:</span>
-                <span className="text-slate-400 font-mono text-xs">{viewUser._id}</span>
+                <span className="text-slate-500 dark:text-slate-400">Database ID:</span>
+                <span className="text-slate-600 dark:text-slate-400 font-mono text-xs">{viewUser._id}</span>
               </div>
             </div>
             <div className="mt-6 flex justify-end">
-              <button onClick={() => setViewUser(null)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-200 hover:bg-slate-700">Close</button>
+              <button onClick={() => setViewUser(null)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700">Close</button>
             </div>
           </div>
         </div>
@@ -531,24 +531,24 @@ function SuperAdminUsers() {
 
       {/* MODAL 2: Assign / Edit Role */}
       {editUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#131B2E] border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
-              <h3 className="text-lg font-bold text-white">Assign Role & School</h3>
-              <button onClick={() => setEditUser(null)} className="text-slate-400 hover:text-white"><FaTimes /></button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4 border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Assign Role & School</h3>
+              <button onClick={() => setEditUser(null)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white"><FaTimes /></button>
             </div>
             <form onSubmit={handleAssignRoleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">User Name</label>
-                <input type="text" disabled value={formData.name} className="w-full bg-[#0B0F19]/50 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-400" />
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">User Name</label>
+                <input type="text" disabled value={formData.name} className="w-full bg-slate-100 dark:bg-[#0B0F19]/50 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-500 dark:text-slate-400" />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Role</label>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Role</label>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
                 >
                   <option value="admin">Admin (School Owner)</option>
                   <option value="teacher">Teacher</option>
@@ -558,22 +558,22 @@ function SuperAdminUsers() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">School Name</label>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">School Name</label>
                 <input
                   type="text"
                   placeholder="Enter school name..."
                   list="schools-datalist"
                   value={formData.schoolName}
                   onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
-                  className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
                 />
                 <datalist id="schools-datalist">
                   {schoolsList.map((s, i) => <option key={i} value={s} />)}
                 </datalist>
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
-                <button type="button" onClick={() => setEditUser(null)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Cancel</button>
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                <button type="button" onClick={() => setEditUser(null)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">Cancel</button>
                 <button type="submit" disabled={actionLoading} className="px-4 py-2 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-500 flex items-center gap-2">
                   {actionLoading && <FaSpinner className="animate-spin" />}
                   <span>Save Role</span>
@@ -586,15 +586,15 @@ function SuperAdminUsers() {
 
       {/* MODAL 3: Delete Confirmation */}
       {deleteUserId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#131B2E] border border-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center">
-            <div className="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto mb-4 text-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center">
+            <div className="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-500 dark:text-rose-400 flex items-center justify-center mx-auto mb-4 text-xl">
               <FaExclamationCircle />
             </div>
-            <h3 className="text-lg font-bold text-white">Delete User?</h3>
-            <p className="text-xs text-slate-400 mt-2">Are you sure you want to delete this user from database?</p>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Delete User?</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Are you sure you want to delete this user from database?</p>
             <div className="flex justify-center gap-3 mt-6">
-              <button onClick={() => setDeleteUserId(null)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Cancel</button>
+              <button onClick={() => setDeleteUserId(null)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">Cancel</button>
               <button onClick={handleDeleteConfirm} disabled={actionLoading} className="px-4 py-2 rounded-xl text-sm font-semibold bg-rose-600 text-white hover:bg-rose-500 flex items-center gap-2">
                 {actionLoading && <FaSpinner className="animate-spin" />}
                 <span>Delete</span>

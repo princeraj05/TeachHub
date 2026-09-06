@@ -231,98 +231,98 @@ function SuperAdminSchools() {
       case "Suspended":
         return "bg-rose-500/20 text-rose-400 border border-rose-500/30";
       default:
-        return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+        return "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30";
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-slate-100 p-4 md:p-8 font-sans">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 p-4 md:p-8 font-sans transition-colors duration-200">
       {/* Alerts */}
       {error && (
-        <div className="mb-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-sm flex items-center justify-between">
+        <div className="mb-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 dark:text-rose-400 text-sm flex items-center justify-between">
           <span>{error}</span>
-          <button onClick={() => setError("")} className="text-rose-400 hover:text-white"><FaTimes /></button>
+          <button onClick={() => setError("")} className="text-rose-500 dark:text-rose-400 hover:opacity-80"><FaTimes /></button>
         </div>
       )}
       {success && (
-        <div className="mb-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm flex items-center justify-between">
+        <div className="mb-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm flex items-center justify-between">
           <span>{success}</span>
-          <button onClick={() => setSuccess("")} className="text-emerald-400 hover:text-white"><FaTimes /></button>
+          <button onClick={() => setSuccess("")} className="text-emerald-600 dark:text-emerald-400 hover:opacity-80"><FaTimes /></button>
         </div>
       )}
 
       {/* Header */}
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Schools Management</h1>
-          <p className="text-sm text-slate-400 mt-1">Manage registered institutions, subscriptions, and access.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Schools Management</h1>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Manage registered institutions, subscriptions, and access.</p>
         </div>
         <button
           onClick={fetchSchoolsDetail}
-          className="flex items-center gap-2 bg-[#131B2E] hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold px-3.5 py-2 rounded-xl transition-all self-start md:self-auto"
+          className="flex items-center gap-2 bg-white dark:bg-[#131B2E] hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold px-3.5 py-2 rounded-xl transition-all self-start md:self-auto"
         >
-          <FaSync className={syncing ? "animate-spin text-blue-400" : "text-blue-400"} />
+          <FaSync className={syncing ? "animate-spin text-blue-500" : "text-blue-500"} />
           <span>{syncing ? "Syncing..." : "Sync Database"}</span>
         </button>
       </div>
 
       {/* Summary Stat Cards - INSTANT LOAD */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
+        <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Schools</p>
-            <h3 className="text-2xl font-extrabold text-white mt-1">{stats.total}</h3>
-            <span className="text-xs text-emerald-400 font-medium mt-1 inline-block">Instant Ready</span>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Schools</p>
+            <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">{stats.total}</h3>
+            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-1 inline-block">Instant Ready</span>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xl">
+          <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 dark:text-blue-400 text-xl">
             <FaSchool />
           </div>
         </div>
 
-        <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
+        <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Subscriptions</p>
-            <h3 className="text-2xl font-extrabold text-emerald-400 mt-1">{stats.activeSub}</h3>
-            <span className="text-xs text-emerald-400/80 font-medium mt-1 inline-block">Configured</span>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active Subscriptions</p>
+            <h3 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">{stats.activeSub}</h3>
+            <span className="text-xs text-emerald-600 dark:text-emerald-400/80 font-medium mt-1 inline-block">Configured</span>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xl">
+          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-xl">
             <FaFileContract />
           </div>
         </div>
 
-        <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
+        <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Students</p>
-            <h3 className="text-2xl font-extrabold text-white mt-1">{stats.totalStudents.toLocaleString()}</h3>
-            <span className="text-xs text-amber-400 font-medium mt-1 inline-block">Across schools</span>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Students</p>
+            <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">{stats.totalStudents.toLocaleString()}</h3>
+            <span className="text-xs text-amber-600 dark:text-amber-400 font-medium mt-1 inline-block">Across schools</span>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xl">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 dark:text-amber-400 text-xl">
             <FaUserGraduate />
           </div>
         </div>
 
-        <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
+        <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Teachers</p>
-            <h3 className="text-2xl font-extrabold text-white mt-1">{stats.totalTeachers.toLocaleString()}</h3>
-            <span className="text-xs text-purple-400 font-medium mt-1 inline-block">Faculty staff</span>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Teachers</p>
+            <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">{stats.totalTeachers.toLocaleString()}</h3>
+            <span className="text-xs text-purple-600 dark:text-purple-400 font-medium mt-1 inline-block">Faculty staff</span>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-xl">
+          <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 text-xl">
             <FaChalkboardTeacher />
           </div>
         </div>
       </div>
 
       {/* Control Bar */}
-      <div className="bg-[#131B2E] border border-slate-800 rounded-2xl p-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="relative w-full md:w-96">
-          <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm" />
+          <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-sm" />
           <input
             type="text"
             placeholder="Search schools by name, address, email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[#0B0F19] border border-slate-700/60 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition-colors"
+            className="w-full bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700/60 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-colors"
           />
         </div>
 
@@ -341,11 +341,11 @@ function SuperAdminSchools() {
       </div>
 
       {/* Table - INSTANT DISPLAY */}
-      <div className="bg-[#131B2E] border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
-              <tr className="bg-[#0B0F19]/60 border-b border-slate-800 text-slate-400 uppercase text-xs tracking-wider">
+              <tr className="bg-slate-50 dark:bg-[#0B0F19]/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase text-xs tracking-wider">
                 <th className="py-4 px-5">School Name</th>
                 <th className="py-4 px-5">Address</th>
                 <th className="py-4 px-5">Contact Email</th>
@@ -356,7 +356,7 @@ function SuperAdminSchools() {
                 <th className="py-4 px-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
               {filteredSchools.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="py-12 text-center text-slate-500">
@@ -365,37 +365,37 @@ function SuperAdminSchools() {
                 </tr>
               ) : (
                 filteredSchools.map((school) => (
-                  <tr key={school._id} className="hover:bg-slate-800/30 transition-colors">
+                  <tr key={school._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                     <td className="py-3.5 px-5">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-xs">
+                        <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 dark:text-blue-400 font-bold text-sm">
                           <FaSchool />
                         </div>
                         <div>
-                          <span className="font-semibold text-white text-sm block">{school.name}</span>
-                          <span className="text-[11px] text-slate-400 block mt-0.5">
+                          <span className="font-semibold text-slate-900 dark:text-white text-sm block">{school.name}</span>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
                             Student Fee: {school.financials?.studentMonthlyFee ? `₹${school.financials.studentMonthlyFee.toFixed(2)}/mo` : "Not set"} · Recv: ₹{(school.financials?.totalStudentReceived || 0).toFixed(2)} · Paid: ₹{(school.financials?.totalSubscriptionPaid || 0).toFixed(2)}
                           </span>
                         </div>
                       </div>
                     </td>
 
-                    <td className="py-3.5 px-5 text-slate-300">
-                      <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                        <FaMapMarkerAlt className="text-slate-500 text-[10px]" />
+                    <td className="py-3.5 px-5 text-slate-600 dark:text-slate-300">
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                        <FaMapMarkerAlt className="text-slate-400 text-[10px]" />
                         <span>{school.location || "Patna, Bihar"}</span>
                       </div>
                     </td>
 
-                    <td className="py-3.5 px-5 text-slate-300 text-xs">
+                    <td className="py-3.5 px-5 text-slate-600 dark:text-slate-300 text-xs">
                       {school.email || "N/A"}
                     </td>
 
-                    <td className="py-3.5 px-5 text-center font-bold text-slate-200">
+                    <td className="py-3.5 px-5 text-center font-bold text-slate-900 dark:text-white">
                       {(school.stats?.students || 0).toLocaleString()}
                     </td>
 
-                    <td className="py-3.5 px-5 text-center font-bold text-slate-200">
+                    <td className="py-3.5 px-5 text-center font-bold text-slate-900 dark:text-white">
                       {(school.stats?.teachers || 0).toLocaleString()}
                     </td>
 
@@ -417,7 +417,7 @@ function SuperAdminSchools() {
                         <button
                           onClick={() => setViewSchool(school)}
                           title="View Details"
-                          className="p-2 text-slate-400 hover:text-blue-400 hover:bg-slate-800 rounded-lg transition-colors"
+                          className="p-2 text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                         >
                           <FaEye className="text-sm" />
                         </button>
@@ -434,14 +434,14 @@ function SuperAdminSchools() {
                             });
                           }}
                           title="Edit School"
-                          className="p-2 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-lg transition-colors"
+                          className="p-2 text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                         >
                           <FaEdit className="text-sm" />
                         </button>
                         <button
                           onClick={() => setDeleteSchoolId(school._id)}
                           title="Delete School"
-                          className="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"
+                          className="p-2 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                         >
                           <FaTrash className="text-sm" />
                         </button>
@@ -453,10 +453,10 @@ function SuperAdminSchools() {
             </tbody>
           </table>
         </div>
-        <div className="p-4 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between">
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
           <span>Showing {filteredSchools.length} of {schools.length} schools</span>
-          <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             Instant Cache & Live Sync
           </span>
         </div>
@@ -464,61 +464,61 @@ function SuperAdminSchools() {
 
       {/* MODAL 1: Add School */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#131B2E] border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
-              <h3 className="text-lg font-bold text-white">Add New School</h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-white"><FaTimes /></button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4 border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Add New School</h3>
+              <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white"><FaTimes /></button>
             </div>
             <form onSubmit={handleAddSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">School Name</label>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">School Name</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. St. Xavier High School"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Admin Email</label>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Admin Email</label>
                 <input
                   type="email"
                   placeholder="admin@school.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Address / Location</label>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Address / Location</label>
                 <input
                   type="text"
                   placeholder="City, State"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Subscription Plan</label>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Subscription Plan</label>
                 <select
                   value={formData.plan}
                   onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
-                  className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
                 >
                   <option value="Free Plan (Trial)">Free Plan (Trial)</option>
                   <option value="Paid Subscription">Paid Subscription</option>
                 </select>
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
-                <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Cancel</button>
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">Cancel</button>
                 <button type="submit" disabled={actionLoading} className="px-4 py-2 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-500 flex items-center gap-2">
                   {actionLoading && <FaSpinner className="animate-spin" />}
                   <span>Create School</span>
@@ -531,64 +531,64 @@ function SuperAdminSchools() {
 
       {/* MODAL 2: View Details */}
       {viewSchool && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#131B2E] border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
-              <h3 className="text-lg font-bold text-white">School Details</h3>
-              <button onClick={() => setViewSchool(null)} className="text-slate-400 hover:text-white"><FaTimes /></button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4 border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">School Details</h3>
+              <button onClick={() => setViewSchool(null)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white"><FaTimes /></button>
             </div>
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 text-2xl font-bold">
+              <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-500 dark:text-blue-400 text-2xl font-bold">
                 <FaSchool />
               </div>
               <div>
-                <h4 className="text-base font-bold text-white">{viewSchool.name}</h4>
-                <p className="text-xs text-slate-400">{viewSchool.location || "Patna, Bihar"}</p>
+                <h4 className="text-base font-bold text-slate-900 dark:text-white">{viewSchool.name}</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{viewSchool.location || "Patna, Bihar"}</p>
                 <span className={`inline-block mt-2 px-2.5 py-0.5 text-xs font-semibold rounded-full ${getPlanBadgeStyle(viewSchool.plan)}`}>
                   {viewSchool.plan && viewSchool.plan !== "yet not set" ? viewSchool.plan : (viewSchool.configuredPlan || "Free Plan (Trial)")}
                 </span>
               </div>
             </div>
-            <div className="space-y-3 bg-[#0B0F19] p-4 rounded-xl text-sm">
+            <div className="space-y-3 bg-slate-50 dark:bg-[#0B0F19] p-4 rounded-xl text-sm">
               <div className="flex justify-between">
-                <span className="text-slate-500">Contact Email:</span>
-                <span className="text-slate-200 font-medium">{viewSchool.email || "N/A"}</span>
+                <span className="text-slate-500 dark:text-slate-400">Contact Email:</span>
+                <span className="text-slate-800 dark:text-slate-200 font-medium">{viewSchool.email || "N/A"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Total Admins:</span>
-                <span className="text-slate-200 font-bold">{viewSchool.stats?.admins || 0}</span>
+                <span className="text-slate-500 dark:text-slate-400">Total Admins:</span>
+                <span className="text-slate-800 dark:text-slate-200 font-bold">{viewSchool.stats?.admins || 0}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Total Teachers:</span>
-                <span className="text-slate-200 font-bold">{viewSchool.stats?.teachers || 0}</span>
+                <span className="text-slate-500 dark:text-slate-400">Total Teachers:</span>
+                <span className="text-slate-800 dark:text-slate-200 font-bold">{viewSchool.stats?.teachers || 0}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Total Students:</span>
-                <span className="text-slate-200 font-bold">{viewSchool.stats?.students || 0}</span>
+                <span className="text-slate-500 dark:text-slate-400">Total Students:</span>
+                <span className="text-slate-800 dark:text-slate-200 font-bold">{viewSchool.stats?.students || 0}</span>
               </div>
 
-              <div className="border-t border-slate-800 pt-3 mt-3 space-y-2">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Financial Overview</p>
+              <div className="border-t border-slate-200 dark:border-slate-800 pt-3 mt-3 space-y-2">
+                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Financial Overview</p>
                 <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">Student Monthly Fee Set:</span>
-                  <span className="text-purple-400 font-bold">{viewSchool.financials?.studentMonthlyFee ? `₹${viewSchool.financials.studentMonthlyFee.toFixed(2)}` : "Not Configured"}</span>
+                  <span className="text-slate-500 dark:text-slate-400">Student Monthly Fee Set:</span>
+                  <span className="text-purple-600 dark:text-purple-400 font-bold">{viewSchool.financials?.studentMonthlyFee ? `₹${viewSchool.financials.studentMonthlyFee.toFixed(2)}` : "Not Configured"}</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">Total Revenue Received (Students):</span>
-                  <span className="text-emerald-400 font-bold">₹{(viewSchool.financials?.totalStudentReceived || 0).toFixed(2)}</span>
+                  <span className="text-slate-500 dark:text-slate-400">Total Revenue Received (Students):</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">₹{(viewSchool.financials?.totalStudentReceived || 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">Subscription Paid (to Super Admin):</span>
-                  <span className="text-blue-400 font-bold">₹{(viewSchool.financials?.totalSubscriptionPaid || 0).toFixed(2)}</span>
+                  <span className="text-slate-500 dark:text-slate-400">Subscription Paid (to Super Admin):</span>
+                  <span className="text-blue-600 dark:text-blue-400 font-bold">₹{(viewSchool.financials?.totalSubscriptionPaid || 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">Teacher Salary Configured:</span>
-                  <span className="text-amber-400 font-bold">₹{(viewSchool.financials?.teacherSalariesTotal || 0).toFixed(2)} ({viewSchool.financials?.teacherSalaryCount || 0} teachers set)</span>
+                  <span className="text-slate-500 dark:text-slate-400">Teacher Salary Configured:</span>
+                  <span className="text-amber-600 dark:text-amber-400 font-bold">₹{(viewSchool.financials?.teacherSalariesTotal || 0).toFixed(2)} ({viewSchool.financials?.teacherSalaryCount || 0} teachers set)</span>
                 </div>
               </div>
             </div>
             <div className="mt-6 flex justify-end">
-              <button onClick={() => setViewSchool(null)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-200 hover:bg-slate-700">Close</button>
+              <button onClick={() => setViewSchool(null)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700">Close</button>
             </div>
           </div>
         </div>
@@ -596,51 +596,51 @@ function SuperAdminSchools() {
 
       {/* MODAL 3: Edit School */}
       {editSchool && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#131B2E] border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
-              <h3 className="text-lg font-bold text-white">Edit School</h3>
-              <button onClick={() => setEditSchool(null)} className="text-slate-400 hover:text-white"><FaTimes /></button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4 border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Edit School</h3>
+              <button onClick={() => setEditSchool(null)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white"><FaTimes /></button>
             </div>
             <form onSubmit={handleEditSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">School Name</label>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">School Name</label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Contact Email</label>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Contact Email</label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Address / Location</label>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Address / Location</label>
                 <input
                   type="text"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Plan</label>
+                  <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Plan</label>
                   <select
                     value={formData.plan}
                     onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
-                    className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
                   >
                     {editSchool?.hasSubscription || editSchool?.plan?.includes("Paid") || editSchool?.plan?.includes("Configured") ? (
                       <>
@@ -661,11 +661,11 @@ function SuperAdminSchools() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Status</label>
+                  <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Status</label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
                   >
                     <option value="Active">Active</option>
                     <option value="Pending">Pending</option>
@@ -674,8 +674,8 @@ function SuperAdminSchools() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
-                <button type="button" onClick={() => setEditSchool(null)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Cancel</button>
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                <button type="button" onClick={() => setEditSchool(null)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">Cancel</button>
                 <button type="submit" disabled={actionLoading} className="px-4 py-2 rounded-xl text-sm font-semibold bg-amber-600 text-white hover:bg-amber-500 flex items-center gap-2">
                   {actionLoading && <FaSpinner className="animate-spin" />}
                   <span>Update School</span>
@@ -688,15 +688,15 @@ function SuperAdminSchools() {
 
       {/* MODAL 4: Delete Confirmation */}
       {deleteSchoolId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#131B2E] border border-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center">
-            <div className="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto mb-4 text-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center">
+            <div className="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-500 dark:text-rose-400 flex items-center justify-center mx-auto mb-4 text-xl">
               <FaExclamationTriangle />
             </div>
-            <h3 className="text-lg font-bold text-white">Delete School?</h3>
-            <p className="text-xs text-slate-400 mt-2">Are you sure you want to delete this school from database?</p>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Delete School?</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Are you sure you want to delete this school from database?</p>
             <div className="flex justify-center gap-3 mt-6">
-              <button onClick={() => setDeleteSchoolId(null)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Cancel</button>
+              <button onClick={() => setDeleteSchoolId(null)} className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">Cancel</button>
               <button onClick={handleDeleteConfirm} disabled={actionLoading} className="px-4 py-2 rounded-xl text-sm font-semibold bg-rose-600 text-white hover:bg-rose-500 flex items-center gap-2">
                 {actionLoading && <FaSpinner className="animate-spin" />}
                 <span>Delete</span>

@@ -116,94 +116,80 @@ export const downloadFileMobile = async (fileUrl, fileName = "file") => {
       fullUrl = `${API.replace(/\/$/, "")}/${fileUrl.replace(/^\//, "")}`;
     }
 
-    // 1. If Data URL / Base64 string
-    if (fullUrl.startsWith("data:")) {
+    // Transform Cloudinary URLs to force attachment download header
+    let downloadUrl = fullUrl;
+    if (downloadUrl.includes("cloudinary.com") && downloadUrl.includes("/upload/")) {
+      downloadUrl = downloadUrl.replace("/upload/", "/upload/fl_attachment/");
+    }
+
+    // Determine extension
+    let finalFileName = fileName || "study_material";
+    if (!finalFileName.includes(".")) {
+      if (fullUrl.toLowerCase().includes(".pdf")) finalFileName += ".pdf";
+      else if (fullUrl.toLowerCase().includes(".png")) finalFileName += ".png";
+      else if (fullUrl.toLowerCase().includes(".jpg") || fullUrl.toLowerCase().includes(".jpeg")) finalFileName += ".jpg";
+      else finalFileName += ".pdf";
+    }
+
+    // Capacitor Native Android WebView Detection
+    const isNative = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+
+    if (isNative) {
+      // In Capacitor WebView, opening the direct download URL in system browser triggers Android DownloadManager
       try {
-        const parts = fullUrl.split(";base64,");
-        const mimeType = parts[0].replace("data:", "");
-        const base64Data = parts[1];
-        const binaryStr = atob(base64Data);
-        const len = binaryStr.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-          bytes[i] = binaryStr.charCodeAt(i);
-        }
-
-        let ext = "pdf";
-        if (mimeType.includes("png")) ext = "png";
-        else if (mimeType.includes("jpeg") || mimeType.includes("jpg")) ext = "jpg";
-        else if (mimeType.includes("webp")) ext = "webp";
-        else if (mimeType.includes("pdf")) ext = "pdf";
-
-        let finalName = fileName || "study_material";
-        if (!finalName.toLowerCase().endsWith(`.${ext}`)) {
-          finalName = `${finalName}.${ext}`;
-        }
-
-        const blob = new Blob([bytes], { type: mimeType });
-        const blobUrl = URL.createObjectURL(blob);
-
-        if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
-          const win = window.open(blobUrl, "_blank");
-          if (!win) window.location.href = blobUrl;
-          setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-          return;
-        }
-
         const link = document.createElement("a");
-        link.href = blobUrl;
-        link.download = finalName;
+        link.href = downloadUrl;
+        link.download = finalFileName;
+        link.target = "_system";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
-        return;
-      } catch (err) {
-        console.error("Data URL download processing error:", err);
+      } catch (e) {
+        console.warn("Native link click error:", e);
       }
-    }
 
-    // 2. Fetch remote file blob (bypasses cross-origin navigation restrictions)
-    const response = await fetch(fullUrl, { mode: "cors" });
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-    
-    const blob = await response.blob();
-    const blobUrl = window.URL.createObjectURL(blob);
-
-    let finalFileName = fileName || "file";
-    if (!finalFileName.includes(".")) {
-      const mime = blob.type;
-      if (mime.includes("pdf")) finalFileName += ".pdf";
-      else if (mime.includes("jpeg") || mime.includes("jpg")) finalFileName += ".jpg";
-      else if (mime.includes("png")) finalFileName += ".png";
-      else if (mime.includes("webm")) finalFileName += ".webm";
-      else if (mime.includes("mp4")) finalFileName += ".mp4";
-    }
-
-    if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
-      const win = window.open(blobUrl, "_blank");
-      if (!win) window.location.href = blobUrl;
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+      // Fallback: open in external browser or window
+      window.open(downloadUrl, "_system") || window.open(downloadUrl, "_blank");
       return;
     }
 
-    const link = document.createElement("a");
-    link.href = blobUrl;
-    link.download = finalFileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    setTimeout(() => {
-      window.URL.revokeObjectURL(blobUrl);
-    }, 5000);
-  } catch (error) {
-    console.warn("Direct blob download failed, falling back to window open:", error);
-    const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
-    let fallbackUrl = fileUrl;
-    if (!fileUrl.startsWith("http") && !fileUrl.startsWith("data:")) {
-      fallbackUrl = `${API.replace(/\/$/, "")}/${fileUrl.replace(/^\//, "")}`;
+    // Data / Base64 URL
+    if (fullUrl.startsWith("data:")) {
+      const link = document.createElement("a");
+      link.href = fullUrl;
+      link.download = finalFileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
     }
-    window.open(fallbackUrl, "_blank", "noopener,noreferrer");
+
+    // Standard Browser Blob Download
+    try {
+      const response = await fetch(downloadUrl, { mode: "cors" });
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = finalFileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setTimeout(() => {
+        window.URL.revokeObjectURL(blobUrl);
+      }, 10000);
+    } catch (err) {
+      console.warn("Direct blob download failed, opening in browser window:", err);
+      window.open(downloadUrl, "_blank", "noopener,noreferrer");
+    }
+  } catch (error) {
+    console.error("Mobile download exception:", error);
+    if (fileUrl) {
+      window.open(fileUrl, "_blank");
+    }
   }
 };
