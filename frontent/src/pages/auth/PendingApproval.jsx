@@ -1497,15 +1497,6 @@ function PendingApproval() {
 
           {/* User profile & actions section */}
           <div className="relative flex items-center gap-2.5 sm:gap-3 shrink-0">
-            {/* DM / Support Chat Button */}
-            <Link
-              to="/pending/support"
-              className="p-1.5 sm:p-2 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400 cursor-pointer transition text-xs sm:text-sm relative group"
-              title="Support & Direct Messages"
-            >
-              <FaComments className="text-[#7C3AED] dark:text-[#38BDF8]" />
-            </Link>
-
             {/* Quick theme switch in header */}
             <button
               onClick={toggleTheme}
@@ -1524,7 +1515,7 @@ function PendingApproval() {
                 <p className="text-xs font-bold text-[#0F172A] dark:text-slate-250 group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition duration-200 truncate max-w-[130px]">
                   {user.name}
                 </p>
-                <p className="text-[8px] sm:text-[9px] text-slate-450 font-extrabold uppercase tracking-wider">
+                <p className="text-[8px] sm:text-[9px] text-slate-455 font-extrabold uppercase tracking-wider">
                   {isTeacher ? "Teacher (Pending)" : "Student (Pending)"}
                 </p>
               </div>
@@ -1559,13 +1550,6 @@ function PendingApproval() {
                     className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition"
                   >
                     <FaUserCircle /> My Profile
-                  </Link>
-                  <Link
-                    to="/pending/support"
-                    onClick={() => setProfileDropdownOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition"
-                  >
-                    <FaComments /> Direct Chat & Support
                   </Link>
                   <button
                     onClick={() => {

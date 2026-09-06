@@ -56,7 +56,7 @@ function StudentSupport() {
       .filter(c => c.role?.toLowerCase() === "admin")
       .map(c => ({
         ...c,
-        avatar: c.avatar || c.photo || c.profilePhoto || ""
+        avatar: c.avatar || c.photo || c.profilePhoto || c.image || ""
       }));
     return list.length > 0 ? list : [DEFAULT_SCHOOL_ADMIN];
   }, [contacts]);
@@ -174,6 +174,10 @@ function StudentSupport() {
   const teacherContacts = useMemo(() => {
     return contacts
       .filter(c => c.role?.toLowerCase() === "teacher")
+      .map(c => ({
+        ...c,
+        avatar: c.avatar || c.photo || c.profilePhoto || c.image || ""
+      }))
       .filter(c => {
         if (!searchQuery.trim()) return true;
         const q = searchQuery.toLowerCase();

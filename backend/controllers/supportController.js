@@ -242,10 +242,10 @@ exports.getContacts = async (req, res) => {
       contacts = [];
     } else if (role === "superadmin") {
       contacts = await User.find({ _id: { $ne: currentUserId }, role: { $in: ["admin", "Admin"] } })
-        .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto");
+        .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto image");
     } else if (role === "admin") {
       const superAdmins = await User.find({ role: { $regex: /^superadmin$/i } })
-        .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto");
+        .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto image");
       
       const query = {
         _id: { $ne: currentUserId },
@@ -255,13 +255,14 @@ exports.getContacts = async (req, res) => {
         query.$or = [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }];
       }
 
-      const schoolUsers = await User.find(query)
-        .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto");
-      contacts = [...superAdmins, ...schoolUsers];
-      if (contacts.length === 0) {
-        contacts = await User.find({ _id: { $ne: currentUserId } })
-          .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto");
+      let schoolUsers = await User.find(query)
+        .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto image");
+      
+      if (schoolUsers.length === 0) {
+        schoolUsers = await User.find({ _id: { $ne: currentUserId }, role: { $in: ["teacher", "student", "Teacher", "Student"] } })
+          .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto image");
       }
+      contacts = [...superAdmins, ...schoolUsers];
     } else {
       const adminQuery = { role: { $in: ["admin", "Admin"] } };
       const peerQuery = { _id: { $ne: currentUserId }, role: { $in: ["teacher", "student", "Teacher", "Student"] } };
@@ -269,25 +270,27 @@ exports.getContacts = async (req, res) => {
         adminQuery.$or = [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }];
         peerQuery.$or = [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }];
       }
+
       let schoolAdmins = await User.find(adminQuery)
-        .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto");
+        .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto image");
       
       if (schoolAdmins.length === 0) {
         schoolAdmins = await User.find({ role: { $in: ["admin", "Admin"] } })
-          .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto");
+          .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto image");
       }
 
       const superAdmins = await User.find({ role: { $regex: /^superadmin$/i } })
-        .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto");
+        .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto image");
 
-      const peers = await User.find(peerQuery)
-        .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto");
+      let peers = await User.find(peerQuery)
+        .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto image");
+
+      if (peers.length === 0) {
+        peers = await User.find({ _id: { $ne: currentUserId }, role: { $in: ["teacher", "student", "Teacher", "Student"] } })
+          .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto image");
+      }
 
       contacts = [...schoolAdmins, ...superAdmins, ...peers];
-      if (contacts.length === 0) {
-        contacts = await User.find({ _id: { $ne: currentUserId } })
-          .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto");
-      }
     }
 
     // Attach dynamic real-time metadata (lastMessage, unreadCount) to each contact
@@ -311,7 +314,7 @@ exports.getContacts = async (req, res) => {
       });
 
       const contactObj = contact.toObject ? contact.toObject() : contact;
-      const avatarUrl = contactObj.avatar || contactObj.photo || contactObj.profilePhoto || "";
+      const avatarUrl = contactObj.avatar || contactObj.photo || contactObj.profilePhoto || contactObj.image || "";
 
       return {
         ...contactObj,
