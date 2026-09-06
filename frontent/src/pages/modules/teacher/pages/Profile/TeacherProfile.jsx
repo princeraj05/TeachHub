@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import axios from "axios";
+import { requestLocationPermission } from "../../../../../utils/permissionAndDownloadUtils";
 import { 
   FaUser, 
   FaCamera, 
@@ -69,36 +70,30 @@ function TeacherProfile() {
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const handleGetCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+  const handleGetCurrentLocation = async () => {
+    setGettingLocation(true);
+    const res = await requestLocationPermission();
+    if (!res.success) {
+      alert(res.error || "Could not fetch location");
+      setGettingLocation(false);
       return;
     }
-    setGettingLocation(true);
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-          );
-          const data = await res.json();
-          if (data && data.display_name) {
-            setAddress(data.display_name);
-          } else {
-            setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-          }
-        } catch (err) {
-          setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-        } finally {
-          setGettingLocation(false);
-        }
-      },
-      (error) => {
-        alert("Could not detect location: " + error.message);
-        setGettingLocation(false);
+    const { latitude, longitude } = res.coords;
+    try {
+      const geoRes = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+      );
+      const data = await geoRes.json();
+      if (data && data.display_name) {
+        setAddress(data.display_name);
+      } else {
+        setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
       }
-    );
+    } catch (err) {
+      setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+    } finally {
+      setGettingLocation(false);
+    }
   };
 
   useEffect(() => {

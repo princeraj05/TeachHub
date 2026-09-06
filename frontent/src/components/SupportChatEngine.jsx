@@ -7,6 +7,7 @@ import {
   FaTrash, FaCheck, FaCheckDouble, FaPause, FaPlay, FaArrowLeft, FaUndo
 } from "react-icons/fa";
 import { useCall } from "../context/CallContext";
+import { downloadFileMobile } from "../utils/permissionAndDownloadUtils";
 
 const EMOJI_CATEGORIES = {
   "Smileys": ["😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🤩", "🥳", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🤭", "🤫", "🤥", "😶", "😐", "😑", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😵", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕"],
@@ -514,7 +515,13 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
                               className="max-h-60 object-cover cursor-pointer hover:opacity-90 transition"
                               onClick={() => window.open(attach.url, "_blank")}
                             />
-                            <a href={attach.url} download className="block text-center py-1.5 bg-black/40 text-white text-[9px] font-bold">Open Fullscreen</a>
+                            <button 
+                              type="button" 
+                              onClick={() => downloadFileMobile(attach.url, attach.filename)} 
+                              className="w-full text-center py-1.5 bg-black/40 text-white text-[9px] font-bold hover:bg-black/60 transition cursor-pointer"
+                            >
+                              Download / Open Image
+                            </button>
                           </div>
                         );
                       }
@@ -523,6 +530,13 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
                         return (
                           <div key={i} className="rounded-lg overflow-hidden border border-black/10 max-w-sm">
                             <video src={attach.url} controls className="w-full max-h-48" />
+                            <button 
+                              type="button" 
+                              onClick={() => downloadFileMobile(attach.url, attach.filename)} 
+                              className="w-full text-center py-1.5 bg-black/40 text-white text-[9px] font-bold hover:bg-black/60 transition cursor-pointer"
+                            >
+                              Download Video
+                            </button>
                           </div>
                         );
                       }
@@ -551,23 +565,30 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
                               <p className="text-[10px] font-bold truncate">Voice Note</p>
                               <p className="text-[9px] opacity-75">Size: {(attach.size / 1024).toFixed(1)} KB</p>
                             </div>
+                            <button 
+                              type="button"
+                              onClick={() => downloadFileMobile(attach.url, attach.filename || "voicenote.webm")} 
+                              className="p-1.5 text-xs text-slate-500 hover:text-[#7C3AED] transition cursor-pointer"
+                              title="Download Voice Note"
+                            >
+                              <FaPaperclip />
+                            </button>
                           </div>
                         );
                       }
 
                       return (
-                        <a 
+                        <div 
                           key={i} 
-                          href={attach.url} 
-                          download 
-                          className="flex items-center gap-3 p-3 bg-black/5 rounded-xl text-left border border-black/10 hover:bg-black/10 transition block"
+                          onClick={() => downloadFileMobile(attach.url, attach.filename)} 
+                          className="flex items-center gap-3 p-3 bg-black/5 rounded-xl text-left border border-black/10 hover:bg-black/10 transition cursor-pointer"
                         >
                           {renderFileIcon(attach.mimeType)}
                           <div className="flex-1 min-w-0">
                             <p className="font-bold truncate text-[11px]">{attach.filename}</p>
-                            <p className="text-[9px] opacity-75">{(attach.size / 1024 / 1024).toFixed(2)} MB</p>
+                            <p className="text-[9px] opacity-75">{(attach.size / 1024 / 1024).toFixed(2)} MB • Tap to Download</p>
                           </div>
-                        </a>
+                        </div>
                       );
                     })}
                   </div>

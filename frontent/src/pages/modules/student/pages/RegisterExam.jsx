@@ -3,6 +3,7 @@ import axios from "axios";
 import { io } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../../../context/ThemeContext";
+import { requestCameraAndMicPermission, requestScreenSharePermission } from "../../../../utils/permissionAndDownloadUtils";
 import {
   FaBookOpen,
   FaCalendarAlt,
@@ -383,24 +384,24 @@ function RegisterExam() {
 
   // Proctoring setup media activations
   const activateCamera = async () => {
-    try {
-      setMediaError("");
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      setCameraStream(stream);
+    setMediaError("");
+    const res = await requestCameraAndMicPermission("video");
+    if (res.success && res.stream) {
+      setCameraStream(res.stream);
       setCameraActive(true);
-    } catch (err) {
-      setMediaError("Webcam access rejected. Proctoring requires camera access.");
+    } else {
+      setMediaError(res.error || "Webcam access rejected. Proctoring requires camera access.");
     }
   };
 
   const activateScreenShare = async () => {
-    try {
-      setMediaError("");
-      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-      setScreenStream(stream);
+    setMediaError("");
+    const res = await requestScreenSharePermission();
+    if (res.success && res.stream) {
+      setScreenStream(res.stream);
       setScreenActive(true);
-    } catch (err) {
-      setMediaError("Screen share rejected. Proctoring requires entire screen sharing.");
+    } else {
+      setMediaError(res.error || "Screen share rejected. Proctoring requires entire screen sharing.");
     }
   };
 
