@@ -211,7 +211,7 @@ function StudentDashboard() {
       </div>
 
       {/* Admission Exam Scheduling Alert */}
-      {profile && profile.admissionExamDate && (
+      {profile && profile.admissionExamDate && profile.requestStatus === "scheduled" && !profile.admissionExamTaken && (
         <div className="p-5 bg-gradient-to-r from-teal-500/10 to-emerald-500/10 dark:from-teal-500/15 dark:to-emerald-500/15 border border-teal-200/50 dark:border-teal-500/20 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden transition-all duration-200">
           <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/5 rounded-full blur-xl pointer-events-none" />
           <div className="flex items-start gap-4">

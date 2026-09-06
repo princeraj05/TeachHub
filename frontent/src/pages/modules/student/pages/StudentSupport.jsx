@@ -109,7 +109,7 @@ function StudentSupport() {
       const foundAdmin = res.data.find(c => c.role?.toLowerCase() === "admin") || res.data.find(c => c.role?.toLowerCase() === "superadmin");
       const schoolAdmin = foundAdmin ? {
         ...foundAdmin,
-        avatar: foundAdmin.avatar || foundAdmin.photo || foundAdmin.profilePhoto || ""
+        avatar: foundAdmin.avatar || foundAdmin.photo || foundAdmin.profilePhoto || foundAdmin.image || ""
       } : DEFAULT_SCHOOL_ADMIN;
 
       if (activeTab === "admin") {
