@@ -43,7 +43,12 @@ function StudentSupport() {
   };
 
   const adminContacts = useMemo(() => {
-    const list = contacts.filter(c => c.role?.toLowerCase() === "superadmin");
+    const list = contacts
+      .filter(c => c.role?.toLowerCase() === "superadmin")
+      .map(c => ({
+        ...c,
+        avatar: c.avatar || c.photo || c.profilePhoto || ""
+      }));
     if (list.length === 0) {
       return [DEFAULT_SUPER_ADMIN];
     }
@@ -95,7 +100,12 @@ function StudentSupport() {
       });
       setContacts(res.data);
       
-      const superAdmin = res.data.find(c => c.role?.toLowerCase() === "superadmin") || DEFAULT_SUPER_ADMIN;
+      const foundSuper = res.data.find(c => c.role?.toLowerCase() === "superadmin");
+      const superAdmin = foundSuper ? {
+        ...foundSuper,
+        avatar: foundSuper.avatar || foundSuper.photo || foundSuper.profilePhoto || ""
+      } : DEFAULT_SUPER_ADMIN;
+
       if (activeTab === "admin") {
         setActiveContact(superAdmin);
         fetchBroadcastHistory();
