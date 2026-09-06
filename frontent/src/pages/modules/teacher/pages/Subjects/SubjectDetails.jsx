@@ -28,8 +28,13 @@ import {
   FaExternalLinkAlt
 } from "react-icons/fa";
 import SyllabusTab from "../../../../../components/syllabus/SyllabusTab";
+import { downloadFileMobile } from "../../../../../utils/permissionAndDownloadUtils";
 
 const SORA = "'Sora', sans-serif";
+
+const downloadFile = (fileUrl, fileName = "note") => {
+  downloadFileMobile(fileUrl, fileName);
+};
 
 // Segment SVG circular progress for Syllabus Overview
 function SVGProgressRing({ value }) {
@@ -61,75 +66,7 @@ function SVGProgressRing({ value }) {
   );
 }
 
-// Helper: Download Base64 or URL file
-const downloadFile = (fileUrl, fileName = "note") => {
-  if (!fileUrl) return;
 
-  if (fileUrl.startsWith("data:")) {
-    try {
-      const parts = fileUrl.split(";base64,");
-      const mimeType = parts[0].replace("data:", "");
-      const base64Data = parts[1];
-      const binaryStr = atob(base64Data);
-      const len = binaryStr.length;
-      const bytes = new Uint8Array(len);
-      for (let i = 0; i < len; i++) {
-        bytes[i] = binaryStr.charCodeAt(i);
-      }
-      
-      let ext = "pdf";
-      if (mimeType.includes("png")) ext = "png";
-      else if (mimeType.includes("jpeg") || mimeType.includes("jpg")) ext = "jpg";
-      else if (mimeType.includes("webp")) ext = "webp";
-      else if (mimeType.includes("pdf")) ext = "pdf";
-
-      let finalName = fileName || "study_material";
-      if (!finalName.toLowerCase().endsWith(`.${ext}`)) {
-        finalName = `${finalName}.${ext}`;
-      }
-
-      const blob = new Blob([bytes], { type: mimeType });
-      const blobUrl = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = blobUrl;
-      a.download = finalName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
-      return;
-    } catch (err) {
-      console.error("Data URL download error:", err);
-    }
-  }
-
-  fetch(fileUrl)
-    .then((res) => {
-      if (!res.ok) throw new Error("Network response error");
-      return res.blob();
-    })
-    .then((blob) => {
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = blobUrl;
-      a.download = fileName || "file";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
-    })
-    .catch(() => {
-      const a = document.createElement("a");
-      a.href = fileUrl;
-      a.target = "_blank";
-      a.rel = "noopener noreferrer";
-      a.download = fileName || "file";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    });
-};
 
 function SubjectDetails() {
   const { subjectId } = useParams();

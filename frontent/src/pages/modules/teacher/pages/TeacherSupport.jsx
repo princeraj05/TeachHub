@@ -175,15 +175,43 @@ function TeacherSupport() {
       <div className="flex-1 flex overflow-hidden">
         {/* If Active Tab is Admin Support */}
         {activeTab === "admin" && (
-          <div className="flex-1 flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-white/[0.05] overflow-y-auto md:overflow-hidden">
-            {/* Broadcast lists (Left) */}
-            <div className="w-full md:w-1/2 flex flex-col h-auto md:h-full bg-slate-50/20 dark:bg-[#111827]/40 select-none">
+          <div className="flex-1 flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-white/[0.05] overflow-hidden">
+            {/* Mobile Sub-tabs for Admin Announcements vs Personal Chat */}
+            <div className="md:hidden flex border-b border-slate-100 dark:border-white/[0.05] bg-white dark:bg-[#111827] p-1.5 gap-1 select-none shrink-0">
+              <button
+                type="button"
+                onClick={() => setSubTab("broadcast")}
+                className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  subTab === "broadcast"
+                    ? "bg-[#7C3AED] text-white shadow-sm"
+                    : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/[0.05]"
+                }`}
+              >
+                📢 Announcements
+              </button>
+              <button
+                type="button"
+                onClick={() => setSubTab("personal")}
+                className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  subTab === "personal"
+                    ? "bg-[#7C3AED] text-white shadow-sm"
+                    : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/[0.05]"
+                }`}
+              >
+                💬 Admin Chat
+              </button>
+            </div>
+
+            {/* Broadcast lists (Left on desktop, toggled on mobile) */}
+            <div className={`w-full md:w-5/12 flex-col h-full bg-slate-50/20 dark:bg-[#111827]/40 select-none ${
+              subTab === "broadcast" ? "flex" : "hidden md:flex"
+            }`}>
               <div className="p-3 sm:p-4 border-b border-slate-100 dark:border-white/[0.05] bg-white dark:bg-[#111827]">
                 <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                   <FaBroadcastTower className="text-teal-500" /> Admin Announcements
                 </h3>
               </div>
-              <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 max-h-[250px] md:max-h-none shrink-0 md:shrink">
+              <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
                 {broadcastMessages.length === 0 ? (
                   <div className="py-12 md:py-20 text-center text-slate-400 text-xs font-semibold">
                     No announcements from Admin.
@@ -206,8 +234,10 @@ function TeacherSupport() {
               </div>
             </div>
 
-            {/* Personal Admin Chat (Right) */}
-            <div className="w-full md:w-1/2 flex flex-col h-[450px] md:h-full bg-white dark:bg-[#111827] relative shrink-0 md:shrink">
+            {/* Personal Admin Chat (Right on desktop, toggled on mobile) */}
+            <div className={`w-full md:w-7/12 flex-col h-full bg-white dark:bg-[#111827] relative ${
+              subTab === "personal" ? "flex" : "hidden md:flex"
+            }`}>
               <SupportChatEngine 
                 activeContact={activeContact || DEFAULT_ADMIN} 
                 onBack={() => setActiveContact(null)} 
@@ -221,8 +251,8 @@ function TeacherSupport() {
         {activeTab === "students" && (
           <div className="flex-1 flex">
             {/* Student list sidebar */}
-            <div className={`w-full lg:w-1/3 border-r border-slate-100 dark:border-white/[0.05] flex flex-col h-full bg-slate-50/50 dark:bg-[#111827] ${
-              activeContact ? "hidden lg:flex" : "flex"
+            <div className={`w-full md:w-1/3 border-r border-slate-100 dark:border-white/[0.05] flex flex-col h-full bg-slate-50/50 dark:bg-[#111827] ${
+              activeContact ? "hidden md:flex" : "flex"
             }`}>
               <div className="p-3 border-b border-slate-100 dark:border-white/[0.05] bg-white dark:bg-[#111827] flex gap-2 select-none">
                 <button
@@ -346,7 +376,7 @@ function TeacherSupport() {
 
             {/* Chat Area / Chat Engine */}
             <div className={`flex-1 flex-col h-full bg-white dark:bg-[#111827] relative ${
-              activeContact ? "flex" : "hidden lg:flex"
+              activeContact ? "flex" : "hidden md:flex"
             }`}>
               {subTab === "personal" ? (
                 activeContact ? (

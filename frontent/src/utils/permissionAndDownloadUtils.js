@@ -110,56 +110,100 @@ export const downloadFileMobile = async (fileUrl, fileName = "file") => {
   if (!fileUrl) return;
 
   try {
-    // If Data URL / Base64
-    if (fileUrl.startsWith("data:")) {
-      const a = document.createElement("a");
-      a.href = fileUrl;
-      a.download = fileName || "download";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      return;
+    const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    let fullUrl = fileUrl;
+    if (!fileUrl.startsWith("http") && !fileUrl.startsWith("data:")) {
+      fullUrl = `${API.replace(/\/$/, "")}/${fileUrl.replace(/^\//, "")}`;
     }
 
-    // Try fetching file blob (bypasses cross-origin navigation on mobile Chrome/Safari)
-    const response = await fetch(fileUrl, { mode: "cors" });
+    // 1. If Data URL / Base64 string
+    if (fullUrl.startsWith("data:")) {
+      try {
+        const parts = fullUrl.split(";base64,");
+        const mimeType = parts[0].replace("data:", "");
+        const base64Data = parts[1];
+        const binaryStr = atob(base64Data);
+        const len = binaryStr.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+
+        let ext = "pdf";
+        if (mimeType.includes("png")) ext = "png";
+        else if (mimeType.includes("jpeg") || mimeType.includes("jpg")) ext = "jpg";
+        else if (mimeType.includes("webp")) ext = "webp";
+        else if (mimeType.includes("pdf")) ext = "pdf";
+
+        let finalName = fileName || "study_material";
+        if (!finalName.toLowerCase().endsWith(`.${ext}`)) {
+          finalName = `${finalName}.${ext}`;
+        }
+
+        const blob = new Blob([bytes], { type: mimeType });
+        const blobUrl = URL.createObjectURL(blob);
+
+        if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+          const win = window.open(blobUrl, "_blank");
+          if (!win) window.location.href = blobUrl;
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+          return;
+        }
+
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = finalName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+        return;
+      } catch (err) {
+        console.error("Data URL download processing error:", err);
+      }
+    }
+
+    // 2. Fetch remote file blob (bypasses cross-origin navigation restrictions)
+    const response = await fetch(fullUrl, { mode: "cors" });
     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
     
     const blob = await response.blob();
     const blobUrl = window.URL.createObjectURL(blob);
 
-    const link = document.createElement("a");
-    link.href = blobUrl;
-    
-    // Determine extension
-    let extension = "";
-    if (!fileName.includes(".")) {
+    let finalFileName = fileName || "file";
+    if (!finalFileName.includes(".")) {
       const mime = blob.type;
-      if (mime.includes("pdf")) extension = ".pdf";
-      else if (mime.includes("jpeg") || mime.includes("jpg")) extension = ".jpg";
-      else if (mime.includes("png")) extension = ".png";
-      else if (mime.includes("webm")) extension = ".webm";
-      else if (mime.includes("mp4")) extension = ".mp4";
+      if (mime.includes("pdf")) finalFileName += ".pdf";
+      else if (mime.includes("jpeg") || mime.includes("jpg")) finalFileName += ".jpg";
+      else if (mime.includes("png")) finalFileName += ".png";
+      else if (mime.includes("webm")) finalFileName += ".webm";
+      else if (mime.includes("mp4")) finalFileName += ".mp4";
     }
 
-    link.download = fileName + extension;
+    if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+      const win = window.open(blobUrl, "_blank");
+      if (!win) window.location.href = blobUrl;
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+      return;
+    }
+
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = finalFileName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
     setTimeout(() => {
       window.URL.revokeObjectURL(blobUrl);
-    }, 2000);
+    }, 5000);
   } catch (error) {
-    console.warn("Direct blob download failed, opening directly in browser tab:", error);
-    // Fallback: Open URL in new window/tab for native browser download handler
-    const link = document.createElement("a");
-    link.href = fileUrl;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    link.download = fileName || "download";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    console.warn("Direct blob download failed, falling back to window open:", error);
+    const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    let fallbackUrl = fileUrl;
+    if (!fileUrl.startsWith("http") && !fileUrl.startsWith("data:")) {
+      fallbackUrl = `${API.replace(/\/$/, "")}/${fileUrl.replace(/^\//, "")}`;
+    }
+    window.open(fallbackUrl, "_blank", "noopener,noreferrer");
   }
 };

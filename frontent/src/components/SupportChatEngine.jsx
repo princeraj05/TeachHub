@@ -411,42 +411,57 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-[#111827] relative select-none">
+    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-[#111827] relative select-none w-full min-w-0">
       
       {/* Top Header Contact info */}
-      <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-white/[0.05] bg-white dark:bg-[#111827] z-10 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+      <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-white/[0.05] bg-white dark:bg-[#111827] z-10 flex items-center justify-between shadow-sm w-full shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 pr-2">
           {onBack && (
-            <button onClick={onBack} className="p-1.5 -ml-1 text-slate-500 hover:text-[#7C3AED]">
-              <FaArrowLeft className="text-sm" />
+            <button 
+              type="button"
+              onClick={onBack} 
+              className="p-1.5 sm:p-2 -ml-1 rounded-xl text-slate-500 hover:text-[#7C3AED] hover:bg-slate-100 dark:hover:bg-white/[0.05] transition cursor-pointer shrink-0"
+              title="Back"
+            >
+              <FaArrowLeft className="text-sm sm:text-base" />
             </button>
           )}
           <div className="relative shrink-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#7C3AED]/15 text-[#7C3AED] flex items-center justify-center font-black text-xs sm:text-sm uppercase">
-              {activeContact.name.charAt(0)}
-            </div>
+            {activeContact.avatar ? (
+              <img 
+                src={activeContact.avatar} 
+                alt={activeContact.name} 
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-slate-200 dark:border-white/10" 
+              />
+            ) : (
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#6366F1] text-white flex items-center justify-center font-black text-xs sm:text-sm uppercase shadow-sm">
+                {activeContact.name.charAt(0)}
+              </div>
+            )}
             {activeContact.isOnline && (
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 bg-green-500 border-2 border-white dark:border-[#111827] rounded-full"></span>
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-emerald-500 border-2 border-white dark:border-[#111827] rounded-full" />
             )}
           </div>
-          <div className="min-w-0">
-            <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white truncate">{activeContact.name}</p>
-            <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium truncate">{getPresenceText()}</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white truncate leading-tight">{activeContact.name}</p>
+            <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium truncate mt-0.5">{getPresenceText()}</p>
           </div>
         </div>
 
         {/* Global WebRTC calling hooks trigger */}
-        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <button 
+            type="button"
             onClick={() => startCall(activeContact, "voice")}
-            className="p-2 sm:p-3 rounded-full hover:bg-slate-100 dark:hover:bg-white/[0.02] text-slate-600 dark:text-slate-400 transition hover:text-[#7C3AED] cursor-pointer"
+            className="p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-white/[0.05] text-slate-700 dark:text-slate-200 hover:bg-[#7C3AED]/15 hover:text-[#7C3AED] transition cursor-pointer flex items-center gap-1 text-xs font-bold"
             title="Voice Call"
           >
             <FaPhone className="text-xs sm:text-sm" />
           </button>
           <button 
+            type="button"
             onClick={() => startCall(activeContact, "video")}
-            className="p-2 sm:p-3 rounded-full hover:bg-slate-100 dark:hover:bg-white/[0.02] text-slate-600 dark:text-slate-400 transition hover:text-[#7C3AED] cursor-pointer"
+            className="p-2 sm:p-2.5 rounded-xl bg-[#7C3AED]/15 text-[#7C3AED] hover:bg-[#7C3AED]/25 transition cursor-pointer flex items-center gap-1 text-xs font-bold"
             title="Video Call"
           >
             <FaVideo className="text-xs sm:text-sm" />

@@ -419,10 +419,22 @@ export const CallProvider = ({ children }) => {
 
       pc.ontrack = (event) => {
         if (event.streams && event.streams[0]) {
-          setRemoteStream(event.streams[0]);
+          const incomingStream = event.streams[0];
+          setRemoteStream(new MediaStream(incomingStream.getTracks()));
+          incomingStream.onaddtrack = () => {
+            setRemoteStream(new MediaStream(incomingStream.getTracks()));
+          };
+          incomingStream.onremovetrack = () => {
+            setRemoteStream(new MediaStream(incomingStream.getTracks()));
+          };
         } else if (event.track) {
-          const inboundStream = new MediaStream([event.track]);
-          setRemoteStream(inboundStream);
+          setRemoteStream((prev) => {
+            if (prev) {
+              const existingTracks = prev.getTracks().filter(t => t.id !== event.track.id);
+              return new MediaStream([...existingTracks, event.track]);
+            }
+            return new MediaStream([event.track]);
+          });
         }
       };
 
@@ -583,27 +595,41 @@ export const CallProvider = ({ children }) => {
   };
 
   // Video Ref mounts & Playback execution
-  const localVideoRef = useRef(null);
+  const localVideoMainRef = useRef(null);
+  const localVideoPipRef = useRef(null);
   const remoteVideoRef = useRef(null);
 
-  const localVideoCallback = (node) => {
-    localVideoRef.current = node;
-    if (node && localStreamRef.current) {
-      node.srcObject = localStreamRef.current;
-      node.play().catch(() => {});
-    }
-  };
+  const hasRemoteVideo = Boolean(
+    remoteStream &&
+    remoteStream.getVideoTracks().length > 0 &&
+    remoteStream.getVideoTracks()[0].readyState === "live" &&
+    !remoteStream.getVideoTracks()[0].muted
+  );
 
-  const remoteVideoCallback = (node) => {
-    remoteVideoRef.current = node;
-    if (node && remoteStreamRef.current) {
-      node.srcObject = remoteStreamRef.current;
-      const playPromise = node.play();
+  useEffect(() => {
+    if (localStream) {
+      if (localVideoMainRef.current && localVideoMainRef.current.srcObject !== localStream) {
+        localVideoMainRef.current.srcObject = localStream;
+        localVideoMainRef.current.play().catch(() => {});
+      }
+      if (localVideoPipRef.current && localVideoPipRef.current.srcObject !== localStream) {
+        localVideoPipRef.current.srcObject = localStream;
+        localVideoPipRef.current.play().catch(() => {});
+      }
+    }
+  }, [localStream, callState, hasRemoteVideo]);
+
+  useEffect(() => {
+    if (remoteStream && remoteVideoRef.current) {
+      if (remoteVideoRef.current.srcObject !== remoteStream) {
+        remoteVideoRef.current.srcObject = remoteStream;
+      }
+      const playPromise = remoteVideoRef.current.play();
       if (playPromise !== undefined) {
         playPromise.catch((err) => {
           console.warn("Mobile autoplay failed, attaching interaction listeners:", err);
           const handleTouch = () => {
-            node.play().catch(() => {});
+            if (remoteVideoRef.current) remoteVideoRef.current.play().catch(() => {});
             window.removeEventListener("touchstart", handleTouch);
             window.removeEventListener("click", handleTouch);
           };
@@ -612,27 +638,7 @@ export const CallProvider = ({ children }) => {
         });
       }
     }
-  };
-
-  const hasRemoteVideo = Boolean(
-    remoteStream &&
-    remoteStream.getVideoTracks().length > 0 &&
-    remoteStream.getVideoTracks()[0].readyState === "live"
-  );
-
-  useEffect(() => {
-    if (localVideoRef.current && localStream) {
-      localVideoRef.current.srcObject = localStream;
-      localVideoRef.current.play().catch(() => {});
-    }
-  }, [localStream, callState]);
-
-  useEffect(() => {
-    if (remoteVideoRef.current && remoteStream) {
-      remoteVideoRef.current.srcObject = remoteStream;
-      remoteVideoRef.current.play().catch(() => {});
-    }
-  }, [remoteStream, callState]);
+  }, [remoteStream, callState, hasRemoteVideo]);
 
   return (
     <CallContext.Provider
@@ -799,15 +805,16 @@ export const CallProvider = ({ children }) => {
           {/* Call Body Stream / Dual Video View */}
           {callType === "video" ? (
             <div className="relative flex-1 bg-slate-900/80 border border-white/10 my-3 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center max-w-4xl mx-auto w-full">
-              {/* Main Background: Remote Video Stream if live, otherwise Local Stream Live Preview */}
-              {hasRemoteVideo ? (
-                <video
-                  ref={remoteVideoCallback}
-                  autoPlay
-                  playsInline
-                  className="w-full h-full object-cover"
-                />
-              ) : (
+              {/* Main Remote Video Stream (Always mounted in DOM to prevent play reset) */}
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                className={`w-full h-full object-cover ${hasRemoteVideo ? "block" : "hidden"}`}
+              />
+
+              {/* Connecting / Local Stream Preview when remote video is not active */}
+              {!hasRemoteVideo && (
                 <div className="relative w-full h-full flex items-center justify-center bg-slate-950">
                   {isCamOff ? (
                     <div className="w-full h-full bg-slate-900 text-xs font-extrabold text-slate-400 flex flex-col items-center justify-center gap-2 uppercase">
@@ -816,7 +823,7 @@ export const CallProvider = ({ children }) => {
                     </div>
                   ) : (
                     <video
-                      ref={localVideoCallback}
+                      ref={localVideoMainRef}
                       autoPlay
                       playsInline
                       muted
@@ -845,7 +852,7 @@ export const CallProvider = ({ children }) => {
                   </div>
                 ) : (
                   <video
-                    ref={localVideoCallback}
+                    ref={localVideoPipRef}
                     autoPlay
                     playsInline
                     muted

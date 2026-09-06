@@ -381,7 +381,10 @@ const activeCallRooms = new Map(); // roomId -> { roomId, callId, hostId, peerId
 
 // Send socket event to all active sockets of a specific user
 const emitToUser = (userId, eventName, data) => {
-  const socketIds = activeSockets.get(userId.toString());
+  if (!userId) return;
+  const uIdStr = userId.toString();
+  io.to(uIdStr).emit(eventName, data);
+  const socketIds = activeSockets.get(uIdStr);
   if (socketIds) {
     for (const socketId of socketIds) {
       io.to(socketId).emit(eventName, data);
@@ -390,10 +393,11 @@ const emitToUser = (userId, eventName, data) => {
 };
 
 io.on("connection", (socket) => {
-  const userId = socket.user?.id;
-  if (!userId) {
+  const rawUserId = socket.user?.id || socket.user?._id;
+  if (!rawUserId) {
     return socket.disconnect();
   }
+  const userId = rawUserId.toString();
 
   console.log("Client connected:", socket.id, "User:", userId);
 
@@ -545,17 +549,14 @@ io.on("connection", (socket) => {
             partner: { _id: receiverUser._id, name: receiverUser.name, avatar: receiverUser.avatar }
           });
 
-          // Send incoming call notification to receiver if connected
-          const receiverSockets = activeSockets.get(receiverId.toString());
-          if (receiverSockets && receiverSockets.size > 0) {
-            emitToUser(receiverId, "call:incoming", {
-              callId: call._id,
-              callerId: userId,
-              callerName: senderUser.name || "School Member",
-              callerAvatar: senderUser.avatar || "",
-              type
-            });
-          }
+          // Send incoming call notification to receiver
+          emitToUser(receiverId.toString(), "call:incoming", {
+            callId: call._id,
+            callerId: userId,
+            callerName: senderUser.name || "School Member",
+            callerAvatar: senderUser.avatar || "",
+            type
+          });
         } else {
           // Room ALREADY exists: Second user joining the meeting!
           room.status = "connected";
