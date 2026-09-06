@@ -15,6 +15,9 @@ import SupportChatEngine from "../../../../components/SupportChatEngine";
 const SORA = "'Sora', sans-serif";
 
 function StudentSupport() {
+  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const token = localStorage.getItem("token");
+
   const location = useLocation();
   const isPendingPortal = location.pathname.startsWith("/pending");
 
