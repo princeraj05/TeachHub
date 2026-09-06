@@ -413,40 +413,42 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
     <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-[#111827] relative select-none">
       
       {/* Top Header Contact info */}
-      <div className="p-4 border-b border-slate-200 dark:border-white/[0.05] bg-white dark:bg-[#111827] z-10 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-3">
+      <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-white/[0.05] bg-white dark:bg-[#111827] z-10 flex items-center justify-between shadow-sm">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           {onBack && (
-            <button onClick={onBack} className="p-2 -ml-2 text-slate-500 hover:text-[#7C3AED] lg:hidden">
+            <button onClick={onBack} className="p-1.5 -ml-1 text-slate-500 hover:text-[#7C3AED]">
               <FaArrowLeft className="text-sm" />
             </button>
           )}
-          <div className="relative">
-            <div className="w-10 h-10 rounded-full bg-[#7C3AED]/15 text-[#7C3AED] flex items-center justify-center font-black text-sm uppercase">
+          <div className="relative shrink-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#7C3AED]/15 text-[#7C3AED] flex items-center justify-center font-black text-xs sm:text-sm uppercase">
               {activeContact.name.charAt(0)}
             </div>
             {activeContact.isOnline && (
-              <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-[#111827] rounded-full"></span>
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 bg-green-500 border-2 border-white dark:border-[#111827] rounded-full"></span>
             )}
           </div>
-          <div>
-            <p className="text-xs font-bold text-slate-800 dark:text-white">{activeContact.name}</p>
-            <p className="text-[10px] text-slate-400 font-medium">{getPresenceText()}</p>
+          <div className="min-w-0">
+            <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white truncate">{activeContact.name}</p>
+            <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium truncate">{getPresenceText()}</p>
           </div>
         </div>
 
         {/* Global WebRTC calling hooks trigger */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           <button 
             onClick={() => startCall(activeContact, "voice")}
-            className="p-3 rounded-full hover:bg-slate-100 dark:hover:bg-white/[0.02] text-slate-600 dark:text-slate-400 transition hover:text-[#7C3AED] cursor-pointer"
+            className="p-2 sm:p-3 rounded-full hover:bg-slate-100 dark:hover:bg-white/[0.02] text-slate-600 dark:text-slate-400 transition hover:text-[#7C3AED] cursor-pointer"
+            title="Voice Call"
           >
-            <FaPhone className="text-sm" />
+            <FaPhone className="text-xs sm:text-sm" />
           </button>
           <button 
             onClick={() => startCall(activeContact, "video")}
-            className="p-3 rounded-full hover:bg-slate-100 dark:hover:bg-white/[0.02] text-slate-600 dark:text-slate-400 transition hover:text-[#7C3AED] cursor-pointer"
+            className="p-2 sm:p-3 rounded-full hover:bg-slate-100 dark:hover:bg-white/[0.02] text-slate-600 dark:text-slate-400 transition hover:text-[#7C3AED] cursor-pointer"
+            title="Video Call"
           >
-            <FaVideo className="text-sm" />
+            <FaVideo className="text-xs sm:text-sm" />
           </button>
         </div>
       </div>
@@ -455,7 +457,7 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
       <div 
         ref={chatContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-100/40 dark:bg-[#0B132A]/20 relative"
+        className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 bg-slate-100/40 dark:bg-[#0B132A]/20 relative"
       >
         {loading && page === 1 && (
           <div className="py-20 text-center flex flex-col items-center justify-center">
@@ -473,7 +475,7 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
               id={`msg-el-${msg._id}`}
               className={`flex flex-col ${isOwn ? "items-end" : "items-start"} group relative`}
             >
-              <div className={`max-w-[75%] sm:max-w-[65%] rounded-2xl px-4 py-2.5 shadow-xs text-xs font-medium leading-relaxed relative ${
+              <div className={`max-w-[85%] sm:max-w-[65%] rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 shadow-xs text-xs font-medium leading-relaxed relative ${
                 isOwn
                   ? "bg-gradient-to-r from-[#7C3AED] to-[#6366F1] text-white rounded-tr-xs"
                   : "bg-white dark:bg-[#1E293B] border border-slate-200/60 dark:border-white/10 text-slate-800 dark:text-slate-100 rounded-tl-xs"
@@ -658,14 +660,14 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
       )}
 
       {/* Composer Input toolbar */}
-      <div className="p-4 bg-white dark:bg-[#111827] border-t border-slate-200 dark:border-white/[0.05]">
+      <div className="p-2.5 sm:p-4 bg-white dark:bg-[#111827] border-t border-slate-200 dark:border-white/[0.05]">
         
         {showEmojiPicker && (
-          <div className="border border-slate-200 dark:border-white/[0.05] rounded-2xl bg-white dark:bg-[#1f2937] p-3 mb-3 shadow-lg max-h-56 overflow-y-auto">
+          <div className="border border-slate-200 dark:border-white/[0.05] rounded-2xl bg-white dark:bg-[#1f2937] p-2.5 sm:p-3 mb-3 shadow-lg max-h-52 sm:max-h-56 overflow-y-auto">
             {Object.keys(EMOJI_CATEGORIES).map(cat => (
               <div key={cat} className="mb-3">
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">{cat}</p>
-                <div className="grid grid-cols-8 gap-2">
+                <div className="grid grid-cols-6 sm:grid-cols-8 gap-1.5 sm:gap-2">
                   {EMOJI_CATEGORIES[cat].map(emoji => (
                     <button 
                       key={emoji}
@@ -673,7 +675,7 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
                         setNewMessage(prev => prev + emoji);
                         setShowEmojiPicker(false);
                       }}
-                      className="text-lg hover:scale-115 transition cursor-pointer"
+                      className="text-base sm:text-lg hover:scale-115 transition cursor-pointer p-1"
                     >
                       {emoji}
                     </button>
@@ -685,7 +687,7 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
         )}
 
         {showAttachmentMenu && (
-          <div className="absolute bottom-20 left-4 bg-white dark:bg-[#1f2937] border border-slate-200 dark:border-white/[0.05] rounded-2xl shadow-xl p-3 z-30 flex flex-col gap-2.5">
+          <div className="absolute bottom-20 left-2 right-2 sm:left-4 sm:right-auto bg-white dark:bg-[#1f2937] border border-slate-200 dark:border-white/[0.05] rounded-2xl shadow-xl p-3 z-30 flex flex-col gap-2.5 max-w-xs">
             <label className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-slate-50 dark:hover:bg-white/[0.02] rounded-xl cursor-pointer text-xs font-bold text-slate-600 dark:text-slate-400">
               <FaPaperclip className="text-blue-500" />
               <span>Choose Document / Media</span>
@@ -694,21 +696,21 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
           </div>
         )}
 
-        <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-1.5 sm:gap-3">
           <button 
             type="button"
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            className="p-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-250/60 dark:border-white/[0.08] rounded-xl text-slate-500 dark:text-slate-450 hover:text-[#7C3AED] hover:bg-slate-100 dark:hover:bg-white/[0.04] transition cursor-pointer"
+            className="p-2 sm:p-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-250/60 dark:border-white/[0.08] rounded-xl text-slate-500 dark:text-slate-450 hover:text-[#7C3AED] hover:bg-slate-100 dark:hover:bg-white/[0.04] transition cursor-pointer shrink-0"
           >
-            <FaSmile className="text-sm" />
+            <FaSmile className="text-xs sm:text-sm" />
           </button>
           
           <button 
             type="button"
             onClick={() => setShowAttachmentMenu(!showAttachmentMenu)}
-            className="p-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-250/60 dark:border-white/[0.08] rounded-xl text-slate-500 dark:text-slate-450 hover:text-[#7C3AED] hover:bg-slate-100 dark:hover:bg-white/[0.04] transition cursor-pointer"
+            className="p-2 sm:p-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-250/60 dark:border-white/[0.08] rounded-xl text-slate-500 dark:text-slate-450 hover:text-[#7C3AED] hover:bg-slate-100 dark:hover:bg-white/[0.04] transition cursor-pointer shrink-0"
           >
-            <FaPaperclip className="text-sm" />
+            <FaPaperclip className="text-xs sm:text-sm" />
           </button>
 
           <input 
@@ -717,40 +719,40 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
             value={newMessage}
             onChange={handleComposerTyping}
             disabled={isRecording}
-            className="flex-1 px-4 py-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.08] rounded-xl text-xs text-slate-700 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all disabled:opacity-50"
+            className="flex-1 min-w-0 px-3 sm:px-4 py-2.5 sm:py-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.08] rounded-xl text-xs text-slate-700 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all disabled:opacity-50"
           />
 
           {isRecording ? (
-            <div className="flex items-center gap-2 animate-pulse">
+            <div className="flex items-center gap-1.5 sm:gap-2 animate-pulse shrink-0">
               <span className="text-[10px] text-red-500 font-bold">{recordingDuration}s</span>
               <button 
                 type="button"
                 onClick={stopRecording}
-                className="bg-green-500 text-white p-3.5 rounded-xl flex items-center justify-center hover:opacity-90 active:scale-95 transition cursor-pointer"
+                className="bg-green-500 text-white p-2.5 sm:p-3.5 rounded-xl flex items-center justify-center hover:opacity-90 active:scale-95 transition cursor-pointer"
               >
                 <FaCheck className="text-xs" />
               </button>
               <button 
                 type="button"
                 onClick={cancelRecording}
-                className="bg-red-500 text-white p-3.5 rounded-xl flex items-center justify-center hover:opacity-90 active:scale-95 transition cursor-pointer"
+                className="bg-red-500 text-white p-2.5 sm:p-3.5 rounded-xl flex items-center justify-center hover:opacity-90 active:scale-95 transition cursor-pointer"
               >
                 <FaTimes className="text-xs" />
               </button>
             </div>
           ) : audioBlob ? (
-            <div className="flex items-center gap-2">
-              <span className="text-[9px] text-slate-400 font-bold">Voice Note Ready</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <span className="hidden sm:inline text-[9px] text-slate-400 font-bold">Voice Note</span>
               <button 
                 type="submit"
-                className="bg-gradient-to-r from-[#7C3AED] to-[#312E81] text-white p-3.5 rounded-xl flex items-center justify-center hover:opacity-90 active:scale-95 transition cursor-pointer"
+                className="bg-gradient-to-r from-[#7C3AED] to-[#312E81] text-white p-2.5 sm:p-3.5 rounded-xl flex items-center justify-center hover:opacity-90 active:scale-95 transition cursor-pointer"
               >
                 <FaPaperPlane className="text-xs" />
               </button>
               <button 
                 type="button"
                 onClick={() => setAudioBlob(null)}
-                className="bg-slate-200 text-slate-500 p-3.5 rounded-xl flex items-center justify-center hover:bg-slate-300 transition cursor-pointer"
+                className="bg-slate-200 text-slate-500 p-2.5 sm:p-3.5 rounded-xl flex items-center justify-center hover:bg-slate-300 transition cursor-pointer"
               >
                 <FaUndo className="text-xs" />
               </button>
@@ -760,7 +762,7 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
               {newMessage.trim() ? (
                 <button 
                   type="submit"
-                  className="bg-gradient-to-r from-[#7C3AED] to-[#312E81] text-white p-3.5 rounded-xl flex items-center justify-center hover:opacity-90 active:scale-95 transition cursor-pointer"
+                  className="bg-gradient-to-r from-[#7C3AED] to-[#312E81] text-white p-2.5 sm:p-3.5 rounded-xl flex items-center justify-center hover:opacity-90 active:scale-95 transition cursor-pointer shrink-0"
                 >
                   <FaPaperPlane className="text-xs" />
                 </button>
@@ -768,7 +770,7 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
                 <button 
                   type="button"
                   onClick={startRecording}
-                  className="bg-slate-50 dark:bg-white/[0.02] border border-slate-250/60 dark:border-white/[0.08] text-slate-500 dark:text-slate-450 p-3.5 rounded-xl flex items-center justify-center hover:bg-slate-100 dark:hover:bg-white/[0.04] transition cursor-pointer"
+                  className="bg-slate-50 dark:bg-white/[0.02] border border-slate-250/60 dark:border-white/[0.08] text-slate-500 dark:text-slate-450 p-2.5 sm:p-3.5 rounded-xl flex items-center justify-center hover:bg-slate-100 dark:hover:bg-white/[0.04] transition cursor-pointer shrink-0"
                 >
                   <FaMicrophone className="text-xs" />
                 </button>

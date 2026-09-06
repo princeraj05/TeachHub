@@ -183,9 +183,9 @@ function TeacherSupport() {
                   <FaBroadcastTower className="text-teal-500" /> Admin Announcements
                 </h3>
               </div>
-              <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 max-h-[300px] md:max-h-none">
+              <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 max-h-[250px] md:max-h-none shrink-0 md:shrink">
                 {broadcastMessages.length === 0 ? (
-                  <div className="py-20 text-center text-slate-400 text-xs font-semibold">
+                  <div className="py-12 md:py-20 text-center text-slate-400 text-xs font-semibold">
                     No announcements from Admin.
                   </div>
                 ) : (
@@ -207,7 +207,7 @@ function TeacherSupport() {
             </div>
 
             {/* Personal Admin Chat (Right) */}
-            <div className="w-1/2 flex flex-col h-full bg-white dark:bg-[#111827] relative">
+            <div className="w-full md:w-1/2 flex flex-col h-[450px] md:h-full bg-white dark:bg-[#111827] relative shrink-0 md:shrink">
               <SupportChatEngine 
                 activeContact={activeContact || DEFAULT_ADMIN} 
                 onBack={() => setActiveContact(null)} 

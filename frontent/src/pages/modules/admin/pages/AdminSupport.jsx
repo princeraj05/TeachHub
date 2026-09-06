@@ -185,7 +185,7 @@ function AdminSupport() {
   return (
     <div className="font-sans flex flex-col h-[calc(100vh-140px)] bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl overflow-hidden shadow-sm">
       {/* Tabs Header */}
-      <div className="flex border-b border-slate-100 dark:border-white/[0.05] bg-slate-50/50 dark:bg-[#1f2937]/50 p-2 gap-2 select-none">
+      <div className="flex flex-wrap border-b border-slate-100 dark:border-white/[0.05] bg-slate-50/50 dark:bg-[#1f2937]/50 p-1.5 sm:p-2 gap-1.5 sm:gap-2 select-none">
         {[
           { key: "superadmin", label: "Super Admin Support" },
           { key: "teachers", label: "Teachers Chat" },
@@ -194,7 +194,7 @@ function AdminSupport() {
           <button
             key={tab.key}
             onClick={() => handleTabChange(tab.key)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
               activeTab === tab.key
                 ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/15"
                 : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/[0.02] dark:hover:text-white"

@@ -133,7 +133,9 @@ function SuperAdminSupport() {
       {/* Main Support Workspace Box */}
       <div className="bg-[#131B2E] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row flex-1 h-[calc(100vh-220px)] min-h-[600px]">
         {/* Left Sidebar: School Admin Contacts */}
-        <div className="w-full md:w-80 border-b md:border-b-0 md:border-r border-slate-800 flex flex-col bg-[#131B2E]">
+        <div className={`w-full md:w-80 border-b md:border-b-0 md:border-r border-slate-800 flex-col bg-[#131B2E] ${
+          activeContact ? "hidden md:flex" : "flex"
+        }`}>
           {/* Header Tab */}
           <div className="p-3.5 border-b border-slate-800 bg-[#0B0F19]/50 flex items-center justify-between">
             <span className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-2">
@@ -216,10 +218,13 @@ function SuperAdminSupport() {
         </div>
 
         {/* Right Main Chat & Call Area using SupportChatEngine */}
-        <div className="flex-1 flex flex-col bg-[#0B0F19]/40 min-h-0">
+        <div className={`flex-1 flex-col bg-[#0B0F19]/40 min-h-0 ${
+          activeContact ? "flex" : "hidden md:flex"
+        }`}>
           {activeContact ? (
             <SupportChatEngine
               activeContact={activeContact}
+              onBack={() => setActiveContact(null)}
               userRole="superadmin"
             />
           ) : (
