@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { lazyWithRetry as lazy } from "../utils/lazyWithRetry";
+import { CallProvider } from "../context/CallContext";
 
 import Login from "../pages/auth/Login";
 
@@ -53,7 +54,9 @@ function MainRoutes() {
           path="/pending/*"
           element={
             <ProtectedRoute allowedRoles={["unassigned"]}>
-              <PendingApproval />
+              <CallProvider>
+                <PendingApproval />
+              </CallProvider>
             </ProtectedRoute>
           }
         />
