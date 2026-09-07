@@ -155,7 +155,10 @@ function UserProfile() {
     return user.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
   }, [user]);
 
-  const isTeacherApplicant = (formData.requestedRole === "teacher" || user.requestedRole === "teacher" || user.role === "teacher");
+  const isStudentUser = user?.role === "student" || user?.requestedRole === "student";
+  const isTeacherUser = user?.role === "teacher" || user?.requestedRole === "teacher";
+  const isRoleFixed = isStudentUser || isTeacherUser;
+  const isTeacherApplicant = isTeacherUser || (!isStudentUser && formData.requestedRole === "teacher");
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -568,34 +571,36 @@ function UserProfile() {
             {/* Modal Form Content */}
             <form onSubmit={handleSave} className="p-5 overflow-y-auto space-y-4 flex-1">
               
-              {/* 1. Applicant Role Toggle */}
-              <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider block mb-1.5">Applying As</label>
-                <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/60 dark:border-white/10">
-                  <button
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, requestedRole: "student" }))}
-                    className={`py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition cursor-pointer ${
-                      formData.requestedRole === "student"
-                        ? "bg-[#7C3AED] text-white shadow-md"
-                        : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
-                    }`}
-                  >
-                    <FaGraduationCap className="text-sm" /> Student Applicant
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, requestedRole: "teacher" }))}
-                    className={`py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition cursor-pointer ${
-                      formData.requestedRole === "teacher"
-                        ? "bg-[#7C3AED] text-white shadow-md"
-                        : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
-                    }`}
-                  >
-                    <FaChalkboardTeacher className="text-sm" /> Teacher Applicant
-                  </button>
+              {/* 1. Applicant Role Toggle - Only shown for new unassigned applicants */}
+              {!isRoleFixed && (
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider block mb-1.5">Applying As</label>
+                  <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/60 dark:border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, requestedRole: "student" }))}
+                      className={`py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition cursor-pointer ${
+                        formData.requestedRole === "student"
+                          ? "bg-[#7C3AED] text-white shadow-md"
+                          : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                      }`}
+                    >
+                      <FaGraduationCap className="text-sm" /> Student Applicant
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, requestedRole: "teacher" }))}
+                      className={`py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition cursor-pointer ${
+                        formData.requestedRole === "teacher"
+                          ? "bg-[#7C3AED] text-white shadow-md"
+                          : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                      }`}
+                    >
+                      <FaChalkboardTeacher className="text-sm" /> Teacher Applicant
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* 2. Photo DP Upload */}
               <div className="flex flex-col items-center justify-center py-2">
