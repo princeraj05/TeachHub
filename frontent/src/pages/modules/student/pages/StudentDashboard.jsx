@@ -11,14 +11,107 @@ import {
   FaClock,
   FaSchool,
   FaVolumeUp,
-  FaExclamationTriangle
+  FaExclamationTriangle,
+  FaUserCircle,
+  FaTachometerAlt,
+  FaBook,
+  FaCreditCard,
+  FaComments,
+  FaInfoCircle,
+  FaThLarge,
+  FaExternalLinkAlt
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
 import TodayTimetableWidget from "../../../../components/TodayTimetableWidget";
 
 const SORA = "'Sora', sans-serif";
 
-const DUMMY_CLASSES = [];
+const STUDENT_NAV_ITEMS = [
+  {
+    to: "/student/profile",
+    label: "My Profile",
+    desc: "View & Edit Info",
+    icon: <FaUserCircle />,
+    color: "from-purple-500/15 to-indigo-500/15 text-[#7C3AED] dark:text-[#38BDF8] border-purple-500/20"
+  },
+  {
+    to: "/student/mydiary",
+    label: "My Diary",
+    desc: "Homework & Notes",
+    icon: <FaBookOpen />,
+    color: "from-blue-500/15 to-cyan-500/15 text-blue-600 dark:text-cyan-400 border-blue-500/20"
+  },
+  {
+    to: "/student/attendance",
+    label: "Attendance",
+    desc: "Daily Log",
+    icon: <FaClipboardCheck />,
+    color: "from-emerald-500/15 to-teal-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+  },
+  {
+    to: "/student/showtimetable",
+    label: "Show Timetable",
+    desc: "Weekly Schedule",
+    icon: <FaCalendarAlt />,
+    color: "from-rose-500/15 to-pink-500/15 text-rose-600 dark:text-rose-400 border-rose-500/20"
+  },
+  {
+    to: "/student/exams",
+    label: "Marks / Exams",
+    desc: "Scores & Exams",
+    icon: <FaFileAlt />,
+    color: "from-amber-500/15 to-orange-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20"
+  },
+  {
+    to: "/student/subjects",
+    label: "My Subjects",
+    desc: "Courses & Syllabus",
+    icon: <FaBook />,
+    color: "from-indigo-500/15 to-purple-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/20"
+  },
+  {
+    to: "/student/payments",
+    label: "Fee Statement / Pay",
+    desc: "Fees & Receipts",
+    icon: <FaCreditCard />,
+    color: "from-emerald-500/15 to-green-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+  },
+  {
+    to: "/student/events",
+    label: "Events",
+    desc: "School Activities",
+    icon: <FaCalendarAlt />,
+    color: "from-cyan-500/15 to-sky-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-500/20"
+  },
+  {
+    to: "/student/teacher-on-leave",
+    label: "Teacher On Leave",
+    desc: "Teacher Absence",
+    icon: <FaUserCircle />,
+    color: "from-orange-500/15 to-amber-500/15 text-orange-600 dark:text-orange-400 border-orange-500/20"
+  },
+  {
+    to: "/student/schools",
+    label: "School Directory",
+    desc: "Explore Schools",
+    icon: <FaSchool />,
+    color: "from-purple-500/15 to-violet-500/15 text-purple-600 dark:text-purple-400 border-purple-500/20"
+  },
+  {
+    to: "/student/support",
+    label: "Support Chat",
+    desc: "Help & Queries",
+    icon: <FaComments />,
+    color: "from-sky-500/15 to-blue-500/15 text-sky-600 dark:text-[#38BDF8] border-sky-500/20"
+  },
+  {
+    to: "/student/about",
+    label: "About App",
+    desc: "TeachHub Details",
+    icon: <FaInfoCircle />,
+    color: "from-slate-500/15 to-zinc-500/15 text-slate-600 dark:text-slate-400 border-slate-500/20"
+  }
+];
 
 function StudentDashboard() {
   const API = import.meta.env.VITE_API_URL;
@@ -289,21 +382,44 @@ function StudentDashboard() {
         </div>
       </div>
 
-      {/* Megaphone banner banner at bottom */}
-      <div 
-        onClick={() => navigate("/student/exams")}
-        className="flex items-center justify-between bg-blue-500/5 hover:bg-blue-500/10 border border-blue-500/10 rounded-2.5xl p-4.5 text-xs select-none transition-colors cursor-pointer"
-      >
-        <div className="flex items-center gap-3 text-slate-655 dark:text-slate-400">
-          <div className="w-9 h-9 rounded-xl bg-blue-500/15 text-[#38BDF8] flex items-center justify-center shrink-0 text-base">
-            <FaVolumeUp className="text-sm shrink-0" />
+      {/* Quick Navigation Box */}
+      <div className="bg-white dark:bg-[#0B132A]/90 border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-4 sm:p-6 shadow-sm space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-3">
+          <div>
+            <h2 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2 tracking-tight">
+              <FaThLarge className="text-[#7C3AED] dark:text-[#38BDF8]" /> Student Quick Navigation
+            </h2>
+            <p className="text-[10px] text-slate-400 font-bold mt-0.5">Direct shortcuts to all student modules</p>
           </div>
-          <div className="text-left">
-            <h4 className="text-xs font-black text-slate-900 dark:text-white">Stay Updated</h4>
-            <p className="text-[10px] text-slate-450 dark:text-slate-500 font-bold mt-0.5">Check your timetable, attendance and exam schedule regularly.</p>
-          </div>
+          <span className="text-[10px] font-black px-2.5 py-1 bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] rounded-full border border-[#7C3AED]/20">
+            {STUDENT_NAV_ITEMS.length} Modules
+          </span>
         </div>
-        <FaChevronRight className="text-slate-400 text-xs shrink-0" />
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3.5">
+          {STUDENT_NAV_ITEMS.map((nav) => (
+            <Link
+              key={nav.to}
+              to={nav.to}
+              className="group bg-slate-50/80 dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.07] border border-slate-200/60 dark:border-white/[0.06] hover:border-[#7C3AED]/30 dark:hover:border-[#38BDF8]/30 rounded-2xl p-3 flex flex-col justify-between gap-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
+            >
+              <div className="flex items-center justify-between">
+                <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${nav.color} border flex items-center justify-center text-sm font-bold shadow-xs`}>
+                  {nav.icon}
+                </div>
+                <FaExternalLinkAlt className="text-[9px] text-slate-300 group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition-colors" />
+              </div>
+              <div className="text-left">
+                <h3 className="text-xs font-black text-slate-800 dark:text-white group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition-colors line-clamp-1">
+                  {nav.label}
+                </h3>
+                <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 line-clamp-1 mt-0.5">
+                  {nav.desc}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
 
     </div>
