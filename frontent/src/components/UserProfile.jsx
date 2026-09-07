@@ -258,7 +258,7 @@ function UserProfile() {
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight">{user?.name || "Applicant User"}</h1>
                 <span className="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 backdrop-blur-md border border-white/25">
-                  {isTeacherApplicant ? "TEACHER APPLICANT" : "STUDENT APPLICANT"}
+                  {isTeacherApplicant ? "TEACHER APPLICANT" : isStudentUser ? "STUDENT" : "STUDENT APPLICANT"}
                 </span>
               </div>
 
@@ -278,8 +278,8 @@ function UserProfile() {
                   </span>
                 ) : (
                   <span className="px-3 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1.5 border border-white/20">
-                    <FaGraduationCap className="text-amber-300 text-xs" />
-                    <span>Target: {formData.targetClass || "Class 1"}</span>
+                    <FaGraduationCap className="text-cyan-300 text-xs" />
+                    <span>{isStudentUser ? "Class:" : "Target:"} {formData.targetClass || "Class 1"}</span>
                   </span>
                 )}
               </div>
@@ -383,7 +383,7 @@ function UserProfile() {
               </div>
 
               <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">TARGET SCHOOL</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{isStudentUser ? "SCHOOL NAME" : "TARGET SCHOOL"}</p>
                 <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{user?.requestedSchool || user?.schoolName || "Not Selected"}</p>
               </div>
 
@@ -391,7 +391,7 @@ function UserProfile() {
               {!isTeacherApplicant ? (
                 <>
                   <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">TARGET ADMISSION CLASS</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{isStudentUser ? "CLASS" : "TARGET ADMISSION CLASS"}</p>
                     <p className="text-xs font-black text-[#7C3AED] dark:text-[#38BDF8] mt-1">{formData.targetClass || "Class 1"}</p>
                   </div>
 
@@ -655,7 +655,7 @@ function UserProfile() {
                 <div className="space-y-3 pt-1 border-t border-slate-100 dark:border-white/5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">Target Admission Class</label>
+                      <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">{isStudentUser ? "Class / Enrolled Class" : "Target Admission Class"}</label>
                       <select
                         name="targetClass"
                         value={formData.targetClass}
