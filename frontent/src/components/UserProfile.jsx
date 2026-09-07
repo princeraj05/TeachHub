@@ -13,7 +13,6 @@ import {
   FaCamera,
   FaSchool,
   FaGraduationCap,
-  FaBookOpen,
   FaHistory,
   FaBriefcase,
   FaChalkboardTeacher,
@@ -26,8 +25,7 @@ import {
   FaCheck,
   FaComments,
   FaIdCard,
-  FaShieldAlt,
-  FaChevronRight
+  FaShieldAlt
 } from "react-icons/fa";
 import { compressAvatar } from "../utils/mediaCompression";
 
@@ -79,6 +77,11 @@ function UserProfile() {
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
 
+  // Settings states
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [digestEnabled, setDigestEnabled] = useState(false);
+  const [language, setLanguage] = useState("English");
+
   // Applicant Profile Form State
   const [formData, setFormData] = useState({
     name: "",
@@ -86,14 +89,12 @@ function UserProfile() {
     avatar: "",
     requestedRole: "student",
     requestedSchool: "",
-    // Student Applicant Fields
     targetClass: "Class 1",
     previousClass: "",
     previousSchool: "",
     previousGrade: "",
     fatherName: "",
     fatherMobileNumber: "",
-    // Teacher Applicant Fields
     qualification: "",
     experience: "1 Year",
     previousInstitute: "",
@@ -145,7 +146,7 @@ function UserProfile() {
       }
     } catch (err) {
       console.error("Error fetching profile:", err);
-    } finally {
+    } fontally {
       setLoading(false);
     }
   };
@@ -155,10 +156,11 @@ function UserProfile() {
     return user.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
   }, [user]);
 
-  const isStudentUser = user?.role === "student" || user?.requestedRole === "student";
-  const isTeacherUser = user?.role === "teacher" || user?.requestedRole === "teacher";
-  const isRoleFixed = isStudentUser || isTeacherUser;
-  const isTeacherApplicant = isTeacherUser || (!isStudentUser && formData.requestedRole === "teacher");
+  // Distinct Role Checks
+  const isPendingApplicant = user?.requestStatus === "pending" || user?.requestStatus === "scheduled" || user?.requestStatus === "exam_completed" || user?.role === "unassigned" || user?.role === "pending";
+  const isAdmittedStudent = user?.role === "student" && !isPendingApplicant;
+  const isAdmittedTeacher = user?.role === "teacher" && !isPendingApplicant;
+  const isTeacherApplicant = isAdmittedTeacher || (isPendingApplicant && (formData.requestedRole === "teacher" || user?.requestedRole === "teacher"));
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -258,7 +260,13 @@ function UserProfile() {
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight">{user?.name || "Applicant User"}</h1>
                 <span className="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 backdrop-blur-md border border-white/25">
-                  {isTeacherApplicant ? "TEACHER APPLICANT" : isStudentUser ? "STUDENT" : "STUDENT APPLICANT"}
+                  {isAdmittedStudent
+                    ? "STUDENT"
+                    : isAdmittedTeacher
+                      ? "FACULTY / TEACHER"
+                      : isTeacherApplicant
+                        ? "TEACHER APPLICANT"
+                        : "STUDENT APPLICANT"}
                 </span>
               </div>
 
@@ -279,7 +287,7 @@ function UserProfile() {
                 ) : (
                   <span className="px-3 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1.5 border border-white/20">
                     <FaGraduationCap className="text-cyan-300 text-xs" />
-                    <span>{isStudentUser ? "Class:" : "Target:"} {formData.targetClass || "Class 1"}</span>
+                    <span>{isAdmittedStudent ? `Class: ${formData.targetClass || "Class 1"}` : `Target: ${formData.targetClass || "Class 1"}`}</span>
                   </span>
                 )}
               </div>
@@ -296,7 +304,7 @@ function UserProfile() {
               <FaEdit className="text-xs" /> Edit Profile
             </button>
             <button
-              onClick={() => navigate("/pending/support")}
+              onClick={() => navigate(isPendingApplicant ? "/pending/support" : "/student/support")}
               className="flex-1 sm:flex-initial w-full bg-white/15 hover:bg-white/25 text-white border border-white/20 font-extrabold text-xs px-5 py-3 rounded-2xl flex items-center justify-center gap-2 backdrop-blur-md transition-all active:scale-95 cursor-pointer"
             >
               <FaComments className="text-xs" /> Help Chat
@@ -312,7 +320,9 @@ function UserProfile() {
             <FaIdCard className="text-lg" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">APPLICANT ID</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+              {isAdmittedStudent ? "STUDENT ID" : isAdmittedTeacher ? "TEACHER ID" : "APPLICANT ID"}
+            </p>
             <p className="text-sm font-black text-slate-800 dark:text-white tracking-wider mt-0.5">
               #{user?._id ? user._id.slice(-6).toUpperCase() : "7045A0"}
             </p>
@@ -324,9 +334,14 @@ function UserProfile() {
             <FaShieldAlt className="text-lg" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">APPLICATION STATUS</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+              {isAdmittedStudent ? "STUDENT STATUS" : isAdmittedTeacher ? "FACULTY STATUS" : "APPLICATION STATUS"}
+            </p>
             <p className="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mt-0.5 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> PENDING REVIEW
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              {isPendingApplicant
+                ? (user?.requestStatus ? user.requestStatus.replace("_", " ").toUpperCase() : "PENDING REVIEW")
+                : "ACTIVE"}
             </p>
           </div>
         </div>
@@ -347,13 +362,15 @@ function UserProfile() {
       {/* 3. Main Details & Preferences Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* Left Column: Account Details & Applicant Academic Records */}
+        {/* Left Column: Account Details & Academic Records */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm">
             <div className="flex items-center justify-between border-b border-slate-150 dark:border-white/5 pb-4 mb-5">
               <div>
                 <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">Account Details</h2>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Personal & Application Records</p>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+                  {isPendingApplicant ? "Personal & Application Records" : "Personal & Institutional Records"}
+                </p>
               </div>
               <button
                 onClick={() => setShowEditModal(true)}
@@ -383,7 +400,7 @@ function UserProfile() {
               </div>
 
               <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{isStudentUser ? "SCHOOL NAME" : "TARGET SCHOOL"}</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{isPendingApplicant ? "TARGET SCHOOL" : "SCHOOL NAME"}</p>
                 <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{user?.requestedSchool || user?.schoolName || "Not Selected"}</p>
               </div>
 
@@ -391,7 +408,7 @@ function UserProfile() {
               {!isTeacherApplicant ? (
                 <>
                   <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{isStudentUser ? "CLASS" : "TARGET ADMISSION CLASS"}</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{isPendingApplicant ? "TARGET ADMISSION CLASS" : "CLASS"}</p>
                     <p className="text-xs font-black text-[#7C3AED] dark:text-[#38BDF8] mt-1">{formData.targetClass || "Class 1"}</p>
                   </div>
 
@@ -416,7 +433,7 @@ function UserProfile() {
                   </div>
                 </>
               ) : (
-                /* Teacher Specific Applicant Fields */
+                /* Teacher Specific Fields */
                 <>
                   <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">QUALIFICATION</p>
@@ -454,91 +471,82 @@ function UserProfile() {
           </div>
         </div>
 
-        {/* Right Column: App Preferences */}
+        {/* Right Column: Preferences Box */}
         <div className="space-y-6">
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm">
-            <div className="border-b border-slate-150 dark:border-white/5 pb-4 mb-4">
-              <h2 className="text-base font-black text-slate-900 dark:text-white">APP PREFERENCES</h2>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Theme, language & settings</p>
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4">
+            <div className="border-b border-slate-150 dark:border-white/5 pb-3">
+              <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">App Preferences</h3>
+              <p className="text-[10px] text-slate-400 font-bold">Theme, language & settings</p>
             </div>
 
-            <div className="space-y-3">
-              
-              {/* Appearance / Dark Mode */}
-              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
-                    {theme === "dark" ? <FaMoon /> : <FaSun />}
-                  </div>
-                  <div>
-                    <p className="text-xs font-black text-slate-800 dark:text-white">Appearance</p>
-                    <p className="text-[10px] text-slate-400 font-bold">{theme === "dark" ? "Dark Mode Active" : "Light Mode Active"}</p>
-                  </div>
+            {/* Appearance Toggle */}
+            <div
+              onClick={toggleTheme}
+              className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 transition"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                  {theme === "dark" ? <FaMoon /> : <FaSun className="text-amber-500" />}
                 </div>
-
-                <button
-                  onClick={toggleTheme}
-                  className={`w-12 h-6.5 rounded-full p-1 transition-colors duration-200 flex items-center cursor-pointer ${
-                    theme === "dark" ? "bg-[#7C3AED] justify-end" : "bg-slate-300 justify-start"
-                  }`}
-                >
-                  <span className="w-4.5 h-4.5 rounded-full bg-white shadow-md transform transition-transform" />
-                </button>
-              </div>
-
-              {/* Language Selector */}
-              <div
-                onClick={() => setShowLanguageModal(true)}
-                className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4 flex items-center justify-between cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 transition"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
-                    <FaGlobe />
-                  </div>
-                  <div>
-                    <p className="text-xs font-black text-slate-800 dark:text-white">Language</p>
-                    <p className="text-[10px] text-slate-400 font-bold">English</p>
-                  </div>
-                </div>
-                <FaChevronRight className="text-xs text-slate-400" />
-              </div>
-
-              {/* Settings & Notifications */}
-              <div
-                onClick={() => setShowSettingsModal(true)}
-                className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4 flex items-center justify-between cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 transition"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
-                    <FaCog />
-                  </div>
-                  <div>
-                    <p className="text-xs font-black text-slate-800 dark:text-white">Settings</p>
-                    <p className="text-[10px] text-slate-400 font-bold">Alerts & notifications</p>
-                  </div>
-                </div>
-                <FaChevronRight className="text-xs text-slate-400" />
-              </div>
-
-              {/* About App */}
-              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
-                    <FaInfoCircle />
-                  </div>
-                  <div>
-                    <p className="text-xs font-black text-slate-800 dark:text-white">About App</p>
-                    <p className="text-[10px] text-slate-400 font-bold">TeachHub v2.0</p>
-                  </div>
+                <div>
+                  <p className="text-xs font-black text-slate-800 dark:text-white">Appearance</p>
+                  <p className="text-[10px] text-slate-400 font-bold">{theme === "dark" ? "Dark Mode Active" : "Light Mode Active"}</p>
                 </div>
               </div>
+              <div className={`w-8 h-4.5 rounded-full p-0.5 transition-colors duration-250 ${theme === "dark" ? "bg-[#7C3AED]" : "bg-slate-300"}`}>
+                <div className={`w-3.5 h-3.5 rounded-full bg-white transition-transform duration-250 ${theme === "dark" ? "translate-x-3.5" : "translate-x-0"}`} />
+              </div>
+            </div>
 
+            {/* Language Selector */}
+            <div
+              onClick={() => setShowLanguageModal(true)}
+              className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 transition"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                  <FaGlobe />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-slate-800 dark:text-white">Language</p>
+                  <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">{language}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Settings */}
+            <div
+              onClick={() => setShowSettingsModal(true)}
+              className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 transition"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                  <FaCog />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-slate-800 dark:text-white">Settings</p>
+                  <p className="text-[10px] text-slate-400 font-bold">Alerts & notifications</p>
+                </div>
+              </div>
+            </div>
+
+            {/* About App */}
+            <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3.5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                  <FaInfoCircle />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-slate-800 dark:text-white">About App</p>
+                  <p className="text-[10px] text-slate-400 font-bold">TeachHub v2.0</p>
+                </div>
+              </div>
             </div>
 
             {/* Sign Out Button */}
             <button
               onClick={handleLogout}
-              className="mt-6 w-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 p-3.5 rounded-2xl text-xs font-black flex items-center justify-center gap-2 transition cursor-pointer active:scale-98"
+              className="w-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 p-3.5 rounded-2xl text-xs font-black flex items-center justify-center gap-2 transition cursor-pointer active:scale-98"
             >
               <FaSignOutAlt className="text-xs" /> Sign Out of Account
             </button>
@@ -547,9 +555,7 @@ function UserProfile() {
 
       </div>
 
-      {/* ======================================================== */}
       {/* EDIT PROFILE MODAL */}
-      {/* ======================================================== */}
       {showEditModal && (
         <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fadeIn select-none">
           <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl relative text-slate-800 dark:text-white my-auto">
@@ -557,8 +563,12 @@ function UserProfile() {
             {/* Modal Header */}
             <div className="p-5 border-b border-slate-150 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
               <div>
-                <h3 className="text-base font-black text-slate-900 dark:text-white">Edit Applicant Profile</h3>
-                <p className="text-[10px] text-slate-400 font-bold">Update your details for school admission/recruitment</p>
+                <h3 className="text-base font-black text-slate-900 dark:text-white">
+                  {isAdmittedStudent ? "Edit Student Profile" : isAdmittedTeacher ? "Edit Faculty Profile" : "Edit Applicant Profile"}
+                </h3>
+                <p className="text-[10px] text-slate-400 font-bold">
+                  {isPendingApplicant ? "Update your details for school admission/recruitment" : "Update your personal details & contact records"}
+                </p>
               </div>
               <button
                 onClick={() => setShowEditModal(false)}
@@ -571,8 +581,8 @@ function UserProfile() {
             {/* Modal Form Content */}
             <form onSubmit={handleSave} className="p-5 overflow-y-auto space-y-4 flex-1">
               
-              {/* 1. Applicant Role Toggle - Only shown for new unassigned applicants */}
-              {!isRoleFixed && (
+              {/* Applicant Role Toggle - ONLY for new unassigned applicants */}
+              {isPendingApplicant && (!user?.role || user?.role === "unassigned") && (!user?.requestedRole || user?.requestedRole === "unassigned") && (
                 <div>
                   <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider block mb-1.5">Applying As</label>
                   <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/60 dark:border-white/10">
@@ -602,7 +612,7 @@ function UserProfile() {
                 </div>
               )}
 
-              {/* 2. Photo DP Upload */}
+              {/* Photo DP Upload */}
               <div className="flex flex-col items-center justify-center py-2">
                 <div className="relative group">
                   <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#7C3AED] to-cyan-400 p-0.5 shadow-md overflow-hidden">
@@ -622,7 +632,7 @@ function UserProfile() {
                 <p className="text-[10px] text-slate-400 font-bold mt-1.5">Click camera to upload profile photo</p>
               </div>
 
-              {/* 3. Basic Common Details */}
+              {/* Basic Details */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">Full Name</label>
@@ -650,12 +660,14 @@ function UserProfile() {
                 </div>
               </div>
 
-              {/* 4. Student Fields */}
-              {formData.requestedRole === "student" ? (
+              {/* Student Fields */}
+              {!isTeacherApplicant ? (
                 <div className="space-y-3 pt-1 border-t border-slate-100 dark:border-white/5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">{isStudentUser ? "Class / Enrolled Class" : "Target Admission Class"}</label>
+                      <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">
+                        {isPendingApplicant ? "Target Admission Class" : "Class"}
+                      </label>
                       <select
                         name="targetClass"
                         value={formData.targetClass}
@@ -718,7 +730,7 @@ function UserProfile() {
                   </div>
                 </div>
               ) : (
-                /* 5. Teacher Fields */
+                /* Teacher Fields */
                 <div className="space-y-3 pt-1 border-t border-slate-100 dark:border-white/5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
@@ -762,26 +774,23 @@ function UserProfile() {
                     />
                   </div>
 
-                  {/* Subjects of Expertise Multi-select */}
                   <div>
-                    <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1.5">
-                      Subjects of Expertise (Multiple Select)
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {AVAILABLE_SUBJECTS.map(sub => {
-                        const isSelected = (formData.subjectsOfExpertise || []).includes(sub);
+                    <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">Subjects of Expertise (Multiple Select)</label>
+                    <div className="flex flex-wrap gap-1.5 mt-1.5">
+                      {AVAILABLE_SUBJECTS.map((sub) => {
+                        const selected = (formData.subjectsOfExpertise || []).includes(sub);
                         return (
                           <button
                             key={sub}
                             type="button"
                             onClick={() => toggleSubjectOfExpertise(sub)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-extrabold border transition cursor-pointer flex items-center gap-1.5 ${
-                              isSelected
-                                ? "bg-[#7C3AED] text-white border-[#7C3AED] shadow-sm"
-                                : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-100"
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                              selected
+                                ? "bg-[#7C3AED] text-white shadow-sm"
+                                : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
                             }`}
                           >
-                            {isSelected && <FaCheck className="text-[10px]" />}
+                            {selected && "✓ "}
                             {sub}
                           </button>
                         );
@@ -791,22 +800,22 @@ function UserProfile() {
                 </div>
               )}
 
-              {/* Submit Buttons */}
-              <div className="pt-4 border-t border-slate-150 dark:border-white/5 flex items-center justify-end gap-3">
+              {/* Modal Actions */}
+              <div className="flex gap-3 pt-4 border-t border-slate-150 dark:border-white/5">
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition cursor-pointer"
+                  className="flex-1 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-extrabold text-xs py-3 rounded-2xl transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-6 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-xs shadow-md shadow-[#7C3AED]/20 transition cursor-pointer flex items-center gap-2 disabled:opacity-60"
+                  className="flex-1 bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-extrabold text-xs py-3 rounded-2xl shadow-lg shadow-[#7C3AED]/20 flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50"
                 >
                   <FaSave className="text-xs" />
-                  {saving ? "Saving Changes..." : "Save Profile"}
+                  {saving ? "Saving..." : "Save Profile"}
                 </button>
               </div>
 
@@ -815,25 +824,38 @@ function UserProfile() {
         </div>
       )}
 
-      {/* Language Selector Modal */}
+      {/* LANGUAGE MODAL */}
       {showLanguageModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-xs shadow-2xl relative select-none text-slate-800 dark:text-white">
+        <div className="fixed inset-0 bg-slate-900/65 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl relative text-slate-800 dark:text-white">
             <button
               onClick={() => setShowLanguageModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
+              className="absolute top-4.5 right-4.5 text-slate-400 hover:text-white cursor-pointer"
             >
-              <FaTimes className="text-xs" />
+              <FaTimes className="text-sm" />
             </button>
-            <h3 className="text-sm font-black text-slate-900 dark:text-white mb-3">Select Language</h3>
-            <div className="space-y-2">
-              {["English", "Hindi"].map((lang) => (
+            <div className="mb-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                <FaGlobe className="text-sm" />
+              </div>
+              <h3 className="text-sm font-black">Select Language</h3>
+            </div>
+            <div className="space-y-2 my-4">
+              {["English", "Hindi", "Spanish"].map((lang) => (
                 <button
                   key={lang}
-                  onClick={() => setShowLanguageModal(false)}
-                  className="w-full text-left p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold hover:bg-[#7C3AED]/10 hover:text-[#7C3AED] transition"
+                  onClick={() => {
+                    setLanguage(lang);
+                    setShowLanguageModal(false);
+                  }}
+                  className={`w-full flex items-center justify-between p-3.5 rounded-xl border text-xs font-extrabold transition cursor-pointer ${
+                    language === lang
+                      ? "border-[#7C3AED] bg-[#7C3AED]/5 text-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8]/5 dark:text-[#38BDF8]"
+                      : "border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] hover:bg-slate-50 text-slate-600 dark:text-slate-400"
+                  }`}
                 >
-                  {lang}
+                  <span>{lang}</span>
+                  {language === lang && <FaCheck className="text-[10px]" />}
                 </button>
               ))}
             </div>
@@ -841,27 +863,65 @@ function UserProfile() {
         </div>
       )}
 
-      {/* Settings Modal */}
+      {/* SETTINGS MODAL */}
       {showSettingsModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl relative select-none text-slate-800 dark:text-white">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl relative text-slate-800 dark:text-white">
             <button
               onClick={() => setShowSettingsModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
+              className="absolute top-4.5 right-4.5 text-slate-400 hover:text-white cursor-pointer"
             >
-              <FaTimes className="text-xs" />
+              <FaTimes className="text-sm" />
             </button>
-            <h3 className="text-sm font-black text-slate-900 dark:text-white mb-4">Notification Settings</h3>
-            <div className="space-y-3 text-xs font-bold text-slate-700 dark:text-slate-300">
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl">
-                <span>Admission Updates</span>
-                <span className="text-[#7C3AED] dark:text-[#38BDF8]">Enabled</span>
+            <div className="mb-6 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                <FaCog className="text-sm" />
               </div>
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl">
-                <span>Exam Notifications</span>
-                <span className="text-[#7C3AED] dark:text-[#38BDF8]">Enabled</span>
+              <div>
+                <h3 className="text-sm font-black">Manage Settings</h3>
+                <p className="text-[9px] text-slate-400 font-bold uppercase">App Preferences</p>
               </div>
             </div>
+            <div className="space-y-4 border-t border-slate-100 dark:border-white/5 pt-4 text-xs font-semibold text-slate-600 dark:text-slate-400">
+              <div className="flex items-center justify-between p-1">
+                <div>
+                  <h5 className="font-extrabold text-slate-900 dark:text-white text-xs">Push Notifications</h5>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Receive immediate dashboard alerts</p>
+                </div>
+                <button
+                  onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                  className={`w-10 h-5.5 rounded-full p-0.5 transition-colors duration-250 cursor-pointer ${
+                    notificationsEnabled ? "bg-emerald-500" : "bg-slate-350 dark:bg-white/10"
+                  }`}
+                >
+                  <div className={`w-4.5 h-4.5 rounded-full bg-white transition-transform duration-250 ${
+                    notificationsEnabled ? "translate-x-4.5" : "translate-x-0"
+                  }`} />
+                </button>
+              </div>
+              <div className="flex items-center justify-between p-1">
+                <div>
+                  <h5 className="font-extrabold text-slate-900 dark:text-white text-xs">Weekly digest reports</h5>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Summary of attendance & marks via email</p>
+                </div>
+                <button
+                  onClick={() => setDigestEnabled(!digestEnabled)}
+                  className={`w-10 h-5.5 rounded-full p-0.5 transition-colors duration-250 cursor-pointer ${
+                    digestEnabled ? "bg-emerald-500" : "bg-slate-350 dark:bg-white/10"
+                  }`}
+                >
+                  <div className={`w-4.5 h-4.5 rounded-full bg-white transition-transform duration-250 ${
+                    digestEnabled ? "translate-x-4.5" : "translate-x-0"
+                  }`} />
+                </button>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowSettingsModal(false)}
+              className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white py-3 rounded-xl text-xs font-bold transition cursor-pointer mt-6"
+            >
+              Save Settings
+            </button>
           </div>
         </div>
       )}
@@ -871,4 +931,3 @@ function UserProfile() {
 }
 
 export default UserProfile;
-
