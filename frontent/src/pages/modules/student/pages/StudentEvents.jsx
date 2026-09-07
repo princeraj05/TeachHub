@@ -111,17 +111,11 @@ function StudentEvents() {
   const displayEvents = useMemo(() => {
     let combined = [...events];
 
-    // Filter local search and category match
     return combined.filter(ev => {
-      const matchesSearch = ev.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      return (ev.title || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
         (ev.description || "").toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesCategory = categoryFilter === "All" || 
-        (ev.category || "").toLowerCase() === categoryFilter.toLowerCase();
-      
-      return matchesSearch && matchesCategory;
     });
-  }, [events, activeTab, searchQuery, categoryFilter]);
+  }, [events, activeTab, searchQuery]);
 
   // Gallery view mock photos loading
   const galleryPhotos = useMemo(() => {
@@ -237,33 +231,16 @@ function StudentEvents() {
         </button>
       </div>
 
-      {/* Search and Filters row */}
-      <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
-        <div className="relative flex-1">
-          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
-          <input
-            type="text"
-            placeholder={activeTab === "upcoming" ? "Search events..." : "Search completed events..."}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B132A] text-slate-800 dark:text-white placeholder-slate-400 text-xs font-semibold focus:outline-none focus:border-[#7C3AED]"
-          />
-        </div>
-        
-        <div className="relative shrink-0">
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="w-full sm:w-auto appearance-none bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white py-3 pl-9 pr-8 rounded-xl text-xs font-bold focus:outline-none focus:border-[#7C3AED] cursor-pointer"
-          >
-            <option value="All">All Events</option>
-            <option value="Celebration">Celebration</option>
-            <option value="Academic">Academic</option>
-            <option value="Sports">Sports</option>
-            <option value="Others">Others</option>
-          </select>
-          <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none" />
-        </div>
+      {/* Search row */}
+      <div className="relative">
+        <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+        <input
+          type="text"
+          placeholder={activeTab === "upcoming" ? "Search events..." : "Search completed events..."}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B132A] text-slate-800 dark:text-white placeholder-slate-400 text-xs font-semibold focus:outline-none focus:border-[#7C3AED]"
+        />
       </div>
 
       {/* Loading state indicator */}
@@ -279,7 +256,7 @@ function StudentEvents() {
           </div>
           <h3 className="text-sm font-bold text-slate-700 dark:text-white uppercase tracking-wider">No events scheduled</h3>
           <p className="text-xs text-slate-400 mt-1.5 max-w-xs mx-auto leading-relaxed">
-            There are currently no {categoryFilter !== "All" ? `${categoryFilter} ` : ""}events found matching details.
+            There are currently no events found matching details.
           </p>
         </div>
       ) : (
@@ -311,7 +288,15 @@ function StudentEvents() {
                 >
                   {coverUrl && (
                     <div className="h-32 sm:h-44 w-full bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b border-slate-150 dark:border-white/5">
-                      <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
+                      <img
+                        src={coverUrl}
+                        alt="Cover"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80";
+                        }}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   )}
 

@@ -16,14 +16,6 @@ import EventGallery from "../../../../components/EventGallery";
 
 const SORA = "'Sora', sans-serif";
 
-const CATEGORIES = [
-  { name: "All Events", label: "All Events" },
-  { name: "Celebration", label: "Celebration 🎉" },
-  { name: "Academic", label: "Academic 🎓" },
-  { name: "Sports", label: "Sports 🏃" },
-  { name: "Others", label: "Others 🔢" }
-];
-
 function GlobalEvents() {
   const API = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
@@ -35,7 +27,6 @@ function GlobalEvents() {
   const [completedCount, setCompletedCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const [activeCategory, setActiveCategory] = useState("All Events");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEvent, setSelectedEvent] = useState(null);
 
@@ -88,61 +79,35 @@ function GlobalEvents() {
     return "Siwan, Bihar";
   };
 
-  const getEventCategory = (ev) => {
-    if (ev.subtitle && CATEGORIES.some(c => c.name.toLowerCase() === ev.subtitle.toLowerCase())) {
-      return ev.subtitle;
+  const getMediaUrl = (url) => {
+    if (!url) return "";
+    let fullUrl = (url.startsWith("http") || url.startsWith("data:") || url.startsWith("blob:"))
+      ? url
+      : `${API}${url.startsWith("/") ? "" : "/"}${url}`;
+    if (fullUrl.startsWith("http")) {
+      return encodeURI(fullUrl);
     }
-    const sub = (ev.subtitle || "").toLowerCase();
-    const title = (ev.title || "").toLowerCase();
-    if (sub.includes("celebration") || title.includes("celebration") || title.includes("independence") || title.includes("republic") || title.includes("day")) {
-      return "Celebration";
-    }
-    if (sub.includes("academic") || sub.includes("quiz") || title.includes("quiz") || title.includes("science") || title.includes("exam") || title.includes("test")) {
-      return "Academic";
-    }
-    if (sub.includes("sports") || sub.includes("meet") || title.includes("sports") || title.includes("football") || title.includes("cricket") || title.includes("athletics")) {
-      return "Sports";
-    }
-    return "Others";
-  };
-
-  const getCategoryPillStyle = (cat) => {
-    switch (cat) {
-      case "Celebration":
-        return "bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400";
-      case "Academic":
-        return "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400";
-      case "Sports":
-        return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400";
-      default:
-        return "bg-slate-500/10 text-slate-655 border-slate-500/20 dark:text-slate-400";
-    }
+    return fullUrl;
   };
 
   const getEventThumbnail = (ev) => {
-    if (ev.image) return ev.image;
-    if (ev.photos && ev.photos.length > 0 && ev.photos[0].url) {
-      return ev.photos[0].url.startsWith("http") ? ev.photos[0].url : `${API}${ev.photos[0].url}`;
+    if (!ev) return "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80";
+    if (ev.coverPhoto) return getMediaUrl(ev.coverPhoto);
+    if (ev.image) return getMediaUrl(ev.image);
+    if (ev.photos && ev.photos.length > 0 && ev.photos[0]?.url) {
+      return getMediaUrl(ev.photos[0].url);
     }
-    const cat = getEventCategory(ev);
-    if (cat === "Celebration") return "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80";
-    if (cat === "Academic") return "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&auto=format&fit=crop&q=80";
-    if (cat === "Sports") return "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&auto=format&fit=crop&q=80";
-    return "https://images.unsplash.com/photo-1577896851231-70ef18881754?w=800&auto=format&fit=crop&q=80";
+    return "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80";
   };
 
   const currentTabEvents = activeTab === "upcoming" ? upcomingEvents : completedEvents;
 
   const filteredEvents = currentTabEvents.filter((ev) => {
-    const searchMatch = searchQuery.trim() === "" ||
+    return searchQuery.trim() === "" ||
       (ev.title && ev.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (ev.schoolName && ev.schoolName.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (ev.description && ev.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
       getSchoolLocation(ev.schoolName).toLowerCase().includes(searchQuery.toLowerCase());
-
-    const categoryMatch = activeCategory === "All Events" || getEventCategory(ev) === activeCategory;
-
-    return searchMatch && categoryMatch;
   });
 
   if (loading && upcomingEvents.length === 0 && completedEvents.length === 0) {
@@ -169,7 +134,7 @@ function GlobalEvents() {
         </div>
       </div>
 
-      {/* Admin-styled Navigation Header (Tabs + Search) */}
+      {/* Navigation Header (Tabs + Search) */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6 select-none">
         {/* Tabs switcher with live count badges */}
         <div className="flex bg-white dark:bg-[#0B132A] p-1.5 border border-slate-200/50 dark:border-white/10 rounded-2xl shadow-sm gap-1 select-none">
@@ -222,26 +187,6 @@ function GlobalEvents() {
         </div>
       </div>
 
-      {/* Category Pills */}
-      <div className="flex gap-2.5 overflow-x-auto pb-4 mb-6 scrollbar-none select-none">
-        {CATEGORIES.map((cat) => {
-          const isActive = activeCategory === cat.name;
-          return (
-            <button
-              key={cat.name}
-              onClick={() => setActiveCategory(cat.name)}
-              className={`shrink-0 px-4 py-2.5 rounded-2xl text-xs font-black tracking-wide transition-all cursor-pointer ${
-                isActive
-                  ? "bg-[#7C3AED] text-white dark:bg-[#38BDF8] dark:text-[#090F1C] shadow-md shadow-[#7C3AED]/15"
-                  : "bg-white dark:bg-[#0B132A] hover:bg-slate-50 dark:hover:bg-white/[0.04] text-slate-650 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08] hover:text-slate-900 dark:hover:text-white"
-              }`}
-            >
-              {cat.label}
-            </button>
-          );
-        })}
-      </div>
-
       {/* Event Cards Listing */}
       {filteredEvents.length > 0 ? (
         <div className="grid grid-cols-1 gap-6">
@@ -256,6 +201,10 @@ function GlobalEvents() {
                   src={getEventThumbnail(ev)}
                   alt={ev.title}
                   loading="lazy"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80";
+                  }}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
                 
@@ -301,10 +250,6 @@ function GlobalEvents() {
                         </p>
                       </div>
                     </div>
-
-                    <span className={`shrink-0 inline-flex items-center text-[10px] font-extrabold px-3 py-1 rounded-full border ${getCategoryPillStyle(getEventCategory(ev))}`}>
-                      {getEventCategory(ev)}
-                    </span>
                   </div>
 
                   <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white leading-snug mt-4 hover:text-[#7C3AED] dark:hover:text-[#38BDF8] transition-colors line-clamp-1">
@@ -337,7 +282,7 @@ function GlobalEvents() {
             No {activeTab === "upcoming" ? "upcoming" : "completed"} events match your query.
           </p>
           <button
-            onClick={() => { setSearchQuery(""); setActiveCategory("All Events"); }}
+            onClick={() => setSearchQuery("")}
             className="mt-4 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition-all cursor-pointer"
           >
             Clear Filters
@@ -361,18 +306,35 @@ function GlobalEvents() {
             <div className="p-5 sm:p-6 overflow-y-auto flex-1 text-left relative">
               <button
                 onClick={() => setSelectedEvent(null)}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all cursor-pointer"
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all cursor-pointer z-10"
                 aria-label="Close modal"
               >
                 <FaTimes className="text-sm" />
               </button>
 
-              <div className="mb-5 pr-8">
+              {/* Cover Banner inside modal */}
+              <div className="w-full h-44 sm:h-56 rounded-2xl overflow-hidden mb-5 bg-slate-100 dark:bg-slate-950 relative">
+                <img
+                  src={getEventThumbnail(selectedEvent)}
+                  alt={selectedEvent.title}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80";
+                  }}
+                  className="w-full h-full object-cover"
+                />
+                <span className={`absolute top-3 left-3 px-3 py-1 text-[10px] font-black rounded-full backdrop-blur-md text-white shadow-sm flex items-center gap-1 ${
+                  (selectedEvent.status === "completed" || activeTab === "completed") ? "bg-emerald-500/90" : "bg-[#7C3AED]/90"
+                }`}>
+                  {(selectedEvent.status === "completed" || activeTab === "completed") ? <><FaCheckCircle /> Completed Event</> : <><FaClock /> Upcoming Event</>}
+                </span>
+              </div>
+
+              <div className="mb-4 pr-8">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className={`inline-flex items-center text-[10px] font-black px-2.5 py-0.5 rounded border ${getCategoryPillStyle(getEventCategory(selectedEvent))}`}>
-                    {getEventCategory(selectedEvent)}
+                  <span className="text-xs text-slate-400 dark:text-slate-500 font-bold flex items-center gap-1">
+                    <FaCalendarAlt /> {formatDate(selectedEvent.eventDate)} at {selectedEvent.eventTime}
                   </span>
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold">{formatDate(selectedEvent.eventDate)} at {selectedEvent.eventTime}</span>
                 </div>
                 <h2 className="text-base sm:text-lg font-black leading-snug tracking-tight text-slate-900 dark:text-white">{selectedEvent.title}</h2>
                 <p className="text-xs text-[#7C3AED] dark:text-[#38BDF8] font-bold mt-1 uppercase tracking-wider flex items-center gap-1.5">
@@ -380,9 +342,17 @@ function GlobalEvents() {
                 </p>
               </div>
 
-              <div className="border-t border-slate-150 dark:border-white/5 pt-4">
-                <EventGallery event={selectedEvent} api={API} />
+              <div className="space-y-3 bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200/40 dark:border-white/5 mb-4">
+                <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                  {selectedEvent.description || "No detailed description provided for this event."}
+                </p>
               </div>
+
+              {(selectedEvent.status === "completed" || activeTab === "completed") && (
+                <div className="border-t border-slate-150 dark:border-white/5 pt-4">
+                  <EventGallery event={selectedEvent} api={API} />
+                </div>
+              )}
             </div>
           </div>
         </div>
