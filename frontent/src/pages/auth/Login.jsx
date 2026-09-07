@@ -21,8 +21,8 @@ const SORA = "'Sora', sans-serif";
 
 function Login() {
   const navigate = useNavigate();
-  const API = import.meta.env.VITE_API_URL;
-  const { platformName, logoUrl } = usePlatform();
+  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const { platformName, logoUrl, platformConfig } = usePlatform();
 
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -31,6 +31,21 @@ function Login() {
   const [devOtpMessage, setDevOtpMessage] = useState("");
   const { theme, toggleTheme } = useTheme();
   const [cooldown, setCooldown] = useState(0);
+  const [liveStats, setLiveStats] = useState({ students: 0, teachers: 0, admins: 0 });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await axios.get(`${API}/api/about-app`);
+        if (res.data && res.data.stats) {
+          setLiveStats(res.data.stats);
+        }
+      } catch (err) {
+        console.error("Failed to load live stats:", err);
+      }
+    };
+    fetchStats();
+  }, [API]);
 
   useEffect(() => {
     let timer;
@@ -219,9 +234,21 @@ function Login() {
           {/* SaaS Metrics Pills */}
           <div className="grid grid-cols-3 gap-4 w-full max-w-md">
             {[
-              { label: "Students", count: "10k+", accent: "from-purple-500/10 to-purple-500/5 text-purple-600 dark:text-purple-400 border-purple-500/20" },
-              { label: "Teachers", count: "500+", accent: "from-indigo-500/10 to-indigo-500/5 text-indigo-600 dark:text-indigo-400 border-indigo-500/20" },
-              { label: "Admins", count: "50+", accent: "from-sky-500/10 to-sky-500/5 text-sky-600 dark:text-sky-400 border-sky-500/20" }
+              { 
+                label: "Students", 
+                count: liveStats.students !== undefined ? `${liveStats.students}` : (platformConfig?.stats?.students !== undefined ? `${platformConfig.stats.students}` : "0"), 
+                accent: "from-purple-500/10 to-purple-500/5 text-purple-600 dark:text-purple-400 border-purple-500/20" 
+              },
+              { 
+                label: "Teachers", 
+                count: liveStats.teachers !== undefined ? `${liveStats.teachers}` : (platformConfig?.stats?.teachers !== undefined ? `${platformConfig.stats.teachers}` : "0"), 
+                accent: "from-indigo-500/10 to-indigo-500/5 text-indigo-600 dark:text-indigo-400 border-indigo-500/20" 
+              },
+              { 
+                label: "Admins", 
+                count: liveStats.admins !== undefined ? `${liveStats.admins}` : (platformConfig?.stats?.admins !== undefined ? `${platformConfig.stats.admins}` : "0"), 
+                accent: "from-sky-500/10 to-sky-500/5 text-sky-600 dark:text-sky-400 border-sky-500/20" 
+              }
             ].map((item) => (
               <div
                 key={item.label}

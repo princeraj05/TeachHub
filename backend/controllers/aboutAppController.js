@@ -1,4 +1,5 @@
 const AboutApp = require("../models/AboutApp");
+const User = require("../models/User");
 
 // GET /api/about-app
 exports.getAboutInfo = async (req, res) => {
@@ -7,7 +8,19 @@ exports.getAboutInfo = async (req, res) => {
     if (!info) {
       info = await AboutApp.create({});
     }
-    res.json(info);
+
+    const studentCount = await User.countDocuments({ role: "student" });
+    const teacherCount = await User.countDocuments({ role: "teacher" });
+    const adminCount = await User.countDocuments({ role: { $in: ["admin", "superadmin"] } });
+
+    const data = info.toObject ? info.toObject() : { ...info };
+    data.stats = {
+      students: studentCount,
+      teachers: teacherCount,
+      admins: adminCount
+    };
+
+    res.json(data);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

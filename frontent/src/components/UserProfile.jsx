@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
+import { usePlatform } from "../context/PlatformContext";
 import {
   FaUserCircle,
   FaEnvelope,
@@ -51,6 +52,7 @@ function UserProfile() {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const { confirmLogout } = usePlatform();
 
   const getCachedUser = () => {
     try {
@@ -219,8 +221,7 @@ function UserProfile() {
   };
 
   const handleLogout = () => {
-    localStorage.clear();
-    navigate("/auth/login");
+    confirmLogout(navigate);
   };
 
   if (loading && !user.name) {
