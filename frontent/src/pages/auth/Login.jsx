@@ -153,7 +153,29 @@ function Login() {
       }
       await syncWithBackend(idToken);
     } catch (error) {
-      alert(error.message || "Google Sign-In Failed");
+      console.error("Google login error:", error);
+      if (
+        error.code === "auth/popup-closed-by-user" || 
+        error.code === "auth/cancelled-popup-request"
+      ) {
+        return;
+      }
+      const errStr = String(error?.message || error || "");
+      if (
+        error.code === "auth/invalid-credential" || 
+        errStr.includes("invalid-credential") || 
+        errStr.includes("401") ||
+        errStr.includes("UNAUTHENTICATED")
+      ) {
+        alert(
+          "Google Sign-In Authentication Error (401 / Invalid Credential):\n\n" +
+          "1. Please ensure 'myschool-admin-panel.vercel.app' is listed in Firebase Console -> Authentication -> Settings -> Authorized Domains.\n" +
+          "2. Make sure Google Provider is enabled with valid OAuth credentials in Firebase Console.\n\n" +
+          "Alternatively, you can sign in directly using Email OTP."
+        );
+      } else {
+        alert(error.message || "Google Sign-In Failed");
+      }
     } finally {
       setLoading(false);
     }

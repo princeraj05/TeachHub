@@ -42,7 +42,14 @@ function Register() {
       alert("Registered Successfully");
       navigate("/");
     } catch (error) {
-      alert(error.message || "Registration Failed");
+      console.error("Registration error:", error);
+      if (error.code === "auth/email-already-in-use") {
+        alert("This email address is already registered. Please log in instead.");
+      } else if (error.code === "auth/weak-password") {
+        alert("The password is too weak. Please use at least 6 characters.");
+      } else {
+        alert(error.message || "Registration Failed");
+      }
     } finally {
       setLoading(false);
     }
