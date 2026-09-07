@@ -28,6 +28,7 @@ import {
 } from "react-icons/fa";
 
 import { usePlatform } from "../../../context/PlatformContext";
+import { useLanguage } from "../../../context/LanguageContext";
 
 const SORA = "'Sora', sans-serif";
 
@@ -40,6 +41,7 @@ function TeacherLayout() {
   const [searchQuery, setSearchQuery] = useState("");
   const { theme, toggleTheme } = useTheme();
   const { platformName, logoUrl, confirmLogout } = usePlatform();
+  const { t } = useLanguage();
 
   const [name, setName] = useState(localStorage.getItem("name") || "Teacher");
   const [avatar, setAvatar] = useState(localStorage.getItem("avatar") || "");
@@ -100,22 +102,22 @@ function TeacherLayout() {
   const isActive = (path) => location.pathname === path;
 
   const navLinks = [
-    { to: "/teacher/profile", icon: <FaUserCircle className="text-[#7C3AED] dark:text-[#38BDF8]" />, label: "Profile" },
-    { to: "/teacher/dashboard", icon: <FaTachometerAlt className="text-purple-500" />, label: "Dashboard" },
-    { to: "/teacher/mydiary", icon: <FaBookOpen className="text-indigo-500" />, label: "My Diary" },
-    { to: "/teacher/my-classes", icon: <FaSchool className="text-blue-500" />, label: "My Classes" },
-    { to: "/teacher/my-students", icon: <FaUserGraduate className="text-teal-500" />, label: "My Students" },
-    { to: "/teacher/mark-attendance", icon: <FaClipboardCheck className="text-emerald-500" />, label: "Mark Attendance" },
-    { to: "/teacher/attendance-history", icon: <FaCalendarAlt className="text-[#38BDF8]" />, label: "Attendance History" },
-    { to: "/teacher/my-subjects", icon: <FaBook className="text-indigo-500" />, label: "My Subjects" },
-    { to: "/teacher/exam-schedule", icon: <FaCalendarAlt className="text-amber-500" />, label: "Exams" },
-    { to: "/teacher/proctoring", icon: <FaTv className="text-rose-500" />, label: "Conduct Exam" },
-    { to: "/teacher/support", icon: <FaComments className="text-[#38BDF8]" />, label: "Support" },
-    { to: "/teacher/events", icon: <FaCalendarAlt className="text-cyan-500" />, label: "Events" },
-    { to: "/teacher/showtimetable", icon: <FaCalendarAlt className="text-rose-500" />, label: "Show Timetable" },
-    { to: "/teacher/on-leave", icon: <FaUserShield className="text-orange-500" />, label: "On Leave" },
-    { to: "/teacher/payments", icon: <FaMoneyBillWave className="text-emerald-500" />, label: "My Payments" },
-    { to: "/teacher/notifications", icon: <FaBell className="text-purple-500" />, label: "Notifications & Activity" }
+    { to: "/teacher/profile", icon: <FaUserCircle className="text-[#7C3AED] dark:text-[#38BDF8]" />, label: t("profile", "Profile") },
+    { to: "/teacher/dashboard", icon: <FaTachometerAlt className="text-purple-500" />, label: t("dashboard", "Dashboard") },
+    { to: "/teacher/mydiary", icon: <FaBookOpen className="text-indigo-500" />, label: t("my_diary", "My Diary") },
+    { to: "/teacher/my-classes", icon: <FaSchool className="text-blue-500" />, label: t("my_classes", "My Classes") },
+    { to: "/teacher/my-students", icon: <FaUserGraduate className="text-teal-500" />, label: t("my_students", "My Students") },
+    { to: "/teacher/mark-attendance", icon: <FaClipboardCheck className="text-emerald-500" />, label: t("mark_attendance", "Mark Attendance") },
+    { to: "/teacher/attendance-history", icon: <FaCalendarAlt className="text-[#38BDF8]" />, label: t("attendance", "Attendance History") },
+    { to: "/teacher/my-subjects", icon: <FaBook className="text-indigo-500" />, label: t("my_subjects", "My Subjects") },
+    { to: "/teacher/exam-schedule", icon: <FaCalendarAlt className="text-amber-500" />, label: t("exams", "Exams") },
+    { to: "/teacher/proctoring", icon: <FaTv className="text-rose-500" />, label: t("conduct_exam", "Conduct Exam") },
+    { to: "/teacher/support", icon: <FaComments className="text-[#38BDF8]" />, label: t("support", "Support") },
+    { to: "/teacher/events", icon: <FaCalendarAlt className="text-cyan-500" />, label: t("events", "Events") },
+    { to: "/teacher/showtimetable", icon: <FaCalendarAlt className="text-rose-500" />, label: t("show_timetable", "Show Timetable") },
+    { to: "/teacher/on-leave", icon: <FaUserShield className="text-orange-500" />, label: t("on_leave", "On Leave") },
+    { to: "/teacher/payments", icon: <FaMoneyBillWave className="text-emerald-500" />, label: t("payments", "My Payments") },
+    { to: "/teacher/notifications", icon: <FaBell className="text-purple-500" />, label: t("notifications", "Notifications & Activity") }
   ];
 
   return (

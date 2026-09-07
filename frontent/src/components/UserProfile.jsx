@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { usePlatform } from "../context/PlatformContext";
+import { useLanguage } from "../context/LanguageContext";
 import {
   FaUserCircle,
   FaEnvelope,
@@ -53,6 +54,7 @@ function UserProfile() {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const { confirmLogout } = usePlatform();
+  const { language, changeLanguage, t } = useLanguage();
 
   const getCachedUser = () => {
     try {
@@ -80,23 +82,9 @@ function UserProfile() {
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
 
-  // Settings states
-  const [language, setLanguage] = useState(localStorage.getItem("teachhub_language") || "English");
-
-  const handleSelectLanguage = async (selectedLang) => {
-    setLanguage(selectedLang);
-    localStorage.setItem("teachhub_language", selectedLang);
+  const handleSelectLanguage = (selectedLang) => {
+    changeLanguage(selectedLang);
     setShowLanguageModal(false);
-    try {
-      await axios.put(
-        `${API}/api/auth/profile`,
-        { language: selectedLang },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      window.dispatchEvent(new Event("profileUpdate"));
-    } catch (err) {
-      console.error("Error updating language preference:", err);
-    }
   };
 
   // Applicant Profile Form State
@@ -392,16 +380,16 @@ function UserProfile() {
           <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm">
             <div className="flex items-center justify-between border-b border-slate-150 dark:border-white/5 pb-4 mb-5">
               <div>
-                <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">Account Details</h2>
+                <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">{t("account_details", "Account Details")}</h2>
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
-                  {isPendingApplicant ? "Personal & Application Records" : "Personal & Institutional Records"}
+                  {isPendingApplicant ? t("personal_records", "Personal & Application Records") : "Personal & Institutional Records"}
                 </p>
               </div>
               <button
                 onClick={() => setShowEditModal(true)}
                 className="bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-white text-xs font-bold px-4 py-2 rounded-xl border border-slate-200/60 dark:border-white/10 flex items-center gap-1.5 transition cursor-pointer"
               >
-                <FaEdit className="text-xs text-[#7C3AED]" /> Edit Info
+                <FaEdit className="text-xs text-[#7C3AED]" /> {t("edit_info", "Edit Info")}
               </button>
             </div>
 
@@ -410,22 +398,22 @@ function UserProfile() {
               
               {/* Common Fields */}
               <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">FULL NAME</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{t("full_name", "FULL NAME")}</p>
                 <p className="text-xs font-black text-slate-800 dark:text-white mt-1 truncate">{user?.name || "Not Provided"}</p>
               </div>
 
               <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">EMAIL ADDRESS</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{t("email_address", "EMAIL ADDRESS")}</p>
                 <p className="text-xs font-black text-slate-800 dark:text-white mt-1 truncate">{user?.email || "Not Provided"}</p>
               </div>
 
               <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">PHONE NUMBER</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{t("phone_number", "PHONE NUMBER")}</p>
                 <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{user?.phoneNumber || formData.phoneNumber || "Not Provided"}</p>
               </div>
 
               <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{isPendingApplicant ? "TARGET SCHOOL" : "SCHOOL NAME"}</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{isPendingApplicant ? t("target_school", "TARGET SCHOOL") : "SCHOOL NAME"}</p>
                 <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{user?.requestedSchool || user?.schoolName || "Not Selected"}</p>
               </div>
 
@@ -504,7 +492,7 @@ function UserProfile() {
         <div className="space-y-6">
           <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4">
             <div className="border-b border-slate-150 dark:border-white/5 pb-3">
-              <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">App Preferences</h3>
+              <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">{t("app_preferences", "App Preferences")}</h3>
               <p className="text-[10px] text-slate-400 font-bold">Theme, language & settings</p>
             </div>
 
@@ -518,8 +506,8 @@ function UserProfile() {
                   {theme === "dark" ? <FaMoon /> : <FaSun className="text-amber-500" />}
                 </div>
                 <div>
-                  <p className="text-xs font-black text-slate-800 dark:text-white">Appearance</p>
-                  <p className="text-[10px] text-slate-400 font-bold">{theme === "dark" ? "Dark Mode Active" : "Light Mode Active"}</p>
+                  <p className="text-xs font-black text-slate-800 dark:text-white">{t("appearance", "Appearance")}</p>
+                  <p className="text-[10px] text-slate-400 font-bold">{theme === "dark" ? t("dark_mode_active", "Dark Mode Active") : t("light_mode_active", "Light Mode Active")}</p>
                 </div>
               </div>
               <div className={`w-8 h-4.5 rounded-full p-0.5 transition-colors duration-250 ${theme === "dark" ? "bg-[#7C3AED]" : "bg-slate-300"}`}>
@@ -537,7 +525,7 @@ function UserProfile() {
                   <FaGlobe />
                 </div>
                 <div>
-                  <p className="text-xs font-black text-slate-800 dark:text-white">Language</p>
+                  <p className="text-xs font-black text-slate-800 dark:text-white">{t("language", "Language")}</p>
                   <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">{language}</p>
                 </div>
               </div>
@@ -553,7 +541,7 @@ function UserProfile() {
                   <FaCog />
                 </div>
                 <div>
-                  <p className="text-xs font-black text-slate-800 dark:text-white">Settings</p>
+                  <p className="text-xs font-black text-slate-800 dark:text-white">{t("settings", "Settings")}</p>
                   <p className="text-[10px] text-slate-400 font-bold">Alerts & notifications</p>
                 </div>
               </div>
@@ -566,7 +554,7 @@ function UserProfile() {
                   <FaInfoCircle />
                 </div>
                 <div>
-                  <p className="text-xs font-black text-slate-800 dark:text-white">About App</p>
+                  <p className="text-xs font-black text-slate-800 dark:text-white">{t("about_app", "About App")}</p>
                   <p className="text-[10px] text-slate-400 font-bold">TeachHub v2.0</p>
                 </div>
               </div>
@@ -577,7 +565,7 @@ function UserProfile() {
               onClick={handleLogout}
               className="w-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 p-3.5 rounded-2xl text-xs font-black flex items-center justify-center gap-2 transition cursor-pointer active:scale-98"
             >
-              <FaSignOutAlt className="text-xs" /> Sign Out of Account
+              <FaSignOutAlt className="text-xs" /> {t("sign_out", "Sign Out of Account")}
             </button>
           </div>
         </div>

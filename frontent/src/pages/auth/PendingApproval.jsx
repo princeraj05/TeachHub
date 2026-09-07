@@ -44,6 +44,7 @@ import AboutAppPage from "../modules/student/pages/AboutAppPage";
 import { useTheme } from "../../context/ThemeContext";
 import { FaVideo } from "react-icons/fa";
 import { useCall } from "../../context/CallContext";
+import { useLanguage } from "../../context/LanguageContext";
 
 const SORA = "'Sora', sans-serif";
 
@@ -55,6 +56,7 @@ function PendingApproval() {
 
   const { theme, toggleTheme } = useTheme();
   const { confirmLogout } = usePlatform();
+  const { t } = useLanguage();
   const { startCall } = useCall() || {};
   const [user, setUser] = useState({ name: "Loading...", email: "", role: "", avatar: "" });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -1253,7 +1255,7 @@ function PendingApproval() {
               }`}
             >
               <FaClock className="text-xl shrink-0" />
-              <span className="hidden lg:block">Status</span>
+              <span className="hidden lg:block">{t("status", "Status")}</span>
             </Link>
 
             {/* Notifications */}
@@ -1266,7 +1268,7 @@ function PendingApproval() {
               }`}
             >
               <FaBell className="text-xl shrink-0" />
-              <span className="hidden lg:block">Notifications</span>
+              <span className="hidden lg:block">{t("notifications", "Notifications")}</span>
             </Link>
 
             {/* 2. Event */}
@@ -1279,7 +1281,7 @@ function PendingApproval() {
               }`}
             >
               <FaCalendarAlt className="text-xl shrink-0" />
-              <span className="hidden lg:block">Event</span>
+              <span className="hidden lg:block">{t("event", "Event")}</span>
             </Link>
 
             {/* 3. School (Directory) */}
@@ -1292,7 +1294,7 @@ function PendingApproval() {
               }`}
             >
               <FaSchool className="text-xl shrink-0" />
-              <span className="hidden lg:block">School</span>
+              <span className="hidden lg:block">{t("school", "School")}</span>
             </Link>
 
             {/* 4. Exam (Student Applicants Only) */}
@@ -1306,7 +1308,7 @@ function PendingApproval() {
                 }`}
               >
                 <FaBookOpen className="text-xl shrink-0" />
-                <span className="hidden lg:block">Exam</span>
+                <span className="hidden lg:block">{t("exams", "Exam")}</span>
               </Link>
             )}
 
@@ -1320,7 +1322,7 @@ function PendingApproval() {
               }`}
             >
               <FaUserCircle className="text-xl shrink-0" />
-              <span className="hidden lg:block">Profile</span>
+              <span className="hidden lg:block">{t("profile", "Profile")}</span>
             </Link>
 
             {/* 6. About App */}
@@ -1333,7 +1335,7 @@ function PendingApproval() {
               }`}
             >
               <FaInfoCircle className="text-xl shrink-0" />
-              <span className="hidden lg:block">About App</span>
+              <span className="hidden lg:block">{t("about_app", "About App")}</span>
             </Link>
           </nav>
         </div>
@@ -1346,7 +1348,7 @@ function PendingApproval() {
             className="w-full flex items-center justify-center lg:justify-start gap-4 px-4 py-3.5 rounded-2xl text-xs font-bold text-rose-500 hover:bg-rose-500/10 transition duration-200 cursor-pointer"
           >
             <FaSignOutAlt className="text-xl shrink-0" />
-            <span className="hidden lg:block">Logout</span>
+            <span className="hidden lg:block">{t("logout", "Logout")}</span>
           </button>
 
           {/* Profile Badge Footer */}

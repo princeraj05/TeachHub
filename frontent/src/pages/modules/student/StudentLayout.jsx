@@ -25,6 +25,7 @@ import {
 } from "react-icons/fa";
 
 import { usePlatform } from "../../../context/PlatformContext";
+import { useLanguage } from "../../../context/LanguageContext";
 
 const SORA = "'Sora', sans-serif";
 
@@ -39,6 +40,7 @@ function StudentLayout() {
 
   const { theme, toggleTheme } = useTheme();
   const { platformName, logoUrl, confirmLogout } = usePlatform();
+  const { t } = useLanguage();
 
   const [name, setName] = useState(localStorage.getItem("name") || "Student");
   const [avatar, setAvatar] = useState(localStorage.getItem("avatar") || "");
@@ -101,19 +103,19 @@ function StudentLayout() {
 
   // Drawer Nav Items with TeachHub Brand Styling (Profile is #1)
   const navLinks = [
-    { to: "/student/profile", icon: <FaUserCircle className="text-[#7C3AED] dark:text-[#38BDF8]" />, label: "Profile" },
-    { to: "/student/dashboard", icon: <FaTachometerAlt className="text-purple-500" />, label: "Dashboard" },
-    { to: "/student/attendance", icon: <FaClipboardCheck className="text-teal-500" />, label: "Attendance" },
-    { to: "/student/mydiary", icon: <FaBookOpen className="text-indigo-500" />, label: "My Diary" },
-    { to: "/student/subjects", icon: <FaBook className="text-blue-500" />, label: "My Subjects" },
-    { to: "/student/exams", icon: <FaFileAlt className="text-amber-500" />, label: "View Marks / Exams" },
-    { to: "/student/showtimetable", icon: <FaCalendarAlt className="text-rose-500" />, label: "Show Timetable" },
-    { to: "/student/payments", icon: <FaCreditCard className="text-emerald-500" />, label: "Fee Statement / Pay" },
-    { to: "/student/events", icon: <FaCalendarAlt className="text-cyan-500" />, label: "Events" },
-    { to: "/student/teacher-on-leave", icon: <FaUserCircle className="text-orange-500" />, label: "Teacher On Leave" },
-    { to: "/student/schools", icon: <FaSchool className="text-purple-500" />, label: "School Directory" },
-    { to: "/student/support", icon: <FaComments className="text-[#38BDF8]" />, label: "Support Chat" },
-    { to: "/student/about", icon: <FaInfoCircle className="text-slate-400" />, label: "About App" }
+    { to: "/student/profile", icon: <FaUserCircle className="text-[#7C3AED] dark:text-[#38BDF8]" />, label: t("profile", "Profile") },
+    { to: "/student/dashboard", icon: <FaTachometerAlt className="text-purple-500" />, label: t("dashboard", "Dashboard") },
+    { to: "/student/attendance", icon: <FaClipboardCheck className="text-teal-500" />, label: t("attendance", "Attendance") },
+    { to: "/student/mydiary", icon: <FaBookOpen className="text-indigo-500" />, label: t("my_diary", "My Diary") },
+    { to: "/student/subjects", icon: <FaBook className="text-blue-500" />, label: t("my_subjects", "My Subjects") },
+    { to: "/student/exams", icon: <FaFileAlt className="text-amber-500" />, label: t("exams", "View Marks / Exams") },
+    { to: "/student/showtimetable", icon: <FaCalendarAlt className="text-rose-500" />, label: t("show_timetable", "Show Timetable") },
+    { to: "/student/payments", icon: <FaCreditCard className="text-emerald-500" />, label: t("payments", "Fee Statement / Pay") },
+    { to: "/student/events", icon: <FaCalendarAlt className="text-cyan-500" />, label: t("events", "Events") },
+    { to: "/student/teacher-on-leave", icon: <FaUserCircle className="text-orange-500" />, label: t("teacher_on_leave", "Teacher On Leave") },
+    { to: "/student/schools", icon: <FaSchool className="text-purple-500" />, label: t("school_directory", "School Directory") },
+    { to: "/student/support", icon: <FaComments className="text-[#38BDF8]" />, label: t("help_support", "Support Chat") },
+    { to: "/student/about", icon: <FaInfoCircle className="text-slate-400" />, label: t("about_app", "About App") }
   ];
 
   return (
