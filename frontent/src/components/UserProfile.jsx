@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import {
   FaUserCircle,
@@ -49,6 +49,7 @@ function UserProfile() {
   const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
+  const location = useLocation();
   const { theme, toggleTheme } = useTheme();
 
   const getCachedUser = () => {
@@ -146,7 +147,7 @@ function UserProfile() {
       }
     } catch (err) {
       console.error("Error fetching profile:", err);
-    } fontally {
+    } finally {
       setLoading(false);
     }
   };
@@ -156,10 +157,14 @@ function UserProfile() {
     return user.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
   }, [user]);
 
-  // Distinct Role Checks
-  const isPendingApplicant = user?.requestStatus === "pending" || user?.requestStatus === "scheduled" || user?.requestStatus === "exam_completed" || user?.role === "unassigned" || user?.role === "pending";
-  const isAdmittedStudent = user?.role === "student" && !isPendingApplicant;
-  const isAdmittedTeacher = user?.role === "teacher" && !isPendingApplicant;
+  // Distinct Role & Path Checks
+  const isPendingPath = location.pathname.startsWith("/pending");
+  const isStudentPath = location.pathname.startsWith("/student");
+
+  // Admitted Student vs Pending Applicant distinction
+  const isAdmittedStudent = !isPendingPath && (user?.role === "student" || isStudentPath);
+  const isAdmittedTeacher = !isPendingPath && user?.role === "teacher" && !isStudentPath;
+  const isPendingApplicant = isPendingPath || (!isAdmittedStudent && !isAdmittedTeacher && user?.role !== "admin" && user?.role !== "superadmin");
   const isTeacherApplicant = isAdmittedTeacher || (isPendingApplicant && (formData.requestedRole === "teacher" || user?.requestedRole === "teacher"));
 
   const handleChange = (e) => {
@@ -412,15 +417,19 @@ function UserProfile() {
                     <p className="text-xs font-black text-[#7C3AED] dark:text-[#38BDF8] mt-1">{formData.targetClass || "Class 1"}</p>
                   </div>
 
-                  <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">PREVIOUS CLASS PASSED</p>
-                    <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{formData.previousClass || "Not Specified"}</p>
-                  </div>
+                  {isPendingApplicant && (
+                    <>
+                      <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">PREVIOUS CLASS PASSED</p>
+                        <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{formData.previousClass || "Not Specified"}</p>
+                      </div>
 
-                  <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4 sm:col-span-2">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">PREVIOUS SCHOOL HISTORY</p>
-                    <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{formData.previousSchool || "Not Provided"}</p>
-                  </div>
+                      <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4 sm:col-span-2">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">PREVIOUS SCHOOL HISTORY</p>
+                        <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{formData.previousSchool || "Not Provided"}</p>
+                      </div>
+                    </>
+                  )}
 
                   <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">FATHER / GUARDIAN NAME</p>
@@ -666,42 +675,59 @@ function UserProfile() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">
-                        {isPendingApplicant ? "Target Admission Class" : "Class"}
+                        {isPendingApplicant ? "Target Admission Class" : "Enrolled Class (Assigned)"}
                       </label>
-                      <select
-                        name="targetClass"
-                        value={formData.targetClass}
-                        onChange={handleChange}
-                        className="w-full bg-slate-50 dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
-                      >
-                        {CLASS_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
+                      {isAdmittedStudent ? (
+                        <div>
+                          <input
+                            type="text"
+                            value={formData.targetClass || "Class 1"}
+                            readOnly
+                            disabled
+                            className="w-full bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-500 dark:text-slate-400 cursor-not-allowed"
+                          />
+                          <p className="text-[9px] font-bold text-amber-500 dark:text-amber-400 mt-1">Class assigned by School Admin (Read-only)</p>
+                        </div>
+                      ) : (
+                        <select
+                          name="targetClass"
+                          value={formData.targetClass}
+                          onChange={handleChange}
+                          className="w-full bg-slate-50 dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
+                        >
+                          {CLASS_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      )}
                     </div>
 
+                    {isPendingApplicant && (
+                      <div>
+                        <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">Previous Class Passed</label>
+                        <input
+                          type="text"
+                          name="previousClass"
+                          value={formData.previousClass}
+                          onChange={handleChange}
+                          placeholder="e.g. Class 3"
+                          className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {isPendingApplicant && (
                     <div>
-                      <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">Previous Class Passed</label>
+                      <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">Previous School Name / History</label>
                       <input
                         type="text"
-                        name="previousClass"
-                        value={formData.previousClass}
+                        name="previousSchool"
+                        value={formData.previousSchool}
                         onChange={handleChange}
-                        placeholder="e.g. Class 3"
+                        placeholder="e.g. Bright Public School, Noida"
                         className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
                       />
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">Previous School Name / History</label>
-                    <input
-                      type="text"
-                      name="previousSchool"
-                      value={formData.previousSchool}
-                      onChange={handleChange}
-                      placeholder="e.g. Bright Public School, Noida"
-                      className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
-                    />
-                  </div>
+                  )}
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
