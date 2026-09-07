@@ -320,7 +320,7 @@ function AdminRequests() {
   const trackerRequests = requests.filter(r => r.requestStatus === "scheduled" || r.requestStatus === "exam_completed");
 
   return (
-    <div style={{ fontFamily: SORA }} className="max-w-4xl mx-auto py-6 relative z-10 space-y-6">
+    <div style={{ fontFamily: SORA }} className="max-w-4xl mx-auto py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -653,7 +653,7 @@ function AdminRequests() {
 
       {/* Admission Test / Teacher Interview Scheduling Modal */}
       {showScheduleModal && selectedUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 select-none">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 select-none">
           <div
             className="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm"
             onClick={() => {
@@ -988,7 +988,7 @@ function AdminRequests() {
 
       {/* Class Assignment Modal */}
       {showAssignModal && selectedUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm"
             onClick={() => {
@@ -1059,7 +1059,7 @@ function AdminRequests() {
 
       {/* Full Applicant Profile Details Modal */}
       {showProfileModal && viewingApplicant && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 select-none">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 select-none">
           <div
             className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
             onClick={() => setShowProfileModal(false)}
