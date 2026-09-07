@@ -27,7 +27,8 @@ import {
   FaUserCog,
   FaChalkboardTeacher,
   FaBars,
-  FaSearch
+  FaSearch,
+  FaSchool
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
