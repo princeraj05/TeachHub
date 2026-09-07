@@ -22,7 +22,9 @@ import {
   FaTv,
   FaMoneyBillWave,
   FaBell,
-  FaBookOpen
+  FaBookOpen,
+  FaBars,
+  FaSearch
 } from "react-icons/fa";
 
 import { usePlatform } from "../../../context/PlatformContext";
@@ -35,6 +37,7 @@ function TeacherLayout() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { theme, toggleTheme } = useTheme();
   const { platformName, logoUrl, confirmLogout } = usePlatform();
 
@@ -97,22 +100,22 @@ function TeacherLayout() {
   const isActive = (path) => location.pathname === path;
 
   const navLinks = [
-    { to: "/teacher/dashboard", icon: <FaTachometerAlt className="text-xl" />, label: "Dashboard" },
-    { to: "/teacher/mydiary", icon: <FaBookOpen className="text-xl text-[#7C3AED] dark:text-[#38BDF8]" />, label: "My Diary" },
-    { to: "/teacher/my-classes", icon: <FaSchool className="text-xl" />, label: "My Classes" },
-    { to: "/teacher/my-students", icon: <FaUserGraduate className="text-xl" />, label: "My Students" },
-    { to: "/teacher/mark-attendance", icon: <FaClipboardCheck className="text-xl" />, label: "Mark Attendance" },
-    { to: "/teacher/attendance-history", icon: <FaCalendarAlt className="text-xl" />, label: "Attendance History" },
-    { to: "/teacher/my-subjects", icon: <FaBook className="text-xl" />, label: "My Subjects" },
-    { to: "/teacher/exam-schedule", icon: <FaCalendarAlt className="text-xl" />, label: "Exams" },
-    { to: "/teacher/proctoring", icon: <FaTv className="text-xl" />, label: "Conduct Exam" },
-    { to: "/teacher/support", icon: <FaComments className="text-xl" />, label: "Support" },
-    { to: "/teacher/events", icon: <FaCalendarAlt className="text-xl" />, label: "Events" },
-    { to: "/teacher/showtimetable", icon: <FaCalendarAlt className="text-xl" />, label: "Show Timetable" },
-    { to: "/teacher/on-leave", icon: <FaUserShield className="text-xl" />, label: "On Leave" },
-    { to: "/teacher/profile", icon: <FaUserCircle className="text-xl" />, label: "Profile" },
-    { to: "/teacher/payments", icon: <FaMoneyBillWave className="text-xl" />, label: "My Payments" },
-    { to: "/teacher/notifications", icon: <FaBell className="text-xl" />, label: "Notifications & Activity" }
+    { to: "/teacher/profile", icon: <FaUserCircle className="text-[#7C3AED] dark:text-[#38BDF8]" />, label: "Profile" },
+    { to: "/teacher/dashboard", icon: <FaTachometerAlt className="text-purple-500" />, label: "Dashboard" },
+    { to: "/teacher/mydiary", icon: <FaBookOpen className="text-indigo-500" />, label: "My Diary" },
+    { to: "/teacher/my-classes", icon: <FaSchool className="text-blue-500" />, label: "My Classes" },
+    { to: "/teacher/my-students", icon: <FaUserGraduate className="text-teal-500" />, label: "My Students" },
+    { to: "/teacher/mark-attendance", icon: <FaClipboardCheck className="text-emerald-500" />, label: "Mark Attendance" },
+    { to: "/teacher/attendance-history", icon: <FaCalendarAlt className="text-[#38BDF8]" />, label: "Attendance History" },
+    { to: "/teacher/my-subjects", icon: <FaBook className="text-indigo-500" />, label: "My Subjects" },
+    { to: "/teacher/exam-schedule", icon: <FaCalendarAlt className="text-amber-500" />, label: "Exams" },
+    { to: "/teacher/proctoring", icon: <FaTv className="text-rose-500" />, label: "Conduct Exam" },
+    { to: "/teacher/support", icon: <FaComments className="text-[#38BDF8]" />, label: "Support" },
+    { to: "/teacher/events", icon: <FaCalendarAlt className="text-cyan-500" />, label: "Events" },
+    { to: "/teacher/showtimetable", icon: <FaCalendarAlt className="text-rose-500" />, label: "Show Timetable" },
+    { to: "/teacher/on-leave", icon: <FaUserShield className="text-orange-500" />, label: "On Leave" },
+    { to: "/teacher/payments", icon: <FaMoneyBillWave className="text-emerald-500" />, label: "My Payments" },
+    { to: "/teacher/notifications", icon: <FaBell className="text-purple-500" />, label: "Notifications & Activity" }
   ];
 
   return (
@@ -233,79 +236,120 @@ function TeacherLayout() {
         </button>
       </nav>
 
-      {/* MOBILE: Bottom Sheet Sliding Menu */}
+      {/* MOBILE / DRAWER: Left Sliding Navigation Drawer */}
       {mobileMenuOpen && (
-        <>
+        <div className="fixed inset-0 z-[100] flex text-left select-none">
+          {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden animate-fadeIn"
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm animate-fadeIn"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="fixed bottom-16 left-3 right-3 max-h-[75vh] bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-2.5xl p-5 shadow-2xl z-50 overflow-y-auto animate-slideUp text-slate-700 dark:text-slate-300">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/[0.08] pb-3 mb-3">
-              <div className="flex items-center gap-2">
-                <FaGraduationCap className="text-lg text-[#7C3AED] dark:text-[#38BDF8]" />
-                <span className="text-sm font-extrabold text-slate-800 dark:text-white">TeachHub Teacher Panel</span>
-              </div>
+
+          {/* Drawer Content */}
+          <div className="relative w-[300px] sm:w-[340px] max-w-[85vw] h-full bg-white dark:bg-[#0B132A] shadow-2xl flex flex-col z-10 overflow-hidden text-slate-800 dark:text-slate-100 animate-slideRight">
+            
+            {/* Top Profile Header Card (TeachHub Purple & Blue Gradient) */}
+            <div
+              onClick={() => {
+                setMobileMenuOpen(false);
+                navigate("/teacher/profile");
+              }}
+              className="relative bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#38BDF8] p-5 text-white flex flex-col items-center text-center cursor-pointer group shrink-0 shadow-md"
+            >
+              {/* Close Drawer Button */}
               <button
-                className="text-slate-400 hover:text-slate-650 dark:hover:text-white bg-slate-100 dark:bg-white/5 p-1 rounded-xl transition"
-                onClick={() => setMobileMenuOpen(false)}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMobileMenuOpen(false);
+                }}
+                className="absolute top-3 right-3 text-white/80 hover:text-white bg-black/20 hover:bg-black/30 w-7 h-7 rounded-full flex items-center justify-center text-xs transition cursor-pointer"
               >
-                <FaTimes className="text-xs" />
+                <FaTimes />
+              </button>
+
+              {/* Teacher Photo Circle */}
+              <div className="w-20 h-20 rounded-full border-4 border-white/40 shadow-xl overflow-hidden mb-3 bg-white/20 shrink-0">
+                {avatar ? (
+                  <img src={avatar} alt="Teacher Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center font-black text-2xl text-white">
+                    {name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
+
+              {/* Teacher Name */}
+              <h3 className="text-base font-black tracking-tight text-white group-hover:underline">
+                {name}
+              </h3>
+              
+              {/* Designation / Role */}
+              <p className="text-[11px] font-bold text-white/90 mt-0.5 uppercase tracking-wider">
+                FACULTY / TEACHER
+              </p>
+
+              {/* Instructor Console */}
+              <p className="text-[10px] font-semibold text-white/80 mt-0.5 truncate max-w-[240px]">
+                TeachHub Course Instructor
+              </p>
+            </div>
+
+            {/* Live Search Filter Box */}
+            <div className="p-3 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">
+              <div className="relative">
+                <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+                <input
+                  type="text"
+                  placeholder="Search menu..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3.5 py-2 bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/30"
+                />
+              </div>
+            </div>
+
+            {/* Nav Items List (Profile is #1) */}
+            <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
+              {navLinks
+                .filter(link => link.label.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map((link) => {
+                  const active = location.pathname === link.to;
+                  return (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition text-xs font-bold ${
+                        active
+                          ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] font-black border border-[#7C3AED]/20"
+                          : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
+                      }`}
+                    >
+                      <span className="text-base shrink-0">{link.icon}</span>
+                      <span className="truncate">{link.label}</span>
+                    </Link>
+                  );
+                })}
+            </div>
+
+            {/* Drawer Footer Logout Button */}
+            <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.02]">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleLogout();
+                }}
+                className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-extrabold text-xs py-3 px-5 rounded-2xl shadow-md flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider transition active:scale-95"
+              >
+                <span>LOGOUT</span>
+                <FaSignOutAlt className="text-sm" />
               </button>
             </div>
 
-            <div className="space-y-5">
-              {/* Category: Academics & Teaching */}
-              <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Classes & Material</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <Link to="/teacher/mydiary" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2.5 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">My Diary</Link>
-                  <Link to="/teacher/my-classes" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2.5 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">My Classes</Link>
-                  <Link to="/teacher/my-subjects" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2.5 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Study Material</Link>
-                </div>
-              </div>
-
-              {/* Category: Attendance & Exams */}
-              <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Attendance & Exams</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <Link to="/teacher/mark-attendance" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2.5 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Mark Attendance</Link>
-                  <Link to="/teacher/proctoring" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2.5 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Conduct Exam</Link>
-                </div>
-              </div>
-
-              {/* Category: Activities & Events */}
-              <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Events & Activities</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <Link to="/teacher/events" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2.5 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">School Events</Link>
-                  <Link to="/teacher/showtimetable" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2.5 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Timetable</Link>
-                </div>
-              </div>
-
-              {/* Category: Support */}
-              <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Support & Leave</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <Link to="/teacher/support" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2.5 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Support Chat</Link>
-                  <Link to="/teacher/on-leave" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2.5 rounded-xl text-xs font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">On Leave</Link>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="pt-3 border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-between">
-                <Link to="/teacher/profile" onClick={() => setMobileMenuOpen(false)} className="text-xs font-bold text-[#7C3AED] dark:text-[#38BDF8] hover:underline">View Profile</Link>
-                <button
-                  onClick={handleLogout}
-                  className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-550 dark:text-rose-400 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition"
-                >
-                  <FaSignOutAlt />
-                  Logout
-                </button>
-              </div>
-            </div>
           </div>
-        </>
+        </div>
       )}
 
       {/* CANVAS: Main Container */}
@@ -313,7 +357,17 @@ function TeacherLayout() {
         
         {/* Floating Topbar */}
         <header className="flex items-center justify-between bg-white/80 dark:bg-[#0B132A]/80 backdrop-blur-xl px-4 py-2.5 sm:px-6 sm:py-3 mx-3 md:mx-6 mt-2 md:mt-3 border border-slate-200/80 dark:border-white/15 rounded-2xl shadow-sm z-30 select-none">
-          <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* 3-Bar Hamburger Button */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              className="p-2 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 cursor-pointer transition text-base flex items-center justify-center border border-slate-200/60 dark:border-white/10"
+              title="Open Navigation Menu"
+            >
+              <FaBars />
+            </button>
+
             <div className="min-w-0">
               <h1 className="text-sm sm:text-base md:text-lg font-black text-slate-800 dark:text-white tracking-tight truncate max-w-[200px] sm:max-w-md md:max-w-xl" style={{ fontFamily: SORA }}>
                 Teacher Workspace

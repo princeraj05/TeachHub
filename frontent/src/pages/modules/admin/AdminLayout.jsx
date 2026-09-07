@@ -25,7 +25,9 @@ import {
   FaInfoCircle,
   FaMoneyBillWave,
   FaUserCog,
-  FaChalkboardTeacher
+  FaChalkboardTeacher,
+  FaBars,
+  FaSearch
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -37,6 +39,7 @@ function AdminLayout() {
   const [activePopover, setActivePopover] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { theme, toggleTheme } = useTheme();
   const { platformName, logoUrl, confirmLogout } = usePlatform();
   const [requestCount, setRequestCount] = useState(0);
@@ -480,101 +483,140 @@ function AdminLayout() {
         </button>
       </nav>
 
-      {/* MOBILE: Bottom Sheet Sliding Modal Menu */}
+      {/* MOBILE / DRAWER: Left Sliding Navigation Drawer */}
       {mobileMenuOpen && (
-        <>
+        <div className="fixed inset-0 z-[100] flex text-left select-none">
+          {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden animate-fadeIn"
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm animate-fadeIn"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="fixed bottom-16 left-3 right-3 max-h-[75vh] bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-2.5xl p-5 shadow-2xl z-50 overflow-y-auto animate-slideUp text-slate-700 dark:text-slate-300">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/[0.08] pb-3 mb-3">
-              <div className="flex items-center gap-2">
-                <FaGraduationCap className="text-lg text-[#7C3AED] dark:text-[#38BDF8]" />
-                <span className="text-sm font-extrabold text-slate-800 dark:text-white">TeachHub Workspace</span>
-              </div>
+
+          {/* Drawer Content */}
+          <div className="relative w-[300px] sm:w-[340px] max-w-[85vw] h-full bg-white dark:bg-[#0B132A] shadow-2xl flex flex-col z-10 overflow-hidden text-slate-800 dark:text-slate-100 animate-slideRight">
+            
+            {/* Top Profile Header Card (TeachHub Purple & Blue Gradient) */}
+            <div
+              onClick={() => {
+                setMobileMenuOpen(false);
+                navigate("/admin/profile");
+              }}
+              className="relative bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#38BDF8] p-5 text-white flex flex-col items-center text-center cursor-pointer group shrink-0 shadow-md"
+            >
+              {/* Close Drawer Button */}
               <button
-                className="text-slate-400 hover:text-slate-650 dark:hover:text-white bg-slate-100 dark:bg-white/5 p-1 rounded-xl transition"
-                onClick={() => setMobileMenuOpen(false)}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMobileMenuOpen(false);
+                }}
+                className="absolute top-3 right-3 text-white/80 hover:text-white bg-black/20 hover:bg-black/30 w-7 h-7 rounded-full flex items-center justify-center text-xs transition cursor-pointer"
               >
-                <FaTimes className="text-xs" />
+                <FaTimes />
+              </button>
+
+              {/* Admin Photo Circle */}
+              <div className="w-20 h-20 rounded-full border-4 border-white/40 shadow-xl overflow-hidden mb-3 bg-white/20 shrink-0">
+                {avatar ? (
+                  <img src={avatar} alt="Admin Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center font-black text-2xl text-white">
+                    {name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
+
+              {/* Admin Name */}
+              <h3 className="text-base font-black tracking-tight text-white group-hover:underline">
+                {name}
+              </h3>
+              
+              {/* Role Badge */}
+              <p className="text-[11px] font-bold text-white/90 mt-0.5 uppercase tracking-wider">
+                SCHOOL ADMINISTRATOR
+              </p>
+
+              {/* School Name */}
+              <p className="text-[10px] font-semibold text-white/80 mt-0.5 truncate max-w-[240px]">
+                {currentSchoolName}
+              </p>
+            </div>
+
+            {/* Live Search Filter Box */}
+            <div className="p-3 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">
+              <div className="relative">
+                <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+                <input
+                  type="text"
+                  placeholder="Search menu..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3.5 py-2 bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/30"
+                />
+              </div>
+            </div>
+
+            {/* Nav Items List (Profile is #1) */}
+            <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
+              {[
+                { to: "/admin/profile", icon: <FaUserCircle className="text-[#7C3AED] dark:text-[#38BDF8]" />, label: "Profile" },
+                { to: "/admin/dashboard", icon: <FaTachometerAlt className="text-purple-500" />, label: "Dashboard" },
+                { to: "/admin/teachers", icon: <FaChalkboardTeacher className="text-indigo-500" />, label: "Teachers Directory" },
+                { to: "/admin/students", icon: <FaUsers className="text-teal-500" />, label: "Students Directory" },
+                { to: "/admin/teacher-management", icon: <FaUserCog className="text-[#38BDF8]" />, label: "Teacher Management" },
+                { to: "/admin/requests", icon: <FaUserPlus className="text-rose-500" />, label: `Join Requests ${requestCount > 0 ? `(${requestCount})` : ''}` },
+                { to: "/admin/proctoring", icon: <FaTv className="text-[#7C3AED]" />, label: "Conduct Exam" },
+                { to: "/admin/classes", icon: <FaSchool className="text-blue-500" />, label: "Classes" },
+                { to: "/admin/subjects", icon: <FaBook className="text-amber-500" />, label: "Subjects" },
+                { to: "/admin/create-timetable", icon: <FaCalendarAlt className="text-cyan-500" />, label: "Create Timetable" },
+                { to: "/admin/exam-schedule", icon: <FaCalendarAlt className="text-rose-500" />, label: "Exams Schedule" },
+                { to: "/admin/events", icon: <FaCalendarAlt className="text-[#38BDF8]" />, label: "School Events" },
+                { to: "/admin/appointments", icon: <FaCalendarAlt className="text-emerald-500" />, label: "Appointments" },
+                { to: "/admin/assign-teacher-class", icon: <FaChalkboardTeacher className="text-indigo-500" />, label: "Assign Teacher Class" },
+                { to: "/admin/assign-student-class", icon: <FaUsers className="text-purple-500" />, label: "Assign Student Class" },
+                { to: "/admin/teacher-leaves", icon: <FaUserShield className="text-orange-500" />, label: "Teacher Leaves" },
+                { to: "/admin/about-school", icon: <FaInfoCircle className="text-slate-400" />, label: "About School Info" },
+                { to: "/admin/payments", icon: <FaMoneyBillWave className="text-emerald-500" />, label: "Payments Center" },
+                { to: "/admin/attendance-report", icon: <FaClipboardCheck className="text-teal-500" />, label: "Attendance Report" }
+              ]
+                .filter(link => link.label.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map((link) => {
+                  const active = location.pathname === link.to;
+                  return (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition text-xs font-bold ${
+                        active
+                          ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] font-black border border-[#7C3AED]/20"
+                          : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
+                      }`}
+                    >
+                      <span className="text-base shrink-0">{link.icon}</span>
+                      <span className="truncate">{link.label}</span>
+                    </Link>
+                  );
+                })}
+            </div>
+
+            {/* Drawer Footer Logout Button */}
+            <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.02]">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleLogout();
+                }}
+                className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-extrabold text-xs py-3 px-5 rounded-2xl shadow-md flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider transition active:scale-95"
+              >
+                <span>LOGOUT</span>
+                <FaSignOutAlt className="text-sm" />
               </button>
             </div>
 
-            <div className="space-y-5">
-              {/* Category: Users */}
-              <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Users</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <Link to="/admin/teachers" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Teachers</Link>
-                  <Link to="/admin/students" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Students</Link>
-                  <Link to="/admin/teacher-management" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Teacher Management</Link>
-                  <Link to="/admin/requests" onClick={() => setMobileMenuOpen(false)} className="relative bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">
-                    Requests
-                    {requestCount > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[8px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center animate-pulse">
-                        {requestCount}
-                      </span>
-                    )}
-                  </Link>
-                  <Link to="/admin/proctoring" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Conduct Exam</Link>
-                </div>
-              </div>
-
-              {/* Category: Academics & Timetable */}
-              <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Academics & Timetable</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <Link to="/admin/classes" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Classes</Link>
-                  <Link to="/admin/subjects" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Subjects</Link>
-                  <Link to="/admin/create-timetable" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Create Timetable</Link>
-                  <Link to="/admin/exam-schedule" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Exams Schedule</Link>
-                </div>
-              </div>
-
-              {/* Category: Events & Activities */}
-              <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Events & Activities</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <Link to="/admin/events" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">School Events</Link>
-                  <Link to="/admin/appointments" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Appointments</Link>
-                </div>
-              </div>
-
-              {/* Category: Assignments */}
-              <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Assignments</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <Link to="/admin/assign-teacher-class" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Assign Teacher</Link>
-                  <Link to="/admin/assign-student-class" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Assign Student</Link>
-                </div>
-              </div>
-
-              {/* Category: Reports & Info */}
-              <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] mb-2 px-1">Reports & Info</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <Link to="/admin/teacher-leaves" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Manage Leaves</Link>
-                  <Link to="/admin/school-info" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">School Info</Link>
-                  <Link to="/admin/payments" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Payments</Link>
-                  <Link to="/admin/attendance-report" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/[0.04] p-2 rounded-xl text-[10px] font-bold text-center block text-slate-850 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10">Attendance Report</Link>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="pt-3 border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-between">
-                <Link to="/admin/profile" onClick={() => setMobileMenuOpen(false)} className="text-xs font-bold text-[#7C3AED] dark:text-[#38BDF8] hover:underline">View Profile</Link>
-                <button
-                  onClick={handleLogout}
-                  className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-550 dark:text-rose-400 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition"
-                >
-                  <FaSignOutAlt />
-                  Logout
-                </button>
-              </div>
-            </div>
           </div>
-        </>
+        </div>
       )}
 
       {/* CANVAS: Main Layout Container */}
@@ -582,7 +624,17 @@ function AdminLayout() {
         
         {/* Floating Topbar */}
         <header className="flex items-center justify-between bg-white/80 dark:bg-[#0B132A]/80 backdrop-blur-xl px-4 py-2.5 sm:px-6 sm:py-3 mx-3 md:mx-6 mt-2 md:mt-3 border border-slate-200/80 dark:border-white/15 rounded-2xl shadow-sm z-30 select-none">
-          <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* 3-Bar Hamburger Button */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              className="p-2 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 cursor-pointer transition text-base flex items-center justify-center border border-slate-200/60 dark:border-white/10"
+              title="Open Navigation Menu"
+            >
+              <FaBars />
+            </button>
+
             <div className="min-w-0">
               <h1 className="text-sm sm:text-base md:text-lg font-black text-slate-800 dark:text-white tracking-tight truncate max-w-[200px] sm:max-w-md md:max-w-xl" style={{ fontFamily: SORA }}>
                 School: {currentSchoolName}
