@@ -13,7 +13,10 @@ import {
   FaVideoSlash,
   FaClock,
   FaMapMarkerAlt,
-  FaChalkboardTeacher
+  FaChalkboardTeacher,
+  FaEye,
+  FaGraduationCap,
+  FaBriefcase
 } from "react-icons/fa";
 import { useCall } from "../../../../../context/CallContext";
 
@@ -31,6 +34,10 @@ function AdminRequests() {
 
   // Tabs state
   const [activeTab, setActiveTab] = useState("new_requests");
+
+  // Applicant Full Profile Modal state
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [viewingApplicant, setViewingApplicant] = useState(null);
 
   // Scheduling Modal State
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -183,6 +190,11 @@ function AdminRequests() {
     }
 
     return { isReady: true, isLive: true, label: `Starting in ${diffSec}s`, secondsLeft: diffSec };
+  };
+
+  const openProfileModal = (user) => {
+    setViewingApplicant(user);
+    setShowProfileModal(true);
   };
 
   const openApprovalFlow = (user) => {
@@ -414,7 +426,15 @@ function AdminRequests() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
+                  <div className="flex items-center gap-2.5 shrink-0 self-end md:self-center">
+                    <button
+                      disabled={processing}
+                      onClick={() => openProfileModal(req)}
+                      className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 text-xs font-bold px-3.5 py-2.5 rounded-xl cursor-pointer transition border border-slate-200/60 dark:border-white/10"
+                      title="View Full Application Details"
+                    >
+                      <FaEye className="text-xs text-[#7C3AED] dark:text-[#38BDF8]" /> View Profile
+                    </button>
                     <button
                       disabled={processing}
                       onClick={() => openApprovalFlow(req)}
@@ -557,6 +577,14 @@ function AdminRequests() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-2.5 shrink-0 self-end md:self-center">
+                    <button
+                      disabled={processing}
+                      onClick={() => openProfileModal(req)}
+                      className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 text-xs font-bold px-3.5 py-2.5 rounded-xl cursor-pointer transition border border-slate-200/60 dark:border-white/10"
+                      title="View Full Application Details"
+                    >
+                      <FaEye className="text-xs text-[#7C3AED] dark:text-[#38BDF8]" /> View Profile
+                    </button>
                     {isTeacherReq ? (
                       <>
                         <button
@@ -1025,6 +1053,239 @@ function AdminRequests() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Full Applicant Profile Details Modal */}
+      {showProfileModal && viewingApplicant && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 select-none">
+          <div
+            className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+            onClick={() => setShowProfileModal(false)}
+          />
+
+          <div className="bg-white dark:bg-[#0F172A] border border-slate-200/60 dark:border-white/10 rounded-3xl w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl relative z-10 animate-slideUp text-slate-800 dark:text-white my-auto text-left">
+            <div className="h-1.5 bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#38BDF8] w-full shrink-0" />
+            
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-white/5 flex items-start justify-between gap-4 bg-slate-50/50 dark:bg-white/[0.01]">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] p-0.5 shrink-0 shadow-md">
+                  {viewingApplicant.avatar ? (
+                    <img
+                      src={viewingApplicant.avatar}
+                      alt="Applicant Avatar"
+                      className="w-full h-full rounded-2xl object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full rounded-2xl bg-slate-900 flex items-center justify-center text-white font-black text-xl">
+                      {viewingApplicant.name ? viewingApplicant.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) : "U"}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">{viewingApplicant.name}</h3>
+                    <span className={`text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider ${
+                      (viewingApplicant.requestedRole === "student" || viewingApplicant.role === "student")
+                        ? "bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20"
+                        : "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20"
+                    }`}>
+                      {(viewingApplicant.requestedRole || viewingApplicant.role || "student").toUpperCase()} APPLICANT
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">{viewingApplicant.email}</p>
+                  
+                  <p className="text-[10px] font-bold text-[#7C3AED] dark:text-[#38BDF8] uppercase tracking-wider mt-1 flex items-center gap-1">
+                    <FaSchool /> Target School: {viewingApplicant.requestedSchool || viewingApplicant.schoolName || schoolName}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowProfileModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 flex items-center justify-center transition cursor-pointer shrink-0"
+              >
+                <FaTimes className="text-sm" />
+              </button>
+            </div>
+
+            {/* Modal Scrollable Body */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1">
+              {/* Section 1: Application Summary Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3">
+                  <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">APPLICANT ID</p>
+                  <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5 truncate">
+                    #{viewingApplicant._id ? viewingApplicant._id.slice(-6).toUpperCase() : "REQ01"}
+                  </p>
+                </div>
+
+                <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3">
+                  <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">STATUS</p>
+                  <p className="text-xs font-black text-amber-500 uppercase tracking-wider mt-0.5">
+                    {viewingApplicant.requestStatus ? viewingApplicant.requestStatus.replace("_", " ") : "Pending"}
+                  </p>
+                </div>
+
+                <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3 col-span-2 sm:col-span-1">
+                  <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">APPLICATION DATE</p>
+                  <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5 truncate">
+                    {viewingApplicant.createdAt ? new Date(viewingApplicant.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : "Recently"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Section 2: Contact Information */}
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white mb-2.5 flex items-center gap-1.5">
+                  <FaPhone className="text-[#7C3AED] dark:text-[#38BDF8]" /> Contact Information
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3.5">
+                    <p className="text-[9px] font-extrabold text-slate-400 uppercase">MOBILE PHONE</p>
+                    <p className="text-xs font-bold text-slate-800 dark:text-white mt-0.5">{viewingApplicant.phoneNumber || "Not Provided"}</p>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3.5">
+                    <p className="text-[9px] font-extrabold text-slate-400 uppercase">EMAIL ADDRESS</p>
+                    <p className="text-xs font-bold text-slate-800 dark:text-white mt-0.5 truncate">{viewingApplicant.email}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 3: Student or Teacher Specific Profile Details */}
+              {(viewingApplicant.requestedRole === "student" || viewingApplicant.role === "student" || (!viewingApplicant.requestedRole && viewingApplicant.role !== "teacher")) ? (
+                /* Student Applicant Records */
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white mb-2.5 flex items-center gap-1.5">
+                    <FaGraduationCap className="text-[#7C3AED] dark:text-[#38BDF8]" /> Admission & Academic History
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3.5">
+                      <p className="text-[9px] font-extrabold text-slate-400 uppercase">TARGET ADMISSION CLASS</p>
+                      <p className="text-xs font-black text-[#7C3AED] dark:text-[#38BDF8] mt-0.5">{viewingApplicant.targetClass || "Class 1"}</p>
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3.5">
+                      <p className="text-[9px] font-extrabold text-slate-400 uppercase">PREVIOUS CLASS PASSED</p>
+                      <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5">{viewingApplicant.previousClass || "Not Specified"}</p>
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3.5 sm:col-span-2">
+                      <p className="text-[9px] font-extrabold text-slate-400 uppercase">PREVIOUS SCHOOL HISTORY</p>
+                      <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5">{viewingApplicant.previousSchool || "Not Provided"}</p>
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3.5">
+                      <p className="text-[9px] font-extrabold text-slate-400 uppercase">FATHER / GUARDIAN NAME</p>
+                      <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5">{viewingApplicant.fatherName || "Not Provided"}</p>
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3.5">
+                      <p className="text-[9px] font-extrabold text-slate-400 uppercase">FATHER MOBILE NUMBER</p>
+                      <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5">{viewingApplicant.fatherMobileNumber || "Not Provided"}</p>
+                    </div>
+
+                    {viewingApplicant.motherMobileNumber && (
+                      <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3.5">
+                        <p className="text-[9px] font-extrabold text-slate-400 uppercase">MOTHER MOBILE NUMBER</p>
+                        <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5">{viewingApplicant.motherMobileNumber}</p>
+                      </div>
+                    )}
+
+                    {(viewingApplicant.dob || viewingApplicant.gender) && (
+                      <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3.5">
+                        <p className="text-[9px] font-extrabold text-slate-400 uppercase">DOB & GENDER</p>
+                        <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5">
+                          {viewingApplicant.dob || "N/A"} ({viewingApplicant.gender || "N/A"})
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                /* Teacher Applicant Records */
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white mb-2.5 flex items-center gap-1.5">
+                    <FaBriefcase className="text-[#7C3AED] dark:text-[#38BDF8]" /> Professional Teaching Credentials
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3.5">
+                      <p className="text-[9px] font-extrabold text-slate-400 uppercase">QUALIFICATION</p>
+                      <p className="text-xs font-black text-[#7C3AED] dark:text-[#38BDF8] mt-0.5">{viewingApplicant.qualification || "Not Provided"}</p>
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3.5">
+                      <p className="text-[9px] font-extrabold text-slate-400 uppercase">TEACHING EXPERIENCE</p>
+                      <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5">{viewingApplicant.experience || "1 Year"}</p>
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3.5 sm:col-span-2">
+                      <p className="text-[9px] font-extrabold text-slate-400 uppercase">PREVIOUS INSTITUTE / SCHOOL WORKED AT</p>
+                      <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5">{viewingApplicant.previousInstitute || "Not Provided"}</p>
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-3.5 sm:col-span-2">
+                      <p className="text-[9px] font-extrabold text-slate-400 uppercase">SUBJECTS OF EXPERTISE</p>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {Array.isArray(viewingApplicant.subjectsOfExpertise) && viewingApplicant.subjectsOfExpertise.length > 0 ? (
+                          viewingApplicant.subjectsOfExpertise.map((sub, i) => (
+                            <span key={i} className="px-2.5 py-1 bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] border border-[#7C3AED]/20 rounded-lg text-[10px] font-extrabold">
+                              {sub}
+                            </span>
+                          ))
+                        ) : (
+                          <p className="text-xs font-semibold text-slate-400">None specified</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Actions Footer */}
+            <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={processing}
+                  onClick={() => {
+                    setShowProfileModal(false);
+                    openApprovalFlow(viewingApplicant);
+                  }}
+                  className="bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-[#38BDF8] dark:hover:bg-[#0EA5E9] text-white dark:text-[#090F1C] font-black text-xs px-4 py-2.5 rounded-xl shadow-sm transition cursor-pointer flex items-center gap-1.5"
+                >
+                  <FaCheck className="text-[10px]" /> Process / Schedule Request
+                </button>
+
+                <button
+                  type="button"
+                  disabled={processing}
+                  onClick={() => {
+                    if (window.confirm(`Are you sure you want to reject ${viewingApplicant.name}'s request?`)) {
+                      setShowProfileModal(false);
+                      handleAction(viewingApplicant._id, "rejected");
+                    }
+                  }}
+                  className="bg-rose-500/10 hover:bg-rose-500 text-rose-600 hover:text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 border border-rose-500/20"
+                >
+                  <FaTimes className="text-[10px]" /> Reject
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowProfileModal(false)}
+                className="bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 font-bold text-xs px-4 py-2.5 rounded-xl transition cursor-pointer border border-slate-200/60 dark:border-white/10"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
