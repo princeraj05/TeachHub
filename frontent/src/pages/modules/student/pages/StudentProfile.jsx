@@ -12,8 +12,7 @@ import {
   FaMoon,
   FaGlobe,
   FaCog,
-  FaCheck,
-  FaInfoCircle
+  FaCheck
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -57,38 +56,38 @@ function StudentProfile() {
   }, [profile]);
 
   return (
-    <div style={{ fontFamily: SORA }} className="space-y-4 max-w-3xl mx-auto pb-12 select-none text-left">
+    <div style={{ fontFamily: SORA }} className="space-y-4 max-w-3xl mx-auto pb-16 select-none text-left">
       
       {/* 1. Header Bar with Back Button & QR Badge */}
-      <div className="bg-slate-900 dark:bg-[#0B132A] text-white px-4 py-3 rounded-2xl flex items-center justify-between shadow-md border border-slate-800 dark:border-white/10">
+      <div className="bg-white dark:bg-[#0B132A] p-4 rounded-2xl border border-slate-200/80 dark:border-white/10 flex items-center justify-between shadow-sm">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-white hover:text-amber-400 font-extrabold text-xs cursor-pointer transition"
+          className="flex items-center gap-2 text-slate-700 dark:text-slate-200 hover:text-[#7C3AED] dark:hover:text-[#38BDF8] font-extrabold text-xs cursor-pointer transition"
         >
           <FaArrowLeft className="text-sm" />
           <span>Back</span>
         </button>
 
-        <h1 className="text-base font-black text-white tracking-wide">Profile</h1>
+        <h1 className="text-base font-black text-slate-800 dark:text-white tracking-wide">Profile</h1>
 
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setShowProfileModal(true)}
-            className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer"
+            className="px-3 py-1.5 bg-[#7C3AED]/10 hover:bg-[#7C3AED]/20 text-[#7C3AED] dark:text-[#38BDF8] dark:bg-[#38BDF8]/10 rounded-xl text-xs font-black flex items-center gap-1.5 transition cursor-pointer border border-[#7C3AED]/20"
             title="Edit Profile"
           >
-            <FaEdit className="text-xs" /> Edit
+            <FaEdit className="text-xs" /> Edit Profile
           </button>
-          <div className="bg-[#FF9966] text-white px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm flex items-center gap-1">
+          <div className="bg-gradient-to-r from-[#7C3AED] to-[#38BDF8] text-white px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider shadow-sm flex items-center gap-1">
             <FaQrcode className="text-xs" /> (QR)
           </div>
         </div>
       </div>
 
-      {/* 2. Hero Sunset Gradient Card */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FF6B52] via-[#FF8E53] to-[#FFA048] p-6 text-white shadow-xl flex flex-col items-center text-center">
+      {/* 2. Hero TeachHub Brand Gradient Card */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#FF6B52] via-[#FF8E53] to-[#FFA048] dark:from-[#7C3AED] dark:via-[#6366F1] dark:to-[#38BDF8] p-6 text-white shadow-xl flex flex-col items-center text-center">
         {/* Ambient Glow */}
         <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-white/10 blur-2xl pointer-events-none" />
 
@@ -106,7 +105,7 @@ function StudentProfile() {
         </div>
 
         {/* Name & ID */}
-        <h2 className="text-2xl font-black tracking-tight text-white">{profile?.name || "Prince Raj"}</h2>
+        <h2 className="text-2xl font-black tracking-tight text-white">{profile?.name || "Student Name"}</h2>
         <p className="text-xs font-black text-white/95 mt-1 tracking-wider">
           {profile?.rollNo || profile?._id?.slice(-8).toUpperCase() || "12324633"}
         </p>
@@ -120,7 +119,7 @@ function StudentProfile() {
       {/* 3. BASIC INFORMATION SECTION */}
       <div>
         {/* Dark Banner Title */}
-        <div className="bg-[#2D3748] dark:bg-[#1E293B] text-white px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider mb-2 shadow-sm">
+        <div className="bg-[#1E293B] dark:bg-[#0F172A] text-white px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider mb-2 shadow-sm border border-slate-800 dark:border-white/10">
           Basic
         </div>
 
@@ -184,7 +183,7 @@ function StudentProfile() {
       {/* 4. ACADEMIC DETAILS SECTION */}
       <div>
         {/* Dark Banner Title */}
-        <div className="bg-[#2D3748] dark:bg-[#1E293B] text-white px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider mb-2 shadow-sm">
+        <div className="bg-[#1E293B] dark:bg-[#0F172A] text-white px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider mb-2 shadow-sm border border-slate-800 dark:border-white/10">
           Academic Details
         </div>
 
@@ -300,7 +299,7 @@ function StudentProfile() {
                     }}
                     className={`w-full flex items-center justify-between p-3.5 rounded-xl border text-xs font-extrabold transition cursor-pointer ${
                       isSelected
-                        ? "border-[#FF6B52] bg-[#FF6B52]/5 text-[#FF6B52]"
+                        ? "border-[#7C3AED] bg-[#7C3AED]/5 text-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8]/5 dark:text-[#38BDF8]"
                         : "border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400"
                     }`}
                   >
@@ -377,7 +376,7 @@ function StudentProfile() {
             <button
               type="button"
               onClick={() => setShowSettingsModal(false)}
-              className="w-full bg-[#FF6B52] hover:bg-[#E0553C] text-white py-3 rounded-xl text-xs font-bold transition cursor-pointer mt-6"
+              className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white py-3 rounded-xl text-xs font-bold transition cursor-pointer mt-6"
             >
               Save Settings
             </button>

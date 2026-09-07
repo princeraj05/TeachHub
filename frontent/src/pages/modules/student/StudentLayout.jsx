@@ -99,9 +99,9 @@ function StudentLayout() {
 
   const isActive = (path) => location.pathname === path;
 
-  // Complete ordered drawer nav items (Profile is #1)
+  // Drawer Nav Items with TeachHub Brand Styling (Profile is #1)
   const navLinks = [
-    { to: "/student/profile", icon: <FaUserCircle className="text-[#FF6B52]" />, label: "Profile" },
+    { to: "/student/profile", icon: <FaUserCircle className="text-[#7C3AED] dark:text-[#38BDF8]" />, label: "Profile" },
     { to: "/student/dashboard", icon: <FaTachometerAlt className="text-purple-500" />, label: "Dashboard" },
     { to: "/student/attendance", icon: <FaClipboardCheck className="text-teal-500" />, label: "Attendance" },
     { to: "/student/mydiary", icon: <FaBookOpen className="text-indigo-500" />, label: "My Diary" },
@@ -131,11 +131,11 @@ function StudentLayout() {
             {logoUrl ? (
               <img src={logoUrl} alt={platformName} className="w-10 h-10 object-contain rounded-xl shrink-0" />
             ) : (
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF6B52] to-[#FFA048] flex items-center justify-center shadow-lg shadow-[#FF6B52]/20 transform hover:rotate-6 transition-all duration-300 shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center shadow-lg shadow-[#7C3AED]/20 transform hover:rotate-6 transition-all duration-300 shrink-0">
                 <FaGraduationCap className="text-xl text-white" />
               </div>
             )}
-            <span className="hidden lg:block text-lg font-black bg-gradient-to-r from-[#FF6B52] to-[#FFA048] bg-clip-text text-transparent tracking-tight truncate max-w-[140px]">
+            <span className="hidden lg:block text-lg font-black bg-gradient-to-r from-[#7C3AED] to-[#38BDF8] bg-clip-text text-transparent tracking-tight truncate max-w-[140px]">
               {platformName}
             </span>
           </div>
@@ -148,7 +148,7 @@ function StudentLayout() {
                 to={link.to}
                 className={`flex items-center gap-4 px-3.5 py-2.5 rounded-xl transition-all duration-200 ${
                   isActive(link.to)
-                    ? "bg-[#FF6B52]/10 text-[#FF6B52] dark:text-[#FFA048] dark:bg-[#FFA048]/10 font-bold"
+                    ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] dark:bg-[#38BDF8]/10 font-bold"
                     : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
@@ -173,7 +173,65 @@ function StudentLayout() {
         </div>
       </aside>
 
-      {/* LEFT SLIDING NAVIGATION DRAWER (Mobile & Desktop) */}
+      {/* MOBILE: Fixed Bottom Navigation Bar (5 Fixed Items Requested: My Diary, Attendance, Dashboard, Timetable, Exams) */}
+      <nav className="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#0B132A]/95 backdrop-blur-md border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-around z-[60] px-1 py-1 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] select-none h-14">
+        {/* 1. My Diary */}
+        <Link
+          to="/student/mydiary"
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
+            isActive("/student/mydiary") ? "text-[#7C3AED] dark:text-[#38BDF8] font-bold" : "text-slate-500 dark:text-slate-400"
+          }`}
+        >
+          <FaBookOpen className="text-base" />
+          <span className="text-[9px] font-extrabold tracking-tight truncate max-w-[62px]">My Diary</span>
+        </Link>
+
+        {/* 2. Attendance */}
+        <Link
+          to="/student/attendance"
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
+            isActive("/student/attendance") ? "text-[#7C3AED] dark:text-[#38BDF8] font-bold" : "text-slate-500 dark:text-slate-400"
+          }`}
+        >
+          <FaClipboardCheck className="text-base" />
+          <span className="text-[9px] font-extrabold tracking-tight truncate max-w-[62px]">Attendance</span>
+        </Link>
+
+        {/* 3. Dashboard */}
+        <Link
+          to="/student/dashboard"
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
+            isActive("/student/dashboard") ? "text-[#7C3AED] dark:text-[#38BDF8] font-bold" : "text-slate-500 dark:text-slate-400"
+          }`}
+        >
+          <FaTachometerAlt className="text-base" />
+          <span className="text-[9px] font-extrabold tracking-tight truncate max-w-[62px]">Dashboard</span>
+        </Link>
+
+        {/* 4. Show Timetable */}
+        <Link
+          to="/student/showtimetable"
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
+            isActive("/student/showtimetable") ? "text-[#7C3AED] dark:text-[#38BDF8] font-bold" : "text-slate-500 dark:text-slate-400"
+          }`}
+        >
+          <FaCalendarAlt className="text-base" />
+          <span className="text-[9px] font-extrabold tracking-tight truncate max-w-[62px]">Timetable</span>
+        </Link>
+
+        {/* 5. Exam */}
+        <Link
+          to="/student/exams"
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
+            isActive("/student/exams") ? "text-[#7C3AED] dark:text-[#38BDF8] font-bold" : "text-slate-500 dark:text-slate-400"
+          }`}
+        >
+          <FaFileAlt className="text-base" />
+          <span className="text-[9px] font-extrabold tracking-tight truncate max-w-[62px]">Exams</span>
+        </Link>
+      </nav>
+
+      {/* LEFT SLIDING NAVIGATION DRAWER */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-[99999] flex select-none">
           {/* Backdrop Overlay */}
@@ -185,13 +243,13 @@ function StudentLayout() {
           {/* Drawer Content */}
           <div className="relative w-[300px] sm:w-[340px] max-w-[85vw] h-full bg-white dark:bg-[#0B132A] shadow-2xl flex flex-col z-10 overflow-hidden text-slate-800 dark:text-slate-100 animate-slideRight">
             
-            {/* Top Student Header Card (Warm Sunset Gradient) */}
+            {/* Top Student Header Card (TeachHub Purple & Blue Gradient) */}
             <div
               onClick={() => {
                 setMobileMenuOpen(false);
                 navigate("/student/profile");
               }}
-              className="relative bg-gradient-to-br from-[#FF6B52] via-[#FF8E53] to-[#FFA048] p-5 text-white flex flex-col items-center text-center cursor-pointer group shrink-0 shadow-md"
+              className="relative bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#38BDF8] p-5 text-white flex flex-col items-center text-center cursor-pointer group shrink-0 shadow-md"
             >
               {/* Close Drawer Button */}
               <button
@@ -241,7 +299,7 @@ function StudentLayout() {
                   placeholder="Search menu..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3.5 py-2 bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-[#FF6B52]/30"
+                  className="w-full pl-9 pr-3.5 py-2 bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/30"
                 />
               </div>
             </div>
@@ -259,7 +317,7 @@ function StudentLayout() {
                       onClick={() => setMobileMenuOpen(false)}
                       className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition text-xs font-bold ${
                         active
-                          ? "bg-[#FF6B52]/10 text-[#FF6B52] dark:text-[#FFA048] font-black border border-[#FF6B52]/20"
+                          ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] font-black border border-[#7C3AED]/20"
                           : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
                       }`}
                     >
@@ -270,7 +328,7 @@ function StudentLayout() {
                 })}
             </div>
 
-            {/* Drawer Footer Logout Button (Gradient Pill Button) */}
+            {/* Drawer Footer Logout Button */}
             <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.02]">
               <button
                 type="button"
@@ -278,7 +336,7 @@ function StudentLayout() {
                   setMobileMenuOpen(false);
                   handleLogout();
                 }}
-                className="w-full bg-gradient-to-r from-[#FF6B52] to-[#FFA048] hover:opacity-95 text-white font-extrabold text-xs py-3 px-5 rounded-full shadow-md flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider transition active:scale-95"
+                className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-extrabold text-xs py-3 px-5 rounded-2xl shadow-md flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider transition active:scale-95"
               >
                 <span>LOGOUT</span>
                 <FaSignOutAlt className="text-sm" />
@@ -309,7 +367,7 @@ function StudentLayout() {
               <h1 className="text-sm sm:text-base md:text-lg font-black text-slate-800 dark:text-white tracking-tight truncate max-w-[200px] sm:max-w-md md:max-w-xl" style={{ fontFamily: SORA }}>
                 Student Console
               </h1>
-              <p className="text-[9px] sm:text-[10px] text-[#FF6B52] dark:text-[#FFA048] font-extrabold uppercase tracking-widest mt-0.5">TeachHub Learner</p>
+              <p className="text-[9px] sm:text-[10px] text-[#7C3AED] dark:text-[#38BDF8] font-extrabold uppercase tracking-widest mt-0.5">TeachHub Learner</p>
             </div>
           </div>
 
@@ -329,7 +387,7 @@ function StudentLayout() {
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
             >
               <div className="hidden sm:flex flex-col items-end">
-                <p className="text-xs font-bold text-[#0F172A] dark:text-slate-250 group-hover:text-[#FF6B52] dark:group-hover:text-[#FFA048] transition duration-200">
+                <p className="text-xs font-bold text-[#0F172A] dark:text-slate-250 group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition duration-200">
                   {name}
                 </p>
                 <p className="text-[8px] sm:text-[9px] text-slate-450 font-extrabold uppercase tracking-wider">Student</p>
@@ -337,7 +395,7 @@ function StudentLayout() {
 
               {/* Circular Avatar */}
               <div className="relative">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-[#FF6B52] to-[#FFA048] flex items-center justify-center text-white font-black text-xs sm:text-sm shadow-sm border border-white/20 overflow-hidden">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-xs sm:text-sm shadow-sm border border-white/20 overflow-hidden">
                   {avatar ? (
                     <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
                   ) : (
@@ -355,7 +413,7 @@ function StudentLayout() {
                 <div className="absolute right-0 top-12 w-52 bg-[#0F172A] border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn text-slate-350">
                   <div className="px-3 py-2 border-b border-white/[0.08] mb-1">
                     <p className="text-xs font-bold text-white truncate">{name}</p>
-                    <span className="inline-flex items-center gap-1 text-[8px] font-extrabold text-[#FFA048] uppercase tracking-widest mt-1 bg-white/5 border border-white/[0.06] px-1.5 py-0.5 rounded">
+                    <span className="inline-flex items-center gap-1 text-[8px] font-extrabold text-[#38BDF8] uppercase tracking-widest mt-1 bg-white/5 border border-white/[0.06] px-1.5 py-0.5 rounded">
                       Student Account
                     </span>
                   </div>
