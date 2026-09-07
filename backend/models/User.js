@@ -134,13 +134,23 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
-  // Teacher Management Fields
+  // Teacher Management & Applicant Fields
   qualification: { type: String, default: "" },
   experience: { type: String, default: "" },
   joiningDate: { type: String, default: "" },
   employeeId: { type: String, default: "" },
   rating: { type: Number, default: 4.8 },
   reviewsCount: { type: Number, default: 32 },
+  
+  // Student & Teacher Applicant Fields
+  targetClass: { type: String, default: "" },
+  previousClass: { type: String, default: "" },
+  previousSchool: { type: String, default: "" },
+  previousGrade: { type: String, default: "" },
+  fatherName: { type: String, default: "" },
+  subjectsOfExpertise: [{ type: String }],
+  previousInstitute: { type: String, default: "" },
+
   galleryPhotos: [
     {
       url: { type: String, required: true },

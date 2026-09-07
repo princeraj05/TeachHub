@@ -552,7 +552,15 @@ exports.updateProfile = async (req, res) => {
       emailNotifications,
       smsNotifications,
       pushNotifications,
-      dndMode
+      dndMode,
+      requestedRole,
+      targetClass,
+      previousClass,
+      previousSchool,
+      previousGrade,
+      fatherName,
+      subjectsOfExpertise,
+      previousInstitute
     } = req.body;
     
     const user = await User.findById(req.user.id);
@@ -609,6 +617,15 @@ exports.updateProfile = async (req, res) => {
     if (pushNotifications !== undefined) user.pushNotifications = pushNotifications;
     if (dndMode !== undefined) user.dndMode = dndMode;
 
+    if (requestedRole !== undefined) user.requestedRole = requestedRole;
+    if (targetClass !== undefined) user.targetClass = targetClass;
+    if (previousClass !== undefined) user.previousClass = previousClass;
+    if (previousSchool !== undefined) user.previousSchool = previousSchool;
+    if (previousGrade !== undefined) user.previousGrade = previousGrade;
+    if (fatherName !== undefined) user.fatherName = fatherName;
+    if (subjectsOfExpertise !== undefined) user.subjectsOfExpertise = subjectsOfExpertise;
+    if (previousInstitute !== undefined) user.previousInstitute = previousInstitute;
+
     const phonePattern = /^[0-9+()\-\s]{7,20}$/;
     if (fatherMobileNumber !== undefined) {
       if (fatherMobileNumber && !phonePattern.test(fatherMobileNumber)) return res.status(400).json({ message: "Father mobile number is invalid" });
@@ -623,28 +640,7 @@ exports.updateProfile = async (req, res) => {
 
     res.json({
       message: "Profile updated successfully",
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        schoolName: user.schoolName,
-        phoneNumber: user.phoneNumber,
-        alternateEmail: user.alternateEmail,
-        dob: user.dob,
-        gender: user.gender,
-        address: user.address,
-        timezone: user.timezone,
-        language: user.language,
-        about: user.about,
-        fatherMobileNumber: user.fatherMobileNumber,
-        motherMobileNumber: user.motherMobileNumber,
-        avatar: user.avatar,
-        emailNotifications: user.emailNotifications,
-        smsNotifications: user.smsNotifications,
-        pushNotifications: user.pushNotifications,
-        dndMode: user.dndMode
-      }
+      user: user
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
