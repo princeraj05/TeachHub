@@ -41,7 +41,7 @@ function StudentProfile() {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setProfile(res.data))
-      .catch((err) => console.log(err));
+      .catch((err) => console.log("Profile fetch error:", err));
   };
 
   useEffect(() => {
@@ -54,6 +54,24 @@ function StudentProfile() {
     if (!profile?.name) return "S";
     return profile.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
   }, [profile]);
+
+  // Dynamic Profile Properties
+  const studentName = profile?.name || "Student";
+  const studentId = profile?.rollNo || (profile?._id ? `#${profile._id.slice(-6).toUpperCase()}` : "STU-2026");
+  const schoolName = profile?.requestedSchool || profile?.schoolName || profile?.targetSchool || "TeachHub School";
+  const className = profile?.targetClass || (profile?.className ? `Class ${profile.className}` : "Not Specified");
+  const sectionName = profile?.section ? `- Section ${profile.section}` : "";
+  const studentEmail = profile?.email || "Not Provided";
+  const studentPhone = profile?.phoneNumber || "Not Provided";
+  const fatherName = profile?.fatherName || "Not Provided";
+  const fatherMobile = profile?.fatherMobileNumber || "Not Provided";
+  const motherName = profile?.motherName || profile?.motherMobileNumber || "Not Provided";
+  const permanentAddr = profile?.permanentAddress || profile?.address || "Not Provided";
+  const correspondenceAddr = profile?.correspondenceAddress || profile?.address || "Not Provided";
+  const dob = profile?.dob || "Not Provided";
+  const gender = profile?.gender || "Not Provided";
+  const previousClass = profile?.previousClass || "Not Specified";
+  const previousSchool = profile?.previousSchool || "Not Provided";
 
   return (
     <div style={{ fontFamily: SORA }} className="space-y-4 max-w-3xl mx-auto pb-16 select-none text-left">
@@ -87,7 +105,7 @@ function StudentProfile() {
       </div>
 
       {/* 2. Hero TeachHub Brand Gradient Card */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#FF6B52] via-[#FF8E53] to-[#FFA048] dark:from-[#7C3AED] dark:via-[#6366F1] dark:to-[#38BDF8] p-6 text-white shadow-xl flex flex-col items-center text-center">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#38BDF8] p-6 text-white shadow-xl flex flex-col items-center text-center">
         {/* Ambient Glow */}
         <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-white/10 blur-2xl pointer-events-none" />
 
@@ -105,14 +123,14 @@ function StudentProfile() {
         </div>
 
         {/* Name & ID */}
-        <h2 className="text-2xl font-black tracking-tight text-white">{profile?.name || "Student Name"}</h2>
+        <h2 className="text-2xl font-black tracking-tight text-white">{studentName}</h2>
         <p className="text-xs font-black text-white/95 mt-1 tracking-wider">
-          {profile?.rollNo || profile?._id?.slice(-8).toUpperCase() || "12324633"}
+          {studentId}
         </p>
 
-        {/* Program / Class */}
+        {/* Program / Class & School */}
         <p className="text-xs font-bold text-white/90 mt-1 max-w-lg leading-relaxed">
-          {profile?.className ? `Class ${profile.className}` : "P132: B.Tech. (Computer Science and Engineering)(2023)"} {profile?.section ? `- Sec ${profile.section}` : ""}
+          {className} {sectionName} &bull; {schoolName}
         </p>
       </div>
 
@@ -127,21 +145,39 @@ function StudentProfile() {
           
           {/* Father's Name */}
           <div className="border-b border-slate-100 dark:border-white/5 pb-3">
-            <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Father's Name</p>
-            <p className="font-black text-slate-800 dark:text-white mt-0.5">{profile?.fatherName || "Rahul Kumar"}</p>
+            <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Father / Guardian Name</p>
+            <p className="font-black text-slate-800 dark:text-white mt-0.5">{fatherName}</p>
           </div>
 
-          {/* Mother's Name */}
+          {/* Father Mobile Number */}
+          <div className="border-b border-slate-100 dark:border-white/5 pb-3">
+            <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Father Mobile Number</p>
+            <p className="font-black text-slate-800 dark:text-white mt-0.5">{fatherMobile}</p>
+          </div>
+
+          {/* Mother's Name / Mobile */}
           <div className="border-b border-slate-100 dark:border-white/5 pb-3">
             <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Mother's Name</p>
-            <p className="font-black text-slate-800 dark:text-white mt-0.5">{profile?.motherName || "Sunita Devi"}</p>
+            <p className="font-black text-slate-800 dark:text-white mt-0.5">{motherName}</p>
+          </div>
+
+          {/* Contact No. */}
+          <div className="border-b border-slate-100 dark:border-white/5 pb-3">
+            <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Contact Phone Number</p>
+            <p className="font-black text-slate-800 dark:text-white mt-0.5">{studentPhone}</p>
+          </div>
+
+          {/* Email */}
+          <div className="border-b border-slate-100 dark:border-white/5 pb-3">
+            <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Email Address</p>
+            <p className="font-black text-slate-800 dark:text-white mt-0.5 truncate">{studentEmail}</p>
           </div>
 
           {/* Permanent Address */}
           <div className="border-b border-slate-100 dark:border-white/5 pb-3">
             <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Permanent Address</p>
             <p className="font-semibold text-slate-700 dark:text-slate-200 mt-0.5 leading-relaxed">
-              {profile?.permanentAddress || profile?.address || "Village:- Chakhusaini , Post:- Mansi, Ward-8,,Begusarai - 851214- Distt:Begusarai -(Bihar) - India"}
+              {permanentAddr}
             </p>
           </div>
 
@@ -149,32 +185,20 @@ function StudentProfile() {
           <div className="border-b border-slate-100 dark:border-white/5 pb-3">
             <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Correspondence Address</p>
             <p className="font-semibold text-slate-700 dark:text-slate-200 mt-0.5 leading-relaxed">
-              {profile?.correspondenceAddress || profile?.address || "Village:- Chakhusaini , Post:- Mansi, Ward-8,,Begusarai - 851214- Distt:Begusarai -(Bihar) - India"}
+              {correspondenceAddr}
             </p>
-          </div>
-
-          {/* Contact No. */}
-          <div className="border-b border-slate-100 dark:border-white/5 pb-3">
-            <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Contact No.</p>
-            <p className="font-black text-slate-800 dark:text-white mt-0.5">{profile?.phoneNumber || profile?.fatherMobileNumber || "7479845306"}</p>
-          </div>
-
-          {/* Email */}
-          <div className="border-b border-slate-100 dark:border-white/5 pb-3">
-            <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Email</p>
-            <p className="font-black text-slate-800 dark:text-white mt-0.5 truncate">{profile?.email || "princerajmne@gmail.com"}</p>
           </div>
 
           {/* Date Of Birth */}
           <div className="border-b border-slate-100 dark:border-white/5 pb-3">
             <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Date Of Birth</p>
-            <p className="font-black text-slate-800 dark:text-white mt-0.5">{profile?.dob || "24 Oct 2005"}</p>
+            <p className="font-black text-slate-800 dark:text-white mt-0.5">{dob}</p>
           </div>
 
           {/* Student Gender */}
           <div>
             <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Student Gender</p>
-            <p className="font-black text-slate-800 dark:text-white mt-0.5">{profile?.gender || "Male"}</p>
+            <p className="font-black text-slate-800 dark:text-white mt-0.5">{gender}</p>
           </div>
 
         </div>
@@ -189,24 +213,36 @@ function StudentProfile() {
 
         <div className="bg-white dark:bg-[#0B132A] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-sm space-y-3.5 text-xs">
           
-          {/* Program */}
+          {/* Target / Current Class */}
           <div className="border-b border-slate-100 dark:border-white/5 pb-3">
-            <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Program / Class</p>
+            <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Class / Program</p>
             <p className="font-black text-slate-800 dark:text-white mt-0.5">
-              {profile?.className ? `Class ${profile.className}` : "P132:B.Tech. (Computer Science and Engineering)(2023)"} {profile?.section ? `- Section ${profile.section}` : ""}
+              {className} {sectionName}
             </p>
           </div>
 
           {/* School Name */}
           <div className="border-b border-slate-100 dark:border-white/5 pb-3">
-            <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">School Name</p>
-            <p className="font-black text-slate-800 dark:text-white mt-0.5">{profile?.schoolName || "TeachHub School"}</p>
+            <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Target / Enrolled School</p>
+            <p className="font-black text-slate-800 dark:text-white mt-0.5">{schoolName}</p>
           </div>
 
-          {/* Student Roll No */}
+          {/* Student Roll No / ID */}
+          <div className="border-b border-slate-100 dark:border-white/5 pb-3">
+            <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Student ID / Roll No</p>
+            <p className="font-black text-slate-800 dark:text-white mt-0.5">{studentId}</p>
+          </div>
+
+          {/* Previous Class Passed */}
+          <div className="border-b border-slate-100 dark:border-white/5 pb-3">
+            <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Previous Class Passed</p>
+            <p className="font-black text-slate-800 dark:text-white mt-0.5">{previousClass}</p>
+          </div>
+
+          {/* Previous School History */}
           <div>
-            <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Student Roll No / ID</p>
-            <p className="font-black text-slate-800 dark:text-white mt-0.5">{profile?.rollNo || profile?._id?.slice(-8).toUpperCase() || "12324633"}</p>
+            <p className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Previous School History</p>
+            <p className="font-black text-slate-800 dark:text-white mt-0.5">{previousSchool}</p>
           </div>
 
         </div>
