@@ -14,13 +14,15 @@ import {
   FaHourglassHalf, 
   FaCalendarCheck 
 } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 
 const SORA = "'Sora', sans-serif";
 
 function MySubjects() {
   const API = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,13 +37,16 @@ function MySubjects() {
         });
         setSubjects(res.data);
         setLoading(false);
+        if (searchParams.get("tab") === "notes" && res.data && res.data.length > 0) {
+          navigate(`/teacher/my-subjects/${res.data[0]._id}?tab=notes`, { replace: true });
+        }
       } catch (err) {
         console.error("Error fetching subjects:", err);
         setLoading(false);
       }
     };
     fetchSubjects();
-  }, [API, token]);
+  }, [API, token, searchParams, navigate]);
 
   // Compute overall KPI stats
   const totalSubjects = subjects.length;

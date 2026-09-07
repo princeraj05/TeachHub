@@ -162,12 +162,6 @@ function TeacherDashboard() {
       onClick: () => navigate("/teacher/support/groups"),
     },
     {
-      label: "Create Assignment",
-      icon: <FaFileAlt className="text-xl" />,
-      bgColor: "bg-amber-500/10 text-amber-500 border border-amber-500/20",
-      onClick: () => navigate("/teacher/my-classes"),
-    },
-    {
       label: "Conduct Exam",
       icon: <FaUserGraduate className="text-xl" />,
       bgColor: "bg-blue-500/10 text-blue-500 border border-blue-500/20",
@@ -177,7 +171,7 @@ function TeacherDashboard() {
       label: "Upload Study Material",
       icon: <FaCloudUploadAlt className="text-xl" />,
       bgColor: "bg-teal-500/10 text-teal-500 border border-teal-500/20",
-      onClick: () => navigate("/teacher/my-subjects"),
+      onClick: () => navigate("/teacher/my-subjects?tab=notes"),
     },
     {
       label: "View Reports",

@@ -75,8 +75,23 @@ function SubjectDetails() {
   const token = localStorage.getItem("token");
 
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState(null);
-  const [activeTab, setActiveTab] = useState("Overview");
+  const initialTab = searchParams.get("tab");
+  const formattedTab = initialTab ? initialTab.charAt(0).toUpperCase() + initialTab.slice(1).toLowerCase() : "Overview";
+  const [activeTab, setActiveTab] = useState(
+    ["Overview", "Classes", "Students", "Timetable", "Exams", "Notes", "Syllabus", "Performance"].includes(formattedTab)
+      ? formattedTab
+      : "Overview"
+  );
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam) {
+      const formatted = tabParam.charAt(0).toUpperCase() + tabParam.slice(1).toLowerCase();
+      if (["Overview", "Classes", "Students", "Timetable", "Exams", "Notes", "Syllabus", "Performance"].includes(formatted)) {
+        setActiveTab(formatted);
+      }
+    }
+  }, [searchParams]);
   const [selectedClassForSyllabus, setSelectedClassForSyllabus] = useState(searchParams.get("class") || "");
   const [selectedClass, setSelectedClass] = useState("All");
   const [selectedSection, setSelectedSection] = useState("All");
