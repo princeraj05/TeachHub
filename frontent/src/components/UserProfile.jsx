@@ -81,9 +81,23 @@ function UserProfile() {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   // Settings states
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [digestEnabled, setDigestEnabled] = useState(false);
-  const [language, setLanguage] = useState("English");
+  const [language, setLanguage] = useState(localStorage.getItem("teachhub_language") || "English");
+
+  const handleSelectLanguage = async (selectedLang) => {
+    setLanguage(selectedLang);
+    localStorage.setItem("teachhub_language", selectedLang);
+    setShowLanguageModal(false);
+    try {
+      await axios.put(
+        `${API}/api/auth/profile`,
+        { language: selectedLang },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      window.dispatchEvent(new Event("profileUpdate"));
+    } catch (err) {
+      console.error("Error updating language preference:", err);
+    }
+  };
 
   // Applicant Profile Form State
   const [formData, setFormData] = useState({
@@ -138,6 +152,11 @@ function UserProfile() {
             ? res.data.subjectsOfExpertise
             : ["Mathematics", "English"]
         });
+
+        if (res.data.language) {
+          setLanguage(res.data.language);
+          localStorage.setItem("teachhub_language", res.data.language);
+        }
 
         try {
           localStorage.setItem("teachhub_cache_user_profile", JSON.stringify(res.data));
@@ -868,13 +887,10 @@ function UserProfile() {
               <h3 className="text-sm font-black">Select Language</h3>
             </div>
             <div className="space-y-2 my-4">
-              {["English", "Hindi", "Spanish"].map((lang) => (
+              {["English", "Hindi", "Punjabi"].map((lang) => (
                 <button
                   key={lang}
-                  onClick={() => {
-                    setLanguage(lang);
-                    setShowLanguageModal(false);
-                  }}
+                  onClick={() => handleSelectLanguage(lang)}
                   className={`w-full flex items-center justify-between p-3.5 rounded-xl border text-xs font-extrabold transition cursor-pointer ${
                     language === lang
                       ? "border-[#7C3AED] bg-[#7C3AED]/5 text-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8]/5 dark:text-[#38BDF8]"
