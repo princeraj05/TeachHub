@@ -1243,7 +1243,7 @@ function PendingApproval() {
 
           {/* Navigation Links */}
           <nav className="space-y-1.5">
-            {/* 1. Wait Karo (Status) */}
+            {/* 1. Status */}
             <Link
               to="/pending"
               className={`w-full flex items-center justify-center lg:justify-start gap-4 px-4 py-3.5 rounded-2xl text-xs font-bold transition duration-200 ${
@@ -1253,7 +1253,7 @@ function PendingApproval() {
               }`}
             >
               <FaClock className="text-xl shrink-0" />
-              <span className="hidden lg:block">Wait Karo</span>
+              <span className="hidden lg:block">Status</span>
             </Link>
 
             {/* Notifications */}
@@ -1511,7 +1511,7 @@ function PendingApproval() {
             <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
               {[
                 { to: "/pending/profile", icon: <FaUserCircle className="text-[#7C3AED] dark:text-[#38BDF8]" />, label: "Profile" },
-                { to: "/pending", icon: <FaClock className="text-amber-500" />, label: "Wait Karo (Status)" },
+                { to: "/pending", icon: <FaClock className="text-amber-500" />, label: "Status" },
                 { to: "/pending/notifications", icon: <FaBell className="text-[#7C3AED]" />, label: "Notifications" },
                 { to: "/pending/events", icon: <FaCalendarAlt className="text-cyan-500" />, label: "Event" },
                 { to: "/pending/schools", icon: <FaSchool className="text-purple-500" />, label: "School Directory" },

@@ -75,6 +75,7 @@ function SubjectDetails() {
   const token = localStorage.getItem("token");
 
   const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(null);
   const initialTab = searchParams.get("tab");
   const formattedTab = initialTab ? initialTab.charAt(0).toUpperCase() + initialTab.slice(1).toLowerCase() : "Overview";
   const [activeTab, setActiveTab] = useState(
