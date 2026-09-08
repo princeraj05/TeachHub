@@ -110,6 +110,8 @@ exports.sendMessage = async (req, res) => {
             receiverId: receiver
           });
         }
+      }
+
       // Dispatch notification if receiver is a teacher
       try {
         if (receiverUser && (receiverUser.role === "teacher" || receiverUser.role === "Teacher")) {
