@@ -21,7 +21,7 @@ const MOCK_UPCOMING = [];
 const MOCK_COMPLETED = [];
 
 function StudentEvents() {
-  const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
+  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
   const token = localStorage.getItem("token");
   const name = localStorage.getItem("name") || "Student";
   const { theme, toggleTheme } = useTheme();
@@ -260,192 +260,178 @@ function StudentEvents() {
           </p>
         </div>
       ) : (
-        /* Events cards list */
-        <div className="space-y-4">
-          {displayEvents.map((ev) => {
-            
-            // Render upcoming card
-            if (activeTab === "upcoming") {
-              const daysLeft = getDaysLeft(ev.eventDate, ev.daysLeftStatic);
-              const coverUrl = ev.coverPhoto || (ev.photos && ev.photos.length > 0 ? getMediaUrl(ev.photos[0].url) : null);
-              let dotBg = "bg-purple-500";
-              let cardGlow = "hover:border-purple-550/30";
-              if (ev.themeColor === "emerald") {
-                dotBg = "bg-emerald-500";
-                cardGlow = "hover:border-emerald-555/30";
-              } else if (ev.themeColor === "blue") {
-                dotBg = "bg-[#0EA5E9]";
-                cardGlow = "hover:border-blue-555/30";
-              } else if (ev.themeColor === "amber") {
-                dotBg = "bg-amber-500";
-                cardGlow = "hover:border-amber-555/30";
-              }
+          /* Events cards list */
+          <div className={`grid grid-cols-1 ${activeTab === "upcoming" ? "md:grid-cols-2 lg:grid-cols-2" : "gap-4"} gap-5`}>
+            {displayEvents.map((ev) => {
+              
+              // Render upcoming card
+              if (activeTab === "upcoming") {
+                const daysLeft = getDaysLeft(ev.eventDate, ev.daysLeftStatic);
+                const coverUrl = ev.coverPhoto || (ev.photos && ev.photos.length > 0 ? getMediaUrl(ev.photos[0].url) : null);
+                let dotBg = "bg-purple-500";
+                let cardGlow = "hover:border-[#7C3AED]/40 hover:shadow-xl hover:shadow-[#7C3AED]/5";
+                if (ev.themeColor === "emerald") {
+                  dotBg = "bg-emerald-500";
+                } else if (ev.themeColor === "blue") {
+                  dotBg = "bg-[#0EA5E9]";
+                } else if (ev.themeColor === "amber") {
+                  dotBg = "bg-amber-500";
+                }
 
-              return (
-                <div 
-                  key={ev._id}
-                  className={`bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] ${cardGlow} rounded-2.5xl overflow-hidden flex flex-col transition-all duration-200 shadow-sm relative`}
-                >
-                  {coverUrl && (
-                    <div className="h-32 sm:h-44 w-full bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b border-slate-150 dark:border-white/5">
-                      <img
-                        src={coverUrl}
-                        alt="Cover"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80";
-                        }}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-
-                  <div className="p-3.5 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                    <div className="flex items-center gap-4 min-w-0">
-                      {!coverUrl && (
-                        <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2.5xl flex items-center justify-center shrink-0 ${
-                          ev.avatarBg || "bg-purple-950/15 border border-purple-500/20 text-purple-500"
-                        }`}>
-                          {ev.illustration || <FaCalendarAlt className="text-xl" />}
+                return (
+                  <div 
+                    key={ev._id}
+                    className={`group bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] ${cardGlow} rounded-3xl overflow-hidden flex flex-col transition-all duration-300 shadow-sm relative`}
+                  >
+                    {/* Cover Banner Image */}
+                    <div className="h-44 sm:h-52 w-full bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b border-slate-150 dark:border-white/5">
+                      {coverUrl ? (
+                        <img
+                          src={coverUrl}
+                          alt={ev.title}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80";
+                          }}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-purple-600/20 via-indigo-600/10 to-slate-900 flex items-center justify-center">
+                          <FaCalendarAlt className="text-4xl text-[#7C3AED] opacity-40" />
                         </div>
                       )}
 
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5 select-none">
-                          <span className={`w-2 h-2 rounded-full ${dotBg}`} />
-                          <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-tight truncate">
+                      {/* Gradient overlay on bottom of image for contrast */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent pointer-events-none" />
+
+                      {/* Top Left Event Tag */}
+                      <div className="absolute top-3 left-3 px-3 py-1 rounded-xl bg-purple-600/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-wider shadow-md">
+                        Upcoming Event
+                      </div>
+
+                      {/* Top Right Floating Days Left Badge */}
+                      <div className="absolute top-3 right-3 px-3 py-1.5 rounded-xl bg-black/65 backdrop-blur-md border border-white/20 text-white flex items-center gap-1.5 shadow-lg select-none">
+                        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                        <span className="text-sm font-black text-amber-300">{daysLeft}</span>
+                        <span className="text-[9px] font-extrabold uppercase tracking-wider text-slate-200">Days Left</span>
+                      </div>
+                    </div>
+
+                    {/* Content Section */}
+                    <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2.5 h-2.5 rounded-full ${dotBg} shrink-0`} />
+                          <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white leading-snug group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition-colors line-clamp-1">
                             {ev.title}
                           </h3>
                         </div>
                         
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold leading-relaxed mt-1 line-clamp-2">
-                          {ev.description || "No description provided."}
+                        <p className="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed mt-2 line-clamp-2">
+                          {ev.description || "Join us for this exciting school event!"}
                         </p>
+                      </div>
 
-                        {/* Badges row */}
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10px] text-slate-455 dark:text-slate-400 font-extrabold mt-3 select-none">
-                          <span className="flex items-center gap-1.5">
-                            <FaCalendarAlt className="text-slate-400 text-[11px]" />
-                            {getFormattedDate(ev.eventDate)}
-                          </span>
-                          <span className="flex items-center gap-1.5">
-                            <FaClock className="text-slate-400 text-[11px]" />
-                            {ev.eventTime}
-                          </span>
-                          <span className="flex items-center gap-1.5">
-                            <FaMapMarkerAlt className="text-slate-400 text-[11px]" />
-                            {ev.location || "School Ground"}
-                          </span>
-                        </div>
+                      {/* Metadata Chips (Date, Time, Location) */}
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-200 text-[11px] font-bold border border-slate-200/60 dark:border-white/10">
+                          <FaCalendarAlt className="text-[#7C3AED] dark:text-[#38BDF8] text-xs" />
+                          {getFormattedDate(ev.eventDate)}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-200 text-[11px] font-bold border border-slate-200/60 dark:border-white/10">
+                          <FaClock className="text-[#7C3AED] dark:text-[#38BDF8] text-xs" />
+                          {ev.eventTime}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-200 text-[11px] font-bold border border-slate-200/60 dark:border-white/10">
+                          <FaMapMarkerAlt className="text-[#7C3AED] dark:text-[#38BDF8] text-xs" />
+                          {ev.location || "School Ground"}
+                        </span>
                       </div>
                     </div>
+                  </div>
+                );
+              }
 
-                    {/* Countdown Badge (Right) */}
-                    <div className={`shrink-0 ml-3 py-3 px-4.5 rounded-2xl flex flex-col items-center justify-center text-center border select-none ${
-                      ev.badgeBg || "bg-purple-955/20 text-purple-400 border border-purple-500/20"
-                    }`}>
-                      <span className="text-lg font-black tracking-tight">{daysLeft}</span>
-                      <span className="text-[8px] font-black uppercase tracking-widest mt-0.5">Days Left</span>
+              // Render completed events layout card
+              const coverUrl = ev.coverPhoto || (ev.photos && ev.photos.length > 0 ? getMediaUrl(ev.photos[0].url) : null);
+              
+              let cardGlow = "hover:border-emerald-500/40 hover:shadow-xl hover:shadow-emerald-500/5";
+
+              return (
+                <div 
+                  key={ev._id}
+                  className={`group bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] ${cardGlow} rounded-3xl overflow-hidden flex flex-col md:flex-row shadow-sm transition-all duration-300`}
+                >
+                  {/* Cover Image left/top */}
+                  <div className="w-full md:w-64 lg:w-72 h-44 md:h-auto shrink-0 bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b md:border-b-0 md:border-r border-slate-200/60 dark:border-white/10 select-none">
+                    {coverUrl ? (
+                      <img 
+                        src={coverUrl} 
+                        alt="Cover" 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" 
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-emerald-600/20 via-slate-800 to-slate-950 flex flex-col items-center justify-center text-slate-400 p-4 text-center">
+                        <FaImage className="text-3xl mb-1.5 opacity-55 text-emerald-400" />
+                        <p className="text-[10px] font-black uppercase tracking-wider text-slate-300">No Cover Image</p>
+                      </div>
+                    )}
+                    
+                    {/* Floating Completed Badge over image */}
+                    <div className="absolute top-3 left-3 px-3 py-1 rounded-xl bg-emerald-600/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-wider shadow-md flex items-center gap-1">
+                      <FaCheckCircle className="text-xs" /> Completed
                     </div>
                   </div>
-                </div>
-              );
-            }
 
-            // Render completed events layout card
-            const coverUrl = ev.coverPhoto || (ev.photos && ev.photos.length > 0 ? getMediaUrl(ev.photos[0].url) : null);
-            
-            let dotBg = "bg-emerald-500";
-            let calendarColor = "text-emerald-500";
-            let clockColor = "text-emerald-555";
-            let cardGlow = "hover:border-emerald-555/30";
-            if (ev.themeColor === "blue") {
-              dotBg = "bg-blue-500";
-              calendarColor = "text-blue-500";
-              clockColor = "text-blue-500";
-              cardGlow = "hover:border-blue-555/30";
-            } else if (ev.themeColor === "purple") {
-              dotBg = "bg-purple-500";
-              calendarColor = "text-[#7C3AED]";
-              clockColor = "text-[#7C3AED]";
-              cardGlow = "hover:border-purple-555/30";
-            } else if (ev.themeColor === "amber") {
-              dotBg = "bg-amber-500";
-              calendarColor = "text-amber-500";
-              clockColor = "text-amber-500";
-              cardGlow = "hover:border-amber-555/30";
-            }
-
-            return (
-              <div 
-                key={ev._id}
-                className={`bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] ${cardGlow} rounded-2.5xl overflow-hidden flex flex-col sm:flex-row shadow-sm transition-all duration-200`}
-              >
-                {/* Cover Image left/top */}
-                <div className="w-full sm:w-44 h-32 sm:h-40 shrink-0 bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b sm:border-b-0 sm:border-r border-slate-200/50 dark:border-white/10 select-none">
-                  {coverUrl ? (
-                    <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="text-center text-slate-400">
-                      <FaImage className="text-2xl mb-1.5 opacity-55 mx-auto" />
-                      <p className="text-[9px] font-black">No Cover Uploaded</p>
+                  {/* Details main body */}
+                  <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4 min-w-0">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
+                        <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-snug group-hover:text-emerald-500 transition-colors line-clamp-1">
+                          {ev.title}
+                        </h3>
+                      </div>
+                      
+                      <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed mt-2 line-clamp-2">
+                        {ev.description || "Explore photos and videos from this past school event."}
+                      </p>
                     </div>
-                  )}
-                </div>
 
-                {/* Details main body */}
-                <div className="p-3.5 sm:p-5 flex-1 flex flex-col justify-between min-w-0">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 select-none">
-                      <span className={`w-2 h-2 rounded-full ${dotBg}`} />
-                      <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-tight truncate">
-                        {ev.title}
-                      </h3>
-                    </div>
-                    
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold leading-relaxed mt-1 line-clamp-2">
-                      {ev.description || "No description provided."}
-                    </p>
-
-                    {/* Metadata badge parameters */}
-                    <div className="flex items-center gap-4 text-[10px] text-slate-455 dark:text-slate-400 font-extrabold mt-3.5 select-none">
-                      <span className="flex items-center gap-1.5">
-                        <FaCalendarAlt className={`${calendarColor} text-[11px]`} /> 
+                    {/* Metadata Chips */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-200 text-[11px] font-bold border border-slate-200/60 dark:border-white/10">
+                        <FaCalendarAlt className="text-emerald-500 text-xs" /> 
                         {getFormattedDate(ev.eventDate)}
                       </span>
-                      <span className="flex items-center gap-1.5">
-                        <FaClock className={`${clockColor} text-[11px]`} /> 
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-200 text-[11px] font-bold border border-slate-200/60 dark:border-white/10">
+                        <FaClock className="text-emerald-500 text-xs" /> 
                         {ev.eventTime}
                       </span>
                     </div>
                   </div>
-                </div>
 
-                {/* Completed Details (Right) */}
-                <div className="p-3.5 sm:p-5 sm:border-l border-slate-100 dark:border-white/5 flex flex-col justify-between items-center sm:items-end justify-center shrink-0 gap-3 text-center sm:text-right select-none bg-slate-50/20 dark:bg-white/[0.005]">
-                  <div className="flex flex-col items-center sm:items-end gap-1">
-                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider ${
-                      ev.badgeBg || "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                    }`}>
-                      <FaCheckCircle className="text-[10px]" /> Completed
-                    </span>
-                    <span className="text-[9px] text-slate-400 font-extrabold mt-1">
-                      Completed on {getFormattedDate(ev.eventDate)}
-                    </span>
+                  {/* Completed Action Area (Right / Bottom) */}
+                  <div className="p-4 sm:p-5 md:border-l border-slate-100 dark:border-white/10 flex flex-col justify-between items-stretch md:items-end justify-center shrink-0 gap-3 bg-slate-50/50 dark:bg-white/[0.02]">
+                    <div className="flex flex-col items-start md:items-end gap-1">
+                      <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">
+                        Held on {getFormattedDate(ev.eventDate)}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => openGallery(ev)}
+                      className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-[#38BDF8] dark:hover:bg-[#0EA5E9] text-white dark:text-slate-950 font-extrabold text-xs shadow-md shadow-[#7C3AED]/20 transition-all cursor-pointer"
+                    >
+                      <FaEye className="text-sm" /> View Gallery
+                    </button>
                   </div>
-
-                  <button
-                    onClick={() => openGallery(ev)}
-                    className="bg-transparent hover:bg-slate-100 dark:hover:bg-white/5 text-[#7C3AED] dark:text-[#38BDF8] border border-[#7C3AED]/20 dark:border-[#38BDF8]/20 font-black text-[10px] py-2 px-4 rounded-xl transition cursor-pointer flex items-center gap-1.5"
-                  >
-                    <FaEye /> View Gallery
-                  </button>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
 
       {/* Bottom information note */}
       <div className="bg-slate-100/50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.04] p-4.5 rounded-2.5xl flex items-start gap-3 select-none">

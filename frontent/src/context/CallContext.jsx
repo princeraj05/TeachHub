@@ -18,7 +18,7 @@ const CallContext = createContext(null);
 export const useCall = () => useContext(CallContext);
 
 export const CallProvider = ({ children }) => {
-  const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
+  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
   const currentUserId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
 

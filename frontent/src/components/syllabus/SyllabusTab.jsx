@@ -14,7 +14,7 @@ import {
 } from "react-icons/fa";
 
 export default function SyllabusTab({ subjectId, subjectName, assignedClasses = [], initialClass = "", onSyllabusUpdate }) {
-  const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
+  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
   const token = localStorage.getItem("token");
 
   // Format classes options: e.g. Class 1, Class 2... Class 10

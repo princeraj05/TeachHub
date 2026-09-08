@@ -15,7 +15,7 @@ import { useCall } from "../../../context/CallContext";
 import SupportChatEngine from "../../../components/SupportChatEngine";
 
 function SuperAdminSupport() {
-  const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
+  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
   const token = localStorage.getItem("token");
   const currentUserId = localStorage.getItem("userId");
 

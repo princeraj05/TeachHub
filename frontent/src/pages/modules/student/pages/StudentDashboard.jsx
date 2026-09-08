@@ -294,11 +294,11 @@ function StudentDashboard() {
   }, [selectedDay, timetableEntries]);
 
   return (
-    <div style={{ fontFamily: SORA }} className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 text-left select-none pb-8">
+    <div style={{ fontFamily: SORA }} className="w-full max-w-4xl mx-auto space-y-5 text-left select-none pb-10 px-1 sm:px-0">
       
       {/* Top Header Row */}
-      <div className="mb-2 sm:mb-4">
-        <h1 className="text-lg sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+      <div className="select-none">
+        <h1 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
           Student Dashboard
         </h1>
       </div>
@@ -334,47 +334,47 @@ function StudentDashboard() {
       {/* Today's Timetable Widget */}
       <TodayTimetableWidget />
 
-      {/* Today's Overview grid layout (2 COLUMNS ON MOBILE) */}
+      {/* Today's Overview grid layout */}
       <div>
-        <h2 className="text-base font-black text-slate-900 dark:text-white tracking-tight mb-4 px-1">Today's Overview</h2>
+        <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight mb-3 px-1">Today's Overview</h2>
         
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
           
           {/* Card 1: Subjects Enrolled */}
-          <div className="bg-white dark:bg-[#0B132A]/80 border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
-            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-indigo-500/10 text-[#7C3AED] border border-[#7C3AED]/25 flex items-center justify-center mb-2 sm:mb-4">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] rounded-3xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-indigo-500/10 text-[#7C3AED] border border-[#7C3AED]/20 flex items-center justify-center mb-3">
               <FaBookOpen className="text-xs sm:text-sm" />
             </div>
-            <p className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
+            <p className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
               {data.subjects}
             </p>
-            <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide truncate">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wider truncate">
               Subjects Enrolled
             </p>
           </div>
 
           {/* Card 2: Attendance Rate */}
-          <div className="bg-white dark:bg-[#0B132A]/80 border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
-            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/25 flex items-center justify-center mb-2 sm:mb-4">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] rounded-3xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center mb-3">
               <FaClipboardCheck className="text-xs sm:text-sm" />
             </div>
-            <p className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
+            <p className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
               {data.attendance}%
             </p>
-            <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide truncate">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wider truncate">
               Attendance Rate
             </p>
           </div>
 
           {/* Card 3: Upcoming Exams */}
-          <div className="bg-white dark:bg-[#0B132A]/80 border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3 sm:p-5 shadow-sm hover:shadow-md transition-shadow col-span-2 sm:col-span-1">
-            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/25 flex items-center justify-center mb-2 sm:mb-4">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] rounded-3xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all col-span-2 sm:col-span-1">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-blue-500/10 text-blue-500 border border-blue-500/20 flex items-center justify-center mb-3">
               <FaFileAlt className="text-xs sm:text-sm" />
             </div>
-            <p className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
+            <p className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
               {data.exams}
             </p>
-            <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide truncate">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wider truncate">
               Upcoming Exams
             </p>
           </div>
@@ -383,31 +383,31 @@ function StudentDashboard() {
       </div>
 
       {/* Quick Navigation Box */}
-      <div className="bg-white dark:bg-[#0B132A]/90 border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-4 sm:p-6 shadow-sm space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-3">
+      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] rounded-3xl p-4 sm:p-6 shadow-sm space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-3.5">
           <div>
             <h2 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2 tracking-tight">
               <FaThLarge className="text-[#7C3AED] dark:text-[#38BDF8]" /> Student Quick Navigation
             </h2>
             <p className="text-[10px] text-slate-400 font-bold mt-0.5">Direct shortcuts to all student modules</p>
           </div>
-          <span className="text-[10px] font-black px-2.5 py-1 bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] rounded-full border border-[#7C3AED]/20">
+          <span className="text-[10px] font-black px-3 py-1 bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] rounded-full border border-[#7C3AED]/20">
             {STUDENT_NAV_ITEMS.length} Modules
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
           {STUDENT_NAV_ITEMS.map((nav) => (
             <Link
               key={nav.to}
               to={nav.to}
-              className="group bg-slate-50/80 dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.07] border border-slate-200/60 dark:border-white/[0.06] hover:border-[#7C3AED]/30 dark:hover:border-[#38BDF8]/30 rounded-2xl p-3 flex flex-col justify-between gap-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
+              className="group bg-slate-50/70 dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.07] border border-slate-200/60 dark:border-white/[0.06] hover:border-[#7C3AED]/30 dark:hover:border-[#38BDF8]/30 rounded-2.5xl p-3.5 flex flex-col justify-between gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
             >
               <div className="flex items-center justify-between">
-                <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${nav.color} border flex items-center justify-center text-sm font-bold shadow-xs`}>
+                <div className={`w-9 h-9 rounded-2xl bg-gradient-to-br ${nav.color} border flex items-center justify-center text-base font-bold shadow-xs`}>
                   {nav.icon}
                 </div>
-                <FaExternalLinkAlt className="text-[9px] text-slate-300 group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition-colors" />
+                <FaExternalLinkAlt className="text-[9px] text-slate-400 group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition-colors" />
               </div>
               <div className="text-left">
                 <h3 className="text-xs font-black text-slate-800 dark:text-white group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition-colors line-clamp-1">

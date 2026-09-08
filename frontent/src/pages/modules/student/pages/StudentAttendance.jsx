@@ -80,7 +80,7 @@ function StudentAttendance() {
     }
   };
 
-  // Helper: Decorate database records with subjects and remarks
+  // Helper: Decorate database records with subjects
   const decoratedAttendance = useMemo(() => {
     if (dbAttendance.length === 0) {
       return [];
@@ -91,19 +91,12 @@ function StudentAttendance() {
       
       const subjectsList = ["Mathematics", "Science", "Social Science"];
       const subjectName = subjectsList[salt % subjectsList.length];
-      
-      let remarksText = "-";
-      if (item.status === "Absent") {
-        const leaveTypes = ["Medical Leave", "Family Event", "Leave Request", "-"];
-        remarksText = leaveTypes[salt % leaveTypes.length];
-      }
 
       return {
         ...item,
         dayShort: getWeekdayShort(item.date),
         formattedDate: formatDateString(item.date),
-        subject: subjectName,
-        remarks: remarksText
+        subject: subjectName
       };
     });
   }, [dbAttendance]);
@@ -391,13 +384,12 @@ function StudentAttendance() {
                 <th className="pb-3">Day</th>
                 <th className="pb-3">Status</th>
                 <th className="pb-3">Subject</th>
-                <th className="pb-3">Remarks</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-xs text-slate-800 dark:text-slate-300 font-bold">
               {filteredAttendance.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="text-center py-16 text-slate-450 dark:text-slate-500 font-black">
+                  <td colSpan="5" className="text-center py-16 text-slate-450 dark:text-slate-500 font-black">
                     <div className="flex flex-col items-center gap-2 select-none">
                       <FaCalendarAlt className="text-2xl text-slate-300 dark:text-slate-700" />
                       <span>No attendance records found matching this status filter.</span>
@@ -427,9 +419,6 @@ function StudentAttendance() {
                       </td>
                       <td className="py-3.5 font-black text-slate-900 dark:text-white">
                         {item.subject || "Mathematics"}
-                      </td>
-                      <td className="py-3.5 text-slate-450 dark:text-slate-500 font-semibold italic">
-                        {item.remarks || "-"}
                       </td>
                     </tr>
                   );

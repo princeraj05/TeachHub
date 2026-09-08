@@ -6,7 +6,7 @@ import EventGallery from "../../../../components/EventGallery";
 const SORA = "'Sora', sans-serif";
 
 function TeacherEvents() {
-  const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
+  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
   const token = localStorage.getItem("token");
 
   const getMediaUrl = (url) => {
@@ -119,7 +119,7 @@ function TeacherEvents() {
         </div>
       ) : (
         /* Event Grid */
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6 animate-fadeIn">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 animate-fadeIn">
           {events.map((ev) => {
             const hasCover = ev.photos && ev.photos.length > 0 && ev.photos[0]?.url;
             const coverUrl = ev.coverPhoto ? getMediaUrl(ev.coverPhoto) : (hasCover ? getMediaUrl(ev.photos[0].url) : null);
@@ -127,44 +127,60 @@ function TeacherEvents() {
             return (
               <div 
                 key={ev._id}
-                className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-2.5xl sm:rounded-3xl overflow-hidden shadow-sm relative flex flex-col justify-between"
+                className="group bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] hover:border-[#7C3AED]/40 dark:hover:border-white/20 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 relative flex flex-col justify-between"
               >
                 <div>
-                  {(coverUrl || activeTab === "completed") && (
-                    <div className="h-36 sm:h-44 bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b border-slate-150 dark:border-white/5">
-                      {coverUrl ? (
-                        <img src={coverUrl} alt={ev.title || "Cover"} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="text-center text-slate-400 dark:text-slate-500">
-                          <FaImage className="text-2xl sm:text-3xl mb-1.5 opacity-50 mx-auto" />
-                          <p className="text-[10px] font-bold">No Photos Uploaded</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="p-4 sm:p-6">
-                    <h3 className="text-sm font-black text-slate-800 dark:text-white leading-snug">{ev.title}</h3>
-                    {ev.subtitle && (
-                      <p className="text-[10px] font-bold text-[#7C3AED] dark:text-[#38BDF8] mt-1 uppercase tracking-wider">{ev.subtitle}</p>
+                  <div className="h-44 sm:h-48 w-full bg-slate-100 dark:bg-white/5 relative overflow-hidden flex items-center justify-center border-b border-slate-150 dark:border-white/5">
+                    {coverUrl ? (
+                      <img 
+                        src={coverUrl} 
+                        alt={ev.title || "Cover"} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" 
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-purple-600/20 via-slate-800 to-slate-950 flex flex-col items-center justify-center text-slate-400 p-4 text-center">
+                        <FaImage className="text-3xl mb-1.5 opacity-50 text-[#7C3AED]" />
+                        <p className="text-[10px] font-black uppercase tracking-wider text-slate-300">No Photos Uploaded</p>
+                      </div>
                     )}
+                    
+                    {/* Status Badge */}
+                    <div className="absolute top-3 left-3 px-3 py-1 rounded-xl bg-black/60 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-wider shadow-md">
+                      {activeTab === "completed" ? "Completed" : "Upcoming"}
+                    </div>
+                  </div>
 
-                    <div className="flex flex-wrap items-center gap-4 text-[10px] text-slate-450 dark:text-slate-400 font-bold mt-4 border-t border-slate-100 dark:border-white/5 pt-3">
-                      <span className="flex items-center gap-1.5"><FaCalendarAlt className="text-slate-400" /> {getFormattedDate(ev.eventDate)}</span>
-                      <span className="flex items-center gap-1.5"><FaClock className="text-slate-400" /> {ev.eventTime}</span>
+                  <div className="p-4 sm:p-5 flex flex-col justify-between space-y-3">
+                    <div>
+                      <h3 className="text-base font-black text-slate-900 dark:text-white leading-snug group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition-colors line-clamp-1">{ev.title}</h3>
+                      {ev.subtitle && (
+                        <p className="text-[10px] font-extrabold text-[#7C3AED] dark:text-[#38BDF8] mt-1 uppercase tracking-wider">{ev.subtitle}</p>
+                      )}
+
+                      <p className="text-xs text-slate-600 dark:text-slate-300 font-medium mt-2 leading-relaxed line-clamp-2">
+                        {ev.description || "No description provided."}
+                      </p>
                     </div>
 
-                    <p className="text-xs text-slate-550 dark:text-slate-400 mt-4 leading-relaxed line-clamp-3 whitespace-pre-wrap">
-                      {ev.description || "No description provided."}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2 pt-2">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-200 text-[11px] font-bold border border-slate-200/60 dark:border-white/10">
+                        <FaCalendarAlt className="text-[#7C3AED] dark:text-[#38BDF8] text-xs" /> 
+                        {getFormattedDate(ev.eventDate)}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-200 text-[11px] font-bold border border-slate-200/60 dark:border-white/10">
+                        <FaClock className="text-[#7C3AED] dark:text-[#38BDF8] text-xs" /> 
+                        {ev.eventTime}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
                 {activeTab === "completed" && (
-                  <div className="p-6 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] select-none">
+                  <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] select-none">
                     <button
+                      type="button"
                       onClick={() => openGallery(ev)}
-                      className="w-full bg-gradient-to-r from-[#7C3AED] to-[#312E81] text-white font-extrabold text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer shadow-sm shadow-[#7C3AED]/15 hover:opacity-95 transition"
+                      className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-[#38BDF8] dark:hover:bg-[#0EA5E9] text-white dark:text-slate-950 font-extrabold text-xs py-2.5 rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-[#7C3AED]/15 transition"
                     >
                       <FaEye /> View Gallery
                     </button>

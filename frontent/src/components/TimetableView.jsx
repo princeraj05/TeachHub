@@ -163,34 +163,35 @@ export default function TimetableView() {
   }, [allEntries, selectedDay]);
 
   return (
-    <div className="w-full text-slate-800 dark:text-white select-none pb-12 font-sans">
+    <div className="w-full text-slate-800 dark:text-white select-none pb-12 font-sans px-1 sm:px-0">
       
       {/* 1. Header Bar with Back Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 select-none bg-white dark:bg-[#0B132A] p-3.5 sm:p-5 rounded-2.5xl sm:rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 select-none bg-white dark:bg-[#0B132A] p-4 sm:p-5 rounded-3xl border border-slate-200/80 dark:border-white/[0.08] shadow-sm">
         <div className="flex items-center gap-3">
           <button
+            type="button"
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/80 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-xs font-bold transition cursor-pointer"
+            className="flex items-center gap-2 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white px-3 py-2 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200/60 dark:border-white/10 text-xs font-bold transition cursor-pointer"
           >
             <FaArrowLeft className="text-xs" /> Back
           </button>
           <div className="flex items-center gap-2">
-            <FaCalendarAlt className="text-purple-600 dark:text-purple-400 text-lg sm:text-xl" />
+            <FaCalendarAlt className="text-[#7C3AED] dark:text-[#38BDF8] text-lg sm:text-xl" />
             <h1 className="text-lg sm:text-xl font-black tracking-tight text-slate-900 dark:text-white">
               Class Schedule
             </h1>
           </div>
         </div>
 
-        <div className="px-3 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-300 text-xs font-extrabold flex items-center gap-1.5 self-start sm:self-auto">
-          <FaSchool className="text-xs text-purple-500 dark:text-purple-400" />
+        <div className="px-3.5 py-1.5 rounded-xl bg-[#7C3AED]/10 border border-[#7C3AED]/20 text-[#7C3AED] dark:text-[#38BDF8] text-xs font-extrabold flex items-center gap-2 self-start sm:self-auto shadow-sm">
+          <FaSchool className="text-xs text-[#7C3AED] dark:text-[#38BDF8]" />
           <span>Academic Timetable</span>
         </div>
       </div>
 
       {/* 2. Horizontal Scrollable Day Selector Tab Bar */}
-      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 p-2.5 sm:p-3.5 rounded-2.5xl sm:rounded-3xl shadow-sm mb-6">
-        <div className="flex items-center gap-2.5 overflow-x-auto scrollbar-none max-w-4xl mx-auto px-1">
+      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] p-2 sm:p-3 rounded-3xl shadow-sm mb-6">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none max-w-4xl mx-auto px-1 py-0.5">
           {DAYS_OF_WEEK.map((day) => {
             const isSelected = selectedDay === day;
             const dayCount = allEntries.filter(e => e.day?.toLowerCase() === day.toLowerCase()).length;
@@ -198,17 +199,18 @@ export default function TimetableView() {
             return (
               <button
                 key={day}
+                type="button"
                 onClick={() => setSelectedDay(day)}
                 className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
                   isSelected
-                    ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-900/20 border border-purple-400/30 scale-[1.02]"
-                    : "bg-slate-100 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800"
+                    ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/25 border border-purple-400/30 scale-[1.02]"
+                    : "bg-slate-100 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10"
                 }`}
               >
                 <span>{day}</span>
                 {dayCount > 0 && (
-                  <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-extrabold ${
-                    isSelected ? "bg-white/20 text-white" : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400"
+                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold ${
+                    isSelected ? "bg-white/20 text-white" : "bg-slate-200 dark:bg-white/10 text-slate-700 dark:text-slate-300"
                   }`}>
                     {dayCount}
                   </span>
@@ -220,10 +222,10 @@ export default function TimetableView() {
       </div>
 
       {/* 3. Main Content Container */}
-      <main className="max-w-4xl mx-auto text-left">
+      <main className="max-w-4xl mx-auto text-left space-y-4">
         
         {/* Selected Day Subheading */}
-        <div className="flex flex-col sm:flex-row items-center justify-between border-b border-slate-200 dark:border-slate-850 pb-4 mb-6 gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-200/80 dark:border-white/[0.08] pb-4 mb-4 gap-1 select-none">
           <div>
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-wide">
               {selectedDay}'s Classes
@@ -236,22 +238,22 @@ export default function TimetableView() {
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 space-y-3">
-            <div className="w-9 h-9 border-3 border-purple-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-9 h-9 border-4 border-[#7C3AED] border-t-transparent rounded-full animate-spin" />
             <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Loading Schedule...</p>
           </div>
         ) : dayEntries.length === 0 ? (
-          <div className="bg-white dark:bg-[#0B132A] rounded-2xl p-12 text-center border border-slate-200/80 dark:border-slate-850 shadow-xl my-6 flex flex-col items-center justify-center gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-purple-600 dark:text-purple-400 text-2xl">
+          <div className="bg-white dark:bg-[#0B132A] rounded-3xl p-10 sm:p-12 text-center border border-slate-200/80 dark:border-white/[0.08] shadow-sm my-6 flex flex-col items-center justify-center gap-3">
+            <div className="w-14 h-14 rounded-2xl bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] border border-[#7C3AED]/20 flex items-center justify-center text-2xl">
               <FaCalendarAlt />
             </div>
             <h3 className="text-base font-black text-slate-900 dark:text-white">No Classes Scheduled</h3>
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 max-w-sm">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">
               There are no classes scheduled for {selectedDay}. Please check another day of the week.
             </p>
           </div>
         ) : (
           /* 4. Timetable Cards Grid */
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4.5 sm:gap-5 pb-12">
             {dayEntries.map((entry, idx) => {
               const timeRange = formatTimeRange(entry.startTime, entry.endTime);
               const subjectName = entry.subject?.name || "Subject";
@@ -264,53 +266,55 @@ export default function TimetableView() {
               return (
                 <div
                   key={entry._id || idx}
-                  className={`rounded-2.5xl sm:rounded-3xl border ${theme.border} ${theme.bg} shadow-md dark:shadow-xl hover:scale-[1.01] transition-all duration-200 overflow-hidden flex flex-col justify-between`}
+                  className={`group rounded-3xl border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0B132A] shadow-sm hover:shadow-md hover:border-[#7C3AED]/30 transition-all duration-300 overflow-hidden flex flex-col justify-between`}
                 >
                   {/* Top Time Header Banner */}
-                  <div className={`px-3.5 py-2 sm:px-4 sm:py-2.5 flex items-center justify-between ${theme.headerBg}`}>
+                  <div className={`px-4 py-3 flex items-center justify-between ${theme.headerBg}`}>
                     <div className="flex items-center gap-2">
                       <FaClock className="text-xs opacity-90" />
                       <span className="text-xs font-black tracking-wide">{timeRange}</span>
                     </div>
-                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-white/20 text-white border border-white/20 tracking-widest">
+                    <span className="text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full bg-white/20 text-white border border-white/20 tracking-wider">
                       {classType}
                     </span>
                   </div>
 
                   {/* Card Content Body */}
-                  <div className="p-3.5 sm:p-4 space-y-3">
+                  <div className="p-4 sm:p-5 space-y-4">
                     
                     {/* Subject Row */}
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start justify-between gap-3">
                       <div>
-                        <h4 className="text-base font-black text-slate-900 dark:text-white tracking-tight leading-snug">
+                        <h4 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition-colors">
                           {subjectName}
                         </h4>
-                        <span className={`inline-block text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border mt-1 ${theme.badge}`}>
+                        <span className={`inline-block text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-lg border mt-1.5 ${theme.badge}`}>
                           {section}
                         </span>
                       </div>
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${theme.iconBg}`}>
-                        <FaBook className="text-sm" />
+                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${theme.iconBg}`}>
+                        <FaBook className="text-base" />
                       </div>
                     </div>
 
                     {/* Teacher & Location Info */}
-                    <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800/80 space-y-2 text-xs font-bold text-slate-700 dark:text-slate-300">
+                    <div className="pt-3 border-t border-slate-100 dark:border-white/5 space-y-2 text-xs font-bold text-slate-700 dark:text-slate-300">
                       
                       {/* Teacher */}
-                      <div className="flex items-center gap-2">
-                        <FaChalkboardTeacher className={`${theme.accent} text-xs shrink-0`} />
-                        <span className="truncate text-slate-700 dark:text-slate-300">{teacherName}</span>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-xl bg-purple-500/10 text-[#7C3AED] dark:text-[#38BDF8] flex items-center justify-center shrink-0">
+                          <FaChalkboardTeacher className="text-xs" />
+                        </div>
+                        <span className="truncate text-slate-800 dark:text-slate-200 font-extrabold">{teacherName}</span>
                       </div>
 
-                      {/* Room */}
-                      <div className="flex items-center justify-between pt-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                        <div className="flex items-center gap-1.5">
-                          <FaMapMarkerAlt className="text-purple-600 dark:text-purple-400 text-xs shrink-0" />
-                          <span>{room}</span>
+                      {/* Room & Period */}
+                      <div className="flex items-center justify-between pt-1">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-[11px] font-bold text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-white/10">
+                          <FaMapMarkerAlt className="text-[#7C3AED] dark:text-[#38BDF8] text-xs shrink-0" />
+                          <span>Room {room}</span>
                         </div>
-                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                        <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                           Period {idx + 1}
                         </span>
                       </div>

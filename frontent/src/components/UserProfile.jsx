@@ -48,7 +48,7 @@ const AVAILABLE_SUBJECTS = [
 const CLASS_OPTIONS = Array.from({ length: 12 }, (_, i) => `Class ${i + 1}`);
 
 function UserProfile() {
-  const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
+  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
   const location = useLocation();

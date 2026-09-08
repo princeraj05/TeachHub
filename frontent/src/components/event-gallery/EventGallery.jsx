@@ -16,7 +16,7 @@ export default function EventGallery({ event, api = "", onDeletePhoto, onDeleteV
     }
   }, [photos.length, videos.length]);
 
-  const defaultApi = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
+  const defaultApi = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
   const effectiveApi = api || defaultApi;
   const getMediaUrl = (url) => {
     if (!url) return "";

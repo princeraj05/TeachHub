@@ -19,7 +19,7 @@ const belongsToClass = (subject, classId) => {
 };
 
 export default function CreateTimetable() {
-  const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
+  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
 
   // Navigation tab state
   const [activeTab, setActiveTab] = useState("basic");

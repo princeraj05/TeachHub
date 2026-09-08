@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 
-const socket = io(import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com", {
+const socket = io(import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com", {
   transports: ["polling", "websocket"],
   autoConnect: false,
   reconnection: true,

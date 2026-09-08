@@ -31,7 +31,7 @@ const defaultStats = {
 const defaultActivity = [];
 
 function SuperAdminDashboard() {
-  const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
+  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
