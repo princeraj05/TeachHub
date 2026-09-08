@@ -413,7 +413,7 @@ exports.getClassDetails = async (req, res) => {
     const teacherId = req.user.id;
 
     // Find class
-    const cls = await Class.findById(classId).populate("students", "name email gender");
+    const cls = await Class.findById(classId).populate("students", "name email gender rollNo");
     if (!cls) {
       return res.status(404).json({ message: "Class not found" });
     }
@@ -450,13 +450,16 @@ exports.getClassDetails = async (req, res) => {
       date: { $gte: startOfDay, $lte: endOfDay }
     });
 
-    const studentsList = (cls.students || []).map((s, index) => {
-      const rollNo = String(index + 1).padStart(2, "0");
+    const rawStudents = [...(cls.students || [])].sort((a, b) => (a.rollNo || 999) - (b.rollNo || 999));
+
+    const studentsList = rawStudents.map((s, index) => {
+      const rollNo = s.rollNo ? String(s.rollNo).padStart(2, "0") : String(index + 1).padStart(2, "0");
       const att = todayAttendance.find(a => a.student.toString() === s._id.toString());
       const status = att ? att.status : "Not Marked";
       return {
         _id: s._id,
         rollNo,
+        numericRollNo: s.rollNo || (index + 1),
         name: s.name,
         email: s.email,
         status

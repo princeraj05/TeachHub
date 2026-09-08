@@ -11,6 +11,7 @@ getAdmissionExam,
 saveAdmissionExam,
 assignClass,
 addStudent,
+updateStudentRollNo,
 deleteUser,
 getTeacherProfile,
 updateTeacherProfile,
@@ -31,6 +32,7 @@ router.put("/teachers/:id/photos/reorder", reorderTeacherPhotos);
 
 router.get("/students",getStudents);
 router.post("/students", addStudent);
+router.put("/students/:id/rollno", updateStudentRollNo);
 router.get("/join-requests", getJoinRequests);
 router.post("/process-request", processJoinRequest);
 router.get("/admission-exam", getAdmissionExam);

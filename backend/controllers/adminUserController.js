@@ -391,7 +391,7 @@ exports.deleteUser = async (req, res) => {
 // ================= DIRECT ADD STUDENT =================
 exports.addStudent = async (req, res) => {
   try {
-    const { name, email, phoneNumber = "", classId } = req.body;
+    const { name, email, phoneNumber = "", classId, rollNo } = req.body;
     if (!name?.trim() || !email?.trim()) return res.status(400).json({ message: "Name and email are required" });
     const normalizedEmail = email.trim().toLowerCase();
     let student = await User.findOne({ email: normalizedEmail });
@@ -402,17 +402,139 @@ exports.addStudent = async (req, res) => {
       targetClass = await Class.findOne({ _id: classId, schoolName: req.user.schoolName });
       if (!targetClass) return res.status(400).json({ message: "Class does not belong to your school" });
     }
+
+    // Roll number handling & validation
+    let numericRoll = rollNo !== undefined && rollNo !== "" && rollNo !== null ? Number(rollNo) : null;
+    
+    // Auto-assign next roll number if class is selected and rollNo is not provided
+    if (numericRoll === null && targetClass) {
+      const classStudents = await User.find({ role: "student", schoolName: req.user.schoolName, classId: targetClass._id });
+      const takenRolls = classStudents.map(s => s.rollNo).filter(Boolean);
+      let nextAvailable = 1;
+      while (takenRolls.includes(nextAvailable)) {
+        nextAvailable++;
+      }
+      numericRoll = nextAvailable;
+    }
+
+    if (numericRoll !== null) {
+      const rollQuery = {
+        _id: { $ne: student?._id },
+        role: "student",
+        schoolName: req.user.schoolName,
+        rollNo: numericRoll
+      };
+      if (targetClass) {
+        rollQuery.classId = targetClass._id;
+      }
+      const existingRollStudent = await User.findOne(rollQuery);
+      if (existingRollStudent) {
+        const classStudents = await User.find({ role: "student", schoolName: req.user.schoolName, ...(targetClass ? { classId: targetClass._id } : {}) });
+        const takenRolls = classStudents.map(s => s.rollNo).filter(Boolean);
+        let nextAvailable = 1;
+        while (takenRolls.includes(nextAvailable)) {
+          nextAvailable++;
+        }
+        return res.status(409).json({
+          message: `Roll number ${numericRoll} is already assigned to ${existingRollStudent.name}. Next available roll number is ${nextAvailable}.`,
+          nextAvailable
+        });
+      }
+    }
+
     const isNewStudent = !student;
     if (!student) student = new User({ name: name.trim(), email: normalizedEmail });
     if (phoneNumber && !/^[0-9+()\-\s]{7,20}$/.test(phoneNumber)) return res.status(400).json({ message: "Mobile number is invalid" });
     const previousClassId = student.classId;
-    student.name = name.trim(); student.phoneNumber = phoneNumber; student.role = "student"; student.schoolName = req.user.schoolName;
-    student.requestedSchool = ""; student.requestedRole = ""; student.requestStatus = "approved"; student.classId = targetClass?._id || null;
+    student.name = name.trim();
+    student.phoneNumber = phoneNumber;
+    student.role = "student";
+    student.schoolName = req.user.schoolName;
+    student.requestedSchool = "";
+    student.requestedRole = "";
+    student.requestStatus = "approved";
+    student.classId = targetClass?._id || null;
+    student.rollNo = numericRoll;
+
     await student.save();
     if (previousClassId && String(previousClassId) !== String(targetClass?._id || "")) await Class.updateOne({ _id: previousClassId }, { $pull: { students: student._id } });
     if (targetClass && !targetClass.students.some(id => String(id) === String(student._id))) { targetClass.students.push(student._id); await targetClass.save(); }
     res.status(isNewStudent ? 201 : 200).json({ message: "Student added to your school", student: await User.findById(student._id).populate("classId", "name section").select("-password") });
-  } catch (error) { res.status(500).json({ message: "Could not add student" }); }
+  } catch (error) { res.status(500).json({ message: error.message || "Could not add student" }); }
+};
+
+// ================= UPDATE STUDENT ROLL NUMBER =================
+exports.updateStudentRollNo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rollNo } = req.body;
+
+    if (!req.user || !req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+    }
+
+    const student = await User.findById(id);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    if (student.schoolName !== req.user.schoolName && student.requestedSchool !== req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: Student belongs to another school" });
+    }
+
+    if (rollNo === "" || rollNo === null || rollNo === undefined) {
+      student.rollNo = null;
+      await student.save();
+      return res.json({ message: "Roll number cleared successfully", student });
+    }
+
+    const numericRoll = Number(rollNo);
+    if (isNaN(numericRoll) || numericRoll < 1) {
+      return res.status(400).json({ message: "Roll number must be a positive number" });
+    }
+
+    // Check duplicate in same class & school
+    const query = {
+      _id: { $ne: student._id },
+      role: "student",
+      schoolName: req.user.schoolName,
+      rollNo: numericRoll
+    };
+    if (student.classId) {
+      query.classId = student.classId;
+    }
+
+    const existing = await User.findOne(query);
+    if (existing) {
+      const classStudents = await User.find({
+        role: "student",
+        schoolName: req.user.schoolName,
+        ...(student.classId ? { classId: student.classId } : {})
+      });
+      const takenRolls = classStudents.map(s => s.rollNo).filter(Boolean);
+      let nextAvailable = 1;
+      while (takenRolls.includes(nextAvailable)) {
+        nextAvailable++;
+      }
+      return res.status(409).json({
+        message: `Roll number ${numericRoll} is already assigned to ${existing.name}. Next available roll number is ${nextAvailable}.`,
+        nextAvailable,
+        assignedTo: existing.name
+      });
+    }
+
+    student.rollNo = numericRoll;
+    await student.save();
+
+    const updatedStudent = await User.findById(student._id).populate("classId", "name section").select("-password");
+
+    res.json({
+      message: `Roll number ${numericRoll} assigned successfully`,
+      student: updatedStudent
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // ================= TEACHER PROFILE & GALLERY CONTROLLERS =================

@@ -126,6 +126,10 @@ const userSchema = new mongoose.Schema({
     ref: "Class",
     default: null
   },
+  rollNo: {
+    type: Number,
+    default: null
+  },
   isOnline: {
     type: Boolean,
     default: false
