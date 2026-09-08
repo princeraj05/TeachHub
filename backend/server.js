@@ -72,7 +72,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
 
 // Explicit CORS fallback middleware to guarantee CORS headers on every response (including preflight and errors)
 app.use((req, res, next) => {
