@@ -127,10 +127,10 @@ function MyClasses() {
     
     // Attendance donut data
     const attendanceDonutData = [
-      { name: "Present", value: details.attendanceSummary?.present || 736, color: "#10B981" },
-      { name: "Absent", value: details.attendanceSummary?.absent || 48, color: "#EF4444" },
-      { name: "Late", value: details.attendanceSummary?.late || 12, color: "#F59E0B" },
-      { name: "Leave", value: details.attendanceSummary?.leave || 4, color: "#6B7280" }
+      { name: "Present", value: details.attendanceSummary?.present || 0, color: "#10B981" },
+      { name: "Absent", value: details.attendanceSummary?.absent || 0, color: "#EF4444" },
+      { name: "Late", value: details.attendanceSummary?.late || 0, color: "#F59E0B" },
+      { name: "Leave", value: details.attendanceSummary?.leave || 0, color: "#6B7280" }
     ];
 
     return (
@@ -420,7 +420,7 @@ function MyClasses() {
                     </ResponsiveContainer>
                     <div className="absolute flex flex-col items-center justify-center">
                       <span className="text-2xl font-black text-slate-800 dark:text-white leading-none">
-                        {details.attendanceSummary?.percentage || 92}%
+                        {details.attendanceSummary?.percentage || 0}%
                       </span>
                       <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">
                         Overall
@@ -432,8 +432,8 @@ function MyClasses() {
                   <div className="space-y-2 w-full sm:w-auto">
                     {attendanceDonutData.map((d, index) => {
                       const count = d.value;
-                      const total = details.attendanceSummary?.total || 800;
-                      const percent = Math.round((count / total) * 100) || 0;
+                      const total = details.attendanceSummary?.total || 0;
+                      const percent = total > 0 ? Math.round((count / total) * 100) : 0;
                       return (
                         <div key={index} className="flex items-center justify-between sm:justify-start gap-4">
                           <div className="flex items-center gap-2">
@@ -582,7 +582,7 @@ function MyClasses() {
   const totalStudents = classes.reduce((sum, c) => sum + (c.studentsCount || 0), 0);
   const avgPerformance = classes.length > 0 
     ? Math.round(classes.reduce((sum, c) => sum + (c.performance || 0), 0) / classes.length) 
-    : 78;
+    : 0;
 
   // Filter query logic
   const filteredClasses = classes.filter(c => 
