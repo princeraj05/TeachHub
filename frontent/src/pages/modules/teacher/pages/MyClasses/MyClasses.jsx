@@ -236,7 +236,7 @@ function MyClasses() {
 
         {/* Tab Selection Row */}
         <div className="border-b border-slate-200 dark:border-white/[0.08] flex items-center gap-6 overflow-x-auto select-none py-1">
-          {["Overview", "Students", "Subjects", "Timetable", "Attendance", "Performance", "Settings"].map(tab => (
+          {["Overview", "Students", "Subjects", "Timetable", "Attendance"].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -255,7 +255,7 @@ function MyClasses() {
         </div>
 
         {/* Render Tab Contents */}
-        {activeTab === "Overview" ? (
+        {activeTab === "Overview" && (
           <div className="space-y-6">
             {/* Top row elements: Students list, subjects list, timetable */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -382,6 +382,10 @@ function MyClasses() {
                     </div>
                   ))}
                 </div>
+
+                <button onClick={() => setActiveTab("Timetable")} className="w-full mt-4 bg-slate-50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300 py-2.5 rounded-2xl text-[10px] font-black tracking-wide transition-all cursor-pointer">
+                  View Full Schedule
+                </button>
               </div>
 
             </div>
@@ -516,7 +520,7 @@ function MyClasses() {
                   </div>
                 </div>
 
-                {/* Bottom line: grade & details button */}
+                {/* Bottom line: grade */}
                 <div className="border-t border-slate-100 dark:border-white/5 pt-4 mt-2 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Class Grade:</span>
@@ -524,9 +528,6 @@ function MyClasses() {
                       {details.performanceOverview?.classGrade || "B+"}
                     </span>
                   </div>
-                  <button onClick={() => setActiveTab("Performance")} className="text-[10px] font-black text-[#7C3AED] dark:text-[#A78BFA] flex items-center gap-1 hover:underline cursor-pointer">
-                    View Detailed Report →
-                  </button>
                 </div>
               </div>
 
@@ -536,9 +537,6 @@ function MyClasses() {
                   <div>
                     <h2 className="text-sm font-extrabold text-slate-800 dark:text-white">Recent Activity</h2>
                   </div>
-                  <button className="text-[10px] font-black text-[#7C3AED] dark:text-[#A78BFA] hover:underline cursor-pointer">
-                    View All Activity →
-                  </button>
                 </div>
 
                 {/* Activity list */}
@@ -561,15 +559,232 @@ function MyClasses() {
 
             </div>
           </div>
-        ) : (
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-10 text-center shadow-sm">
-            <div className="w-16 h-16 bg-[#7C3AED]/10 border border-[#7C3AED]/20 text-[#7C3AED] dark:text-[#A78BFA] rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <FaSchool className="text-2xl" />
+        )}
+
+        {/* Tab: Students */}
+        {activeTab === "Students" && (
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-6 space-y-4 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-white/5 pb-4">
+              <div>
+                <h3 className="text-base font-extrabold text-slate-800 dark:text-white">Class Students Roster</h3>
+                <p className="text-xs text-slate-400 font-semibold mt-0.5">Total enrolled: {details.studentsCount || 0} Students ({details.boysCount || 0} Boys, {details.girlsCount || 0} Girls)</p>
+              </div>
             </div>
-            <h3 className="text-slate-800 dark:text-white font-extrabold text-base">Tab content under construction</h3>
-            <p className="text-slate-400 text-xs font-semibold max-w-sm mx-auto mt-1 leading-relaxed">
-              The {activeTab} section dashboard will render school databases configurations. Please check other tabs.
-            </p>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-slate-50/60 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5 text-slate-400 font-bold uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center">Roll No</th>
+                    <th className="px-4 py-3">Student Name</th>
+                    <th className="px-4 py-3">Email Address</th>
+                    <th className="px-4 py-3 text-center">Today's Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-white/[0.03]">
+                  {details.students && details.students.length > 0 ? (
+                    details.students.map((student, idx) => (
+                      <tr key={student._id || idx} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.01]">
+                        <td className="px-4 py-3.5 text-center font-mono font-bold text-slate-500 dark:text-slate-400">
+                          {student.rollNo}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center text-xs font-black shrink-0">
+                              {student.name ? student.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) : "S"}
+                            </div>
+                            <span className="font-extrabold text-slate-800 dark:text-white">{student.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 text-slate-500 dark:text-slate-400 font-medium">
+                          {student.email || "—"}
+                        </td>
+                        <td className="px-4 py-3.5 text-center">
+                          <span className={`inline-block text-[9px] font-black px-2.5 py-1 rounded-full border uppercase tracking-wider ${
+                            student.status === 'Present'
+                              ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                              : student.status === 'Late'
+                              ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                              : student.status === 'Absent'
+                              ? 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                              : 'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                          }`}>
+                            {student.status || 'Not Marked'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="py-12 text-center text-slate-400 font-bold">
+                        No students enrolled in this class.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Tab: Subjects */}
+        {activeTab === "Subjects" && (
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-6 space-y-6 shadow-sm">
+            <div className="border-b border-slate-100 dark:border-white/5 pb-4">
+              <h3 className="text-base font-extrabold text-slate-800 dark:text-white">Class Subjects ({details.subjects?.length || 0})</h3>
+              <p className="text-xs text-slate-400 font-semibold mt-0.5">Overview of all subjects taught in Class {details.name} - {details.section}</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {details.subjects && details.subjects.length > 0 ? (
+                details.subjects.map((sub, idx) => (
+                  <div key={sub._id || idx} className="bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 rounded-2.5xl p-4 flex items-start justify-between gap-3 shadow-xs">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl bg-sky-500/10 text-sky-500 border border-sky-500/20 flex items-center justify-center shrink-0">
+                        <FaBook className="text-base" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-slate-800 dark:text-white leading-tight">{sub.name}</h4>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1">Teacher: <span className="font-extrabold text-slate-700 dark:text-slate-300">{sub.teacherName}</span></p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-black bg-purple-500/10 text-purple-600 dark:text-purple-400 px-2.5 py-1 rounded-xl border border-purple-500/15 whitespace-nowrap">
+                      {sub.periodsPerWeek} Periods/Wk
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full py-12 text-center text-slate-400 font-bold">
+                  No subjects assigned for this class.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Tab: Timetable */}
+        {activeTab === "Timetable" && (
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-6 space-y-6 shadow-sm">
+            <div className="border-b border-slate-100 dark:border-white/5 pb-4">
+              <h3 className="text-base font-extrabold text-slate-800 dark:text-white">Class Timetable & Schedule</h3>
+              <p className="text-xs text-slate-400 font-semibold mt-0.5">Daily period timetable for Class {details.name} - {details.section}</p>
+            </div>
+
+            <div className="space-y-3">
+              {details.timetable && details.timetable.length > 0 ? (
+                details.timetable.map((t, idx) => (
+                  <div key={t._id || idx} className="bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 rounded-2.5xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                    <div className="flex items-center gap-3.5">
+                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+                        t.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' :
+                        t.status === 'In Progress' ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20' :
+                        'bg-slate-200 dark:bg-white/5 text-slate-500 border border-slate-300 dark:border-white/10'
+                      }`}>
+                        <FaRegClock className="text-base" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-slate-800 dark:text-white leading-tight">{t.subjectName}</h4>
+                        <p className="text-xs text-slate-400 font-semibold mt-0.5">Room: {t.room || "Class Room"}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 justify-between sm:justify-end">
+                      <span className="text-xs font-mono font-extrabold text-slate-600 dark:text-slate-300 bg-white dark:bg-white/5 px-3 py-1.5 rounded-xl border border-slate-200/60 dark:border-white/5">
+                        {t.startTime} - {t.endTime}
+                      </span>
+                      <span className={`text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider ${
+                        t.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' :
+                        t.status === 'In Progress' ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20 animate-pulse' :
+                        'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+                      }`}>
+                        {t.status}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="py-12 text-center text-slate-400 font-bold">
+                  No timetable entries recorded for today.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Tab: Attendance */}
+        {activeTab === "Attendance" && (
+          <div className="space-y-6">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] p-4 rounded-2.5xl shadow-sm">
+                <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Overall Attendance</p>
+                <h4 className="text-xl font-black text-[#7C3AED] dark:text-[#A78BFA] mt-1">{details.attendanceSummary?.percentage || 0}%</h4>
+              </div>
+              <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] p-4 rounded-2.5xl shadow-sm">
+                <p className="text-[10px] font-extrabold text-emerald-500 uppercase tracking-wider">Present Count</p>
+                <h4 className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{details.attendanceSummary?.present || 0}</h4>
+              </div>
+              <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] p-4 rounded-2.5xl shadow-sm">
+                <p className="text-[10px] font-extrabold text-rose-500 uppercase tracking-wider">Absent Count</p>
+                <h4 className="text-xl font-black text-rose-600 dark:text-rose-400 mt-1">{details.attendanceSummary?.absent || 0}</h4>
+              </div>
+              <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] p-4 rounded-2.5xl shadow-sm">
+                <p className="text-[10px] font-extrabold text-amber-500 uppercase tracking-wider">On Leave</p>
+                <h4 className="text-xl font-black text-amber-600 dark:text-amber-400 mt-1">{details.attendanceSummary?.leave || 0}</h4>
+              </div>
+            </div>
+
+            {/* Attendance Table */}
+            <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-6 space-y-4 shadow-sm">
+              <div className="border-b border-slate-100 dark:border-white/5 pb-4">
+                <h3 className="text-base font-extrabold text-slate-800 dark:text-white">Today's Attendance Status</h3>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-slate-50/60 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5 text-slate-400 font-bold uppercase tracking-wider">
+                      <th className="px-4 py-3 text-center">Roll No</th>
+                      <th className="px-4 py-3">Student Name</th>
+                      <th className="px-4 py-3 text-center">Attendance Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/[0.03]">
+                    {details.students && details.students.length > 0 ? (
+                      details.students.map((student, idx) => (
+                        <tr key={student._id || idx} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.01]">
+                          <td className="px-4 py-3.5 text-center font-mono font-bold text-slate-500 dark:text-slate-400">
+                            {student.rollNo}
+                          </td>
+                          <td className="px-4 py-3.5 font-extrabold text-slate-800 dark:text-white">
+                            {student.name}
+                          </td>
+                          <td className="px-4 py-3.5 text-center">
+                            <span className={`inline-block text-[9px] font-black px-2.5 py-1 rounded-full border uppercase tracking-wider ${
+                              student.status === 'Present'
+                                ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                                : student.status === 'Late'
+                                ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                                : student.status === 'Absent'
+                                ? 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                                : 'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                            }`}>
+                              {student.status || 'Not Marked'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={3} className="py-12 text-center text-slate-400 font-bold">
+                          No attendance record found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
       </div>
