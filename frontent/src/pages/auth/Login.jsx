@@ -265,10 +265,10 @@ function Login() {
       <div className="absolute top-1/2 right-0 w-[500px] h-[500px] rounded-full bg-indigo-500/10 dark:bg-indigo-500/15 blur-[140px] pointer-events-none" />
       <div className="absolute -bottom-32 left-1/3 w-80 h-80 rounded-full bg-sky-500/10 dark:bg-sky-500/15 blur-[100px] pointer-events-none" />
 
-      {/* Floating Theme Toggle */}
+      {/* Desktop Floating Theme Toggle */}
       <button
         onClick={toggleTheme}
-        className="fixed top-4 right-4 sm:top-6 sm:right-6 p-3 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 shadow-lg z-50 transition-all duration-200 cursor-pointer active:scale-95"
+        className="hidden lg:flex fixed top-6 right-6 p-3 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 shadow-lg z-50 transition-all duration-200 cursor-pointer active:scale-95"
         aria-label="Toggle Theme"
       >
         {theme === "dark" ? (
@@ -366,6 +366,34 @@ function Login() {
       {/* ── Right Panel & Mobile Layout ── */}
       <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 lg:p-12 relative z-10">
         
+        {/* MOBILE ONLY TOP BRANDING & THEME BAR */}
+        <div className="w-full max-w-[440px] flex items-center justify-between px-1 py-1 lg:hidden mb-3">
+          <div className="flex items-center gap-2.5">
+            {logoUrl ? (
+              <img src={logoUrl} alt={platformName} className="w-7 h-7 object-contain rounded-lg shrink-0" />
+            ) : (
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white text-xs shadow-sm shrink-0">
+                <FaGraduationCap />
+              </div>
+            )}
+            <span className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
+              {platformName || "TeachHub"}
+            </span>
+          </div>
+
+          <button
+            onClick={toggleTheme}
+            className="p-2.5 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 shadow-sm transition-all duration-200 cursor-pointer active:scale-95"
+            aria-label="Toggle Theme"
+          >
+            {theme === "dark" ? (
+              <FaSun className="text-amber-400 text-sm animate-pulse" />
+            ) : (
+              <FaMoon className="text-purple-600 text-sm" />
+            )}
+          </button>
+        </div>
+
         {/* MOBILE ONLY TOP HERO CAROUSEL & METRICS */}
         <div className="w-full max-w-[440px] lg:hidden space-y-4 mb-6">
           
