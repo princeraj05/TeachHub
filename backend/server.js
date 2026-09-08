@@ -333,6 +333,7 @@ const jwt = require("jsonwebtoken");
 const User = require("./models/User");
 const Message = require("./models/Message");
 const Call = require("./models/Call");
+const TeacherNotification = require("./models/TeacherNotification");
 
 io.use(async (socket, next) => {
   const token = socket.handshake.auth?.token;
@@ -560,6 +561,19 @@ io.on("connection", (socket) => {
           callerAvatar: senderUser.avatar || "",
           type
         });
+
+        if (receiverUser && (receiverUser.role === "teacher" || receiverUser.role === "Teacher")) {
+          try {
+            await TeacherNotification.create({
+              teacher: receiverUser._id,
+              title: `Incoming ${type.toUpperCase()} Call`,
+              message: `${senderUser.name || "A user"} (${(senderUser.role || "User").toUpperCase()}) is calling you.`,
+              category: "Call Alerts"
+            });
+          } catch (notifErr) {
+            console.error("Error creating incoming call notification:", notifErr);
+          }
+        }
       } else {
         socket.emit("call:error", { message: "Calling unauthorized user" });
       }
@@ -577,6 +591,17 @@ io.on("connection", (socket) => {
         const roomId = [call.caller.toString(), call.receiver.toString()].sort().join("_");
         activeCallRooms.delete(roomId);
         emitToUser(call.receiver.toString(), "call:cancelled", { callId });
+
+        const receiverUserDoc = await User.findById(call.receiver);
+        if (receiverUserDoc && (receiverUserDoc.role === "teacher" || receiverUserDoc.role === "Teacher")) {
+          const callerDoc = await User.findById(call.caller);
+          await TeacherNotification.create({
+            teacher: call.receiver,
+            title: `Missed ${call.type ? call.type.toUpperCase() : "VOICE"} Call`,
+            message: `You missed a call from ${callerDoc ? callerDoc.name : "a user"}.`,
+            category: "Call Alerts"
+          });
+        }
       }
     } catch (err) {
       console.error("Error cancelling call:", err);

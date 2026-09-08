@@ -1,6 +1,8 @@
 const Exam = require("../models/Exam");
 const User = require("../models/User");
 const Class = require("../models/Class");
+const Subject = require("../models/Subject");
+const TeacherNotification = require("../models/TeacherNotification");
 
 
 // ================= CREATE EXAM =================
@@ -32,6 +34,32 @@ const exam = new Exam({
 });
 
 await exam.save();
+
+// Dispatch notifications to assigned teachers
+try {
+  if (proctorId) {
+    await TeacherNotification.create({
+      teacher: proctorId,
+      title: "Exam Conduct Assigned",
+      message: `You have been assigned to conduct ${mode || "offline"} exam "${title || "Exam"}" on ${date}${roomNumber ? ` (Room ${roomNumber})` : ""}.`,
+      category: "Exam Updates"
+    });
+  }
+
+  if (subjectId) {
+    const subj = await Subject.findById(subjectId);
+    if (subj && subj.teacher && subj.teacher.toString() !== (proctorId || "").toString()) {
+      await TeacherNotification.create({
+        teacher: subj.teacher,
+        title: "New Exam Scheduled",
+        message: `An exam "${title || "Exam"}" has been scheduled for your subject ${subj.name} on ${date}.`,
+        category: "Exam Updates"
+      });
+    }
+  }
+} catch (notifErr) {
+  console.error("TeacherNotification error during exam creation:", notifErr);
+}
 
 res.json({
 message:"Exam created successfully",

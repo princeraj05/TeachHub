@@ -14,7 +14,9 @@ import {
   FaChevronRight, 
   FaCheckCircle, 
   FaTimesCircle, 
-  FaExclamationCircle 
+  FaExclamationCircle,
+  FaComments,
+  FaPhoneAlt 
 } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
@@ -92,6 +94,12 @@ function NotificationsAndActivity() {
     } else if (category === "Announcements") {
       iconColor = "bg-blue-500/10 text-blue-500 border-blue-500/20";
       icon = <FaBullhorn className="text-xs" />;
+    } else if (category === "Chat Messages") {
+      iconColor = "bg-teal-500/10 text-teal-500 border-teal-500/20";
+      icon = <FaComments className="text-xs" />;
+    } else if (category === "Call Alerts") {
+      iconColor = "bg-rose-500/10 text-rose-500 border-rose-500/20";
+      icon = <FaPhoneAlt className="text-xs" />;
     } else if (category === "System Updates") {
       iconColor = "bg-indigo-500/10 text-indigo-500 border-indigo-500/20";
       icon = <FaInfoCircle className="text-xs" />;
@@ -173,9 +181,11 @@ function NotificationsAndActivity() {
                   className="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#1f2937] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
                 >
                   <option value="All">All Types</option>
+                  <option value="Exam Updates">Exam Updates</option>
+                  <option value="Chat Messages">Chat Messages</option>
+                  <option value="Call Alerts">Call Alerts</option>
                   <option value="Appointment Requests">Appointment Requests</option>
                   <option value="Leave Updates">Leave Updates</option>
-                  <option value="Exam Updates">Exam Updates</option>
                   <option value="Announcements">Announcements</option>
                   <option value="System Updates">System Updates</option>
                 </select>
@@ -348,24 +358,32 @@ function NotificationsAndActivity() {
 
             <div className="flex flex-col gap-3.5 select-none text-[10px] font-bold">
               <div className="flex items-center justify-between">
+                <span className="text-slate-450 flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Exam Updates</span>
+                <span className="text-slate-800 dark:text-white font-extrabold">{types.exam || 0}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-450 flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-teal-500" /> Chat Messages</span>
+                <span className="text-slate-800 dark:text-white font-extrabold">{types.chat || 0}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-450 flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-rose-500" /> Call Alerts</span>
+                <span className="text-slate-800 dark:text-white font-extrabold">{types.call || 0}</span>
+              </div>
+              <div className="flex items-center justify-between">
                 <span className="text-slate-450 flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-purple-500" /> Appointment Requests</span>
-                <span className="text-slate-800 dark:text-white font-extrabold">{types.appointment}</span>
+                <span className="text-slate-800 dark:text-white font-extrabold">{types.appointment || 0}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-450 flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Leave Updates</span>
-                <span className="text-slate-800 dark:text-white font-extrabold">{types.leave}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-450 flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Exam Updates</span>
-                <span className="text-slate-800 dark:text-white font-extrabold">{types.exam}</span>
+                <span className="text-slate-800 dark:text-white font-extrabold">{types.leave || 0}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-450 flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> Announcements</span>
-                <span className="text-slate-800 dark:text-white font-extrabold">{types.announcement}</span>
+                <span className="text-slate-800 dark:text-white font-extrabold">{types.announcement || 0}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-450 flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500" /> System Updates</span>
-                <span className="text-slate-800 dark:text-white font-extrabold">{types.system}</span>
+                <span className="text-slate-800 dark:text-white font-extrabold">{types.system || 0}</span>
               </div>
             </div>
 

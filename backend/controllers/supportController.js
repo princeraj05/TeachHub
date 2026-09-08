@@ -1,6 +1,7 @@
 const Message = require("../models/Message");
 const User = require("../models/User");
 const Call = require("../models/Call");
+const TeacherNotification = require("../models/TeacherNotification");
 const cloudinary = require("../config/cloudinary");
 const fs = require("fs");
 
@@ -109,6 +110,21 @@ exports.sendMessage = async (req, res) => {
             receiverId: receiver
           });
         }
+      // Dispatch notification if receiver is a teacher
+      try {
+        if (receiverUser && (receiverUser.role === "teacher" || receiverUser.role === "Teacher")) {
+          const senderName = req.user.name || "User";
+          const senderRoleStr = (req.user.role || "User").toUpperCase();
+          const previewText = content ? (content.length > 50 ? content.substring(0, 50) + "..." : content) : "Sent an attachment file.";
+          await TeacherNotification.create({
+            teacher: targetReceiverId,
+            title: `New Message from ${senderName} (${senderRoleStr})`,
+            message: previewText,
+            category: "Chat Messages"
+          });
+        }
+      } catch (notifErr) {
+        console.error("Error creating TeacherNotification for chat:", notifErr);
       }
 
       return res.status(201).json(populated);
@@ -337,34 +353,43 @@ exports.handleUpload = async (req, res) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    // Determine Cloudinary resource type
-    let resourceType = "auto";
-    if (req.file.mimetype.startsWith("image/")) {
-      resourceType = "image";
-    } else if (req.file.mimetype.startsWith("video/")) {
-      resourceType = "video";
-    } else if (req.file.mimetype.startsWith("audio/")) {
-      resourceType = "video"; // Cloudinary treats audio as video
-    } else {
-      resourceType = "raw"; // PDFs, docs, zips, etc.
+    let fileUrl = "";
+
+    // Try Cloudinary upload if configured
+    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+      try {
+        let resourceType = "auto";
+        if (req.file.mimetype.startsWith("image/")) {
+          resourceType = "image";
+        } else if (req.file.mimetype.startsWith("video/")) {
+          resourceType = "video";
+        } else if (req.file.mimetype.startsWith("audio/")) {
+          resourceType = "video"; // Cloudinary treats audio as video
+        } else {
+          resourceType = "raw";
+        }
+
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: "teachhub/support",
+          resource_type: resourceType
+        });
+        fileUrl = result.secure_url;
+
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+      } catch (cloudErr) {
+        console.warn("Cloudinary upload failed, using local storage fallback:", cloudErr.message);
+      }
     }
 
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "teachhub/support",
-      resource_type: resourceType
-    });
-
-    // Delete local temporary file
-    try {
-      if (fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-      }
-    } catch (err) {
-      console.error("Local file delete error:", err);
+    // Local file URL fallback if Cloudinary upload was not performed or failed
+    if (!fileUrl) {
+      fileUrl = `/uploads/${req.file.filename}`;
     }
 
     res.json({
-      url: result.secure_url,
+      url: fileUrl,
       filename: req.file.originalname,
       mimeType: req.file.mimetype,
       size: req.file.size,
@@ -372,7 +397,8 @@ exports.handleUpload = async (req, res) => {
       createdAt: new Date()
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Support handleUpload error:", error);
+    res.status(500).json({ message: error.message || "File upload failed" });
   }
 };
 

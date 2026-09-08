@@ -5,7 +5,7 @@ const teacherNotificationSchema = new mongoose.Schema({
   message: { type: String, required: true },
   category: { 
     type: String, 
-    enum: ["Appointment Requests", "Leave Updates", "Exam Updates", "Announcements", "System Updates"], 
+    enum: ["Appointment Requests", "Leave Updates", "Exam Updates", "Announcements", "System Updates", "Chat Messages", "Call Alerts"], 
     default: "System Updates" 
   },
   isRead: { type: Boolean, default: false },

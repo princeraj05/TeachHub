@@ -1310,13 +1310,34 @@ exports.getTeacherClassSignatureReport = async (req, res) => {
     let students = [];
     if (classId && classId !== "All") {
       const cls = await Class.findById(classId).populate("students", "name email rollNo").lean();
-      if (cls && cls.students && cls.students.length > 0) {
-        students = cls.students;
-      }
-    }
+      if (cls) {
+        const classStudents = cls.students || [];
+        const userStudents = await User.find({
+          role: { $regex: /^student$/i },
+          $or: [
+            { class: classId },
+            { className: cls.className || cls.name },
+            { className: `${cls.className || cls.name} (${cls.section || 'A'})` }
+          ]
+        }).select("name email rollNo").lean();
 
-    if (!students || students.length === 0) {
-      students = await User.find({ role: "student" }).select("name email rollNo").limit(30).lean();
+        const stdMap = new Map();
+        classStudents.forEach(s => { if (s && s._id) stdMap.set(s._id.toString(), s); });
+        userStudents.forEach(s => { if (s && s._id) stdMap.set(s._id.toString(), s); });
+
+        students = Array.from(stdMap.values());
+      }
+    } else {
+      const schoolName = req.user?.schoolName;
+      if (schoolName) {
+        const schoolRegex = new RegExp(`^${schoolName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, "i");
+        students = await User.find({
+          role: { $regex: /^student$/i },
+          $or: [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }]
+        }).select("name email rollNo").lean();
+      } else {
+        students = await User.find({ role: { $regex: /^student$/i } }).select("name email rollNo").limit(30).lean();
+      }
     }
 
     const query = { homeworkDate: targetDate };

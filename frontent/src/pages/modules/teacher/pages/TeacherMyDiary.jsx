@@ -206,6 +206,7 @@ export default function TeacherMyDiary() {
   };
 
   useEffect(() => {
+    setSelectedStudentId("All");
     fetchHomeworks();
     fetchSignatureReport();
   }, [selectedDate, selectedClassId]);

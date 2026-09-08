@@ -61,8 +61,12 @@ exports.getTeacherNotificationsDashboard = async (req, res) => {
     // 3. Count Summaries
     const totalCount = notifications.length;
     const unreadCount = notifications.filter(n => !n.isRead).length;
-    const thisWeekCount = 5;
-    const thisMonthCount = 3;
+
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const oneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    const thisWeekCount = notifications.filter(n => new Date(n.createdAt) >= oneWeekAgo).length;
+    const thisMonthCount = notifications.filter(n => new Date(n.createdAt) >= oneMonthAgo).length;
 
     // Type counts
     const typeCounts = {
@@ -70,7 +74,9 @@ exports.getTeacherNotificationsDashboard = async (req, res) => {
       leave: notifications.filter(n => n.category === "Leave Updates").length,
       exam: notifications.filter(n => n.category === "Exam Updates").length,
       announcement: notifications.filter(n => n.category === "Announcements").length,
-      system: notifications.filter(n => n.category === "System Updates").length
+      system: notifications.filter(n => n.category === "System Updates").length,
+      chat: notifications.filter(n => n.category === "Chat Messages").length,
+      call: notifications.filter(n => n.category === "Call Alerts").length
     };
 
     // 4. Upcoming Reminders list
