@@ -572,7 +572,7 @@ function MarkAttendance() {
                     <th className="px-6 py-4 w-12 text-center">#</th>
                     <th className="px-6 py-4">Student</th>
                     <th className="px-6 py-4">Roll No.</th>
-                    <th className="px-6 py-4 text-center">Status</th>
+                    <th className="px-6 py-4 text-center">Attendance (ON / OFF)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-white/[0.03]">
@@ -582,6 +582,7 @@ function MarkAttendance() {
                       : "S";
                     const isChecked = selectedStudentIds.has(s._id);
                     const currentStatus = attendance[s._id] || "Present";
+                    const isPresent = currentStatus === "Present";
 
                     return (
                       <tr key={s._id} className="hover:bg-slate-50/30 dark:hover:bg-white/[0.01] transition-all">
@@ -611,34 +612,48 @@ function MarkAttendance() {
 
                         {/* Roll Number */}
                         <td className="px-6 py-4 font-black text-slate-500 dark:text-slate-400">
-                          {s.rollNo}
+                          {s.rollNo ? `#${s.rollNo}` : "—"}
                         </td>
 
-                        {/* Status Toggle buttons */}
+                        {/* ON / OFF Attendance Toggle Switch */}
                         <td className="px-6 py-4">
-                          <div className="flex items-center justify-center gap-2">
-                            {/* Present Button */}
+                          <div className="flex items-center justify-center gap-3">
+                            {/* Toggle Button */}
                             <button
-                              onClick={() => handleStatusChange(s._id, "Present")}
-                              className={`px-4 py-1.5 rounded-lg font-bold border transition-all cursor-pointer flex items-center gap-1 ${
-                                currentStatus === "Present"
-                                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500 shadow-sm"
-                                  : "border-slate-200 dark:border-white/[0.05] text-slate-450 hover:bg-slate-100 dark:hover:bg-white/[0.02]"
+                              type="button"
+                              onClick={() => handleStatusChange(s._id, isPresent ? "Absent" : "Present")}
+                              className={`relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                isPresent
+                                  ? "bg-emerald-500 shadow-md shadow-emerald-500/25"
+                                  : "bg-rose-500/30 border-rose-500/30 dark:bg-rose-500/20"
                               }`}
+                              title={isPresent ? "Click to set OFF (Absent)" : "Click to set ON (Present)"}
                             >
-                              <FaCheck className="text-[9px]" /> Present
+                              <span
+                                className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out flex items-center justify-center ${
+                                  isPresent ? "translate-x-7" : "translate-x-0"
+                                }`}
+                              >
+                                {isPresent ? (
+                                  <FaCheck className="text-[10px] text-emerald-600 font-bold" />
+                                ) : (
+                                  <FaTimes className="text-[10px] text-rose-500 font-bold" />
+                                )}
+                              </span>
                             </button>
 
-                            {/* Absent Button */}
+                            {/* Badge */}
                             <button
-                              onClick={() => handleStatusChange(s._id, "Absent")}
-                              className={`px-4 py-1.5 rounded-lg font-bold border transition-all cursor-pointer flex items-center gap-1 ${
-                                currentStatus === "Absent"
-                                  ? "bg-rose-500/10 border-rose-500/30 text-rose-500 shadow-sm"
-                                  : "border-slate-200 dark:border-white/[0.05] text-slate-450 hover:bg-slate-100 dark:hover:bg-white/[0.02]"
+                              type="button"
+                              onClick={() => handleStatusChange(s._id, isPresent ? "Absent" : "Present")}
+                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider border select-none w-32 justify-center transition-all cursor-pointer ${
+                                isPresent
+                                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
+                                  : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 hover:bg-rose-500/20"
                               }`}
                             >
-                              <FaTimes className="text-[9px]" /> Absent
+                              <span className={`w-2 h-2 rounded-full ${isPresent ? "bg-emerald-500 animate-pulse" : "bg-rose-500"}`} />
+                              {isPresent ? "ON (Present)" : "OFF (Absent)"}
                             </button>
                           </div>
                         </td>
