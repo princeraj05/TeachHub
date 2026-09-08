@@ -79,6 +79,8 @@ const schoolSchema = new mongoose.Schema({
 
   // New multi-tab fields
   coverImage: { type: String, default: "" },
+  coverPosition: { type: Number, default: 50 },
+  isLegacySeedCleaned: { type: Boolean, default: false },
   schoolPhotos: { type: [String], default: [] },
   principalPhoto: { type: String, default: "" },
   principalDesignation: { type: String, default: "" },

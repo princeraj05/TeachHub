@@ -59,6 +59,7 @@ function AboutYourSchool() {
 
   // Tab 2: School Media & Principal details states
   const [coverImage, setCoverImage] = useState("");
+  const [coverPosition, setCoverPosition] = useState(50);
   const [schoolPhotos, setSchoolPhotos] = useState([]);
   const [principalPhoto, setPrincipalPhoto] = useState("");
   const [principalDesignation, setPrincipalDesignation] = useState("");
@@ -119,6 +120,7 @@ function AboutYourSchool() {
 
         // Tab 2 fields
         setCoverImage(data.coverImage || "");
+        setCoverPosition(data.coverPosition !== undefined ? data.coverPosition : 50);
         setSchoolPhotos(data.schoolPhotos || []);
         setPrincipalPhoto(data.principalPhoto || "");
         setPrincipalDesignation(data.principalDesignation || "");
@@ -188,6 +190,7 @@ function AboutYourSchool() {
 
         // Tab 2 fields
         coverImage,
+        coverPosition,
         schoolPhotos,
         principalPhoto,
         principalDesignation,
@@ -460,6 +463,7 @@ function AboutYourSchool() {
         {activeTab === "media" && (
           <MediaPrincipalTab
             coverImage={coverImage} setCoverImage={setCoverImage}
+            coverPosition={coverPosition} setCoverPosition={setCoverPosition}
             schoolPhotos={schoolPhotos} setSchoolPhotos={setSchoolPhotos}
             principalPhoto={principalPhoto} setPrincipalPhoto={setPrincipalPhoto}
             principalName={principalName} setPrincipalName={setPrincipalName}

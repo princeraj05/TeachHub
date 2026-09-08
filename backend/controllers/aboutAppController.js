@@ -10,13 +10,19 @@ exports.getAboutInfo = async (req, res) => {
       info = await AboutApp.create({});
     }
 
+    // Clean legacy dummy G.D. Academy records
+    await School.deleteMany({ name: { $in: ["G.D Accedmy", "G.D Accedmy ", "G.D. Academy", "G.D Academy"] } });
+    await School.deleteMany({ normalizedName: { $in: ["g.d accedmy", "g.d. academy", "g.d academy"] } });
+
     const studentCount = await User.countDocuments({ role: "student" });
     const teacherCount = await User.countDocuments({ role: "teacher" });
     const adminCount = await User.countDocuments({ role: { $in: ["admin", "superadmin"] } });
     const schoolCount = await School.countDocuments({});
 
-    const publicSchools = await School.find({})
-      .select("name photo coverImage motto address")
+    const publicSchools = await School.find({
+      name: { $nin: ["G.D Accedmy", "G.D. Academy", "G.D Academy"] }
+    })
+      .select("name photo coverImage motto address coverPosition")
       .lean();
 
     const data = info.toObject ? info.toObject() : { ...info };

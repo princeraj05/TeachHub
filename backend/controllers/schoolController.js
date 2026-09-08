@@ -107,7 +107,7 @@ exports.getMySchool = async (req, res) => {
     let modified = false;
 
     // Self-clean legacy dummy seed data ONLY if document still contains untouched auto-seeded dummy markers
-    const isUncleanedLegacySeed = Boolean(
+    const isUncleanedLegacySeed = !school.isLegacySeedCleaned && Boolean(
       school.email === "gdaccedmy@gmail.com" ||
       school.code === "GDAC2026" ||
       school.principalName === "Banny Thapar" ||
@@ -133,7 +133,6 @@ exports.getMySchool = async (req, res) => {
       if (school.affiliation === "CBSE") { school.affiliation = ""; }
       if (school.academicYear === "2026 - 2027") { school.academicYear = ""; }
       if (school.medium === "English") { school.medium = ""; }
-      if (school.schoolBoardType === "Private") { school.schoolBoardType = ""; }
 
       // Clean Tab 3 (Admission & Settings) legacy dummy defaults
       if (Array.isArray(school.schoolCategoriesList) && (
@@ -155,6 +154,7 @@ exports.getMySchool = async (req, res) => {
       if (Array.isArray(school.holidays) && school.holidays.some(h => h.name === "Independence Day" || h.name === "Teachers' Day" || h.name === "Gandhi Jayanti")) {
         school.holidays = [];
       }
+      school.isLegacySeedCleaned = true;
       modified = true;
     }
 
@@ -283,6 +283,7 @@ exports.updateMySchool = async (req, res) => {
 
       // Multi-tab fields
       coverImage,
+      coverPosition,
       schoolPhotos,
       principalPhoto,
       principalDesignation,
@@ -337,6 +338,7 @@ exports.updateMySchool = async (req, res) => {
 
     // Multi-tab fields
     if (coverImage !== undefined) school.coverImage = coverImage;
+    if (coverPosition !== undefined && !isNaN(coverPosition)) school.coverPosition = Number(coverPosition);
     if (schoolPhotos !== undefined) school.schoolPhotos = schoolPhotos;
     if (principalPhoto !== undefined) school.principalPhoto = principalPhoto;
     if (principalDesignation !== undefined) school.principalDesignation = principalDesignation;
@@ -355,6 +357,8 @@ exports.updateMySchool = async (req, res) => {
     if (lunchBreakStartTime !== undefined) school.lunchBreakStartTime = lunchBreakStartTime;
     if (lunchBreakDuration !== undefined && !isNaN(lunchBreakDuration)) school.lunchBreakDuration = Number(lunchBreakDuration);
     if (holidays !== undefined) school.holidays = holidays;
+
+    school.isLegacySeedCleaned = true;
 
     await school.save();
 

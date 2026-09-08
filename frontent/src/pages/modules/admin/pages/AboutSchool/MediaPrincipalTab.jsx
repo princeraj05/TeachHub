@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { compressImage } from "../../../../../utils/mediaCompression";
+import BannerCropModal from "../../../../../components/BannerCropModal";
 import {
   FaCamera,
   FaEye,
@@ -11,11 +12,14 @@ import {
   FaUserTie,
   FaInfoCircle,
   FaImage,
-  FaUpload
+  FaUpload,
+  FaCropAlt,
+  FaArrowsAltV
 } from "react-icons/fa";
 
 function MediaPrincipalTab({
   coverImage, setCoverImage,
+  coverPosition = 50, setCoverPosition,
   schoolPhotos, setSchoolPhotos,
   principalPhoto, setPrincipalPhoto,
   principalName, setPrincipalName,
@@ -29,6 +33,8 @@ function MediaPrincipalTab({
 
   const [activePhotoPreview, setActivePhotoPreview] = useState(null);
   const [activeReplaceIndex, setActiveReplaceIndex] = useState(null);
+  const [showBannerCropModal, setShowBannerCropModal] = useState(false);
+  const [tempCoverForCrop, setTempCoverForCrop] = useState(null);
 
   const getMediaUrl = (url) => {
     if (!url) return "";
@@ -84,17 +90,23 @@ function MediaPrincipalTab({
     if (inputEl) inputEl.click();
   };
 
-  const handleCoverUpload = async (e) => {
+  const handleCoverUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
-    let uploadFile = file;
-    try { uploadFile = await compressImage(file); } catch (cErr) {}
+    setTempCoverForCrop(file);
+    setShowBannerCropModal(true);
+    e.target.value = "";
+  };
 
-    const formData = new FormData();
-    formData.append("image", uploadFile);
-    
+  const handleSaveCroppedBanner = async (croppedDataUrl) => {
     try {
+      const response = await fetch(croppedDataUrl);
+      const blob = await response.blob();
+      const file = new File([blob], `cover_${Date.now()}.jpg`, { type: "image/jpeg" });
+
+      const formData = new FormData();
+      formData.append("image", file);
+
       const token = localStorage.getItem("token");
       const res = await axios.post(`${API}/api/schools/upload`, formData, {
         headers: {
@@ -102,12 +114,17 @@ function MediaPrincipalTab({
           Authorization: `Bearer ${token}`
         }
       });
+
       if (res.data?.url) {
         setCoverImage(res.data.url);
         autoSaveMedia({ coverImage: res.data.url });
       }
     } catch (err) {
-      alert("Failed to upload cover banner image. Please try again.");
+      console.error("Failed to upload cropped cover banner:", err);
+      alert("Failed to save cropped cover banner. Please try again.");
+    } finally {
+      setShowBannerCropModal(false);
+      setTempCoverForCrop(null);
     }
   };
 
@@ -316,7 +333,19 @@ function MediaPrincipalTab({
             <FaCamera className="text-purple-500 text-sm" />
             <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">School Cover Banner</h3>
           </div>
-          <div>
+          <div className="flex items-center gap-2">
+            {coverImage && (
+              <button
+                type="button"
+                onClick={() => {
+                  setTempCoverForCrop(getMediaUrl(coverImage));
+                  setShowBannerCropModal(true);
+                }}
+                className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-lg transition cursor-pointer border border-white/10"
+              >
+                <FaCropAlt className="text-purple-400" /> Crop Banner
+              </button>
+            )}
             <input
               type="file"
               id="cover-photo-file-input"
@@ -345,9 +374,20 @@ function MediaPrincipalTab({
               <img
                 src={getMediaUrl(coverImage)}
                 alt="School Widescreen Cover Banner"
+                style={{ objectPosition: `center ${coverPosition !== undefined ? coverPosition : 50}%` }}
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
               />
               <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTempCoverForCrop(getMediaUrl(coverImage));
+                    setShowBannerCropModal(true);
+                  }}
+                  className="px-3 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-extrabold rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-lg"
+                >
+                  <FaCropAlt /> Crop & Rotate
+                </button>
                 <button
                   type="button"
                   onClick={() => setActivePhotoPreview(coverImage)}
@@ -381,6 +421,81 @@ function MediaPrincipalTab({
             </div>
           )}
         </div>
+
+        {/* Vertical Position (Upar / Niche Adjust) Controls */}
+        {coverImage && (
+          <div className="mt-4 p-3.5 rounded-xl bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <FaArrowsAltV className="text-purple-500 text-xs" />
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                Vertical Alignment (Upar / Niche Adjust):
+              </span>
+              <span className="text-xs font-black text-purple-600 dark:text-purple-400">
+                {coverPosition !== undefined ? coverPosition : 50}%
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value={coverPosition !== undefined ? coverPosition : 50}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setCoverPosition(val);
+                  autoSaveMedia({ coverPosition: val });
+                }}
+                className="w-full sm:w-48 accent-purple-600 cursor-pointer"
+              />
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCoverPosition(0);
+                    autoSaveMedia({ coverPosition: 0 });
+                  }}
+                  className={`px-2 py-1 rounded-md text-[10px] font-extrabold border cursor-pointer transition ${
+                    coverPosition === 0
+                      ? "bg-purple-600 text-white border-purple-600"
+                      : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
+                  }`}
+                >
+                  Top
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCoverPosition(50);
+                    autoSaveMedia({ coverPosition: 50 });
+                  }}
+                  className={`px-2 py-1 rounded-md text-[10px] font-extrabold border cursor-pointer transition ${
+                    coverPosition === 50
+                      ? "bg-purple-600 text-white border-purple-600"
+                      : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
+                  }`}
+                >
+                  Center
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCoverPosition(100);
+                    autoSaveMedia({ coverPosition: 100 });
+                  }}
+                  className={`px-2 py-1 rounded-md text-[10px] font-extrabold border cursor-pointer transition ${
+                    coverPosition === 100
+                      ? "bg-purple-600 text-white border-purple-600"
+                      : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
+                  }`}
+                >
+                  Bottom
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* LOWER GRID: PRINCIPAL LEADERSHIP & DETAILS */}
@@ -558,6 +673,18 @@ function MediaPrincipalTab({
             <img src={getMediaUrl(activePhotoPreview)} alt="Preview" className="max-w-full max-h-[75vh] object-contain rounded-lg" />
           </div>
         </div>
+      )}
+
+      {/* Banner Crop Modal */}
+      {showBannerCropModal && tempCoverForCrop && (
+        <BannerCropModal
+          imageSrc={tempCoverForCrop}
+          onClose={() => {
+            setShowBannerCropModal(false);
+            setTempCoverForCrop(null);
+          }}
+          onSave={handleSaveCroppedBanner}
+        />
       )}
 
       {/* Info warning banner */}

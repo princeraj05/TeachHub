@@ -25,19 +25,13 @@ const SORA = "'Sora', sans-serif";
 
 const DEFAULT_SCHOOL_BANNERS = [
   {
-    name: "G.D. Academy",
-    motto: "Learn • Grow • Succeed",
-    coverImage: "https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=1200&q=80",
-    photo: ""
-  },
-  {
-    name: "St. Xavier's High School",
+    name: "TeachHub Partner School",
     motto: "Excellence in Education & Character",
     coverImage: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80",
     photo: ""
   },
   {
-    name: "Delhi Public School",
+    name: "National Public School",
     motto: "Service Before Self",
     coverImage: "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80",
     photo: ""
@@ -81,19 +75,46 @@ function Login() {
     fetchAboutInfo();
   }, [API]);
 
+  const getMediaUrl = (url) => {
+    if (!url) return "";
+    if (url.startsWith("data:") || url.startsWith("blob:")) return url;
+    const base = API || "http://localhost:5000";
+    const cleanBase = base.replace(/\/+$/, "");
+
+    if (url.includes("/uploads/")) {
+      const path = url.substring(url.indexOf("/uploads/"));
+      return `${cleanBase}${path}`;
+    }
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      return url;
+    }
+    if (url.startsWith("/")) {
+      return `${cleanBase}${url}`;
+    }
+    return `${cleanBase}/${url}`;
+  };
+
   // Combine uploaded school banners with default banners fallback
   const bannersList = useMemo(() => {
-    const uploaded = publicSchools.filter(s => s && s.coverImage && s.coverImage.trim() !== "");
+    const uploaded = publicSchools.filter(s => s && ((s.coverImage && s.coverImage.trim() !== "") || (s.photo && s.photo.trim() !== "")));
     if (uploaded.length > 0) {
-      return uploaded;
+      return uploaded.map((s, idx) => ({
+        name: s.name || `School ${idx + 1}`,
+        motto: s.motto || "Learn • Grow • Succeed",
+        photo: s.photo || "",
+        coverImage: (s.coverImage && s.coverImage.trim() !== "")
+          ? s.coverImage
+          : DEFAULT_SCHOOL_BANNERS[idx % DEFAULT_SCHOOL_BANNERS.length].coverImage,
+        coverPosition: s.coverPosition !== undefined ? s.coverPosition : 50
+      }));
     }
-    // If no coverImage uploaded yet, check if schools exist and attach fallback image
     if (publicSchools.length > 0) {
       return publicSchools.map((s, idx) => ({
         name: s.name || `School ${idx + 1}`,
         motto: s.motto || "Learn • Grow • Succeed",
         photo: s.photo || "",
-        coverImage: DEFAULT_SCHOOL_BANNERS[idx % DEFAULT_SCHOOL_BANNERS.length].coverImage
+        coverImage: DEFAULT_SCHOOL_BANNERS[idx % DEFAULT_SCHOOL_BANNERS.length].coverImage,
+        coverPosition: 50
       }));
     }
     return DEFAULT_SCHOOL_BANNERS;
@@ -300,14 +321,15 @@ function Login() {
           <div className="w-full relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80 dark:border-white/10 mb-6 bg-slate-900 group aspect-[2.4/1]">
             <img
               key={currentBanner.coverImage}
-              src={currentBanner.coverImage}
+              src={getMediaUrl(currentBanner.coverImage)}
               alt={currentBanner.name}
+              style={{ objectPosition: `center ${currentBanner.coverPosition !== undefined ? currentBanner.coverPosition : 50}%` }}
               className="w-full h-full object-cover transition-all duration-1000 ease-in-out scale-105 group-hover:scale-100"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-5 text-left text-white">
               <div className="flex items-center gap-2.5 mb-1.5">
                 {currentBanner.photo ? (
-                  <img src={currentBanner.photo} alt="Logo" className="w-8 h-8 rounded-xl object-cover border border-white/30" />
+                  <img src={getMediaUrl(currentBanner.photo)} alt="Logo" className="w-8 h-8 rounded-xl object-cover border border-white/30" />
                 ) : (
                   <div className="w-8 h-8 rounded-xl bg-purple-600/80 backdrop-blur-md flex items-center justify-center border border-white/30 text-white font-black text-xs">
                     <FaSchool />
@@ -370,7 +392,7 @@ function Login() {
         <div className="w-full max-w-[440px] flex items-center justify-between px-1 py-1 lg:hidden mb-3">
           <div className="flex items-center gap-2.5">
             {logoUrl ? (
-              <img src={logoUrl} alt={platformName} className="w-7 h-7 object-contain rounded-lg shrink-0" />
+              <img src={getMediaUrl(logoUrl)} alt={platformName} className="w-7 h-7 object-contain rounded-lg shrink-0" />
             ) : (
               <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white text-xs shadow-sm shrink-0">
                 <FaGraduationCap />
@@ -401,14 +423,15 @@ function Login() {
           <div className="w-full relative rounded-3xl overflow-hidden shadow-xl border border-slate-200/80 dark:border-white/10 bg-slate-900 aspect-[2.2/1]">
             <img
               key={currentBanner.coverImage}
-              src={currentBanner.coverImage}
+              src={getMediaUrl(currentBanner.coverImage)}
               alt={currentBanner.name}
+              style={{ objectPosition: `center ${currentBanner.coverPosition !== undefined ? currentBanner.coverPosition : 50}%` }}
               className="w-full h-full object-cover transition-all duration-1000 ease-in-out"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-4 text-left text-white">
               <div className="flex items-center gap-2.5">
                 {currentBanner.photo ? (
-                  <img src={currentBanner.photo} alt="Logo" className="w-7 h-7 rounded-lg object-cover border border-white/30" />
+                  <img src={getMediaUrl(currentBanner.photo)} alt="Logo" className="w-7 h-7 rounded-lg object-cover border border-white/30" />
                 ) : (
                   <div className="w-7 h-7 rounded-lg bg-purple-600/80 flex items-center justify-center text-white text-xs border border-white/30">
                     <FaSchool />
