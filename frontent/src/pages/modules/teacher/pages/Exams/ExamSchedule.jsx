@@ -12,7 +12,9 @@ import {
   FaSearch, 
   FaEllipsisV, 
   FaEye, 
-  FaCalendarCheck 
+  FaCalendarCheck,
+  FaLaptop,
+  FaFileAlt 
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
@@ -230,6 +232,7 @@ function ExamSchedule() {
                   <th className="px-6 py-4">Exam Name</th>
                   <th className="px-6 py-4">Subject</th>
                   <th className="px-6 py-4">Class</th>
+                  <th className="px-6 py-4">Mode</th>
                   <th className="px-6 py-4">Room / Venue</th>
                   <th className="px-6 py-4">Date</th>
                   <th className="px-6 py-4">Time</th>
@@ -284,6 +287,18 @@ function ExamSchedule() {
                       {/* Class */}
                       <td className="px-6 py-4 font-extrabold text-slate-650 dark:text-slate-300">
                         {e.className}
+                      </td>
+
+                      {/* Mode (Online / Offline) */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border select-none ${
+                          e.mode === "online"
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                            : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                        }`}>
+                          {e.mode === "online" ? <FaLaptop className="text-[10px]" /> : <FaFileAlt className="text-[10px]" />}
+                          {e.mode === "online" ? "Online" : "Offline"}
+                        </span>
                       </td>
 
                       {/* Room / Venue */}
