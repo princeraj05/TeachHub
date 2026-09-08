@@ -105,13 +105,13 @@ function AdmissionSettingsTab({
         </div>
 
         {/* Admission Process */}
-        <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between">
           <div>
-            <div className="flex items-center gap-2 border-b border-slate-800/60 pb-3 mb-4">
+            <div className="flex items-center gap-2 border-b border-slate-200/60 dark:border-slate-800/60 pb-3 mb-4">
               <FaClipboardList className="text-purple-500 text-sm" />
-              <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">Admission Process</h3>
+              <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">Admission Process</h3>
             </div>
-            <p className="text-[10px] text-slate-400 font-medium mb-4">Select all admission processes that apply to your school.</p>
+            <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium mb-4">Select all admission processes that apply to your school.</p>
 
             <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
               {[
@@ -133,17 +133,21 @@ function AdmissionSettingsTab({
 
                 return (
                   <label key={opt.title} className={`flex items-start gap-3 p-3.5 rounded-xl border transition cursor-pointer select-none ${
-                    checked ? "border-purple-600 bg-purple-600/10" : "border-slate-850 bg-[#131B35]/20 hover:bg-[#131B35]/40"
+                    checked
+                      ? "border-purple-600 bg-purple-50 dark:bg-purple-600/10"
+                      : "border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-[#131B35]/20 hover:bg-slate-100 dark:hover:bg-[#131B35]/40"
                   }`}>
                     <input
                       type="checkbox"
                       checked={checked}
                       onChange={toggleOption}
-                      className="mt-0.5 rounded border-slate-700 bg-slate-900 text-purple-600 focus:ring-purple-500/20"
+                      className="mt-0.5 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-purple-600 focus:ring-purple-500/20"
                     />
                     <div>
-                      <span className={`block text-xs font-bold ${checked ? "text-purple-400 font-extrabold" : "text-white"}`}>{opt.title}</span>
-                      <span className="block text-[10px] text-slate-400 mt-0.5 leading-normal">
+                      <span className={`block text-xs font-bold ${
+                        checked ? "text-purple-600 dark:text-purple-400 font-extrabold" : "text-slate-900 dark:text-white"
+                      }`}>{opt.title}</span>
+                      <span className="block text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-normal">
                         {opt.desc}
                       </span>
                     </div>
