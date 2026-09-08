@@ -27,7 +27,8 @@ import {
   FaCheck,
   FaComments,
   FaIdCard,
-  FaShieldAlt
+  FaShieldAlt,
+  FaHashtag
 } from "react-icons/fa";
 import { compressAvatar } from "../utils/mediaCompression";
 
@@ -298,10 +299,19 @@ function UserProfile() {
                     <span>{formData.experience || "1 Year"} Exp</span>
                   </span>
                 ) : (
-                  <span className="px-3 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1.5 border border-white/20">
-                    <FaGraduationCap className="text-cyan-300 text-xs" />
-                    <span>{isAdmittedStudent ? `Class: ${formData.targetClass || "Class 1"}` : `Target: ${formData.targetClass || "Class 1"}`}</span>
-                  </span>
+                  <>
+                    <span className="px-3 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1.5 border border-white/20">
+                      <FaGraduationCap className="text-cyan-300 text-xs" />
+                      <span>{isAdmittedStudent ? `Class: ${formData.targetClass || "Class 1"}` : `Target: ${formData.targetClass || "Class 1"}`}</span>
+                    </span>
+
+                    {user?.rollNo !== undefined && user?.rollNo !== null && user?.rollNo !== "" && (
+                      <span className="px-3 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1.5 border border-white/20">
+                        <FaHashtag className="text-emerald-300 text-xs" />
+                        <span>Roll No: #{user.rollNo}</span>
+                      </span>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -424,6 +434,13 @@ function UserProfile() {
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{isPendingApplicant ? "TARGET ADMISSION CLASS" : "CLASS"}</p>
                     <p className="text-xs font-black text-[#7C3AED] dark:text-[#38BDF8] mt-1">{formData.targetClass || "Class 1"}</p>
                   </div>
+
+                  {user?.rollNo !== undefined && user?.rollNo !== null && user?.rollNo !== "" && (
+                    <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">ROLL NUMBER</p>
+                      <p className="text-xs font-black text-emerald-600 dark:text-emerald-400 mt-1">#{user.rollNo}</p>
+                    </div>
+                  )}
 
                   {isPendingApplicant && (
                     <>
