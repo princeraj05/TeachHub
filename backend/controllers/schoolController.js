@@ -106,6 +106,47 @@ exports.getMySchool = async (req, res) => {
     if (school.principalIntroduction && school.principalIntroduction.includes("With over 20 years of experience")) { school.principalIntroduction = ""; modified = true; }
     if (school.description && (school.description.includes("G.D Academy") || school.description.includes("reputed educational institution"))) { school.description = ""; modified = true; }
 
+    // Clean Tab 3 (Admission & Settings) legacy dummy defaults
+    if (Array.isArray(school.schoolCategoriesList) && (
+      (school.schoolCategoriesList.length === 4 && school.schoolCategoriesList.includes("Primary") && school.schoolCategoriesList.includes("Residential")) ||
+      (school.schoolCategoriesList.length === 3 && school.schoolCategoriesList.includes("Primary") && school.schoolCategoriesList.includes("Co-Educational"))
+    )) {
+      school.schoolCategoriesList = [];
+      modified = true;
+    }
+    if (Array.isArray(school.admissionProcess) && school.admissionProcess.length === 1 && school.admissionProcess[0] === "Direct Admission") {
+      school.admissionProcess = [];
+      modified = true;
+    }
+    if (school.schoolBoardType === "Private") {
+      school.schoolBoardType = "";
+      modified = true;
+    }
+    if (Array.isArray(school.workingDays) && school.workingDays.length === 5 && school.workingDays.includes("Mon") && school.workingDays.includes("Fri")) {
+      school.workingDays = [];
+      modified = true;
+    }
+    if (school.openingTime === "08:00 AM") {
+      school.openingTime = "";
+      modified = true;
+    }
+    if (school.closingTime === "04:00 PM") {
+      school.closingTime = "";
+      modified = true;
+    }
+    if (school.shortBreakStartTime === "11:00 AM") {
+      school.shortBreakStartTime = "";
+      modified = true;
+    }
+    if (school.lunchBreakStartTime === "12:30 PM") {
+      school.lunchBreakStartTime = "";
+      modified = true;
+    }
+    if (Array.isArray(school.holidays) && school.holidays.some(h => h.name === "Independence Day" || h.name === "Teachers' Day" || h.name === "Gandhi Jayanti")) {
+      school.holidays = [];
+      modified = true;
+    }
+
     // Self-clean legacy dummy seed URLs that may have broken previously
     if (school.photo && school.photo.includes("/uploads/schoolPhotos-")) {
       school.photo = "";
