@@ -1,5 +1,6 @@
 import React from "react";
 import axios from "axios";
+import { getMediaUrl } from "../../../../../config/api";
 import {
   FaSchool,
   FaUsers,
@@ -115,7 +116,7 @@ function BasicInfoTab({
             <div className="rounded-full overflow-hidden border-4 border-slate-800/80 w-36 h-36 bg-slate-900 flex items-center justify-center relative group shadow-xl">
               {photo ? (
                 <img
-                  src={photo.startsWith("http") || photo.startsWith("data:") ? photo : `${API}${photo}`}
+                  src={getMediaUrl(photo)}
                   alt="Official School Logo Badge"
                   className="w-full h-full object-cover"
                 />

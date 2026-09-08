@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { compressImage } from "../../../../../utils/mediaCompression";
 import BannerCropModal from "../../../../../components/BannerCropModal";
+import { getMediaUrl } from "../../../../../config/api";
 import {
   FaCamera,
   FaEye,
@@ -35,25 +36,6 @@ function MediaPrincipalTab({
   const [activeReplaceIndex, setActiveReplaceIndex] = useState(null);
   const [showBannerCropModal, setShowBannerCropModal] = useState(false);
   const [tempCoverForCrop, setTempCoverForCrop] = useState(null);
-
-  const getMediaUrl = (url) => {
-    if (!url) return "";
-    if (url.startsWith("data:") || url.startsWith("blob:")) return url;
-    const base = API || "http://localhost:5000";
-    const cleanBase = base.replace(/\/+$/, "");
-
-    if (url.includes("/uploads/")) {
-      const path = url.substring(url.indexOf("/uploads/"));
-      return `${cleanBase}${path}`;
-    }
-    if (url.startsWith("http://") || url.startsWith("https://")) {
-      return url;
-    }
-    if (url.startsWith("/")) {
-      return `${cleanBase}${url}`;
-    }
-    return `${cleanBase}/${url}`;
-  };
 
   const autoSaveMedia = async (updatedPayload) => {
     try {

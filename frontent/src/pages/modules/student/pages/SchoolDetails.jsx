@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import { getMediaUrl } from "../../../../config/api";
 import {
   FaSchool,
   FaUser,
@@ -307,7 +308,7 @@ function SchoolDetails() {
       if (school.photo) {
         return (
           <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 h-[200px] md:h-[280px] cursor-pointer" onClick={() => handleOpenSchoolPhotos(0)}>
-            <img src={school.photo} alt="School front" className="w-full h-full object-cover" />
+            <img src={getMediaUrl(school.photo)} alt="School front" className="w-full h-full object-cover" />
           </div>
         );
       }
@@ -317,7 +318,7 @@ function SchoolDetails() {
     if (photos.length === 1) {
       return (
         <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 h-[200px] md:h-[280px] cursor-pointer" onClick={() => handleOpenSchoolPhotos(0)}>
-          <img src={photos[0]} alt="School front" className="w-full h-full object-cover" />
+          <img src={getMediaUrl(photos[0])} alt="School front" className="w-full h-full object-cover" />
         </div>
       );
     }
@@ -330,7 +331,7 @@ function SchoolDetails() {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-3.5 h-auto md:h-[320px] select-none">
         {/* Large Left Image */}
         <div className="md:col-span-3 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 h-[200px] md:h-full relative group cursor-pointer" onClick={() => handleOpenSchoolPhotos(0)}>
-          <img src={mainPhoto} alt="Campus" className="w-full h-full object-cover transition duration-300 group-hover:scale-105" />
+          <img src={getMediaUrl(mainPhoto)} alt="Campus" className="w-full h-full object-cover transition duration-300 group-hover:scale-105" />
         </div>
         
         {/* Right Grid */}
@@ -340,7 +341,7 @@ function SchoolDetails() {
               const isLast = idx === rightPhotos.length - 1 && photos.length > 5;
               return (
                 <div key={idx} className="rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 h-full relative group cursor-pointer" onClick={() => handleOpenSchoolPhotos(idx + 1)}>
-                  <img src={photoUrl} alt="Campus view" className="w-full h-full object-cover transition duration-300 group-hover:scale-105" />
+                  <img src={getMediaUrl(photoUrl)} alt="Campus view" className="w-full h-full object-cover transition duration-300 group-hover:scale-105" />
                   {isLast && (
                     <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center text-white font-extrabold text-sm backdrop-blur-[2px]">
                       +{photos.length - 5} More Photos
@@ -376,11 +377,16 @@ function SchoolDetails() {
         {/* Cover Banner */}
         <div className="w-full h-32 sm:h-44 relative bg-slate-100 dark:bg-white/5 overflow-hidden select-none">
           {school.coverImage ? (
-            <img src={school.coverImage} alt={`${school.name} Cover`} className="w-full h-full object-cover" />
+            <img
+              src={getMediaUrl(school.coverImage)}
+              alt={`${school.name} Cover`}
+              style={{ objectPosition: `center ${school.coverPosition !== undefined ? school.coverPosition : 50}%` }}
+              className="w-full h-full object-cover"
+            />
           ) : school.schoolPhotos && school.schoolPhotos.length > 0 ? (
-            <img src={school.schoolPhotos[0]} alt={`${school.name} Cover`} className="w-full h-full object-cover" />
+            <img src={getMediaUrl(school.schoolPhotos[0])} alt={`${school.name} Cover`} className="w-full h-full object-cover" />
           ) : school.photo ? (
-            <img src={school.photo} alt={`${school.name} Cover`} className="w-full h-full object-cover" />
+            <img src={getMediaUrl(school.photo)} alt={`${school.name} Cover`} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-violet-600 to-indigo-855" />
           )}
@@ -396,7 +402,7 @@ function SchoolDetails() {
               {/* School Logo overlapping banner */}
               <div className="w-24 h-24 rounded-full bg-white dark:bg-[#0B132A] border-4 border-white dark:border-[#0B132A] flex items-center justify-center overflow-hidden shrink-0 shadow-lg mt-[-64px] relative z-10">
                 {school.photo ? (
-                  <img src={school.photo} alt="Logo" className="w-full h-full object-cover" />
+                  <img src={getMediaUrl(school.photo)} alt="Logo" className="w-full h-full object-cover" />
                 ) : (
                   <FaSchool className="text-3xl text-purple-500" />
                 )}
