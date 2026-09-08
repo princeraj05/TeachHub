@@ -14,7 +14,8 @@ import {
   FaTimesCircle,
   FaArrowLeft,
   FaUserGraduate,
-  FaGraduationCap
+  FaGraduationCap,
+  FaChalkboardTeacher
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
 
@@ -28,8 +29,8 @@ function StudentAttendance() {
 
   const [dbAttendance, setDbAttendance] = useState([]);
   const [profile, setProfile] = useState(null);
+  const [studentSubjects, setStudentSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState("All"); // "All", "Present", "Absent"
   
   // Modal state for Subject Details
   const [selectedSubjectModal, setSelectedSubjectModal] = useState(null);
@@ -40,15 +41,41 @@ function StudentAttendance() {
 
     Promise.all([
       axios.get(`${API}/api/student/attendance`, { headers: { Authorization: `Bearer ${token}` } }),
-      axios.get(`${API}/api/auth/profile`, { headers: { Authorization: `Bearer ${token}` } })
+      axios.get(`${API}/api/auth/profile`, { headers: { Authorization: `Bearer ${token}` } }),
+      axios.get(`${API}/api/student/subjects`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] }))
     ])
-      .then(([attRes, profileRes]) => {
+      .then(([attRes, profileRes, subjRes]) => {
         setDbAttendance(attRes.data || []);
         setProfile(profileRes.data);
+        setStudentSubjects(subjRes.data || []);
       })
       .catch((err) => console.log("Error loading attendance records:", err))
       .finally(() => setLoading(false));
   }, [API]);
+
+  // Build a map of assigned subject teachers from backend
+  const assignedTeacherMap = useMemo(() => {
+    const map = {};
+    if (Array.isArray(studentSubjects)) {
+      studentSubjects.forEach(s => {
+        if (s.name) {
+          const tName = s.teacher?.name || s.teacherName;
+          if (tName) {
+            map[s.name.trim()] = `Faculty: ${tName}`;
+          }
+        }
+      });
+    }
+    return map;
+  }, [studentSubjects]);
+
+  // Resolve real assigned teacher for subject
+  const getTeacherForSubject = (subjName, itemTeacher) => {
+    if (itemTeacher?.name) return `Faculty: ${itemTeacher.name}`;
+    if (assignedTeacherMap[subjName]) return assignedTeacherMap[subjName];
+    // Default to 'Lovely Coder' as set by Admin for Hindi, English and core subjects
+    return "Faculty: Lovely Coder";
+  };
 
   // Helper: Get weekday short name (e.g. "Mon", "Tue" etc.)
   const getWeekdayShort = (dateStr) => {
@@ -74,9 +101,8 @@ function StudentAttendance() {
     }
   };
 
-  // Helper: Decorate database records with standard subjects & teachers
+  // Helper: Decorate database records with subjects & real teachers
   const decoratedAttendance = useMemo(() => {
-    // Standard mock list if db has no records
     if (!dbAttendance || dbAttendance.length === 0) {
       const mockRecords = [];
       const baseDate = new Date("2026-09-08");
@@ -87,18 +113,15 @@ function StudentAttendance() {
         const dateISO = currentDate.toISOString().split("T")[0];
 
         DEFAULT_SUBJECTS.forEach((subj, sIdx) => {
-          // Determine status: 92% present rate pattern
           const isAbsent = (i % 7 === 0 && sIdx === 1) || (i % 11 === 0 && sIdx === 3);
+          const tName = getTeacherForSubject(subj, null);
+          
           mockRecords.push({
             _id: `mock_${i}_${sIdx}`,
             date: dateISO,
             status: isAbsent ? "Absent" : "Present",
             subject: subj,
-            teacherName: subj === "Hindi" ? "Faculty: Sunita Sharma"
-              : subj === "English" ? "Faculty: Gomathi Charley"
-              : subj === "Mathematics" ? "Faculty: Kriti Mathur"
-              : subj === "Social Science" ? "Faculty: Rajesh Verma"
-              : "Faculty: Dr. Balwinder Kaur",
+            teacherName: tName,
             dayShort: getWeekdayShort(dateISO),
             formattedDate: formatDateString(dateISO)
           });
@@ -110,7 +133,7 @@ function StudentAttendance() {
     return dbAttendance.map((item, idx) => {
       const salt = item._id ? item._id.charCodeAt(item._id.length - 1) : idx;
       const subjectName = item.subject?.name || item.subjectName || DEFAULT_SUBJECTS[salt % DEFAULT_SUBJECTS.length];
-      const teacherName = item.teacher?.name ? `Faculty: ${item.teacher.name}` : "Faculty: Subject Teacher";
+      const teacherName = getTeacherForSubject(subjectName, item.teacher);
 
       return {
         ...item,
@@ -120,7 +143,7 @@ function StudentAttendance() {
         formattedDate: formatDateString(item.date)
       };
     });
-  }, [dbAttendance]);
+  }, [dbAttendance, assignedTeacherMap]);
 
   // Calculations for overall KPI Cards
   const stats = useMemo(() => {
@@ -150,11 +173,7 @@ function StudentAttendance() {
     DEFAULT_SUBJECTS.forEach((subj) => {
       map[subj] = {
         subject: subj,
-        faculty: subj === "Hindi" ? "Faculty: Sunita Sharma"
-          : subj === "English" ? "Faculty: Gomathi Charley"
-          : subj === "Mathematics" ? "Faculty: Kriti Mathur"
-          : subj === "Social Science" ? "Faculty: Rajesh Verma"
-          : "Faculty: Dr. Balwinder Kaur",
+        faculty: getTeacherForSubject(subj, null),
         total: 0,
         present: 0,
         absent: 0,
@@ -169,7 +188,7 @@ function StudentAttendance() {
       if (!map[subj]) {
         map[subj] = {
           subject: subj,
-          faculty: item.teacherName || "Faculty: Subject Teacher",
+          faculty: getTeacherForSubject(subj, item.teacher),
           total: 0,
           present: 0,
           absent: 0,
@@ -185,12 +204,10 @@ function StudentAttendance() {
       } else {
         map[subj].absent += 1;
       }
-      if (item.teacherName) {
-        map[subj].faculty = item.teacherName;
-      }
+      map[subj].faculty = getTeacherForSubject(subj, item.teacher);
     });
 
-    // Calculate percentages & sort
+    // Calculate percentages
     return Object.values(map).map((item) => {
       const rate = item.total > 0 ? ((item.present / item.total) * 100).toFixed(1) : "0.0";
       return {
@@ -199,13 +216,7 @@ function StudentAttendance() {
         rateFormatted: `${rate}%`
       };
     });
-  }, [decoratedAttendance]);
-
-  // Helper: Filter records list for table
-  const filteredAttendance = useMemo(() => {
-    if (activeFilter === "All") return decoratedAttendance;
-    return decoratedAttendance.filter(item => item.status === activeFilter);
-  }, [decoratedAttendance, activeFilter]);
+  }, [decoratedAttendance, assignedTeacherMap]);
 
   // Radial progress chart stroke offset for overall
   const radius = 45;
@@ -344,12 +355,6 @@ function StudentAttendance() {
               ? "text-amber-500"
               : "text-rose-500";
 
-            const ringBgColorClass = isHigh
-              ? "bg-emerald-500/10 border-emerald-500/20"
-              : isMedium
-              ? "bg-amber-500/10 border-amber-500/20"
-              : "bg-rose-500/10 border-rose-500/20";
-
             const cRadius = 26;
             const cCircumference = 2 * Math.PI * cRadius;
             const cOffset = cCircumference - (subj.rate / 100) * cCircumference;
@@ -370,8 +375,9 @@ function StudentAttendance() {
                       <h4 className="text-sm font-black text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">
                         {subj.subject}
                       </h4>
-                      <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
-                        {subj.faculty}
+                      <p className="text-[11px] font-extrabold text-indigo-600 dark:text-indigo-400 truncate flex items-center gap-1.5">
+                        <FaChalkboardTeacher className="text-xs text-indigo-500" />
+                        <span>{subj.faculty}</span>
                       </p>
                     </div>
 
@@ -552,95 +558,6 @@ function StudentAttendance() {
         </div>
       </div>
 
-      {/* Attendance Records Log Section */}
-      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-sm">
-        
-        {/* Table Toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5 pb-4 border-b border-slate-100 dark:border-white/5">
-          <div>
-            <h3 className="text-sm font-black text-slate-900 dark:text-white tracking-tight">Attendance Records Log</h3>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Showing historical records list across all subjects</p>
-          </div>
-          
-          <div className="flex items-center gap-3 self-start sm:self-auto">
-            {/* Status pills selector */}
-            <div className="flex bg-slate-100 dark:bg-[#0B132A] p-1 rounded-xl border border-slate-200 dark:border-white/[0.06] select-none">
-              {["All", "Present", "Absent"].map((filter) => {
-                const isActive = activeFilter === filter;
-                return (
-                  <button
-                    key={filter}
-                    onClick={() => setActiveFilter(filter)}
-                    className={`px-3 py-1 rounded-lg text-[10px] font-extrabold tracking-wide transition-all cursor-pointer ${
-                      isActive
-                        ? "bg-[#2563EB] text-white shadow-sm"
-                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                    }`}
-                  >
-                    {filter}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Scrollable table data logs */}
-        <div className="overflow-x-auto select-text scrollbar-none">
-          <table className="w-full min-w-[620px] text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-100 dark:border-white/5 text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-black">
-                <th className="pb-3 pl-3">#</th>
-                <th className="pb-3">Date</th>
-                <th className="pb-3">Day</th>
-                <th className="pb-3">Status</th>
-                <th className="pb-3">Subject</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-xs text-slate-800 dark:text-slate-300 font-bold">
-              {filteredAttendance.length === 0 ? (
-                <tr>
-                  <td colSpan="5" className="text-center py-12 text-slate-400 dark:text-slate-500 font-black">
-                    <div className="flex flex-col items-center gap-2 select-none">
-                      <FaCalendarAlt className="text-2xl text-slate-300 dark:text-slate-700" />
-                      <span>No attendance records found matching this status filter.</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredAttendance.map((item, idx) => {
-                  const isPresent = item.status === "Present";
-                  return (
-                    <tr key={item._id || idx} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.01] transition-colors">
-                      <td className="py-3.5 pl-3 text-slate-400 dark:text-slate-500">{idx + 1}</td>
-                      <td className="py-3.5 font-black text-slate-900 dark:text-white">
-                        {item.formattedDate || formatDateString(item.date)}
-                      </td>
-                      <td className="py-3.5 text-slate-500 dark:text-slate-400">
-                        {item.dayShort || getWeekdayShort(item.date)}
-                      </td>
-                      <td className="py-3.5">
-                        <span className={`inline-flex items-center px-3 py-0.5 rounded text-[10px] font-black border ${
-                          isPresent
-                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                            : "bg-rose-500/10 text-rose-600 dark:text-rose-450 border-rose-500/20"
-                        }`}>
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="py-3.5 font-black text-slate-900 dark:text-white">
-                        {item.subject || "Mathematics"}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
-      </div>
-
       {/* Informational notification card alert at bottom */}
       <div className="flex items-start gap-3 bg-emerald-500/5 border border-emerald-500/15 rounded-2xl p-4 text-xs text-slate-600 dark:text-slate-400 select-none">
         <FaInfoCircle className="text-emerald-500 text-sm mt-0.5 shrink-0" />
@@ -674,7 +591,10 @@ function StudentAttendance() {
                   <h3 className="text-lg font-black tracking-tight text-white mt-1">
                     {selectedSubjectModal.subject}
                   </h3>
-                  <p className="text-xs text-slate-300 font-medium">{selectedSubjectModal.faculty}</p>
+                  <p className="text-xs text-indigo-300 font-extrabold flex items-center gap-1 mt-0.5">
+                    <FaChalkboardTeacher className="text-xs" />
+                    <span>{selectedSubjectModal.faculty}</span>
+                  </p>
                 </div>
               </div>
 
@@ -720,7 +640,7 @@ function StudentAttendance() {
               </div>
             </div>
 
-            {/* Detailed Session Logs List (Reference Image 5 format) */}
+            {/* Detailed Session Logs List */}
             <div className="p-4 sm:p-6 max-h-[380px] overflow-y-auto space-y-3 scrollbar-thin">
               {selectedSubjectModal.records
                 .filter(r => modalFilter === "All" || r.status === modalFilter)
@@ -753,8 +673,9 @@ function StudentAttendance() {
                               <p className="text-xs font-black text-slate-900 dark:text-white">
                                 {session.dayShort}, {session.formattedDate || session.date}
                               </p>
-                              <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
-                                {session.teacherName || selectedSubjectModal.faculty}
+                              <p className="text-[11px] font-extrabold text-indigo-600 dark:text-indigo-400 mt-0.5 flex items-center gap-1">
+                                <FaChalkboardTeacher className="text-xs" />
+                                <span>{session.teacherName || selectedSubjectModal.faculty}</span>
                               </p>
                             </div>
                           </div>

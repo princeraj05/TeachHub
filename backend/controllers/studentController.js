@@ -196,7 +196,9 @@ exports.getStudentAttendance = async (req,res)=>{
       student: studentId
     })
     .sort({ date:-1 })
-    .select("date status");
+    .populate("subject", "name")
+    .populate("teacher", "name email role")
+    .select("date status subject teacher remarks");
 
     res.json(attendance);
 
