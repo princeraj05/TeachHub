@@ -230,6 +230,7 @@ function ExamSchedule() {
                   <th className="px-6 py-4">Exam Name</th>
                   <th className="px-6 py-4">Subject</th>
                   <th className="px-6 py-4">Class</th>
+                  <th className="px-6 py-4">Room / Venue</th>
                   <th className="px-6 py-4">Date</th>
                   <th className="px-6 py-4">Time</th>
                   <th className="px-6 py-4">Duration</th>
@@ -283,6 +284,17 @@ function ExamSchedule() {
                       {/* Class */}
                       <td className="px-6 py-4 font-extrabold text-slate-650 dark:text-slate-300">
                         {e.className}
+                      </td>
+
+                      {/* Room / Venue */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {e.roomNumber ? (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 font-bold text-xs">
+                            {e.roomNumber}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 font-semibold text-xs">N/A</span>
+                        )}
                       </td>
 
                       {/* Date */}
