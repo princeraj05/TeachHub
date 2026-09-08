@@ -384,10 +384,17 @@ function TeacherLayout() {
           <div className="relative flex items-center gap-2.5 sm:gap-3 shrink-0">
             {/* Quick theme switch in header */}
             <button
+              type="button"
               onClick={toggleTheme}
-              className="p-1.5 sm:p-2 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400 cursor-pointer transition text-xs sm:text-sm"
+              className="p-2 sm:p-2.5 rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 cursor-pointer transition-all duration-200 text-xs sm:text-sm shadow-xs active:scale-95 flex items-center justify-center"
+              title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              aria-label="Toggle Theme"
             >
-              {theme === "dark" ? <FaSun className="text-amber-500" /> : <FaMoon />}
+              {theme === "dark" ? (
+                <FaSun className="text-amber-400 animate-pulse text-sm" />
+              ) : (
+                <FaMoon className="text-purple-600 dark:text-purple-400 text-sm" />
+              )}
             </button>
 
             <div

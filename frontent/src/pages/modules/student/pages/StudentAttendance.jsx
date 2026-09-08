@@ -256,7 +256,7 @@ function StudentAttendance() {
       </div>
 
       {/* Aggregate Attendance Header Ribbon */}
-      <div className="w-full bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 dark:from-[#0B132A] dark:via-[#111A3A] dark:to-[#172554] border border-slate-800 dark:border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="w-full bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#38BDF8] dark:from-[#0B132A] dark:via-[#111A3A] dark:to-[#172554] border border-purple-500/20 dark:border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-400 text-lg shrink-0">
             <FaGraduationCap />

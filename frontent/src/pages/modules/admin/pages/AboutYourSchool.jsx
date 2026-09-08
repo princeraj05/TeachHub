@@ -69,14 +69,14 @@ function AboutYourSchool() {
 
   // Tab 3: Admission & Settings states
   const [schoolCategoriesList, setSchoolCategoriesList] = useState([]);
-  const [admissionProcess, setAdmissionProcess] = useState(["Direct Admission"]);
-  const [schoolBoardType, setSchoolBoardType] = useState("Private");
-  const [workingDays, setWorkingDays] = useState(["Mon", "Tue", "Wed", "Thu", "Fri"]);
-  const [openingTime, setOpeningTime] = useState("08:00 AM");
-  const [closingTime, setClosingTime] = useState("04:00 PM");
-  const [shortBreakStartTime, setShortBreakStartTime] = useState("11:00 AM");
+  const [admissionProcess, setAdmissionProcess] = useState([]);
+  const [schoolBoardType, setSchoolBoardType] = useState("");
+  const [workingDays, setWorkingDays] = useState([]);
+  const [openingTime, setOpeningTime] = useState("");
+  const [closingTime, setClosingTime] = useState("");
+  const [shortBreakStartTime, setShortBreakStartTime] = useState("");
   const [shortBreakDuration, setShortBreakDuration] = useState(30);
-  const [lunchBreakStartTime, setLunchBreakStartTime] = useState("12:30 PM");
+  const [lunchBreakStartTime, setLunchBreakStartTime] = useState("");
   const [lunchBreakDuration, setLunchBreakDuration] = useState(60);
   const [holidays, setHolidays] = useState([]);
 
@@ -121,7 +121,7 @@ function AboutYourSchool() {
         setCoverImage(data.coverImage || "");
         setSchoolPhotos(data.schoolPhotos || []);
         setPrincipalPhoto(data.principalPhoto || "");
-        setPrincipalDesignation(data.principalDesignation || "Head of Institution");
+        setPrincipalDesignation(data.principalDesignation || "");
         setPrincipalEmail(data.principalEmail || "");
         setPrincipalPhone(data.principalPhone || "");
         
@@ -137,14 +137,14 @@ function AboutYourSchool() {
 
         // Tab 3 fields
         setSchoolCategoriesList(data.schoolCategoriesList || []);
-        setAdmissionProcess(Array.isArray(data.admissionProcess) ? data.admissionProcess : (data.admissionProcess ? [data.admissionProcess] : ["Direct Admission"]));
-        setSchoolBoardType(data.schoolBoardType || "Private");
-        setWorkingDays(data.workingDays || ["Mon", "Tue", "Wed", "Thu", "Fri"]);
-        setOpeningTime(data.openingTime || "08:00 AM");
-        setClosingTime(data.closingTime || "04:00 PM");
-        setShortBreakStartTime(data.shortBreakStartTime || "11:00 AM");
+        setAdmissionProcess(Array.isArray(data.admissionProcess) ? data.admissionProcess : (data.admissionProcess ? [data.admissionProcess] : []));
+        setSchoolBoardType(data.schoolBoardType || "");
+        setWorkingDays(data.workingDays || []);
+        setOpeningTime(data.openingTime || "");
+        setClosingTime(data.closingTime || "");
+        setShortBreakStartTime(data.shortBreakStartTime || "");
         setShortBreakDuration(data.shortBreakDuration || 30);
-        setLunchBreakStartTime(data.lunchBreakStartTime || "12:30 PM");
+        setLunchBreakStartTime(data.lunchBreakStartTime || "");
         setLunchBreakDuration(data.lunchBreakDuration || 60);
         setHolidays(data.holidays || []);
 
@@ -238,6 +238,45 @@ function AboutYourSchool() {
     );
   }
 
+  // Tab completion calculation (25% per tab: 0%, 25%, 50%, 75%, 100%)
+  const isBasicFilled = Boolean(
+    email?.trim() ||
+    phoneNumber?.trim() ||
+    address?.trim() ||
+    affiliation?.trim() ||
+    code?.trim() ||
+    established?.trim()
+  );
+
+  const isMediaFilled = Boolean(
+    principalName?.trim() ||
+    principalEmail?.trim() ||
+    principalPhone?.trim() ||
+    principalPhoto?.trim() ||
+    coverImage?.trim() ||
+    (schoolPhotos && schoolPhotos.length > 0)
+  );
+
+  const isAdmissionFilled = Boolean(
+    (workingDays && workingDays.length > 0) ||
+    openingTime?.trim() ||
+    closingTime?.trim() ||
+    schoolBoardType?.trim() ||
+    (admissionProcess && admissionProcess.length > 0)
+  );
+
+  const isDescriptionFilled = Boolean(
+    description && description.replace(/<[^>]*>/g, "").trim().length > 20
+  );
+
+  const filledCount =
+    (isBasicFilled ? 1 : 0) +
+    (isMediaFilled ? 1 : 0) +
+    (isAdmissionFilled ? 1 : 0) +
+    (isDescriptionFilled ? 1 : 0);
+
+  const profileCompletionPercentage = filledCount * 25;
+
   // Get active breadcrumb name
   const currentTabObj = TABS.find(t => t.id === activeTab) || TABS[0];
 
@@ -279,21 +318,99 @@ function AboutYourSchool() {
         )}
       </div>
 
+      {/* ── PROFILE COMPLETION PROGRESS BAR ── */}
+      <div className="mb-6 bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-sm dark:shadow-xl select-none animate-fadeIn">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2.5">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs ${
+              profileCompletionPercentage === 100
+                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                : "bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/20"
+            }`}>
+              {profileCompletionPercentage}%
+            </div>
+            <div>
+              <h3 className="text-xs font-black uppercase text-slate-800 dark:text-white tracking-wider flex items-center gap-2">
+                School Profile Completion
+                {profileCompletionPercentage === 100 && (
+                  <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase">
+                    ✓ 100% Completed
+                  </span>
+                )}
+              </h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                {filledCount} of 4 navigation sections completed (25% per filled section)
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <span className="text-sm font-black text-slate-900 dark:text-white">
+              {profileCompletionPercentage}% Completed
+            </span>
+          </div>
+        </div>
+
+        {/* Dynamic progress bar */}
+        <div className="w-full bg-slate-100 dark:bg-slate-800/80 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-200/60 dark:border-slate-800">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${
+              profileCompletionPercentage === 100
+                ? "bg-gradient-to-r from-emerald-500 to-teal-400"
+                : profileCompletionPercentage >= 50
+                ? "bg-gradient-to-r from-purple-600 to-indigo-500"
+                : "bg-gradient-to-r from-amber-500 to-purple-600"
+            }`}
+            style={{ width: `${profileCompletionPercentage}%` }}
+          />
+        </div>
+
+        {/* Tab status checklist badges */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/60 text-[10px] font-bold">
+          <div className={`flex items-center gap-1.5 ${isBasicFilled ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`}>
+            <span>{isBasicFilled ? "✓" : "○"}</span> 1. Basic Info ({isBasicFilled ? "25%" : "0%"})
+          </div>
+          <div className={`flex items-center gap-1.5 ${isMediaFilled ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`}>
+            <span>{isMediaFilled ? "✓" : "○"}</span> 2. Media & Principal ({isMediaFilled ? "25%" : "0%"})
+          </div>
+          <div className={`flex items-center gap-1.5 ${isAdmissionFilled ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`}>
+            <span>{isAdmissionFilled ? "✓" : "○"}</span> 3. Admission ({isAdmissionFilled ? "25%" : "0%"})
+          </div>
+          <div className={`flex items-center gap-1.5 ${isDescriptionFilled ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`}>
+            <span>{isDescriptionFilled ? "✓" : "○"}</span> 4. Description ({isDescriptionFilled ? "25%" : "0%"})
+          </div>
+        </div>
+      </div>
+
       {/* ── TABS NAVIGATION BAR ── */}
       <div className="flex flex-wrap items-center gap-2 mb-6 border-b border-slate-200 dark:border-slate-800/80 pb-3 select-none">
         {TABS.map(tab => {
           const isActive = activeTab === tab.id;
+          let isTabFilled = false;
+          if (tab.id === "basic") isTabFilled = isBasicFilled;
+          if (tab.id === "media") isTabFilled = isMediaFilled;
+          if (tab.id === "admission") isTabFilled = isAdmissionFilled;
+          if (tab.id === "description") isTabFilled = isDescriptionFilled;
+
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 text-xs font-bold rounded-xl transition cursor-pointer select-none ${
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition cursor-pointer select-none ${
                 isActive
                   ? "bg-[#7C3AED]/10 text-purple-600 dark:text-purple-400 border border-[#7C3AED]/30"
                   : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              {tab.label}
+              <span>{tab.label}</span>
+              {isTabFilled ? (
+                <span className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] px-1.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+                  ✓ 25%
+                </span>
+              ) : (
+                <span className="bg-slate-100 dark:bg-slate-800 text-slate-400 text-[10px] px-1.5 py-0.5 rounded-full font-semibold">
+                  0%
+                </span>
+              )}
             </button>
           );
         })}

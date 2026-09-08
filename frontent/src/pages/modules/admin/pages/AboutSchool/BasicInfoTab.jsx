@@ -154,7 +154,7 @@ function BasicInfoTab({
               <div>
                 <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Name</span>
                 <p className="text-xs font-bold text-slate-800 dark:text-white bg-slate-100/60 dark:bg-[#0F172A]/40 border border-slate-200 dark:border-slate-800 px-3.5 py-2 rounded-xl">
-                  {school?.name || "G.D Academy"}
+                  {school?.name || "Not Assigned"}
                 </p>
               </div>
 
@@ -166,10 +166,11 @@ function BasicInfoTab({
                     type="text"
                     value={affiliation}
                     onChange={(e) => setAffiliation(e.target.value)}
+                    placeholder="e.g. CBSE / ICSE / State Board"
                     className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{affiliation || "CBSE"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{affiliation || "—"}</p>
                 )}
               </div>
 
@@ -181,10 +182,11 @@ function BasicInfoTab({
                     type="text"
                     value={principalName}
                     onChange={(e) => setPrincipalName(e.target.value)}
+                    placeholder="Enter Principal Name"
                     className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{principalName || "Banny Thapar"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{principalName || "—"}</p>
                 )}
               </div>
 
@@ -196,10 +198,11 @@ function BasicInfoTab({
                     type="text"
                     value={academicYear}
                     onChange={(e) => setAcademicYear(e.target.value)}
+                    placeholder="e.g. 2026 - 2027"
                     className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{academicYear || "2026 - 2027"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{academicYear || "—"}</p>
                 )}
               </div>
 
@@ -211,10 +214,11 @@ function BasicInfoTab({
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    placeholder="school@example.com"
                     className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{email || "gdaccedmy@gmail.com"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{email || "—"}</p>
                 )}
               </div>
 
@@ -226,10 +230,11 @@ function BasicInfoTab({
                     type="text"
                     value={medium}
                     onChange={(e) => setMedium(e.target.value)}
+                    placeholder="e.g. English / Hindi"
                     className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{medium || "English"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{medium || "—"}</p>
                 )}
               </div>
 
@@ -241,10 +246,11 @@ function BasicInfoTab({
                     type="text"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="+91 9876543210"
                     className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{phoneNumber || "+91 98765 43210"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{phoneNumber || "—"}</p>
                 )}
               </div>
 
@@ -269,11 +275,12 @@ function BasicInfoTab({
                     rows="2"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Enter complete school address"
                     className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
                   <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1 leading-relaxed">
-                    {address || "Near Sadar Hospital, Siwan, Bihar - 841226, India"}
+                    {address || "—"}
                   </p>
                 )}
               </div>
@@ -286,10 +293,11 @@ function BasicInfoTab({
                     type="text"
                     value={established}
                     onChange={(e) => setEstablished(e.target.value)}
+                    placeholder="e.g. 2010"
                     className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{established || "2010"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{established || "—"}</p>
                 )}
               </div>
 
@@ -343,10 +351,11 @@ function BasicInfoTab({
                     type="text"
                     value={registrationNumber}
                     onChange={(e) => setRegistrationNumber(e.target.value)}
+                    placeholder="Enter Registration No."
                     className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{registrationNumber || "GD/REG/2010/4125"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{registrationNumber || "—"}</p>
                 )}
               </div>
 
@@ -358,10 +367,11 @@ function BasicInfoTab({
                     type="text"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
+                    placeholder="Enter School Code"
                     className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
-                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{code || "GDAC2026"}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{code || "—"}</p>
                 )}
               </div>
 
@@ -373,12 +383,13 @@ function BasicInfoTab({
                     type="text"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
+                    placeholder="e.g. Secondary"
                     className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
                   <div className="px-1 py-1">
                     <span className="inline-block text-[8px] font-black text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded uppercase tracking-wider">
-                      {category || "Secondary"}
+                      {category || "—"}
                     </span>
                   </div>
                 )}
@@ -392,11 +403,12 @@ function BasicInfoTab({
                     type="text"
                     value={motto}
                     onChange={(e) => setMotto(e.target.value)}
+                    placeholder="Enter School Motto"
                     className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 ) : (
                   <p className="text-xs font-bold text-slate-700 dark:text-slate-200 px-1 py-1 italic">
-                    &ldquo;{motto || "Learn • Grow • Succeed"}&rdquo;
+                    {motto ? `“${motto}”` : "—"}
                   </p>
                 )}
               </div>

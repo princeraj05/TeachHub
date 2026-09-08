@@ -88,70 +88,7 @@ exports.getMySchool = async (req, res) => {
       await school.save();
     }
 
-    // Auto-seed example data if not filled (matching the mockup images exactly)
     let modified = false;
-    if (!school.principalName) { school.principalName = "Banny Thapar"; modified = true; }
-    if (!school.email) { school.email = "gdaccedmy@gmail.com"; modified = true; }
-    if (!school.phoneNumber) { school.phoneNumber = "+91 98765 43210"; modified = true; }
-    if (!school.address) { school.address = "Near Sadar Hospital, Siwan, Bihar - 841226, India"; modified = true; }
-    if (!school.established) { school.established = "2010"; modified = true; }
-    if (!school.code) { school.code = "GDAC2026"; modified = true; }
-    if (!school.affiliation) { school.affiliation = "CBSE"; modified = true; }
-    if (!school.academicYear) { school.academicYear = "2026 - 2027"; modified = true; }
-    if (!school.medium) { school.medium = "English"; modified = true; }
-    if (!school.website) { school.website = "www.gdaccedmy.edu.in"; modified = true; }
-    if (!school.status) { school.status = "Active"; modified = true; }
-    if (!school.registrationNumber) { school.registrationNumber = "GD/REG/2010/4125"; modified = true; }
-    if (!school.category) { school.category = "Secondary"; modified = true; }
-    if (!school.motto) { school.motto = "Learn • Grow • Succeed"; modified = true; }
-    if (!school.academicLevel) { school.academicLevel = "Secondary"; modified = true; }
-    if (!school.coEducational) { school.coEducational = "Co-Educational"; modified = true; }
-    if (!school.schoolOperationType) { school.schoolOperationType = "Day School"; modified = true; }
-    if (!school.admissionType) { school.admissionType = "Direct Admission"; modified = true; }
-    if (!school.transportation) { school.transportation = "Available"; modified = true; }
-    if (!school.hostelFacility) { school.hostelFacility = "Not Available"; modified = true; }
-    if (!school.availableClasses) { school.availableClasses = "Class 1 to 10"; modified = true; }
-
-    if (!school.principalDesignation) { school.principalDesignation = "Head of Institution"; modified = true; }
-    if (!school.principalEmail) { school.principalEmail = "banny.thapar@gdaccedmy.edu.in"; modified = true; }
-    if (!school.principalPhone) { school.principalPhone = "+91 98765 43210"; modified = true; }
-    if (!school.principalLeadershipSince) { school.principalLeadershipSince = "2018-08-15"; modified = true; }
-    if (!school.principalIntroduction) {
-      school.principalIntroduction = "With over 20 years of experience in the field of education, I am committed to providing quality education and overall development of our students.";
-      modified = true;
-    }
-    if (!school.schoolCategoriesList || school.schoolCategoriesList.length === 0) {
-      school.schoolCategoriesList = ["Primary", "Secondary", "Co-Educational", "Residential"];
-      modified = true;
-    }
-    if (!school.admissionProcess || (Array.isArray(school.admissionProcess) && school.admissionProcess.length === 0)) { school.admissionProcess = ["Direct Admission"]; modified = true; }
-    if (!school.schoolBoardType) { school.schoolBoardType = "Private"; modified = true; }
-    if (school.teacherAppointmentBooking === undefined || school.teacherAppointmentBooking === null) {
-      school.teacherAppointmentBooking = true;
-      modified = true;
-    }
-    if (!school.appointmentBookingType) { school.appointmentBookingType = "Online Booking"; modified = true; }
-    if (!school.appointmentAdvanceDays) { school.appointmentAdvanceDays = 7; modified = true; }
-    if (!school.appointmentMaxPerDay) { school.appointmentMaxPerDay = 5; modified = true; }
-    if (!school.appointmentDuration) { school.appointmentDuration = 30; modified = true; }
-    if (!school.workingDays || school.workingDays.length === 0) {
-      school.workingDays = ["Mon", "Tue", "Wed", "Thu", "Fri"];
-      modified = true;
-    }
-    if (!school.openingTime) { school.openingTime = "08:00 AM"; modified = true; }
-    if (!school.closingTime) { school.closingTime = "04:00 PM"; modified = true; }
-    if (!school.holidays || school.holidays.length === 0) {
-      school.holidays = [
-        { date: "15 Aug", name: "Independence Day" },
-        { date: "05 Sep", name: "Teachers' Day" },
-        { date: "02 Oct", name: "Gandhi Jayanti" }
-      ];
-      modified = true;
-    }
-    if (!school.description) {
-      school.description = `<h3><strong>G.D Academy</strong></h3><p>G.D Academy is a reputed educational institution committed to providing quality education in a safe, supportive, and engaging learning environment.</p><p>Our school focuses on the overall development of students by combining strong academic foundations with discipline, creativity, sports, and extracurricular activities.</p><p>With dedicated and experienced teachers, modern learning facilities, and a student-centered approach, we encourage students to develop confidence, critical thinking, communication skills, and strong moral values.</p><p>Our mission is to prepare students for academic success as well as future challenges by nurturing responsible, knowledgeable, and well-rounded individuals.</p><h4><strong>Our Vision</strong></h4><p>To be a leading institution that inspires students to learn, grow, and succeed in all areas of life.</p><h4><strong>Our Mission</strong></h4><ul><li>Provide quality education with modern teaching methodologies.</li><li>Encourage creativity, innovation, and critical thinking.</li><li>Promote sports, culture, and extracurricular excellence.</li><li>Build strong values and responsible citizens.</li></ul>`;
-      modified = true;
-    }
 
     // Self-clean legacy dummy seed URLs that may have broken previously
     if (school.photo && school.photo.includes("/uploads/schoolPhotos-")) {
