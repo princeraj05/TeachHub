@@ -90,6 +90,22 @@ exports.getMySchool = async (req, res) => {
 
     let modified = false;
 
+    // Self-clean legacy dummy seed data previously saved in MongoDB
+    if (school.principalName === "Banny Thapar") { school.principalName = ""; modified = true; }
+    if (school.email === "gdaccedmy@gmail.com") { school.email = ""; modified = true; }
+    if (school.phoneNumber === "+91 98765 43210") { school.phoneNumber = ""; modified = true; }
+    if (school.address && school.address.includes("Near Sadar Hospital")) { school.address = ""; modified = true; }
+    if (school.established === "2010") { school.established = ""; modified = true; }
+    if (school.code === "GDAC2026") { school.code = ""; modified = true; }
+    if (school.registrationNumber === "GD/REG/2010/4125") { school.registrationNumber = ""; modified = true; }
+    if (school.website === "www.gdaccedmy.edu.in") { school.website = ""; modified = true; }
+    if (school.motto === "Learn • Grow • Succeed") { school.motto = ""; modified = true; }
+    if (school.principalEmail === "banny.thapar@gdaccedmy.edu.in") { school.principalEmail = ""; modified = true; }
+    if (school.principalPhone === "+91 98765 43210") { school.principalPhone = ""; modified = true; }
+    if (school.principalDesignation === "Head of Institution") { school.principalDesignation = ""; modified = true; }
+    if (school.principalIntroduction && school.principalIntroduction.includes("With over 20 years of experience")) { school.principalIntroduction = ""; modified = true; }
+    if (school.description && (school.description.includes("G.D Academy") || school.description.includes("reputed educational institution"))) { school.description = ""; modified = true; }
+
     // Self-clean legacy dummy seed URLs that may have broken previously
     if (school.photo && school.photo.includes("/uploads/schoolPhotos-")) {
       school.photo = "";
