@@ -48,10 +48,12 @@ import { useLanguage } from "../../context/LanguageContext";
 
 const SORA = "'Sora', sans-serif";
 
+import API_URL from "../../config/api";
+
 function PendingApproval() {
   const navigate = useNavigate();
   const location = useLocation();
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   const { theme, toggleTheme } = useTheme();

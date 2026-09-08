@@ -19,6 +19,8 @@ export const usePlatform = () => {
   return context;
 };
 
+import API_URL from "../config/api";
+
 export const PlatformProvider = ({ children }) => {
   const [platformName, setPlatformName] = useState("TeachHub");
   const [logoUrl, setLogoUrl] = useState("");
@@ -30,7 +32,7 @@ export const PlatformProvider = ({ children }) => {
 
   const fetchPlatformConfig = useCallback(async () => {
     try {
-      const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const API = API_URL;
       const token = localStorage.getItem("token");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const res = await axios.get(`${API}/api/about-app`, { headers });

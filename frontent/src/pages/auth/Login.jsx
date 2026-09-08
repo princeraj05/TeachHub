@@ -19,9 +19,11 @@ import { usePlatform } from "../../context/PlatformContext";
 
 const SORA = "'Sora', sans-serif";
 
+import API_URL from "../../config/api";
+
 function Login() {
   const navigate = useNavigate();
-  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API = API_URL;
   const { platformName, logoUrl, platformConfig } = usePlatform();
 
   const [email, setEmail] = useState("");

@@ -7,8 +7,10 @@ import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 
 const SORA = "'Sora', sans-serif";
 
+import API_URL from "../../config/api";
+
 function Register() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const navigate = useNavigate();
 
   const [form, setForm] = useState({

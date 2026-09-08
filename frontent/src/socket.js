@@ -1,6 +1,7 @@
 import { io } from "socket.io-client";
+import API_URL from "./config/api";
 
-const socket = io(import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com", {
+const socket = io(API_URL, {
   transports: ["polling", "websocket"],
   autoConnect: false,
   reconnection: true,
