@@ -325,7 +325,25 @@ exports.updateMySchool = async (req, res) => {
 
     school.isLegacySeedCleaned = true;
 
-    await school.save();
+    try {
+      await school.save();
+    } catch (saveErr) {
+      if (
+        saveErr.message.includes("17825792") ||
+        saveErr.message.includes("offset") ||
+        saveErr.message.includes("BSON") ||
+        saveErr.message.includes("out of range")
+      ) {
+        console.warn("BSON document size limit exceeded in updateMySchool, stripping oversized raw photo strings:", saveErr.message);
+        school.schoolPhotos = [];
+        if (school.coverImage && school.coverImage.startsWith("data:image")) school.coverImage = "";
+        if (school.photo && school.photo.startsWith("data:image")) school.photo = "";
+        if (school.principalPhoto && school.principalPhoto.startsWith("data:image")) school.principalPhoto = "";
+        await school.save();
+      } else {
+        throw saveErr;
+      }
+    }
 
     // Re-query counts to return matching shape
     const dynamicStudentsCount = await User.countDocuments({ role: "student", schoolName });
