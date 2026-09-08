@@ -31,6 +31,7 @@ import {
   FaHashtag
 } from "react-icons/fa";
 import { compressAvatar } from "../utils/mediaCompression";
+import ProfilePhotoCropModal from "./ProfilePhotoCropModal";
 
 const SORA = "'Sora', sans-serif";
 
@@ -82,6 +83,7 @@ function UserProfile() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [cropModalImage, setCropModalImage] = useState(null);
 
   const handleSelectLanguage = (selectedLang) => {
     changeLanguage(selectedLang);
@@ -181,16 +183,17 @@ function UserProfile() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
     if (file) {
-      try {
-        const compressedBase64 = await compressAvatar(file);
-        setFormData((prev) => ({ ...prev, avatar: compressedBase64 }));
-      } catch (err) {
-        console.error("Error compressing avatar:", err);
-      }
+      setCropModalImage(file);
+      e.target.value = "";
     }
+  };
+
+  const handleSaveCroppedAvatar = (croppedBase64) => {
+    setFormData((prev) => ({ ...prev, avatar: croppedBase64 }));
+    setCropModalImage(null);
   };
 
   const toggleSubjectOfExpertise = (sub) => {
@@ -972,6 +975,15 @@ function UserProfile() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* CROP & ROTATE PROFILE PHOTO MODAL */}
+      {cropModalImage && (
+        <ProfilePhotoCropModal
+          imageSrc={cropModalImage}
+          onClose={() => setCropModalImage(null)}
+          onSave={handleSaveCroppedAvatar}
+        />
       )}
 
     </div>

@@ -21,6 +21,7 @@ import {
   FaTimesCircle
 } from "react-icons/fa";
 import { compressAvatar } from "../../../utils/mediaCompression";
+import ProfilePhotoCropModal from "../../../components/ProfilePhotoCropModal";
 
 const SORA = "'Sora', sans-serif";
 
@@ -98,6 +99,7 @@ function SuperAdminProfile() {
   const [uploading, setUploading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [gettingLocation, setGettingLocation] = useState(false);
+  const [cropModalImage, setCropModalImage] = useState(null);
 
   // Form input fields state initialized from profile
   const [name, setName] = useState(profile.name || "Super Admin");
@@ -195,16 +197,20 @@ function SuperAdminProfile() {
     }
   };
 
-  const handleLogoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const handleLogoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCropModalImage(file);
+      e.target.value = "";
+    }
+  };
 
+  const handleSaveCroppedAvatar = async (base64Data) => {
     setUploading(true);
     setErrorMsg("");
     setSuccessMsg("");
 
     try {
-      const base64Data = await compressAvatar(file);
       setAvatar(base64Data);
 
       try {
@@ -230,6 +236,7 @@ function SuperAdminProfile() {
       setErrorMsg("Failed to process image");
     } finally {
       setUploading(false);
+      setCropModalImage(null);
     }
   };
 
@@ -655,6 +662,15 @@ function SuperAdminProfile() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* CROP & ROTATE PROFILE PHOTO MODAL */}
+      {cropModalImage && (
+        <ProfilePhotoCropModal
+          imageSrc={cropModalImage}
+          onClose={() => setCropModalImage(null)}
+          onSave={handleSaveCroppedAvatar}
+        />
       )}
 
     </div>

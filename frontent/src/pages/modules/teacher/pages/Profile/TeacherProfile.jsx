@@ -23,6 +23,7 @@ import {
   FaSchool
 } from "react-icons/fa";
 import { compressAvatar } from "../../../../../utils/mediaCompression";
+import ProfilePhotoCropModal from "../../../../../components/ProfilePhotoCropModal";
 
 const SORA = "'Sora', sans-serif";
 
@@ -61,6 +62,7 @@ function TeacherProfile() {
   const [bio, setBio] = useState("");
   const [avatar, setAvatar] = useState("");
   const [gettingLocation, setGettingLocation] = useState(false);
+  const [cropModalImage, setCropModalImage] = useState(null);
 
   // Read-only Assigned Data (managed by School Admin)
   const [assignedSubjects, setAssignedSubjects] = useState([]);
@@ -126,19 +128,19 @@ function TeacherProfile() {
       });
   }, [API, headers]);
 
-  const handleAvatarFileChange = async (e) => {
+  const handleAvatarFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      try {
-        const compressedBase64 = await compressAvatar(file);
-        setAvatar(compressedBase64);
-        try { localStorage.setItem("avatar", compressedBase64); } catch (err) {}
-        window.dispatchEvent(new Event("profileUpdate"));
-      } catch (err) {
-        console.error("Error uploading avatar:", err);
-        alert("Could not process image file.");
-      }
+      setCropModalImage(file);
+      e.target.value = "";
     }
+  };
+
+  const handleSaveCroppedAvatar = (croppedBase64) => {
+    setAvatar(croppedBase64);
+    try { localStorage.setItem("avatar", croppedBase64); } catch (err) {}
+    window.dispatchEvent(new Event("profileUpdate"));
+    setCropModalImage(null);
   };
 
   const handleSaveChanges = async (e) => {
@@ -638,6 +640,15 @@ function TeacherProfile() {
         </div>
 
       </form>
+
+      {/* CROP & ROTATE PROFILE PHOTO MODAL */}
+      {cropModalImage && (
+        <ProfilePhotoCropModal
+          imageSrc={cropModalImage}
+          onClose={() => setCropModalImage(null)}
+          onSave={handleSaveCroppedAvatar}
+        />
+      )}
     </div>
   );
 }
