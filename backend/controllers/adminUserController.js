@@ -299,7 +299,7 @@ exports.saveAdmissionExam = async (req, res) => {
 // ================= ASSIGN CLASS AND SECTION =================
 exports.assignClass = async (req, res) => {
   try {
-    const { userId, classId } = req.body;
+    const { userId, classId, rollNo } = req.body;
 
     if (!req.user || !req.user.schoolName) {
       return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
@@ -323,6 +323,41 @@ exports.assignClass = async (req, res) => {
       return res.status(404).json({ message: "Class not found" });
     }
 
+    let numericRoll = rollNo !== undefined && rollNo !== "" && rollNo !== null ? Number(rollNo) : null;
+    
+    // Auto-assign next roll number if rollNo is not provided
+    if (numericRoll === null) {
+      const classStudents = await User.find({ role: "student", schoolName: req.user.schoolName, classId: targetClass._id });
+      const takenRolls = classStudents.map(s => s.rollNo).filter(Boolean);
+      let nextAvailable = 1;
+      while (takenRolls.includes(nextAvailable)) {
+        nextAvailable++;
+      }
+      numericRoll = nextAvailable;
+    }
+
+    if (numericRoll !== null) {
+      const existingRollStudent = await User.findOne({
+        _id: { $ne: student._id },
+        role: "student",
+        schoolName: req.user.schoolName,
+        classId: targetClass._id,
+        rollNo: numericRoll
+      });
+      if (existingRollStudent) {
+        const classStudents = await User.find({ role: "student", schoolName: req.user.schoolName, classId: targetClass._id });
+        const takenRolls = classStudents.map(s => s.rollNo).filter(Boolean);
+        let nextAvailable = 1;
+        while (takenRolls.includes(nextAvailable)) {
+          nextAvailable++;
+        }
+        return res.status(409).json({
+          message: `Roll number ${numericRoll} is already assigned to ${existingRollStudent.name} in this class. Next available roll number is ${nextAvailable}.`,
+          nextAvailable
+        });
+      }
+    }
+
     // Add to class students list if not already present
     if (!targetClass.students.includes(student._id)) {
       targetClass.students.push(student._id);
@@ -333,6 +368,7 @@ exports.assignClass = async (req, res) => {
     student.schoolName = req.user.schoolName;
     student.requestStatus = "approved";
     student.classId = targetClass._id;
+    student.rollNo = numericRoll;
 
     await student.save();
 
@@ -343,7 +379,8 @@ exports.assignClass = async (req, res) => {
         name: student.name,
         role: student.role,
         requestStatus: student.requestStatus,
-        classId: student.classId
+        classId: student.classId,
+        rollNo: student.rollNo
       }
     });
   } catch (error) {

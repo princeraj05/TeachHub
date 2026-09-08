@@ -60,6 +60,8 @@ function AdminRequests() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedClassId, setSelectedClassId] = useState("");
   const [approvalTab, setApprovalTab] = useState("with_exam");
+  const [allStudents, setAllStudents] = useState([]);
+  const [directRollNo, setDirectRollNo] = useState("");
 
   // Live 1-second ticker for real-time countdown
   const [now, setNow] = useState(Date.now());
@@ -72,7 +74,39 @@ function AdminRequests() {
     fetchRequests();
     fetchClasses();
     fetchTeachers();
+    fetchAllStudents();
   }, []);
+
+  const fetchAllStudents = () => {
+    if (token) {
+      axios
+        .get(`${API}/api/admin/users/students`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then((res) => setAllStudents(res.data || []))
+        .catch((err) => console.error("Error fetching students", err));
+    }
+  };
+
+  const getNextAvailableRollNo = (targetClassId) => {
+    if (!targetClassId) return 1;
+    const classStudents = allStudents.filter(
+      (s) => (s.classId?._id || s.classId) === targetClassId
+    );
+    const takenRolls = classStudents.map((s) => s.rollNo).filter(Boolean);
+    let next = 1;
+    while (takenRolls.includes(next)) {
+      next++;
+    }
+    return next;
+  };
+
+  useEffect(() => {
+    if (selectedClassId) {
+      const nextRoll = getNextAvailableRollNo(selectedClassId);
+      setDirectRollNo(String(nextRoll));
+    }
+  }, [selectedClassId, allStudents]);
 
   const fetchTeachers = () => {
     if (token) {
@@ -273,11 +307,12 @@ function AdminRequests() {
     axios
       .post(
         `${API}/api/admin/users/assign-class`,
-        { userId: selectedUser._id, classId: selectedClassId },
+        { userId: selectedUser._id, classId: selectedClassId, rollNo: directRollNo },
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(() => {
         fetchRequests();
+        fetchAllStudents();
         setShowScheduleModal(false);
         setSelectedUser(null);
       })
@@ -299,11 +334,12 @@ function AdminRequests() {
     axios
       .post(
         `${API}/api/admin/users/assign-class`,
-        { userId: selectedUser._id, classId: selectedClassId },
+        { userId: selectedUser._id, classId: selectedClassId, rollNo: directRollNo },
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(() => {
         fetchRequests();
+        fetchAllStudents();
         setShowAssignModal(false);
         setSelectedUser(null);
       })
@@ -877,7 +913,11 @@ function AdminRequests() {
                       {classes.length > 0 ? (
                         <select
                           value={selectedClassId}
-                          onChange={(e) => setSelectedClassId(e.target.value)}
+                          onChange={(e) => {
+                            const newClassId = e.target.value;
+                            setSelectedClassId(newClassId);
+                            setDirectRollNo(String(getNextAvailableRollNo(newClassId)));
+                          }}
                           className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED] cursor-pointer"
                         >
                           {classes.map((cls) => (
@@ -890,6 +930,27 @@ function AdminRequests() {
                         <div className="p-3.5 bg-rose-50 dark:bg-rose-500/5 text-rose-500 rounded-xl text-xs font-bold text-center border border-rose-100/55 dark:border-rose-500/15">
                           No classes available. Create classes in Academics first!
                         </div>
+                      )}
+                    </div>
+
+                    {/* Roll Number Input with Next Roll No indicator */}
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
+                        Assign Roll Number
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        required
+                        value={directRollNo}
+                        onChange={(e) => setDirectRollNo(e.target.value)}
+                        placeholder={selectedClassId ? `Roll No (e.g. ${getNextAvailableRollNo(selectedClassId)})` : "Roll No"}
+                        className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25 focus:border-[#7C3AED]"
+                      />
+                      {selectedClassId && (
+                        <p className="text-[10px] text-teal-600 dark:text-teal-400 font-extrabold mt-1.5 flex items-center gap-1">
+                          💡 Next available Roll No for this class: <strong>#{getNextAvailableRollNo(selectedClassId)}</strong>
+                        </p>
                       )}
                     </div>
 
