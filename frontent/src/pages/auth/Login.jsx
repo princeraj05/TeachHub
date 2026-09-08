@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -8,7 +8,10 @@ import {
   FaCheckCircle, 
   FaSun, 
   FaMoon,
-  FaArrowRight
+  FaArrowRight,
+  FaSchool,
+  FaChalkboardTeacher,
+  FaUserGraduate
 } from "react-icons/fa";
 import { auth, googleProvider } from "../../config/firebase";
 import { signInWithPopup, signInWithCredential, GoogleAuthProvider } from "firebase/auth";
@@ -16,10 +19,30 @@ import { Capacitor } from "@capacitor/core";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { useTheme } from "../../context/ThemeContext";
 import { usePlatform } from "../../context/PlatformContext";
+import API_URL from "../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
-import API_URL from "../../config/api";
+const DEFAULT_SCHOOL_BANNERS = [
+  {
+    name: "G.D. Academy",
+    motto: "Learn • Grow • Succeed",
+    coverImage: "https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=1200&q=80",
+    photo: ""
+  },
+  {
+    name: "St. Xavier's High School",
+    motto: "Excellence in Education & Character",
+    coverImage: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80",
+    photo: ""
+  },
+  {
+    name: "Delhi Public School",
+    motto: "Service Before Self",
+    coverImage: "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80",
+    photo: ""
+  }
+];
 
 function Login() {
   const navigate = useNavigate();
@@ -33,21 +56,57 @@ function Login() {
   const [devOtpMessage, setDevOtpMessage] = useState("");
   const { theme, toggleTheme } = useTheme();
   const [cooldown, setCooldown] = useState(0);
-  const [liveStats, setLiveStats] = useState({ students: 0, teachers: 0, admins: 0 });
+
+  // Live stats & school banners state
+  const [liveStats, setLiveStats] = useState({ schools: 0, students: 0, teachers: 0, admins: 0 });
+  const [publicSchools, setPublicSchools] = useState([]);
+  const [currentBannerIdx, setCurrentBannerIdx] = useState(0);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchAboutInfo = async () => {
       try {
         const res = await axios.get(`${API}/api/about-app`);
-        if (res.data && res.data.stats) {
-          setLiveStats(res.data.stats);
+        if (res.data) {
+          if (res.data.stats) {
+            setLiveStats(res.data.stats);
+          }
+          if (res.data.publicSchools && Array.isArray(res.data.publicSchools)) {
+            setPublicSchools(res.data.publicSchools);
+          }
         }
       } catch (err) {
-        console.error("Failed to load live stats:", err);
+        console.error("Failed to load about info:", err);
       }
     };
-    fetchStats();
+    fetchAboutInfo();
   }, [API]);
+
+  // Combine uploaded school banners with default banners fallback
+  const bannersList = useMemo(() => {
+    const uploaded = publicSchools.filter(s => s && s.coverImage && s.coverImage.trim() !== "");
+    if (uploaded.length > 0) {
+      return uploaded;
+    }
+    // If no coverImage uploaded yet, check if schools exist and attach fallback image
+    if (publicSchools.length > 0) {
+      return publicSchools.map((s, idx) => ({
+        name: s.name || `School ${idx + 1}`,
+        motto: s.motto || "Learn • Grow • Succeed",
+        photo: s.photo || "",
+        coverImage: DEFAULT_SCHOOL_BANNERS[idx % DEFAULT_SCHOOL_BANNERS.length].coverImage
+      }));
+    }
+    return DEFAULT_SCHOOL_BANNERS;
+  }, [publicSchools]);
+
+  // 5-second auto-slide banner carousel
+  useEffect(() => {
+    if (bannersList.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentBannerIdx((prev) => (prev + 1) % bannersList.length);
+    }, 5000); // 5 sec per banner
+    return () => clearInterval(interval);
+  }, [bannersList.length]);
 
   useEffect(() => {
     let timer;
@@ -183,7 +242,9 @@ function Login() {
     }
   };
 
-  // Redirecting loader
+  const currentBanner = bannersList[currentBannerIdx] || bannersList[0];
+
+  // Redirecting loader if token exists
   const tokenExists = localStorage.getItem("token");
   const roleExists = localStorage.getItem("role");
   if (tokenExists && roleExists) {
@@ -196,7 +257,7 @@ function Login() {
 
   return (
     <div 
-      className="min-h-screen relative flex flex-col lg:flex-row font-sans bg-slate-50 dark:bg-[#070C18] text-slate-900 dark:text-white transition-colors duration-300 overflow-hidden" 
+      className="min-h-screen relative flex flex-col lg:flex-row font-sans bg-slate-50 dark:bg-[#070C18] text-slate-900 dark:text-white transition-colors duration-300 overflow-x-hidden" 
       style={{ fontFamily: SORA }}
     >
       {/* Dynamic Ambient Background Glow Blobs */}
@@ -204,19 +265,10 @@ function Login() {
       <div className="absolute top-1/2 right-0 w-[500px] h-[500px] rounded-full bg-indigo-500/10 dark:bg-indigo-500/15 blur-[140px] pointer-events-none" />
       <div className="absolute -bottom-32 left-1/3 w-80 h-80 rounded-full bg-sky-500/10 dark:bg-sky-500/15 blur-[100px] pointer-events-none" />
 
-      {/* Subtle Background Pattern */}
-      <div 
-        className="absolute inset-0 opacity-[0.02] dark:opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage: "radial-gradient(#8B5CF6 1px, transparent 1px)",
-          backgroundSize: "24px 24px"
-        }}
-      />
-
       {/* Floating Theme Toggle */}
       <button
         onClick={toggleTheme}
-        className="fixed top-5 right-5 sm:top-7 sm:right-7 p-3 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 shadow-lg shadow-black/5 z-50 transition-all duration-200 cursor-pointer active:scale-95"
+        className="fixed top-4 right-4 sm:top-6 sm:right-6 p-3 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 shadow-lg z-50 transition-all duration-200 cursor-pointer active:scale-95"
         aria-label="Toggle Theme"
       >
         {theme === "dark" ? (
@@ -226,85 +278,172 @@ function Login() {
         )}
       </button>
 
-      {/* ── Left Panel (Desktop Branding) ── */}
-      <div className="hidden lg:flex lg:w-1/2 xl:w-7/12 relative items-center justify-center p-12 lg:p-16 border-r border-slate-200/50 dark:border-white/5">
-        <div className="relative z-10 max-w-lg text-center flex flex-col items-center">
+      {/* ── Left Panel (Desktop Branding & School Banner Carousel) ── */}
+      <div className="hidden lg:flex lg:w-1/2 xl:w-7/12 relative flex-col items-center justify-center p-10 lg:p-14 border-r border-slate-200/50 dark:border-white/5">
+        <div className="relative z-10 w-full max-w-xl text-center flex flex-col items-center">
           
-          {/* Logo Badge */}
-          <div className="inline-flex items-center gap-3.5 bg-white/70 dark:bg-white/[0.04] backdrop-blur-xl border border-slate-200/80 dark:border-white/10 px-5 py-2.5 rounded-2xl mb-8 shadow-xl shadow-purple-950/5">
+          {/* Header Platform Logo */}
+          <div className="inline-flex items-center gap-3.5 bg-white/80 dark:bg-white/[0.04] backdrop-blur-xl border border-slate-200/80 dark:border-white/10 px-5 py-2.5 rounded-2xl mb-6 shadow-md">
             {logoUrl ? (
-              <img src={logoUrl} alt={platformName} className="w-9 h-9 object-contain rounded-xl shrink-0" />
+              <img src={logoUrl} alt={platformName} className="w-8 h-8 object-contain rounded-xl shrink-0" />
             ) : (
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-md shadow-purple-600/30 shrink-0">
-                <FaGraduationCap className="text-lg text-white" />
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-md shadow-purple-600/30 shrink-0">
+                <FaGraduationCap className="text-base text-white" />
               </div>
             )}
-            <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+            <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
               {platformName || "TeachHub"}
             </span>
           </div>
 
-          <h1 className="text-4xl xl:text-5xl font-black leading-tight tracking-tight mb-5">
-            Where Learning <br />
-            <span className="bg-gradient-to-r from-purple-600 via-indigo-500 to-sky-500 bg-clip-text text-transparent">
-              Comes Alive
-            </span>
+          {/* School Cover Banner 5-second Auto-Slider Card */}
+          <div className="w-full relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80 dark:border-white/10 mb-6 bg-slate-900 group aspect-[2.4/1]">
+            <img
+              key={currentBanner.coverImage}
+              src={currentBanner.coverImage}
+              alt={currentBanner.name}
+              className="w-full h-full object-cover transition-all duration-1000 ease-in-out scale-105 group-hover:scale-100"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-5 text-left text-white">
+              <div className="flex items-center gap-2.5 mb-1.5">
+                {currentBanner.photo ? (
+                  <img src={currentBanner.photo} alt="Logo" className="w-8 h-8 rounded-xl object-cover border border-white/30" />
+                ) : (
+                  <div className="w-8 h-8 rounded-xl bg-purple-600/80 backdrop-blur-md flex items-center justify-center border border-white/30 text-white font-black text-xs">
+                    <FaSchool />
+                  </div>
+                )}
+                <div>
+                  <h3 className="font-black text-base tracking-wide text-white leading-none">{currentBanner.name}</h3>
+                  <p className="text-[10px] text-white/75 font-semibold mt-0.5">{currentBanner.motto || "Learn • Grow • Succeed"}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Slider Dots */}
+            {bannersList.length > 1 && (
+              <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
+                {bannersList.map((_, idx) => (
+                  <span
+                    key={idx}
+                    onClick={() => setCurrentBannerIdx(idx)}
+                    className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
+                      idx === currentBannerIdx ? "bg-purple-400 w-4" : "bg-white/40 hover:bg-white/70"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          <h1 className="text-3xl xl:text-4xl font-black leading-tight tracking-tight mb-3">
+            Where Learning <span className="bg-gradient-to-r from-purple-600 via-indigo-500 to-sky-500 bg-clip-text text-transparent">Comes Alive</span>
           </h1>
 
-          <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-10 max-w-md">
-            A secure, unified platform for students, teachers, and admins — built to power modern education and streamlined school operations.
+          <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed mb-6 max-w-md">
+            A secure, unified platform for students, teachers, and admins — built to power modern education.
           </p>
 
-          {/* SaaS Metrics Pills */}
-          <div className="grid grid-cols-3 gap-4 w-full max-w-md">
-            {[
-              { 
-                label: "Students", 
-                count: liveStats.students !== undefined ? `${liveStats.students}` : (platformConfig?.stats?.students !== undefined ? `${platformConfig.stats.students}` : "0"), 
-                accent: "from-purple-500/10 to-purple-500/5 text-purple-600 dark:text-purple-400 border-purple-500/20" 
-              },
-              { 
-                label: "Teachers", 
-                count: liveStats.teachers !== undefined ? `${liveStats.teachers}` : (platformConfig?.stats?.teachers !== undefined ? `${platformConfig.stats.teachers}` : "0"), 
-                accent: "from-indigo-500/10 to-indigo-500/5 text-indigo-600 dark:text-indigo-400 border-indigo-500/20" 
-              },
-              { 
-                label: "Admins", 
-                count: liveStats.admins !== undefined ? `${liveStats.admins}` : (platformConfig?.stats?.admins !== undefined ? `${platformConfig.stats.admins}` : "0"), 
-                accent: "from-sky-500/10 to-sky-500/5 text-sky-600 dark:text-sky-400 border-sky-500/20" 
-              }
-            ].map((item) => (
-              <div
-                key={item.label}
-                className={`bg-gradient-to-b ${item.accent} backdrop-blur-md border rounded-2xl p-4 text-center shadow-sm hover:scale-105 transition-transform duration-200`}
-              >
-                <p className="text-xl font-black">{item.count}</p>
-                <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">{item.label}</p>
-              </div>
-            ))}
+          {/* 3 Metric Cards (Total School, Total Teachers, Total Students) */}
+          <div className="grid grid-cols-3 gap-3.5 w-full max-w-md">
+            <div className="bg-gradient-to-b from-purple-500/10 to-purple-500/5 backdrop-blur-md border border-purple-500/20 rounded-2xl p-3.5 text-center shadow-sm">
+              <p className="text-lg font-black text-purple-600 dark:text-purple-400">{liveStats.schools || publicSchools.length || 1}</p>
+              <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">Total School</p>
+            </div>
+            <div className="bg-gradient-to-b from-indigo-500/10 to-indigo-500/5 backdrop-blur-md border border-indigo-500/20 rounded-2xl p-3.5 text-center shadow-sm">
+              <p className="text-lg font-black text-indigo-600 dark:text-indigo-400">{liveStats.teachers || 0}</p>
+              <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">Total Teacher</p>
+            </div>
+            <div className="bg-gradient-to-b from-sky-500/10 to-sky-500/5 backdrop-blur-md border border-sky-500/20 rounded-2xl p-3.5 text-center shadow-sm">
+              <p className="text-lg font-black text-sky-600 dark:text-sky-400">{liveStats.students || 0}</p>
+              <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">Total Students</p>
+            </div>
           </div>
 
         </div>
       </div>
 
-      {/* ── Right Panel (Modern Glass Card Container) ── */}
+      {/* ── Right Panel & Mobile Layout ── */}
       <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 lg:p-12 relative z-10">
         
+        {/* MOBILE ONLY TOP HERO CAROUSEL & METRICS */}
+        <div className="w-full max-w-[440px] lg:hidden space-y-4 mb-6">
+          
+          {/* Mobile School Cover Banner 5-sec Carousel */}
+          <div className="w-full relative rounded-3xl overflow-hidden shadow-xl border border-slate-200/80 dark:border-white/10 bg-slate-900 aspect-[2.2/1]">
+            <img
+              key={currentBanner.coverImage}
+              src={currentBanner.coverImage}
+              alt={currentBanner.name}
+              className="w-full h-full object-cover transition-all duration-1000 ease-in-out"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-4 text-left text-white">
+              <div className="flex items-center gap-2.5">
+                {currentBanner.photo ? (
+                  <img src={currentBanner.photo} alt="Logo" className="w-7 h-7 rounded-lg object-cover border border-white/30" />
+                ) : (
+                  <div className="w-7 h-7 rounded-lg bg-purple-600/80 flex items-center justify-center text-white text-xs border border-white/30">
+                    <FaSchool />
+                  </div>
+                )}
+                <div>
+                  <h3 className="font-black text-sm text-white leading-none">{currentBanner.name}</h3>
+                  <p className="text-[9px] text-white/75 font-semibold mt-0.5">{currentBanner.motto || "Learn • Grow • Succeed"}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Slider Dots */}
+            {bannersList.length > 1 && (
+              <div className="absolute top-2.5 right-2.5 flex items-center gap-1 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
+                {bannersList.map((_, idx) => (
+                  <span
+                    key={idx}
+                    onClick={() => setCurrentBannerIdx(idx)}
+                    className={`w-1.5 h-1.5 rounded-full transition-all ${
+                      idx === currentBannerIdx ? "bg-purple-400 w-3" : "bg-white/40"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Mobile 3 Metric Cards Grid (Total School, Total Teacher, Total Students) */}
+          <div className="grid grid-cols-3 gap-2.5">
+            <div className="bg-white/80 dark:bg-[#0B132B]/80 backdrop-blur-xl border border-purple-500/20 rounded-2xl p-2.5 text-center shadow-sm">
+              <p className="text-base font-black text-purple-600 dark:text-purple-400">{liveStats.schools || publicSchools.length || 1}</p>
+              <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">Total School</p>
+            </div>
+
+            <div className="bg-white/80 dark:bg-[#0B132B]/80 backdrop-blur-xl border border-indigo-500/20 rounded-2xl p-2.5 text-center shadow-sm flex flex-col items-center justify-center">
+              <p className="text-base font-black text-indigo-600 dark:text-indigo-400">{liveStats.teachers || 0}</p>
+              <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">Total Teacher</p>
+            </div>
+
+            <div className="bg-white/80 dark:bg-[#0B132B]/80 backdrop-blur-xl border border-sky-500/20 rounded-2xl p-2.5 text-center shadow-sm">
+              <p className="text-base font-black text-sky-600 dark:text-sky-400">{liveStats.students || 0}</p>
+              <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">Total Students</p>
+            </div>
+          </div>
+
+        </div>
+
         {/* Glassmorphic Form Card */}
         <div className="w-full max-w-[440px] bg-white/80 dark:bg-[#0B132B]/80 backdrop-blur-2xl p-6 sm:p-10 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-2xl shadow-purple-950/10 dark:shadow-black/70 transition-all duration-300">
           
-          {/* Header Brand Badge inside card for both mobile & desktop */}
-          <div className="flex flex-col items-center text-center mb-7">
-            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-purple-500/10 dark:bg-white/[0.05] border border-purple-500/20 dark:border-white/10 mb-4 shadow-sm">
+          {/* Header Brand Badge inside card */}
+          <div className="flex flex-col items-center text-center mb-6">
+            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-purple-500/10 dark:bg-white/[0.05] border border-purple-500/20 dark:border-white/10 mb-3 shadow-sm">
               {logoUrl ? (
-                <img src={logoUrl} alt={platformName} className="w-6 h-6 object-contain rounded-md" />
+                <img src={logoUrl} alt={platformName} className="w-5 h-5 object-contain rounded-md" />
               ) : (
-                <div className="w-6 h-6 rounded-md bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center shadow-xs">
-                  <FaGraduationCap className="text-white text-xs" />
+                <div className="w-5 h-5 rounded-md bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-[10px]">
+                  <FaGraduationCap />
                 </div>
               )}
               <span className="text-xs font-black tracking-wide text-purple-700 dark:text-purple-300">
-                {platformName || "Your School"}
+                {currentBanner.name || platformName || "Your School"}
               </span>
             </div>
 
@@ -325,7 +464,7 @@ function Login() {
           )}
 
           {!otpSent ? (
-            <form onSubmit={handleSendOtp} className="space-y-5">
+            <form onSubmit={handleSendOtp} className="space-y-4">
               {/* Email Input */}
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-2">
@@ -362,7 +501,7 @@ function Login() {
               </button>
 
               {/* Divider */}
-              <div className="relative my-6 flex items-center justify-center">
+              <div className="relative my-5 flex items-center justify-center">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-200 dark:border-white/10" />
                 </div>
@@ -388,7 +527,7 @@ function Login() {
               </button>
             </form>
           ) : (
-            <form onSubmit={handleVerifyOtp} className="space-y-5">
+            <form onSubmit={handleVerifyOtp} className="space-y-4">
               {/* Email (Read-only) */}
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-2">
@@ -473,7 +612,7 @@ function Login() {
         </div>
 
         {/* Footer text */}
-        <p className="text-[11px] text-slate-400 dark:text-slate-500 font-semibold mt-8 text-center">
+        <p className="text-[11px] text-slate-400 dark:text-slate-500 font-semibold mt-6 text-center">
           Protected by end-to-end OTP authentication &bull; TeachHub
         </p>
 

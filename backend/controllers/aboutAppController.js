@@ -1,5 +1,6 @@
 const AboutApp = require("../models/AboutApp");
 const User = require("../models/User");
+const School = require("../models/School");
 
 // GET /api/about-app
 exports.getAboutInfo = async (req, res) => {
@@ -12,13 +13,20 @@ exports.getAboutInfo = async (req, res) => {
     const studentCount = await User.countDocuments({ role: "student" });
     const teacherCount = await User.countDocuments({ role: "teacher" });
     const adminCount = await User.countDocuments({ role: { $in: ["admin", "superadmin"] } });
+    const schoolCount = await School.countDocuments({});
+
+    const publicSchools = await School.find({})
+      .select("name photo coverImage motto address")
+      .lean();
 
     const data = info.toObject ? info.toObject() : { ...info };
     data.stats = {
-      students: studentCount,
-      teachers: teacherCount,
-      admins: adminCount
+      schools: schoolCount || 0,
+      students: studentCount || 0,
+      teachers: teacherCount || 0,
+      admins: adminCount || 0
     };
+    data.publicSchools = publicSchools || [];
 
     res.json(data);
   } catch (error) {
