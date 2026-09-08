@@ -935,32 +935,34 @@ function MyClasses() {
                   </div>
 
                   {/* Performance Donut on right */}
-                  <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                      <PieChart>
-                        <Pie
-                          data={donutChartData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={30}
-                          outerRadius={38}
-                          startAngle={90}
-                          endAngle={-270}
-                          dataKey="value"
-                        >
-                          {donutChartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="absolute flex flex-col items-center justify-center text-center leading-none">
-                      <span className="text-sm font-black text-slate-850 dark:text-white">{c.performance}%</span>
-                      {perf.label && (
-                        <span className="text-[7px] font-bold text-slate-400 dark:text-slate-500 uppercase mt-0.5 tracking-wider">{perf.label}</span>
-                      )}
+                  {c.performance > 0 && (
+                    <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
+                      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                        <PieChart>
+                          <Pie
+                            data={donutChartData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={30}
+                            outerRadius={38}
+                            startAngle={90}
+                            endAngle={-270}
+                            dataKey="value"
+                          >
+                            {donutChartData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="absolute flex flex-col items-center justify-center text-center leading-none">
+                        <span className="text-sm font-black text-slate-850 dark:text-white">{c.performance}%</span>
+                        {perf.label && (
+                          <span className="text-[7px] font-bold text-slate-400 dark:text-slate-500 uppercase mt-0.5 tracking-wider">{perf.label}</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Middle details row */}
