@@ -55,6 +55,22 @@ required:true
       default: ""
     }
   }],
+  title: {
+    type: String,
+    default: ""
+  },
+  time: {
+    type: String,
+    default: "09:00 AM"
+  },
+  duration: {
+    type: String,
+    default: "1h 30m"
+  },
+  roomNumber: {
+    type: String,
+    default: ""
+  },
   proctor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

@@ -9,16 +9,20 @@ exports.createExam = async (req,res)=>{
 
 try{
 
-const { classId, subjectId, date, mode, negativeMarking, negativeMarkValue, questions, proctorId } = req.body;
+const { title, classId, subjectId, date, time, duration, roomNumber, mode, negativeMarking, negativeMarkValue, questions, proctorId } = req.body;
 
 if (!req.user || (req.user.role !== "superadmin" && !req.user.schoolName)) {
   return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
 }
 
 const exam = new Exam({
+  title: title || "",
   class: classId,
   subject: subjectId,
   date,
+  time: time || "09:00 AM",
+  duration: duration || "1h 30m",
+  roomNumber: roomNumber || "",
   schoolName: req.user.schoolName,
   mode: mode || "offline",
   negativeMarking: !!negativeMarking,
@@ -80,28 +84,24 @@ if (req.user.role === "teacher") {
     schoolName: req.user.schoolName,
     name: { $in: teacherClassNames }
   }).distinct("_id");
-  query.$or = [{ proctor: req.user.id }, { class: { $in: sameLevelClassIds } }];
+  query.$or = [
+    { proctor: req.user.id },
+    { proctor: null, class: { $in: sameLevelClassIds } },
+    { proctor: { $exists: false }, class: { $in: sameLevelClassIds } }
+  ];
 }
 const exams = await Exam.find(query)
-.populate("class","name section")
-.populate("subject","name")
-.populate("proctor", "name email role")
-.sort({date:1});
+  .populate("class", "name section")
+  .populate("subject", "name")
+  .populate("proctor", "name email role")
+  .sort({ date: 1 });
 
 res.json(exams);
 
-}catch(err){
-
-res.status(500).json({
-message:err.message
-});
-
+} catch (err) {
+  res.status(500).json({ message: err.message });
 }
-
 };
-
-
-
 // ================= DELETE EXAM =================
 
 exports.deleteExam = async (req,res)=>{

@@ -16,9 +16,13 @@ function ExamSchedule() {
   const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState({
+    title: "",
     classId: "",
     subjectId: "",
     date: "",
+    time: "09:00 AM",
+    duration: "1h 30m",
+    roomNumber: "",
     mode: "offline",
     negativeMarking: false,
     negativeMarkValue: 0.25,
@@ -204,9 +208,13 @@ function ExamSchedule() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setForm({
+        title: "",
         classId: "",
         subjectId: "",
         date: "",
+        time: "09:00 AM",
+        duration: "1h 30m",
+        roomNumber: "",
         mode: "offline",
         negativeMarking: false,
         negativeMarkValue: 0.25,
@@ -341,6 +349,19 @@ function ExamSchedule() {
                   </div>
 
                   <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Exam Title / Name */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Exam Title / Name</label>
+                      <input
+                        type="text"
+                        name="title"
+                        placeholder="e.g. Unit Test - 1, Half Yearly Exam"
+                        value={form.title}
+                        onChange={handleChange}
+                        className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                      />
+                    </div>
+
                     {/* Class select */}
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Class</label>
@@ -401,6 +422,32 @@ function ExamSchedule() {
                       </div>
                     </div>
 
+                    {/* Time & Duration */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Time</label>
+                        <input
+                          type="text"
+                          name="time"
+                          placeholder="e.g. 09:00 AM - 10:30 AM"
+                          value={form.time}
+                          onChange={handleChange}
+                          className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Duration</label>
+                        <input
+                          type="text"
+                          name="duration"
+                          placeholder="e.g. 1h 30m"
+                          value={form.duration}
+                          onChange={handleChange}
+                          className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                        />
+                      </div>
+                    </div>
+
                     {/* Exam Mode select */}
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Exam Mode</label>
@@ -416,26 +463,36 @@ function ExamSchedule() {
                       </select>
                     </div>
 
-                    {/* Conducting Teacher (Proctor) select for Online */}
-                    {form.mode === "online" && (
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Conducting Teacher (Proctor)</label>
-                        <select
-                          name="proctorId"
-                          value={form.proctorId}
-                          onChange={handleChange}
-                          required
-                          className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
-                        >
-                          <option value="">Select Conducting Teacher</option>
-                          {teachers.map((t) => (
-                            <option key={t._id} value={t._id}>
-                              {t.name} ({t.email})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
+                    {/* Conducting Teacher (Proctor) select - Available for BOTH Offline & Online */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Conducting Teacher (Proctor)</label>
+                      <select
+                        name="proctorId"
+                        value={form.proctorId}
+                        onChange={handleChange}
+                        className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                      >
+                        <option value="">Select Conducting Teacher</option>
+                        {teachers.map((t) => (
+                          <option key={t._id} value={t._id}>
+                            {t.name} ({t.email})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Room Number / Venue (Offline / Online) */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Room Number / Venue</label>
+                      <input
+                        type="text"
+                        name="roomNumber"
+                        placeholder="e.g. Room 102, Main Hall"
+                        value={form.roomNumber}
+                        onChange={handleChange}
+                        className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                      />
+                    </div>
 
                     {form.mode === "online" && (
                       <div className="space-y-4 pt-2 border-t border-slate-100 dark:border-white/5">

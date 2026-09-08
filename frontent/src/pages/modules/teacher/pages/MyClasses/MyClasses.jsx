@@ -1010,23 +1010,7 @@ function MyClasses() {
         </div>
       )}
 
-      {/* Pagination footer */}
-      {filteredClasses.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between border-t border-slate-100 dark:border-white/5 pt-5 mt-4 gap-4 text-xs font-bold text-slate-450 dark:text-slate-500 select-none">
-          <span>Showing 1 to {filteredClasses.length} of {classes.length} classes</span>
-          <div className="flex items-center gap-2">
-            <button className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/5 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer disabled:opacity-40" disabled>
-              <FaChevronLeft className="text-[9px]" />
-            </button>
-            <button className="w-8 h-8 rounded-xl bg-[#7C3AED] text-white flex items-center justify-center shadow-md cursor-pointer">
-              1
-            </button>
-            <button className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/5 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer disabled:opacity-40" disabled>
-              <FaChevronRight className="text-[9px]" />
-            </button>
-          </div>
-        </div>
-      )}
+
 
     </div>
   );

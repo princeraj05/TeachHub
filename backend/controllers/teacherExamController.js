@@ -10,41 +10,49 @@ const Timetable = require("../models/Timetable");
 exports.getTeacherExams = async (req, res) => {
   try {
     const teacherId = req.user.id;
-    const timetableSubjectIds = await Timetable.distinct("subject", { teacher: teacherId });
-    const subjects = await Subject.find({
-      $or: [{ teacher: teacherId }, { _id: { $in: timetableSubjectIds } }]
-    });
-    const subjectIds = subjects.map(s => s._id);
+    const schoolName = req.user.schoolName;
 
-    const exams = await Exam.find({ subject: { $in: subjectIds } })
+    const teacherClasses = await Class.find({ schoolName, teacher: teacherId }).select("name").lean();
+    const teacherClassNames = [...new Set(teacherClasses.map(c => c.name))];
+    const sameLevelClassIds = await Class.find({
+      schoolName,
+      name: { $in: teacherClassNames }
+    }).distinct("_id");
+
+    const query = {
+      schoolName,
+      $or: [
+        { proctor: teacherId },
+        { proctor: null, class: { $in: sameLevelClassIds } },
+        { proctor: { $exists: false }, class: { $in: sameLevelClassIds } }
+      ]
+    };
+
+    const exams = await Exam.find(query)
       .populate("class", "name section")
       .populate("subject", "name")
+      .populate("proctor", "name email role")
       .sort({ date: 1 });
 
-    const formattedExams = exams.map((ex, idx) => {
-      // Generate some mock duration
-      const durations = ["1h 30m", "2h 00m", "1h 00m", "1h 15m"];
-      const duration = durations[idx % durations.length];
-
-      // Time
-      const times = ["09:00 AM", "10:00 AM", "11:30 AM", "01:00 PM"];
-      const time = times[idx % times.length];
-
-      // Exam Name helper
-      const nameKey = ex.subject?.name?.toLowerCase() || "";
-      let title = "Unit Test - 2";
-      if (idx % 4 === 1) title = "Half Yearly Exam";
-      else if (idx % 4 === 2) title = nameKey.includes("math") ? "Chapter Test - Algebra" : "Science Test - 1";
-      else if (idx % 4 === 3) title = "Unit Test - 1";
+    const formattedExams = exams.map((ex) => {
+      const subjectName = ex.subject?.name || "Subject";
+      const title = ex.title || `${subjectName} Exam`;
+      const time = ex.time || "09:00 AM";
+      const duration = ex.duration || "1h 30m";
+      const roomNumber = ex.roomNumber || "";
+      const proctorName = ex.proctor?.name || "";
 
       return {
         _id: ex._id,
         title,
-        subject: ex.subject?.name || "Subject",
+        subject: subjectName,
         className: `${ex.class?.name || "Class"} - ${ex.class?.section || "A"}`,
         date: ex.date,
         time,
         duration,
+        roomNumber,
+        proctorName,
+        proctorId: ex.proctor?._id || null,
         mode: ex.mode || "offline",
         status: new Date(ex.date) >= new Date() ? "Upcoming" : "Completed"
       };

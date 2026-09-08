@@ -337,13 +337,7 @@ function ExamSchedule() {
           </div>
         )}
 
-        {/* Table Footer Ledger */}
-        <div className="p-4 border-t border-slate-200/50 dark:border-white/[0.05] bg-slate-50/20 dark:bg-white/[0.01] flex items-center justify-between text-[10px] text-slate-450 font-bold uppercase tracking-wider">
-          <span>Showing 1 to {displayedList.length} of {displayedList.length} exams</span>
-          <span className="font-semibold text-slate-400 dark:text-slate-500 select-none">
-            Term Academic Roster logs
-          </span>
-        </div>
+
       </div>
 
     </div>
