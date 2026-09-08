@@ -43,6 +43,25 @@ function MarkAttendance() {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const getCleanId = (id) => {
+    if (!id) return "";
+    if (typeof id === "string") return id;
+    if (typeof id === "object") {
+      if (id._id) return getCleanId(id._id);
+      if (typeof id.toString === "function") {
+        const str = id.toString();
+        if (str !== "[object Object]") return str;
+      }
+    }
+    return String(id);
+  };
+
+  const getSubName = (subObj) => {
+    if (!subObj) return "Subject";
+    if (typeof subObj === "object") return subObj.name || subObj.subjectName || "Subject";
+    return "Subject";
+  };
+
   const parseTimeToMinutes = (timeStr) => {
     if (!timeStr) return 0;
     const clean = String(timeStr).trim().toUpperCase();
@@ -100,23 +119,22 @@ function MarkAttendance() {
         rawEntries.sort((a, b) => parseTimeToMinutes(a.startTime) - parseTimeToMinutes(b.startTime));
 
         // Get Set of IDs of subjects assigned to this teacher
-        const myTeacherSubjectIds = new Set(subjects.map(s => String(s._id)));
+        const myTeacherSubjectIds = new Set(subjects.map(s => getCleanId(s._id)));
 
         const orderedList = [];
         const seenSubIds = new Set();
 
         rawEntries.forEach(e => {
           const subObj = e.subject;
-          const subId = typeof subObj === 'object' ? subObj?._id : subObj;
-          const subName = typeof subObj === 'object' ? subObj?.name : "Subject";
+          const subIdStr = getCleanId(subObj);
+          const subName = getSubName(subObj);
           
           // Only include if scheduled today AND assigned to this teacher
-          if (subId && (myTeacherSubjectIds.size === 0 || myTeacherSubjectIds.has(String(subId)))) {
-            const strSubId = String(subId);
-            if (!seenSubIds.has(strSubId)) {
-              seenSubIds.add(strSubId);
+          if (subIdStr && (myTeacherSubjectIds.size === 0 || myTeacherSubjectIds.has(subIdStr))) {
+            if (!seenSubIds.has(subIdStr)) {
+              seenSubIds.add(subIdStr);
               orderedList.push({
-                _id: strSubId,
+                _id: subIdStr,
                 name: subName,
                 startTime: e.startTime || "",
                 endTime: e.endTime || ""
@@ -129,18 +147,18 @@ function MarkAttendance() {
         if (orderedList.length === 0 && subjects.length > 0) {
           const classSubjects = subjects.filter(subject => {
             if (subject.classes && Array.isArray(subject.classes)) {
-              return subject.classes.some(c => String(c._id || c) === String(selectedClassId));
+              return subject.classes.some(c => getCleanId(c._id || c) === getCleanId(selectedClassId));
             }
             return true;
           });
 
           classSubjects.forEach(sub => {
-            const subId = String(sub._id);
+            const subId = getCleanId(sub._id);
             if (!seenSubIds.has(subId)) {
               seenSubIds.add(subId);
               orderedList.push({
                 _id: subId,
-                name: sub.name,
+                name: sub.name || "Subject",
                 startTime: "",
                 endTime: ""
               });
@@ -159,18 +177,18 @@ function MarkAttendance() {
               { headers: { Authorization: `Bearer ${token}` } }
             );
             if (checkRes.data && checkRes.data.alreadyMarked) {
-              completedSet.add(String(sub._id));
+              completedSet.add(getCleanId(sub._id));
             }
           } catch (e) {}
         }
         setCompletedSubjectIds(completedSet);
 
         // 3. Auto-select the first pending subject in sequence
-        const firstPending = orderedList.find(sub => !completedSet.has(String(sub._id)));
+        const firstPending = orderedList.find(sub => !completedSet.has(getCleanId(sub._id)));
         if (firstPending) {
-          setSelectedSubjectId(String(firstPending._id));
+          setSelectedSubjectId(getCleanId(firstPending._id));
         } else if (orderedList.length > 0) {
-          setSelectedSubjectId(String(orderedList[0]._id));
+          setSelectedSubjectId(getCleanId(orderedList[0]._id));
         } else {
           setSelectedSubjectId("");
         }
@@ -327,9 +345,10 @@ function MarkAttendance() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const currentSubIdStr = String(selectedSubjectId);
-      const currentSubObj = timetableSubjects.find(s => String(s._id) === currentSubIdStr);
-      const currentSubName = currentSubObj ? currentSubObj.name : "Subject";
+      const currentSubIdStr = getCleanId(selectedSubjectId);
+      const currentSubObj = timetableSubjects.find(s => getCleanId(s._id) === currentSubIdStr)
+        || subjects.find(s => getCleanId(s._id) === currentSubIdStr);
+      const currentSubName = currentSubObj ? (currentSubObj.name || getSubName(currentSubObj)) : "Subject";
 
       // Update completed set with normalized string ID
       const nextCompleted = new Set(completedSubjectIds);
@@ -337,12 +356,12 @@ function MarkAttendance() {
       setCompletedSubjectIds(nextCompleted);
 
       // Find next pending subject in timetable sequence
-      const currentIdx = timetableSubjects.findIndex(s => String(s._id) === currentSubIdStr);
-      const nextPending = timetableSubjects.find((s, idx) => idx > currentIdx && !nextCompleted.has(String(s._id)))
-        || timetableSubjects.find(s => !nextCompleted.has(String(s._id)));
+      const currentIdx = timetableSubjects.findIndex(s => getCleanId(s._id) === currentSubIdStr);
+      const nextPending = timetableSubjects.find((s, idx) => idx > currentIdx && !nextCompleted.has(getCleanId(s._id)))
+        || timetableSubjects.find(s => !nextCompleted.has(getCleanId(s._id)));
 
-      if (nextPending && String(nextPending._id) !== currentSubIdStr) {
-        setSelectedSubjectId(String(nextPending._id));
+      if (nextPending && getCleanId(nextPending._id) !== currentSubIdStr) {
+        setSelectedSubjectId(getCleanId(nextPending._id));
         alert(`Attendance saved for ${currentSubName}! Next pending subject (${nextPending.name}) selected.`);
       } else {
         setIsCurrentSubjectCompleted(true);
