@@ -130,7 +130,7 @@ function MarkAttendance() {
           const subName = getSubName(subObj);
           
           // Only include if scheduled today AND assigned to this teacher
-          if (subIdStr && (myTeacherSubjectIds.size === 0 || myTeacherSubjectIds.has(subIdStr))) {
+          if (subIdStr && myTeacherSubjectIds.has(subIdStr)) {
             if (!seenSubIds.has(subIdStr)) {
               seenSubIds.add(subIdStr);
               orderedList.push({

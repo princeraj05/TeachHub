@@ -2,6 +2,7 @@ const Attendance = require("../models/Attendance");
 const User = require("../models/User");
 const Class = require("../models/Class");
 const Subject = require("../models/Subject");
+const Timetable = require("../models/Timetable");
 
 
 // ================= MARK ATTENDANCE =================
@@ -239,6 +240,28 @@ exports.bulkSaveAttendance = async (req, res) => {
     endOfDay.setHours(23, 59, 59, 999);
 
     const subId = (subjectId && subjectId !== "none" && subjectId !== "") ? subjectId : null;
+
+    // Strict Security Check: Only allow teacher to mark attendance for subjects assigned to them
+    if (subId && req.user.role !== "admin" && req.user.role !== "superadmin") {
+      const isAssignedSubject = await Subject.exists({
+        _id: subId,
+        $or: [
+          { teacher: teacherId },
+          { teachers: teacherId }
+        ]
+      });
+
+      const isTimetableTeacher = await Timetable.exists({
+        subject: subId,
+        teacher: teacherId
+      });
+
+      if (!isAssignedSubject && !isTimetableTeacher) {
+        return res.status(403).json({
+          message: "Forbidden: You can only mark attendance for subjects assigned to you."
+        });
+      }
+    }
 
     for (const rec of records) {
       const { studentId, status, remarks } = rec;
