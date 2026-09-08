@@ -845,6 +845,15 @@ app.use((err, req, res, next) => {
 });
 
 
+// ================= PROCESS ERROR HANDLERS =================
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+});
+
 // ================= SERVER =================
 
 const PORT = process.env.PORT || 5000;
