@@ -34,4 +34,14 @@ examController.deleteExam
 );
 
 
+// ================= UPDATE EXAM =================
+
+router.put(
+"/:id",
+protect,
+authorize("admin"),
+examController.updateExam
+);
+
+
 module.exports = router;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaCalendarAlt, FaBook, FaSchool, FaTrash, FaPlus, FaCalendarCheck } from "react-icons/fa";
+import { FaCalendarAlt, FaBook, FaSchool, FaTrash, FaPlus, FaCalendarCheck, FaEdit } from "react-icons/fa";
 
 const SORA = "'Sora', sans-serif";
 
@@ -193,8 +193,47 @@ function ExamSchedule() {
     setSubjects(res.data);
   };
 
+  const [editingId, setEditingId] = useState(null);
+
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleEditExam = (exam) => {
+    setEditingId(exam._id);
+    setForm({
+      title: exam.title || "",
+      classId: exam.class?._id || exam.class || "",
+      subjectId: exam.subject?._id || exam.subject || "",
+      date: exam.date ? new Date(exam.date).toISOString().split("T")[0] : "",
+      time: exam.time || "09:00 AM",
+      duration: exam.duration || "1h 30m",
+      roomNumber: exam.roomNumber || "",
+      mode: exam.mode || "offline",
+      negativeMarking: !!exam.negativeMarking,
+      negativeMarkValue: exam.negativeMarkValue || 0.25,
+      questions: exam.questions || [],
+      proctorId: exam.proctor?._id || exam.proctor || ""
+    });
+    window.scrollTo({ top: 200, behavior: "smooth" });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setForm({
+      title: "",
+      classId: "",
+      subjectId: "",
+      date: "",
+      time: "09:00 AM",
+      duration: "1h 30m",
+      roomNumber: "",
+      mode: "offline",
+      negativeMarking: false,
+      negativeMarkValue: 0.25,
+      questions: [],
+      proctorId: ""
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -204,26 +243,20 @@ function ExamSchedule() {
     }
     setSubmitting(true);
     try {
-      await axios.post(`${API}/api/exams`, form, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setForm({
-        title: "",
-        classId: "",
-        subjectId: "",
-        date: "",
-        time: "09:00 AM",
-        duration: "1h 30m",
-        roomNumber: "",
-        mode: "offline",
-        negativeMarking: false,
-        negativeMarkValue: 0.25,
-        questions: [],
-        proctorId: ""
-      });
+      if (editingId) {
+        await axios.put(`${API}/api/exams/${editingId}`, form, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        alert("Exam updated successfully!");
+      } else {
+        await axios.post(`${API}/api/exams`, form, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+      cancelEdit();
       fetchExams();
     } catch (err) {
-      console.log(err);
+      alert(err.response?.data?.message || "Error saving exam");
     } finally {
       setSubmitting(false);
     }
@@ -338,14 +371,29 @@ function ExamSchedule() {
               <div className="bg-white dark:bg-[#0B132A] rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden sticky top-6">
                 <div className="h-1.5 w-full bg-gradient-to-r from-teal-500 to-indigo-500" />
                 <div className="p-6">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400 shadow-sm">
-                      <FaPlus className="text-sm" />
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400 shadow-sm">
+                        {editingId ? <FaEdit className="text-sm" /> : <FaPlus className="text-sm" />}
+                      </div>
+                      <div>
+                        <h2 className="text-slate-800 dark:text-white font-bold text-base">
+                          {editingId ? "Edit Exam Details" : "Schedule New Exam"}
+                        </h2>
+                        <p className="text-slate-400 text-xs mt-0.5">
+                          {editingId ? "Update exam parameters below" : "Fill academic details below"}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-slate-800 dark:text-white font-bold text-base">Schedule New Exam</h2>
-                      <p className="text-slate-400 text-xs mt-0.5">Fill academic details below</p>
-                    </div>
+                    {editingId && (
+                      <button
+                        type="button"
+                        onClick={cancelEdit}
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors cursor-pointer"
+                      >
+                        Cancel Edit
+                      </button>
+                    )}
                   </div>
 
                   <form onSubmit={handleSubmit} className="space-y-4">
@@ -621,12 +669,12 @@ function ExamSchedule() {
                       {submitting ? (
                         <>
                           <span className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                          Scheduling...
+                          Saving...
                         </>
                       ) : (
                         <>
-                          <FaPlus className="text-[10px]" />
-                          Add Exam
+                          {editingId ? <FaEdit className="text-[10px]" /> : <FaPlus className="text-[10px]" />}
+                          {editingId ? "Update Exam" : "Add Exam"}
                         </>
                       )}
                     </button>
@@ -724,13 +772,22 @@ function ExamSchedule() {
                                 </span>
                               </td>
                               <td className="px-5 py-4 text-center">
-                                <button
-                                  onClick={() => deleteExam(e._id)}
-                                  className="inline-flex items-center gap-1.5 bg-rose-50 border border-rose-100 hover:bg-rose-100 text-rose-600 font-bold text-[10px] px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
-                                >
-                                  <FaTrash className="text-[9px]" />
-                                  Delete
-                                </button>
+                                <div className="flex items-center justify-center gap-2">
+                                  <button
+                                    onClick={() => handleEditExam(e)}
+                                    className="inline-flex items-center gap-1 bg-blue-50 border border-blue-100 hover:bg-blue-100 text-blue-600 font-bold text-[10px] px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
+                                  >
+                                    <FaEdit className="text-[9px]" />
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => deleteExam(e._id)}
+                                    className="inline-flex items-center gap-1 bg-rose-50 border border-rose-100 hover:bg-rose-100 text-rose-600 font-bold text-[10px] px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
+                                  >
+                                    <FaTrash className="text-[9px]" />
+                                    Delete
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           );

@@ -49,6 +49,47 @@ message:err.message
 };
 
 
+// ================= UPDATE EXAM =================
+
+exports.updateExam = async (req, res) => {
+  try {
+    if (!req.user || !req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
+    }
+
+    const { title, classId, subjectId, date, time, duration, roomNumber, mode, negativeMarking, negativeMarkValue, questions, proctorId } = req.body;
+
+    const exam = await Exam.findOne({ _id: req.params.id, schoolName: req.user.schoolName });
+    if (!exam) {
+      return res.status(404).json({ message: "Exam not found" });
+    }
+
+    if (title !== undefined) exam.title = title;
+    if (classId) exam.class = classId;
+    if (subjectId) exam.subject = subjectId;
+    if (date) exam.date = date;
+    if (time !== undefined) exam.time = time;
+    if (duration !== undefined) exam.duration = duration;
+    if (roomNumber !== undefined) exam.roomNumber = roomNumber;
+    if (mode) exam.mode = mode;
+    if (negativeMarking !== undefined) exam.negativeMarking = !!negativeMarking;
+    if (negativeMarkValue !== undefined) exam.negativeMarkValue = negativeMarkValue;
+    if (questions !== undefined) exam.questions = questions;
+    if (proctorId !== undefined) exam.proctor = proctorId || null;
+
+    await exam.save();
+    const updatedExam = await Exam.findById(exam._id)
+      .populate("class", "name section")
+      .populate("subject", "name")
+      .populate("proctor", "name email role");
+
+    res.json({ message: "Exam updated successfully", data: updatedExam });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
 
 // ================= GET ALL EXAMS =================
 
