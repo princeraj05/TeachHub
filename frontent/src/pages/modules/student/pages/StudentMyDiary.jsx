@@ -257,16 +257,16 @@ export default function StudentMyDiary() {
   };
 
   return (
-    <div style={{ fontFamily: SORA }} className="w-full max-w-5xl mx-auto space-y-6 text-left select-none pb-12">
+    <div style={{ fontFamily: SORA }} className="w-full max-w-5xl mx-auto space-y-4 sm:space-y-6 text-left select-none pb-12 px-1 sm:px-0">
       {/* Toast Notification Banner */}
       {toastMessage && (
-        <div className="fixed top-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce border border-white/20">
-          <span className="text-sm font-bold">{toastMessage}</span>
+        <div className="fixed top-6 right-4 sm:right-6 z-50 bg-slate-900 text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce border border-white/20 text-xs sm:text-sm font-bold">
+          <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-violet-600/10 via-indigo-600/10 to-sky-500/10 dark:from-violet-500/15 dark:to-sky-500/15 p-6 rounded-3xl border border-violet-500/20 relative overflow-hidden">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 bg-gradient-to-r from-violet-600/10 via-indigo-600/10 to-sky-500/10 dark:from-violet-500/15 dark:to-sky-500/15 p-4 sm:p-6 rounded-2.5xl sm:rounded-3xl border border-violet-500/20 relative overflow-hidden">
         <div className="space-y-1 z-10">
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-[#7C3AED] text-white shadow-sm">
@@ -276,7 +276,7 @@ export default function StudentMyDiary() {
               Academic Year 2026
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
             MyDiary
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-350 font-semibold">
@@ -285,22 +285,22 @@ export default function StudentMyDiary() {
         </div>
 
         {/* School & Class Badge Cards */}
-        <div className="flex flex-wrap items-center gap-2.5 z-10 shrink-0">
-          <div className="bg-white/80 dark:bg-[#0B132A]/80 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-slate-200/80 dark:border-white/10 flex items-center gap-2 shadow-sm">
-            <FaSchool className="text-indigo-500 text-xs" />
-            <div>
-              <p className="text-[9px] text-slate-400 font-bold uppercase leading-none">School</p>
-              <p className="text-xs font-black text-slate-800 dark:text-white leading-tight mt-0.5">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 z-10 shrink-0">
+          <div className="bg-white/80 dark:bg-[#0B132A]/80 backdrop-blur-md px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl border border-slate-200/80 dark:border-white/10 flex items-center gap-2 shadow-sm flex-1 sm:flex-none min-w-[130px]">
+            <FaSchool className="text-indigo-500 text-xs shrink-0" />
+            <div className="min-w-0">
+              <p className="text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase leading-none">School</p>
+              <p className="text-xs font-black text-slate-800 dark:text-white leading-tight mt-0.5 truncate">
                 {diaryData.schoolName || "G.D Academy"}
               </p>
             </div>
           </div>
 
-          <div className="bg-white/80 dark:bg-[#0B132A]/80 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-slate-200/80 dark:border-white/10 flex items-center gap-2 shadow-sm">
-            <FaGraduationCap className="text-amber-500 text-xs" />
-            <div>
-              <p className="text-[9px] text-slate-400 font-bold uppercase leading-none">Class</p>
-              <p className="text-xs font-black text-slate-800 dark:text-white leading-tight mt-0.5">
+          <div className="bg-white/80 dark:bg-[#0B132A]/80 backdrop-blur-md px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl border border-slate-200/80 dark:border-white/10 flex items-center gap-2 shadow-sm flex-1 sm:flex-none min-w-[130px]">
+            <FaGraduationCap className="text-amber-500 text-xs shrink-0" />
+            <div className="min-w-0">
+              <p className="text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase leading-none">Class</p>
+              <p className="text-xs font-black text-slate-800 dark:text-white leading-tight mt-0.5 truncate">
                 {diaryData.className} - Sec {diaryData.section}
               </p>
             </div>
@@ -309,13 +309,13 @@ export default function StudentMyDiary() {
       </div>
 
       {/* Date Navigation & Control Bar */}
-      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-3xl p-4 sm:p-5 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm space-y-3 sm:space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          {/* Quick Date Pills */}
-          <div className="flex items-center gap-2">
+          {/* Quick Date Pills & Date Picker */}
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <button
               onClick={() => handleQuickDateChange("today")}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex-1 sm:flex-none text-center ${
                 selectedDate === new Date().toISOString().split("T")[0]
                   ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/25"
                   : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10"
@@ -325,7 +325,7 @@ export default function StudentMyDiary() {
             </button>
             <button
               onClick={() => handleQuickDateChange("yesterday")}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex-1 sm:flex-none text-center ${
                 selectedDate ===
                 new Date(Date.now() - 86400000).toISOString().split("T")[0]
                   ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/25"
@@ -336,28 +336,28 @@ export default function StudentMyDiary() {
             </button>
 
             {/* Custom Date Input */}
-            <div className="relative">
+            <div className="relative w-full sm:w-auto mt-1 sm:mt-0">
               <input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="px-3.5 py-1.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED] cursor-pointer"
+                className="w-full sm:w-auto px-3 py-1.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED] cursor-pointer"
               />
             </div>
           </div>
 
-          <div className="text-right">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block">
+          <div className="text-left sm:text-right flex items-center justify-between sm:block border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 dark:border-white/5">
+            <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block">
               Diary Date
             </span>
-            <span className="text-sm font-black text-[#7C3AED] dark:text-[#38BDF8]">
+            <span className="text-xs sm:text-sm font-black text-[#7C3AED] dark:text-[#38BDF8]">
               {formatDateLabel(selectedDate)}
             </span>
           </div>
         </div>
 
         {/* Search & Filters */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 border-t border-slate-100 dark:border-white/5">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-2 border-t border-slate-100 dark:border-white/5">
           {/* Search Box */}
           <div className="relative flex-1">
             <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
@@ -371,12 +371,12 @@ export default function StudentMyDiary() {
           </div>
 
           {/* Subject & Status Dropdowns */}
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-2 sm:flex items-center gap-2">
             {/* Subject Filter */}
             <select
               value={selectedSubject}
               onChange={(e) => setSelectedSubject(e.target.value)}
-              className="px-3 py-2 bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/10 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer"
+              className="w-full px-2.5 py-2 bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/10 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer truncate"
             >
               <option value="All">All Subjects</option>
               {uniqueSubjects.map((subj) => (
@@ -386,11 +386,11 @@ export default function StudentMyDiary() {
               ))}
             </select>
 
-            {/* Status Filter: Simplified to Pending & Completed */}
+            {/* Status Filter */}
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/10 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer"
+              className="w-full px-2.5 py-2 bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/10 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer truncate"
             >
               <option value="All">All Statuses</option>
               <option value="Pending">Pending</option>
@@ -401,50 +401,50 @@ export default function StudentMyDiary() {
       </div>
 
       {/* Summary Stats Cards Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5">
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/10 rounded-2.5xl sm:rounded-3xl p-3 sm:p-4 shadow-sm flex items-center gap-2.5 sm:gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3.5">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/10 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-sm flex items-center gap-2 sm:gap-3">
           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-black text-xs sm:text-sm shrink-0">
             📚
           </div>
-          <div>
-            <p className="text-[9px] sm:text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Total Homework</p>
-            <p className="text-lg sm:text-xl font-black text-slate-900 dark:text-white leading-tight">
+          <div className="min-w-0">
+            <p className="text-[8px] sm:text-[10px] text-slate-400 font-extrabold uppercase tracking-wide truncate">Total Homework</p>
+            <p className="text-base sm:text-xl font-black text-slate-900 dark:text-white leading-tight">
               {diaryData.summary?.totalHomework || 0}
             </p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/10 rounded-2.5xl sm:rounded-3xl p-3 sm:p-4 shadow-sm flex items-center gap-2.5 sm:gap-3">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/10 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-sm flex items-center gap-2 sm:gap-3">
           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-black text-xs sm:text-sm shrink-0">
             🟢
           </div>
-          <div>
-            <p className="text-[9px] sm:text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Completed</p>
-            <p className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400 leading-tight">
+          <div className="min-w-0">
+            <p className="text-[8px] sm:text-[10px] text-slate-400 font-extrabold uppercase tracking-wide truncate">Completed</p>
+            <p className="text-base sm:text-xl font-black text-emerald-600 dark:text-emerald-400 leading-tight">
               {diaryData.summary?.completed || 0}
             </p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/10 rounded-2.5xl sm:rounded-3xl p-3 sm:p-4 shadow-sm flex items-center gap-2.5 sm:gap-3">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/10 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-sm flex items-center gap-2 sm:gap-3">
           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center font-black text-xs sm:text-sm shrink-0">
             🟠
           </div>
-          <div>
-            <p className="text-[9px] sm:text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Pending</p>
-            <p className="text-lg sm:text-xl font-black text-amber-600 dark:text-amber-400 leading-tight">
+          <div className="min-w-0">
+            <p className="text-[8px] sm:text-[10px] text-slate-400 font-extrabold uppercase tracking-wide truncate">Pending</p>
+            <p className="text-base sm:text-xl font-black text-amber-600 dark:text-amber-400 leading-tight">
               {diaryData.summary?.pending || 0}
             </p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/10 rounded-2.5xl sm:rounded-3xl p-3 sm:p-4 shadow-sm flex items-center gap-2.5 sm:gap-3">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/10 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-sm flex items-center gap-2 sm:gap-3">
           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center font-black text-xs sm:text-sm shrink-0">
             📑
           </div>
-          <div>
-            <p className="text-[9px] sm:text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Subjects</p>
-            <p className="text-lg sm:text-xl font-black text-purple-600 dark:text-purple-400 leading-tight">
+          <div className="min-w-0">
+            <p className="text-[8px] sm:text-[10px] text-slate-400 font-extrabold uppercase tracking-wide truncate">Subjects</p>
+            <p className="text-base sm:text-xl font-black text-purple-600 dark:text-purple-400 leading-tight">
               {diaryData.summary?.subjectsCount || 0}
             </p>
           </div>
@@ -458,7 +458,7 @@ export default function StudentMyDiary() {
           <p className="text-xs font-bold text-slate-400">Loading daily diary records...</p>
         </div>
       ) : filteredHomeworks.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
           {filteredHomeworks.map((hw) => {
             const visual = getSubjectIcon(hw.subjectName);
             const isCompleted = hw.status === "Completed" || hw.status === "Submitted" || hw.status === "Reviewed";
@@ -470,37 +470,37 @@ export default function StudentMyDiary() {
             return (
               <div
                 key={hw._id}
-                className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-3xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between space-y-4 relative group"
+                className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-2.5xl sm:rounded-3xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between space-y-3.5 relative group"
               >
                 {/* Header: Subject & Status */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center text-lg shrink-0 border ${visual.bg}`}>
+                <div className="flex items-start justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                    <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center text-base sm:text-lg shrink-0 border ${visual.bg}`}>
                       {visual.icon}
                     </div>
-                    <div>
-                      <h3 className="text-base font-black text-slate-900 dark:text-white leading-tight">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white leading-tight truncate">
                         {hw.subjectName}
                       </h3>
-                      <p className="text-[11px] text-slate-400 font-semibold flex items-center gap-1.5 mt-0.5">
-                        <FaUserTie className="text-[10px] text-indigo-400" />
-                        Teacher: <span className="font-extrabold text-slate-700 dark:text-slate-300">{hw.teacherName}</span>
+                      <p className="text-[10px] sm:text-[11px] text-slate-400 font-semibold flex items-center gap-1 mt-0.5 truncate">
+                        <FaUserTie className="text-[9px] text-indigo-400 shrink-0" />
+                        Teacher: <span className="font-extrabold text-slate-700 dark:text-slate-300 truncate">{hw.teacherName}</span>
                       </p>
                     </div>
                   </div>
 
-                  <span className={`px-2.5 py-1 rounded-xl text-[10px] font-black border uppercase tracking-wider flex items-center gap-1.5 shrink-0 ${statusBadge.style}`}>
+                  <span className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-xl text-[9px] sm:text-[10px] font-black border uppercase tracking-wider flex items-center gap-1 shrink-0 ${statusBadge.style}`}>
                     <span>{statusBadge.icon}</span>
                     <span>{statusBadge.text}</span>
                   </span>
                 </div>
 
                 {/* Title & Instructions */}
-                <div className="space-y-2 py-1">
-                  <h4 className="text-sm font-extrabold text-slate-800 dark:text-slate-150 leading-snug">
+                <div className="space-y-2 py-0.5">
+                  <h4 className="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-150 leading-snug">
                     {hw.title}
                   </h4>
-                  <div className="text-xs text-slate-550 dark:text-slate-400 font-medium space-y-1 leading-relaxed bg-slate-50 dark:bg-white/[0.02] p-3 rounded-2xl border border-slate-100 dark:border-white/5 whitespace-pre-line max-h-32 overflow-hidden">
+                  <div className="text-xs text-slate-550 dark:text-slate-400 font-medium space-y-1 leading-relaxed bg-slate-50 dark:bg-white/[0.02] p-3 rounded-2xl border border-slate-100 dark:border-white/5 whitespace-pre-line max-h-32 overflow-y-auto">
                     {hw.description}
                   </div>
                 </div>
@@ -513,7 +513,7 @@ export default function StudentMyDiary() {
                       return (
                         <span
                           key={idx}
-                          className={`text-[10px] font-bold px-2.5 py-1 rounded-xl border flex items-center gap-1.5 ${badge.style}`}
+                          className={`text-[9px] sm:text-[10px] font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-xl border flex items-center gap-1 ${badge.style}`}
                         >
                           <span>{badge.icon}</span>
                           <span>{badge.label}</span>
@@ -525,31 +525,31 @@ export default function StudentMyDiary() {
 
                 {/* Parent Signature Section */}
                 {isCompleted ? (
-                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-2xl flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <FaPenNib className="text-emerald-500 text-xs" />
-                      <div>
-                        <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold uppercase tracking-wider">
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-2xl flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FaPenNib className="text-emerald-500 text-xs shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-[9px] text-emerald-600 dark:text-emerald-400 font-extrabold uppercase tracking-wider leading-none">
                           Parent Signature
                         </p>
-                        <p className="text-xs font-black text-slate-800 dark:text-white">
+                        <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5 truncate">
                           {hw.parentSignatureName || "Signed by Parent"}
                         </p>
                       </div>
                     </div>
-                    <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 bg-white dark:bg-emerald-950 px-2 py-0.5 rounded-lg border border-emerald-500/20">
+                    <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 bg-white dark:bg-emerald-950 px-2 py-0.5 rounded-lg border border-emerald-500/20 shrink-0">
                       ✅ COMPLETED
                     </span>
                   </div>
                 ) : (
-                  <div className="bg-purple-500/5 dark:bg-white/[0.02] border border-purple-500/20 p-3.5 rounded-2xl space-y-2.5">
+                  <div className="bg-purple-500/5 dark:bg-white/[0.02] border border-purple-500/20 p-3 sm:p-3.5 rounded-2xl space-y-2.5">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-black text-[#7C3AED] dark:text-[#38BDF8] flex items-center gap-1.5">
                         <FaPenNib /> Parent Signature Required
                       </span>
                       <span className="text-[10px] font-extrabold text-amber-500">Pending</span>
                     </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                       Parent must sign (enter name) to complete today's homework.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-2">
@@ -558,12 +558,12 @@ export default function StudentMyDiary() {
                         placeholder="Enter Parent's Full Name (Signature)..."
                         value={parentNameInputs[hw._id] || ""}
                         onChange={(e) => setParentNameInputs({ ...parentNameInputs, [hw._id]: e.target.value })}
-                        className="flex-1 px-3 py-2 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
+                        className="w-full sm:flex-1 px-3 py-2 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
                       />
                       <button
                         onClick={() => handleMarkCompletedWithSignature(hw._id)}
                         disabled={actionLoading}
-                        className="px-4 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl text-xs font-black transition shadow-md flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+                        className="w-full sm:w-auto px-4 py-2.5 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl text-xs font-black transition shadow-md flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
                       >
                         <FaCheck className="text-xs" /> Submit Signature
                       </button>
@@ -573,7 +573,7 @@ export default function StudentMyDiary() {
 
                 {/* Footer Meta & View Details */}
                 <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-1.5 text-slate-400 font-semibold text-[11px]">
+                  <div className="flex items-center gap-1.5 text-slate-400 font-semibold text-[10px] sm:text-[11px]">
                     <FaClock className="text-[10px]" />
                     <span>Due: {hw.dueDate || hw.homeworkDate}</span>
                   </div>
@@ -594,12 +594,12 @@ export default function StudentMyDiary() {
         </div>
       ) : (
         /* Empty State */
-        <div className="py-20 bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-3xl text-center space-y-4 shadow-sm px-4">
-          <div className="w-16 h-16 rounded-3xl bg-violet-500/10 text-[#7C3AED] dark:text-[#38BDF8] border border-violet-500/20 flex items-center justify-center text-2xl mx-auto">
+        <div className="py-16 sm:py-20 bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-3xl text-center space-y-4 shadow-sm px-4">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-3xl bg-violet-500/10 text-[#7C3AED] dark:text-[#38BDF8] border border-violet-500/20 flex items-center justify-center text-xl sm:text-2xl mx-auto">
             📖
           </div>
           <div className="space-y-1">
-            <h3 className="text-lg font-black text-slate-800 dark:text-white">
+            <h3 className="text-base sm:text-lg font-black text-slate-800 dark:text-white">
               No Homework Recorded
             </h3>
             <p className="text-xs text-slate-400 max-w-sm mx-auto font-medium">
