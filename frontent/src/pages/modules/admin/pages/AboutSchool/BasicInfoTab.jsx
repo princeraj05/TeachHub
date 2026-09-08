@@ -375,25 +375,6 @@ function BasicInfoTab({
                 )}
               </div>
 
-              {/* School Category */}
-              <div>
-                <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">School Category</span>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    placeholder="e.g. Secondary"
-                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
-                  />
-                ) : (
-                  <div className="px-1 py-1">
-                    <span className="inline-block text-[8px] font-black text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded uppercase tracking-wider">
-                      {category || "—"}
-                    </span>
-                  </div>
-                )}
-              </div>
 
               {/* School Motto */}
               <div className="sm:col-span-2">
