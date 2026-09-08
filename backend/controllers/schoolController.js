@@ -158,41 +158,6 @@ exports.getMySchool = async (req, res) => {
       modified = true;
     }
 
-    // Strip out legacy Base64 Data URIs to prevent BSON > 16MB document limit crash
-    if (school.photo && typeof school.photo === "string" && school.photo.startsWith("data:image")) {
-      school.photo = "";
-      modified = true;
-    }
-    if (school.coverImage && typeof school.coverImage === "string" && school.coverImage.startsWith("data:image")) {
-      school.coverImage = "";
-      modified = true;
-    }
-    if (school.principalPhoto && typeof school.principalPhoto === "string" && school.principalPhoto.startsWith("data:image")) {
-      school.principalPhoto = "";
-      modified = true;
-    }
-    if (Array.isArray(school.schoolPhotos)) {
-      const cleanPhotos = school.schoolPhotos.filter(p => !(p && typeof p === "string" && p.startsWith("data:image")));
-      if (cleanPhotos.length !== school.schoolPhotos.length) {
-        school.schoolPhotos = cleanPhotos;
-        modified = true;
-      }
-    }
-
-    // Self-clean legacy dummy seed URLs that may have broken previously
-    if (school.photo && school.photo.includes("/uploads/schoolPhotos-")) {
-      school.photo = "";
-      modified = true;
-    }
-    if (school.coverImage && school.coverImage.includes("/uploads/schoolPhotos-")) {
-      school.coverImage = "";
-      modified = true;
-    }
-    if (school.principalPhoto && school.principalPhoto.includes("/uploads/schoolPhotos-")) {
-      school.principalPhoto = "";
-      modified = true;
-    }
-
     if (modified || school.isNew) {
       await school.save();
     }
@@ -481,12 +446,16 @@ exports.uploadSchoolPhoto = async (req, res) => {
       }
     }
 
-    // Return lightweight relative file URL (/uploads/filename) to keep MongoDB document size small
-    const path = require("path");
-    const filename = req.file.filename || (req.file.path ? path.basename(req.file.path) : "");
-    const relativeUrl = `/uploads/${filename}`;
+    // Permanent Fallback: Convert file to Base64 Data URI so it survives Hostinger git redeployments
+    const fileData = fs.readFileSync(req.file.path);
+    const mimeType = req.file.mimetype || "image/jpeg";
+    const base64Url = `data:${mimeType};base64,${fileData.toString("base64")}`;
 
-    return res.json({ url: relativeUrl });
+    if (fs.existsSync(req.file.path)) {
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
+    }
+
+    return res.json({ url: base64Url });
   } catch (error) {
     const fs = require("fs");
     if (req.file && fs.existsSync(req.file.path)) {
