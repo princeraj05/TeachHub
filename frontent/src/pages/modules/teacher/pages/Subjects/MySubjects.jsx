@@ -157,7 +157,7 @@ function MySubjects() {
               onClick={() => setViewMode("grid")}
               className={`p-2 rounded-lg cursor-pointer transition-all ${
                 viewMode === "grid"
-                  ? "bg-purple-650/10 text-purple-500 border border-purple-500/10 shadow-sm"
+                  ? "bg-purple-600/10 text-purple-500 border border-purple-500/10 shadow-sm"
                   : "text-slate-450 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
@@ -167,7 +167,7 @@ function MySubjects() {
               onClick={() => setViewMode("list")}
               className={`p-2 rounded-lg cursor-pointer transition-all ${
                 viewMode === "list"
-                  ? "bg-purple-650/10 text-purple-500 border border-purple-500/10 shadow-sm"
+                  ? "bg-purple-600/10 text-purple-500 border border-purple-500/10 shadow-sm"
                   : "text-slate-450 hover:text-slate-900 dark:hover:text-white"
               }`}
             >

@@ -357,17 +357,17 @@ exports.getLeavesSummary = async (req, res) => {
 
     res.json({
       summary: {
-        totalBalance: totalBalance || 15,
-        approved: approvedCount || 8,
-        pending: pendingCount || 2,
-        rejected: rejectedCount || 1
+        totalBalance: totalBalance,
+        approved: approvedCount,
+        pending: pendingCount,
+        rejected: rejectedCount
       },
       overview: {
-        casual: allowances.casual || 10,
-        sick: allowances.sick || 3,
-        special: allowances.special || 2,
-        compOff: allowances.compOff || 0,
-        totalBalance: totalBalance || 15
+        casual: allowances.casual,
+        sick: allowances.sick,
+        special: allowances.special,
+        compOff: allowances.compOff,
+        totalBalance: totalBalance
       }
     });
   } catch (error) {

@@ -509,7 +509,7 @@ function TeacherDashboard() {
                     </p>
                   </div>
 
-                  <span className="text-[8px] font-extrabold px-2 py-1 rounded-full bg-purple-500/15 text-purple-650 dark:text-[#C084FC] border border-purple-500/10 shrink-0 uppercase tracking-wide">
+                  <span className="text-[8px] font-extrabold px-2 py-1 rounded-full bg-purple-500/15 text-purple-600 dark:text-[#C084FC] border border-purple-500/10 shrink-0 uppercase tracking-wide">
                     {exam.daysLeft} Days Left
                   </span>
                 </div>

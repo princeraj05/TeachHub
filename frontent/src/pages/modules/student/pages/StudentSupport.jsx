@@ -351,7 +351,7 @@ function StudentSupport() {
                     onClick={() => handleSubTabChange("personal")}
                     className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold text-center border cursor-pointer ${
                       subTab === "personal"
-                        ? "bg-slate-800 dark:bg-purple-650 text-white border-slate-800 dark:border-purple-650"
+                        ? "bg-slate-800 dark:bg-purple-600 text-white border-slate-800 dark:border-purple-600"
                         : "bg-slate-50 dark:bg-white/[0.02] text-slate-500 dark:text-slate-450 border-slate-200 dark:border-white/[0.08] hover:bg-slate-100 dark:hover:bg-white/[0.04]"
                     }`}
                   >
@@ -361,7 +361,7 @@ function StudentSupport() {
                     onClick={() => handleSubTabChange("calls")}
                     className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold text-center border cursor-pointer ${
                       subTab === "calls"
-                        ? "bg-slate-800 dark:bg-purple-650 text-white border-slate-800 dark:border-purple-650"
+                        ? "bg-slate-800 dark:bg-purple-600 text-white border-slate-800 dark:border-purple-600"
                         : "bg-slate-50 dark:bg-white/[0.02] text-slate-500 dark:text-slate-450 border-slate-200 dark:border-white/[0.08] hover:bg-slate-100 dark:hover:bg-white/[0.04]"
                     }`}
                   >

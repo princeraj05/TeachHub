@@ -9,23 +9,28 @@ const ExamSubmission = require("../models/ExamSubmission");
 
 // Helper: Fetch all classes assigned to a teacher (via direct assignment, teachers array, subjects, or timetable)
 const getTeacherClasses = async (teacherId) => {
-  const timetableClassIds = await Timetable.distinct("class", { teacher: teacherId });
-  const subjectClassIds1 = await Subject.distinct("classes", { teacher: teacherId });
-  const subjectClassIds2 = await Subject.distinct("class", { teacher: teacherId });
+  try {
+    const timetableClassIds = await Timetable.distinct("class", { teacher: teacherId });
+    const subjectClassIds1 = await Subject.distinct("classes", { teacher: teacherId });
+    const subjectClassIds2 = await Subject.distinct("class", { teacher: teacherId });
 
-  const combinedClassIds = [...new Set([
-    ...timetableClassIds.map(id => id.toString()),
-    ...subjectClassIds1.map(id => id.toString()),
-    ...subjectClassIds2.map(id => id.toString())
-  ])];
+    const combinedClassIds = [...new Set([
+      ...(timetableClassIds || []).filter(Boolean).map(id => id.toString()),
+      ...(subjectClassIds1 || []).filter(Boolean).map(id => id.toString()),
+      ...(subjectClassIds2 || []).filter(Boolean).map(id => id.toString())
+    ])];
 
-  return await Class.find({
-    $or: [
-      { teacher: teacherId },
-      { teachers: teacherId },
-      { _id: { $in: combinedClassIds } }
-    ]
-  }).populate("students", "name email avatar gender classId");
+    return await Class.find({
+      $or: [
+        { teacher: teacherId },
+        { teachers: teacherId },
+        { _id: { $in: combinedClassIds } }
+      ]
+    }).populate("students", "name email avatar gender classId");
+  } catch (err) {
+    console.error("Error in getTeacherClasses:", err);
+    return [];
+  }
 };
 
 // ================= GET TEACHER DASHBOARD =================
@@ -299,54 +304,85 @@ exports.getMyClasses = async (req, res) => {
 
     const detailedClasses = [];
     for (const c of classes) {
+      if (!c) continue;
+
       // Find subject name taught by the teacher in this class
-      let subject = await Subject.findOne({
-        $or: [{ class: c._id }, { classes: c._id }],
-        teacher: teacherId
-      });
+      let subject = null;
+      try {
+        subject = await Subject.findOne({
+          $or: [{ class: c._id }, { classes: c._id }],
+          teacher: teacherId
+        });
+      } catch (e) {}
+
       if (!subject) {
-        const ttSubjectEntry = await Timetable.findOne({ class: c._id, teacher: teacherId }).populate("subject", "name");
-        if (ttSubjectEntry && ttSubjectEntry.subject) {
-          subject = ttSubjectEntry.subject;
-        }
+        try {
+          const ttSubjectEntry = await Timetable.findOne({ class: c._id, teacher: teacherId }).populate("subject", "name");
+          if (ttSubjectEntry && ttSubjectEntry.subject) {
+            subject = ttSubjectEntry.subject;
+          }
+        } catch (e) {}
       }
-      const subjectName = subject ? subject.name : "General Class";
+      const subjectName = subject ? (subject.name || "General Subject") : "General Class";
 
       // Find timings from timetable
-      const timetableEntry = await Timetable.findOne({ class: c._id, teacher: teacherId });
-      const timings = timetableEntry ? `${timetableEntry.startTime} - ${timetableEntry.endTime}` : "Flexible Timings";
+      let timings = "Flexible Timings";
+      try {
+        const timetableEntry = await Timetable.findOne({ class: c._id, teacher: teacherId });
+        if (timetableEntry && timetableEntry.startTime && timetableEntry.endTime) {
+          timings = `${timetableEntry.startTime} - ${timetableEntry.endTime}`;
+        }
+      } catch (e) {}
 
       // Class Performance (average marks from real exam submissions)
-      const classExams = await Exam.find({ class: c._id });
-      const examIds = classExams.map(e => e._id);
-      const submissions = await ExamSubmission.find({ exam: { $in: examIds } });
       let performance = 0;
-      if (submissions.length > 0) {
-        const totalPct = submissions.reduce((sum, sub) => sum + (sub.score / (sub.total || 100)) * 100, 0);
-        performance = Math.round(totalPct / submissions.length);
-      }
+      try {
+        const classExams = await Exam.find({ class: c._id });
+        const examIds = classExams.map(e => e._id).filter(Boolean);
+        if (examIds.length > 0) {
+          const submissions = await ExamSubmission.find({ exam: { $in: examIds } });
+          if (submissions.length > 0) {
+            const totalPct = submissions.reduce((sum, sub) => sum + ((sub.score || 0) / (sub.total || 100)) * 100, 0);
+            performance = Math.round(totalPct / submissions.length);
+          }
+        }
+      } catch (e) {}
 
       // Class Attendance (This Month)
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0,0,0,0);
-      const studentIds = (c.students || []).map(s => s._id);
-      const attendanceRecords = await Attendance.find({
-        student: { $in: studentIds },
-        date: { $gte: startOfMonth }
-      });
       let attendancePercentage = 0;
-      if (attendanceRecords.length > 0) {
-        const present = attendanceRecords.filter(r => r.status === "Present").length;
-        attendancePercentage = Math.round((present / attendanceRecords.length) * 100);
-      }
+      try {
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0,0,0,0);
+        const studentIds = (c.students || []).map(s => s._id).filter(Boolean);
+        if (studentIds.length > 0) {
+          const attendanceRecords = await Attendance.find({
+            student: { $in: studentIds },
+            date: { $gte: startOfMonth }
+          });
+          if (attendanceRecords.length > 0) {
+            const present = attendanceRecords.filter(r => r.status === "Present").length;
+            attendancePercentage = Math.round((present / attendanceRecords.length) * 100);
+          }
+        }
+      } catch (e) {}
 
-      // Assignments Count from Note collection
-      const Note = require("../models/Note");
-      const assignmentsCount = await Note.countDocuments({ class: c._id });
+      // Assignments Count from SubjectNote collection
+      let assignmentsCount = 0;
+      try {
+        const SubjectNote = require("../models/SubjectNote");
+        assignmentsCount = await SubjectNote.countDocuments({
+          teacher: teacherId,
+          $or: [{ className: c.name }, { className: `Class ${c.name}` }]
+        });
+      } catch (e) {}
 
       // Tests Conducted (exams count)
-      const testsConductedCount = classExams.length;
+      let testsConductedCount = 0;
+      try {
+        const classExamsCount = await Exam.countDocuments({ class: c._id });
+        testsConductedCount = classExamsCount;
+      } catch (e) {}
 
       detailedClasses.push({
         _id: c._id,
@@ -364,6 +400,7 @@ exports.getMyClasses = async (req, res) => {
 
     res.json(detailedClasses);
   } catch (err) {
+    console.error("Error in getMyClasses:", err);
     res.status(500).json({ error: err.message });
   }
 };

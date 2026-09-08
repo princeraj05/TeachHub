@@ -428,7 +428,7 @@ function PendingApproval() {
                   {isTeacher ? "Stay updated on your teacher application status & notifications" : "Stay updated on your application status, exams, and registrations"}
                 </p>
               </div>
-              <span className="px-3 py-1 bg-purple-500/10 text-purple-650 dark:text-[#38BDF8] border border-purple-550/15 dark:border-[#38BDF8]/20 rounded-full text-xs font-black shrink-0 leading-none">
+              <span className="px-3 py-1 bg-purple-500/10 text-purple-600 dark:text-[#38BDF8] border border-purple-550/15 dark:border-[#38BDF8]/20 rounded-full text-xs font-black shrink-0 leading-none">
                 {notList.length} Total
               </span>
             </div>

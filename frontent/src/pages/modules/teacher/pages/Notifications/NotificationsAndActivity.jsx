@@ -211,7 +211,7 @@ function NotificationsAndActivity() {
                         <div className="flex items-center gap-2">
                           <span className="font-extrabold text-slate-900 dark:text-white text-xs">{n.title}</span>
                           {!n.isRead && (
-                            <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-purple-550/10 text-purple-650 uppercase tracking-wide leading-none border border-purple-500/10 select-none">New</span>
+                            <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-purple-550/10 text-purple-600 uppercase tracking-wide leading-none border border-purple-500/10 select-none">New</span>
                           )}
                         </div>
                         <p className="text-[10px] text-slate-450 dark:text-slate-400 mt-1 font-semibold leading-relaxed max-w-xl">{n.message}</p>
@@ -226,7 +226,7 @@ function NotificationsAndActivity() {
                       <span className={`w-2 h-2 rounded-full border ${
                         n.isRead 
                           ? "bg-transparent border-slate-200 dark:border-white/10" 
-                          : "bg-purple-650 border-purple-500"
+                          : "bg-purple-600 border-purple-500"
                       }`} />
                     </div>
                   </div>
@@ -239,7 +239,7 @@ function NotificationsAndActivity() {
               <span>Showing 1 to {filteredNotifications.length} of {filteredNotifications.length} notifications</span>
               <div className="flex items-center gap-1">
                 <button className="px-2 py-0.5 rounded border border-slate-200 dark:border-white/[0.08] hover:bg-slate-55 dark:hover:bg-white/[0.02] cursor-pointer">Prev</button>
-                <span className="px-2 py-0.5 bg-purple-650 text-white rounded font-extrabold shadow-sm">1</span>
+                <span className="px-2 py-0.5 bg-purple-600 text-white rounded font-extrabold shadow-sm">1</span>
                 <button className="px-2 py-0.5 rounded border border-slate-200 dark:border-white/[0.08] hover:bg-slate-55 dark:hover:bg-white/[0.02] cursor-pointer">Next</button>
               </div>
             </div>

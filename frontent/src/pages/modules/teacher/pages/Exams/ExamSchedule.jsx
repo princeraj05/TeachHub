@@ -98,7 +98,7 @@ function ExamSchedule() {
           </div>
         </div>
 
-        <button className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-purple-650 hover:bg-purple-700 text-white shadow-md shadow-purple-600/10 transition-all cursor-pointer whitespace-nowrap">
+        <button className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-600/10 transition-all cursor-pointer whitespace-nowrap">
           <FaPlus className="text-[10px]" /> Add Exam
         </button>
       </div>
@@ -157,7 +157,7 @@ function ExamSchedule() {
               onClick={() => setActiveTab(tab.split(" ")[0])}
               className={`px-4 py-2.5 font-black text-xs border-b-2 whitespace-nowrap transition-all cursor-pointer ${
                 activeTab === tab.split(" ")[0]
-                  ? "border-purple-650 text-purple-650 dark:text-purple-400"
+                  ? "border-purple-600 text-purple-600 dark:text-purple-400"
                   : "border-transparent text-slate-450 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
@@ -323,7 +323,7 @@ function ExamSchedule() {
                         ) : (
                           <Link
                             to={`/teacher/exam-schedule/${e._id}`}
-                            className="inline-flex items-center gap-1.5 text-[10px] font-black text-purple-650 hover:text-purple-750 transition-all uppercase tracking-wider select-none hover:underline"
+                            className="inline-flex items-center gap-1.5 text-[10px] font-black text-purple-600 hover:text-purple-750 transition-all uppercase tracking-wider select-none hover:underline"
                           >
                             <FaEye className="text-xs" /> View Results
                           </Link>

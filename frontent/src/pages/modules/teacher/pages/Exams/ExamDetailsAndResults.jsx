@@ -181,13 +181,13 @@ function ExamDetailsAndResults() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-transparent text-purple-650 hover:bg-purple-500/10 border border-purple-500/20 transition-all cursor-pointer">
+          <button className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-transparent text-purple-600 hover:bg-purple-500/10 border border-purple-500/20 transition-all cursor-pointer">
             <FaDownload /> Download Report
           </button>
-          <button className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-transparent text-purple-650 hover:bg-purple-500/10 border border-purple-500/20 transition-all cursor-pointer">
+          <button className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-transparent text-purple-600 hover:bg-purple-500/10 border border-purple-500/20 transition-all cursor-pointer">
             <FaShareAlt /> Share Results
           </button>
-          <button className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-purple-650 text-white hover:bg-purple-700 shadow-md transition-all cursor-pointer">
+          <button className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-purple-600 text-white hover:bg-purple-700 shadow-md transition-all cursor-pointer">
             <FaFileExport /> Export Results
           </button>
         </div>
@@ -503,7 +503,7 @@ function ExamDetailsAndResults() {
             <button className="px-2.5 py-1 rounded bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.05] cursor-pointer hover:bg-slate-100 dark:hover:bg-white/[0.04]">
               Prev
             </button>
-            <span className="px-2.5 py-1 rounded bg-purple-650 text-white font-extrabold shadow-sm">1</span>
+            <span className="px-2.5 py-1 rounded bg-purple-600 text-white font-extrabold shadow-sm">1</span>
             <button className="px-2.5 py-1 rounded bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.05] cursor-pointer hover:bg-slate-100 dark:hover:bg-white/[0.04]">
               Next
             </button>

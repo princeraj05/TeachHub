@@ -326,10 +326,10 @@ function SubjectDetails() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-transparent text-purple-650 hover:bg-purple-500/10 border border-purple-500/20 transition-all cursor-pointer">
+          <button className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-transparent text-purple-600 hover:bg-purple-500/10 border border-purple-500/20 transition-all cursor-pointer">
             <FaDownload /> Download Report
           </button>
-          <button className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-purple-600 text-white hover:bg-purple-700 shadow-md shadow-purple-650/15 transition-all cursor-pointer">
+          <button className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-purple-600 text-white hover:bg-purple-700 shadow-md shadow-purple-600/15 transition-all cursor-pointer">
             <FaEdit /> Edit Subject
           </button>
         </div>
@@ -468,7 +468,7 @@ function SubjectDetails() {
             onClick={() => setActiveTab(tab)}
             className={`px-5 py-2.5 font-black text-xs cursor-pointer border-b-2 whitespace-nowrap transition-all ${
               activeTab === tab
-                ? "border-purple-650 text-purple-650 dark:text-purple-400"
+                ? "border-purple-600 text-purple-600 dark:text-purple-400"
                 : "border-transparent text-slate-450 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
@@ -739,14 +739,14 @@ function SubjectDetails() {
           {/* Footer banner widget across grid */}
           <div className="lg:col-span-3 bg-purple-600/5 border border-purple-500/10 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-purple-650/10 text-purple-650 border border-purple-650/20 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-purple-600/10 text-purple-600 border border-purple-600/20 flex items-center justify-center shrink-0">
                 <FaCheckCircle className="text-sm" />
               </div>
               <p className="text-xs font-semibold text-slate-650 dark:text-slate-300">
                 Ensure students complete all assignments and assessments on time to improve overall performance.
               </p>
             </div>
-            <button className="flex items-center gap-1.5 px-4 py-2 bg-purple-650 hover:bg-purple-700 text-white rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap shadow-sm">
+            <button className="flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap shadow-sm">
               View Performance Report <FaChevronRight className="text-[8px]" />
             </button>
           </div>

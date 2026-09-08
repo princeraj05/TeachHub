@@ -400,7 +400,7 @@ export default function TeacherManagement() {
                 <button
                   onClick={() => setShowEditModal(true)}
                   style={{ color: C.purple, background: C.purpleDim }}
-                  className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold transition hover:bg-purple-650/20 cursor-pointer"
+                  className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold transition hover:bg-purple-600/20 cursor-pointer"
                 >
                   <FaEdit size={10} /> Edit
                 </button>
@@ -427,7 +427,7 @@ export default function TeacherManagement() {
                     setShowAssignSubjectModal(true);
                   }}
                   style={{ color: C.purple, background: C.purpleDim }}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9.5px] font-bold hover:bg-purple-650/20 cursor-pointer transition"
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9.5px] font-bold hover:bg-purple-600/20 cursor-pointer transition"
                 >
                   <FaPlus size={8} /> Assign Subject
                 </button>

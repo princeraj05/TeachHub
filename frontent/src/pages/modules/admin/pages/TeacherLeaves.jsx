@@ -144,309 +144,313 @@ export default function TeacherLeaves() {
   };
 
   return (
-    <div style={{ background: C.bg, color: C.text, fontFamily: "Inter, system-ui, sans-serif" }} className="flex-1 overflow-y-auto px-6 py-6 text-[13px]">
-          <p style={{ color: C.purple }} className="text-[11px] font-semibold">
-            Teacher Leaves <span style={{ color: C.faint }}>›</span> <span style={{ color: C.faint }}>Leave Requests</span>
-          </p>
-          <div className="mt-1 flex flex-wrap items-end justify-between gap-3">
+    <div className="flex-1 overflow-y-auto px-6 py-6 text-[13px] bg-slate-50 dark:bg-[#080B16] text-slate-900 dark:text-[#F3F5F9] font-sans transition-colors duration-200">
+      <p className="text-[11px] font-semibold text-purple-600 dark:text-purple-400">
+        Teacher Leaves <span className="text-slate-400 dark:text-[#5B6478]">›</span> <span className="text-slate-400 dark:text-[#5B6478]">Leave Requests</span>
+      </p>
+      <div className="mt-1 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-[26px] font-extrabold text-slate-900 dark:text-white tracking-tight">Teacher Leave Requests</h1>
+          <p className="mt-0.5 text-[12.5px] text-slate-500 dark:text-[#8993A8]">Manage leave applications submitted by teachers.</p>
+        </div>
+      </div>
+
+      {/* Stat cards */}
+      <div className="mt-5 grid grid-cols-2 gap-4 xl:grid-cols-4">
+        {[
+          { label: "Total Requests", value: leaves.length, sub: "This Month", icon: ClipboardList, color: C.purple, bg: C.purpleDim },
+          { label: "Pending", value: counts.Pending, sub: "Awaiting Approval", icon: Clock3, color: C.amber, bg: C.amberDim },
+          { label: "Approved", value: counts.Approved, sub: "This Month", icon: Check, color: C.green, bg: C.greenDim },
+          { label: "Rejected", value: counts.Rejected, sub: "This Month", icon: X, color: C.red, bg: C.redDim },
+        ].map((s) => (
+          <div key={s.label} className="flex items-start gap-3 rounded-2xl border border-slate-200/80 dark:border-[#1C2333] bg-white dark:bg-[#0F1526] p-4 shadow-xs">
+            <div style={{ background: s.bg }} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+              <s.icon size={18} color={s.color} />
+            </div>
             <div>
-              <h1 className="text-[26px] font-extrabold">Teacher Leave Requests</h1>
-              <p style={{ color: C.sub }} className="mt-0.5 text-[12.5px]">Manage leave applications submitted by teachers.</p>
+              <p className="text-[12px] font-medium text-slate-500 dark:text-[#8993A8]">{s.label}</p>
+              <p className="text-[22px] font-extrabold leading-tight text-slate-900 dark:text-white">{s.value}</p>
+              <p className="text-[10.5px] text-slate-400 dark:text-[#5B6478]">{s.sub}</p>
             </div>
           </div>
+        ))}
+      </div>
 
-          {/* Stat cards */}
-          <div className="mt-5 grid grid-cols-2 gap-4 xl:grid-cols-4">
-            {[
-              { label: "Total Requests", value: leaves.length, sub: "This Month", icon: ClipboardList, color: C.purple, bg: C.purpleDim },
-              { label: "Pending", value: counts.Pending, sub: "Awaiting Approval", icon: Clock3, color: C.amber, bg: C.amberDim },
-              { label: "Approved", value: counts.Approved, sub: "This Month", icon: Check, color: C.green, bg: C.greenDim },
-              { label: "Rejected", value: counts.Rejected, sub: "This Month", icon: X, color: C.red, bg: C.redDim },
-            ].map((s) => (
-              <div key={s.label} style={{ background: C.card, borderColor: C.border }} className="flex items-start gap-3 rounded-2xl border p-4">
-                <div style={{ background: s.bg }} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
-                  <s.icon size={18} color={s.color} />
-                </div>
-                <div>
-                  <p style={{ color: C.sub }} className="text-[12px]">{s.label}</p>
-                  <p className="text-[22px] font-extrabold leading-tight">{s.value}</p>
-                  <p style={{ color: C.faint }} className="text-[10.5px]">{s.sub}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 flex flex-col gap-5 xl:flex-row">
-            {/* Left: table panel */}
-            <div className="min-w-0 flex-1 space-y-4">
-              <div className="flex items-center justify-between gap-3">
-                <div style={{ background: C.card, borderColor: C.border }} className="flex flex-wrap gap-1 rounded-xl border p-1">
-                  {["All", "Pending", "Approved", "Rejected"].map((t) => {
-                    const activeTab = tab === t;
-                    return (
-                      <button
-                        key={t}
-                        onClick={() => setTab(t)}
-                        style={activeTab ? { background: C.purple, color: "#fff" } : { color: C.sub }}
-                        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12.5px] font-semibold transition-colors"
-                      >
-                        {t === "All" ? "All Requests" : t}
-                        <span
-                          style={activeTab ? { background: "rgba(255,255,255,0.22)" } : { background: C.borderSoft, color: C.faint }}
-                          className="rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none"
-                        >
-                          {counts[t]}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-                <button style={{ background: C.purple }} className="hidden shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-[12.5px] font-bold text-white sm:flex">
-                  <Download size={14} /> Export
-                </button>
-              </div>
-
-              {/* Filters */}
-              <div style={{ background: C.card, borderColor: C.border }} className="flex flex-wrap items-center gap-2 rounded-2xl border p-2.5">
-                <div style={{ borderColor: C.border }} className="flex min-w-[180px] flex-1 items-center gap-2 rounded-xl border px-3 py-2">
-                  <Search size={13} style={{ color: C.faint }} />
-                  <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search by teacher name..."
-                    style={{ color: C.text }}
-                    className="w-full bg-transparent text-[12px] outline-none placeholder:text-[#5B6478]"
-                  />
-                </div>
-                <button style={{ borderColor: C.border, color: C.sub }} className="flex items-center gap-1.5 rounded-xl border px-3 py-2 text-[12px]">
-                  All Teachers <ChevronDown size={13} />
-                </button>
-                <button style={{ borderColor: C.border, color: C.sub }} className="flex items-center gap-1.5 rounded-xl border px-3 py-2 text-[12px]">
-                  All Leave Types <ChevronDown size={13} />
-                </button>
-                <button style={{ borderColor: C.border, color: C.sub }} className="flex items-center gap-1.5 rounded-xl border px-3 py-2 text-[12px]">
-                  <Calendar size={13} /> Select Date Range
-                </button>
-                <button style={{ borderColor: C.border, color: C.sub }} className="flex items-center gap-1.5 rounded-xl border px-3 py-2 text-[12px]">
-                  <SlidersHorizontal size={13} /> Filters
-                </button>
-              </div>
-
-              {/* Table */}
-              <div style={{ background: C.card, borderColor: C.border }} className="overflow-x-auto rounded-2xl border">
-                <table className="w-full min-w-[860px] border-collapse text-left">
-                  <thead>
-                    <tr style={{ borderColor: C.borderSoft, color: C.faint }} className="border-b text-[10.5px] uppercase tracking-wider">
-                      <th className="px-4 py-3 font-semibold">Teacher</th>
-                      <th className="px-4 py-3 font-semibold">Leave Type</th>
-                      <th className="px-4 py-3 font-semibold">Dates</th>
-                      <th className="px-4 py-3 font-semibold">Duration</th>
-                      <th className="px-4 py-3 font-semibold">Reason</th>
-                      <th className="px-4 py-3 font-semibold">Status</th>
-                      <th className="px-4 py-3 font-semibold">Applied On</th>
-                      <th className="px-4 py-3 text-right font-semibold">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loading ? (
-                      <tr>
-                        <td colSpan={8} style={{ color: C.faint }} className="px-4 py-10 text-center text-[12.5px]">
-                          <div className="flex justify-center items-center gap-2">
-                            <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></span>
-                            Loading leave requests...
-                          </div>
-                        </td>
-                      </tr>
-                    ) : errorMsg ? (
-                      <tr>
-                        <td colSpan={8} className="px-4 py-10 text-center text-rose-500 font-bold">
-                          {errorMsg}
-                        </td>
-                      </tr>
-                    ) : filtered.length === 0 ? (
-                      <tr>
-                        <td colSpan={8} style={{ color: C.faint }} className="px-4 py-10 text-center text-[12.5px]">
-                          No leave requests match this view.
-                        </td>
-                      </tr>
-                    ) : filtered.map((l, i) => {
-                      const meta = LEAVE_META[l.type] || LEAVE_META["Casual Leave"];
-                      const st = STATUS_META[l.status] || STATUS_META["Pending"];
-                      return (
-                        <tr key={l.id} style={{ borderColor: C.borderSoft }} className="border-b last:border-0 align-top">
-                          <td className="px-4 py-3.5">
-                            <div className="flex items-center gap-2.5">
-                              {l.teacher?.avatar ? (
-                                <img src={l.teacher.avatar} alt={l.name} className="h-8 w-8 shrink-0 rounded-full object-cover" />
-                              ) : (
-                                <div style={{ background: AVATAR_BG[i % AVATAR_BG.length] }} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white">
-                                  {initials(l.name)}
-                                </div>
-                              )}
-                              <div>
-                                <p className="text-[12.5px] font-semibold leading-tight">{l.name}</p>
-                                <p style={{ color: C.faint }} className="text-[11px] leading-tight">{l.subject}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3.5">
-                            <div className="flex items-center gap-1.5">
-                              <div style={{ background: meta.bg }} className="flex h-6 w-6 items-center justify-center rounded-md">
-                                <meta.icon size={12} color={meta.color} />
-                              </div>
-                              <span className="text-[12px]">{l.type}</span>
-                            </div>
-                          </td>
-                          <td className="whitespace-nowrap px-4 py-3.5 text-[12px]" style={{ color: C.sub }}>
-                            {fmt(l.from)}<br />{fmt(l.to)}
-                          </td>
-                          <td className="whitespace-nowrap px-4 py-3.5 text-[12px]" style={{ color: C.sub }}>{l.duration}</td>
-                          <td className="max-w-[180px] px-4 py-3.5 text-[12px]" style={{ color: C.sub }}>{l.reason}</td>
-                          <td className="px-4 py-3.5">
-                            <span style={{ background: st.bg, color: st.color }} className="rounded-full px-2.5 py-1 text-[11px] font-bold">
-                              {l.status}
-                            </span>
-                          </td>
-                          <td className="whitespace-nowrap px-4 py-3.5 text-[12px]" style={{ color: C.sub }}>{l.appliedOn}</td>
-                          <td className="px-4 py-3.5">
-                            <div className="flex items-center justify-end gap-2">
-                              <button
-                                onClick={() => setSelectedId(l.id)}
-                                style={{ background: C.borderSoft, color: C.sub }}
-                                className="flex h-7 w-7 items-center justify-center rounded-lg"
-                              >
-                                <Eye size={13} />
-                              </button>
-                              {l.status === "Pending" && (
-                                <button onClick={() => review(l.id, "Rejected")} style={{ background: C.redDim, color: C.red }} className="flex h-7 w-7 items-center justify-center rounded-lg">
-                                  <X size={13} />
-                                </button>
-                              )}
-                              {l.status === "Rejected" && (
-                                <button onClick={() => review(l.id, "Approved")} style={{ background: C.greenDim, color: C.green }} className="flex h-7 w-7 items-center justify-center rounded-lg">
-                                  <Check size={13} />
-                                </button>
-                              )}
-                              {l.status === "Approved" && (
-                                <span style={{ color: C.faint }} className="flex h-7 w-7 items-center justify-center text-[15px]">–</span>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination */}
-              <div className="flex flex-wrap items-center justify-between gap-3 px-1">
-                <p style={{ color: C.faint }} className="text-[12px]">
-                  Showing 1 to {filtered.length} of {leaves.length} entries
-                </p>
-                <div className="flex items-center gap-1.5">
-                  <button style={{ borderColor: C.border, color: C.sub }} className="flex h-7 w-7 items-center justify-center rounded-lg border"><ChevronLeft size={13} /></button>
-                  {[1, 2, 3, 4].map((p) => (
-                    <button key={p} style={p === 1 ? { background: C.purple, color: "#fff" } : { color: C.sub }} className="flex h-7 w-7 items-center justify-center rounded-lg text-[12px] font-semibold">
-                      {p}
-                    </button>
-                  ))}
-                  <button style={{ borderColor: C.border, color: C.sub }} className="flex h-7 w-7 items-center justify-center rounded-lg border"><ChevronRight size={13} /></button>
-                  <button style={{ borderColor: C.border, color: C.sub }} className="ml-2 flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-[12px]">
-                    10 / page <ChevronDown size={12} />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: detail panel */}
-            {selected && (
-              <aside style={{ background: C.card, borderColor: C.border }} className="w-full shrink-0 self-start rounded-2xl border p-5 xl:w-[320px]">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-[14.5px] font-bold">Leave Request Details</h2>
-                  <button onClick={() => setSelectedId(null)} style={{ color: C.faint }}><X size={16} /></button>
-                </div>
-
-                 <div className="mt-4 flex items-center gap-3">
-                  {selected.teacher?.avatar ? (
-                    <img src={selected.teacher.avatar} alt={selected.name} className="h-11 w-11 rounded-full object-cover shrink-0" />
-                  ) : (
-                    <div style={{ background: AVATAR_BG[leaves.findIndex((l) => l.id === selected.id) % AVATAR_BG.length] }} className="flex h-11 w-11 items-center justify-center rounded-full text-[13px] font-bold text-white">
-                      {initials(selected.name)}
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-[13.5px] font-bold leading-tight">{selected.name}</p>
-                    <p style={{ color: C.faint }} className="text-[11.5px]">{selected.subject}</p>
-                    <p style={{ color: C.faint }} className="text-[10.5px]">Employee ID: {selected.empId}</p>
-                  </div>
-                </div>
-
-                <div style={{ borderColor: C.borderSoft }} className="mt-4 space-y-2.5 border-t pt-4 text-[12px]">
-                  <Row label="Leave Type">
-                    <span style={{ 
-                      background: (LEAVE_META[selected.type] || LEAVE_META["Casual Leave"]).bg, 
-                      color: (LEAVE_META[selected.type] || LEAVE_META["Casual Leave"]).color 
-                    }} className="rounded-full px-2.5 py-0.5 text-[11px] font-bold">
-                      {selected.type}
+      <div className="mt-6 flex flex-col gap-5 xl:flex-row">
+        {/* Left: table panel */}
+        <div className="min-w-0 flex-1 space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-1 rounded-xl border border-slate-200/80 dark:border-[#1C2333] bg-white dark:bg-[#0F1526] p-1 shadow-xs">
+              {["All", "Pending", "Approved", "Rejected"].map((t) => {
+                const activeTab = tab === t;
+                return (
+                  <button
+                    key={t}
+                    onClick={() => setTab(t)}
+                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12.5px] font-semibold transition-colors ${
+                      activeTab
+                        ? "bg-purple-600 text-white shadow-xs"
+                        : "text-slate-600 dark:text-[#8993A8] hover:bg-slate-100 dark:hover:bg-white/5"
+                    }`}
+                  >
+                    {t === "All" ? "All Requests" : t}
+                    <span
+                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
+                        activeTab
+                          ? "bg-white/25 text-white"
+                          : "bg-slate-100 dark:bg-[#161D2E] text-slate-500 dark:text-[#5B6478]"
+                      }`}
+                    >
+                      {counts[t]}
                     </span>
-                  </Row>
-                  <Row label="From Date" value={fmt(selected.from)} />
-                  <Row label="To Date" value={fmt(selected.to)} />
-                  <Row label="Duration" value={selected.duration} />
-                  <Row label="Applied On" value={selected.appliedOn} />
-                  <Row label="Contact Number" value={selected.phone} />
-                </div>
-
-                <div style={{ borderColor: C.borderSoft }} className="mt-4 border-t pt-4">
-                  <p style={{ color: C.faint }} className="text-[11px] font-bold uppercase tracking-wide">Reason</p>
-                  <p className="mt-1 text-[12.5px] leading-relaxed">{selected.reason}</p>
-                </div>
-
-                {selected.attachment && (
-                  <div style={{ borderColor: C.borderSoft }} className="mt-4 border-t pt-4">
-                    <p style={{ color: C.faint }} className="text-[11px] font-bold uppercase tracking-wide">Attachments</p>
-                    <div style={{ background: C.cardAlt, borderColor: C.border }} className="mt-2 flex items-center gap-2.5 rounded-xl border p-2.5">
-                      <div style={{ background: C.purpleDim }} className="flex h-8 w-8 items-center justify-center rounded-lg">
-                        <Paperclip size={14} color={C.purple} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-[12px] font-semibold leading-tight">{selected.attachment.name}</p>
-                        <p style={{ color: C.faint }} className="text-[10.5px]">{selected.attachment.size}</p>
-                      </div>
-                      <Download size={14} style={{ color: C.faint }} />
-                    </div>
-                  </div>
-                )}
-
-                <div style={{ borderColor: C.borderSoft }} className="mt-4 border-t pt-4">
-                  <p style={{ color: C.faint }} className="text-[11px] font-bold uppercase tracking-wide">Approval History</p>
-                  <div className="mt-2 flex gap-2">
-                    <div style={{ background: C.purple }} className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full" />
-                    <div>
-                      <p className="text-[11.5px]">{selected.appliedOn}</p>
-                      <p style={{ color: C.faint }} className="text-[11px]">Leave application submitted by teacher.</p>
-                    </div>
-                  </div>
-                </div>
-
-                {selected.status === "Pending" ? (
-                  <div className="mt-5 flex gap-2.5">
-                    <button onClick={() => review(selected.id, "Approved")} style={{ background: C.green }} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-[12.5px] font-bold text-white">
-                      <Check size={14} /> Approve
-                    </button>
-                    <button onClick={() => review(selected.id, "Rejected")} style={{ background: C.red }} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-[12.5px] font-bold text-white">
-                      <X size={14} /> Reject
-                    </button>
-                  </div>
-                ) : (
-                  <button onClick={() => setSelectedId(null)} style={{ borderColor: C.border, color: C.sub }} className="mt-5 w-full rounded-xl border py-2.5 text-[12.5px] font-bold">
-                    Close
                   </button>
-                )}
-              </aside>
-            )}
+                );
+              })}
+            </div>
+            <button className="hidden shrink-0 items-center gap-2 rounded-xl bg-purple-600 hover:bg-purple-700 px-4 py-2 text-[12.5px] font-bold text-white sm:flex transition-colors shadow-xs">
+              <Download size={14} /> Export
+            </button>
           </div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200/80 dark:border-[#1C2333] bg-white dark:bg-[#0F1526] p-2.5 shadow-xs">
+            <div className="flex min-w-[180px] flex-1 items-center gap-2 rounded-xl border border-slate-200 dark:border-[#1C2333] bg-slate-50 dark:bg-transparent px-3 py-2">
+              <Search size={13} className="text-slate-400 dark:text-[#5B6478]" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search by teacher name..."
+                className="w-full bg-transparent text-[12px] text-slate-800 dark:text-[#F3F5F9] outline-none placeholder:text-slate-400 dark:placeholder:text-[#5B6478]"
+              />
+            </div>
+            <button className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1C2333] bg-slate-50 dark:bg-transparent px-3 py-2 text-[12px] text-slate-600 dark:text-[#8993A8]">
+              All Teachers <ChevronDown size={13} />
+            </button>
+            <button className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1C2333] bg-slate-50 dark:bg-transparent px-3 py-2 text-[12px] text-slate-600 dark:text-[#8993A8]">
+              All Leave Types <ChevronDown size={13} />
+            </button>
+            <button className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1C2333] bg-slate-50 dark:bg-transparent px-3 py-2 text-[12px] text-slate-600 dark:text-[#8993A8]">
+              <Calendar size={13} /> Select Date Range
+            </button>
+            <button className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1C2333] bg-slate-50 dark:bg-transparent px-3 py-2 text-[12px] text-slate-600 dark:text-[#8993A8]">
+              <SlidersHorizontal size={13} /> Filters
+            </button>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-[#1C2333] bg-white dark:bg-[#0F1526] shadow-xs">
+            <table className="w-full min-w-[860px] border-collapse text-left">
+              <thead>
+                <tr className="border-b border-slate-200/80 dark:border-[#161D2E] text-[10.5px] uppercase tracking-wider text-slate-400 dark:text-[#5B6478]">
+                  <th className="px-4 py-3 font-semibold">Teacher</th>
+                  <th className="px-4 py-3 font-semibold">Leave Type</th>
+                  <th className="px-4 py-3 font-semibold">Dates</th>
+                  <th className="px-4 py-3 font-semibold">Duration</th>
+                  <th className="px-4 py-3 font-semibold">Reason</th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3 font-semibold">Applied On</th>
+                  <th className="px-4 py-3 text-right font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-10 text-center text-[12.5px] text-slate-400 dark:text-[#5B6478]">
+                      <div className="flex justify-center items-center gap-2">
+                        <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></span>
+                        Loading leave requests...
+                      </div>
+                    </td>
+                  </tr>
+                ) : errorMsg ? (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-10 text-center text-rose-500 font-bold">
+                      {errorMsg}
+                    </td>
+                  </tr>
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-10 text-center text-[12.5px] text-slate-400 dark:text-[#5B6478]">
+                      No leave requests match this view.
+                    </td>
+                  </tr>
+                ) : filtered.map((l, i) => {
+                  const meta = LEAVE_META[l.type] || LEAVE_META["Casual Leave"];
+                  const st = STATUS_META[l.status] || STATUS_META["Pending"];
+                  return (
+                    <tr key={l.id} className="border-b border-slate-100 dark:border-[#161D2E] last:border-0 align-top hover:bg-slate-50/70 dark:hover:bg-white/[0.02] transition-colors">
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          {l.teacher?.avatar ? (
+                            <img src={l.teacher.avatar} alt={l.name} className="h-8 w-8 shrink-0 rounded-full object-cover" />
+                          ) : (
+                            <div style={{ background: AVATAR_BG[i % AVATAR_BG.length] }} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white">
+                              {initials(l.name)}
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-[12.5px] font-semibold leading-tight text-slate-900 dark:text-[#F3F5F9]">{l.name}</p>
+                            <p className="text-[11px] leading-tight text-slate-500 dark:text-[#5B6478]">{l.subject}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center gap-1.5">
+                          <div style={{ background: meta.bg }} className="flex h-6 w-6 items-center justify-center rounded-md">
+                            <meta.icon size={12} color={meta.color} />
+                          </div>
+                          <span className="text-[12px] text-slate-700 dark:text-[#F3F5F9]">{l.type}</span>
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3.5 text-[12px] text-slate-600 dark:text-[#8993A8]">
+                        {fmt(l.from)}<br />{fmt(l.to)}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3.5 text-[12px] text-slate-600 dark:text-[#8993A8]">{l.duration}</td>
+                      <td className="max-w-[180px] px-4 py-3.5 text-[12px] text-slate-600 dark:text-[#8993A8]">{l.reason}</td>
+                      <td className="px-4 py-3.5">
+                        <span style={{ background: st.bg, color: st.color }} className="rounded-full px-2.5 py-1 text-[11px] font-bold">
+                          {l.status}
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3.5 text-[12px] text-slate-600 dark:text-[#8993A8]">{l.appliedOn}</td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => setSelectedId(l.id)}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 dark:bg-[#161D2E] text-slate-600 dark:text-[#8993A8] hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:text-purple-600 transition-colors"
+                          >
+                            <Eye size={13} />
+                          </button>
+                          {l.status === "Pending" && (
+                            <button onClick={() => review(l.id, "Rejected")} style={{ background: C.redDim, color: C.red }} className="flex h-7 w-7 items-center justify-center rounded-lg">
+                              <X size={13} />
+                            </button>
+                          )}
+                          {l.status === "Rejected" && (
+                            <button onClick={() => review(l.id, "Approved")} style={{ background: C.greenDim, color: C.green }} className="flex h-7 w-7 items-center justify-center rounded-lg">
+                              <Check size={13} />
+                            </button>
+                          )}
+                          {l.status === "Approved" && (
+                            <span className="flex h-7 w-7 items-center justify-center text-[15px] text-slate-400 dark:text-[#5B6478]">–</span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+            <p className="text-[12px] text-slate-500 dark:text-[#5B6478]">
+              Showing 1 to {filtered.length} of {leaves.length} entries
+            </p>
+            <div className="flex items-center gap-1.5">
+              <button className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 dark:border-[#1C2333] bg-white dark:bg-[#0F1526] text-slate-600 dark:text-[#8993A8]"><ChevronLeft size={13} /></button>
+              {[1, 2, 3, 4].map((p) => (
+                <button key={p} className={`flex h-7 w-7 items-center justify-center rounded-lg text-[12px] font-semibold ${p === 1 ? "bg-purple-600 text-white" : "text-slate-600 dark:text-[#8993A8]"}`}>
+                  {p}
+                </button>
+              ))}
+              <button className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 dark:border-[#1C2333] bg-white dark:bg-[#0F1526] text-slate-600 dark:text-[#8993A8]"><ChevronRight size={13} /></button>
+              <button className="ml-2 flex items-center gap-1 rounded-lg border border-slate-200 dark:border-[#1C2333] bg-white dark:bg-[#0F1526] px-2.5 py-1.5 text-[12px] text-slate-600 dark:text-[#8993A8]">
+                10 / page <ChevronDown size={12} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Right: detail panel */}
+        {selected && (
+          <aside className="w-full shrink-0 self-start rounded-2xl border border-slate-200/80 dark:border-[#1C2333] bg-white dark:bg-[#0F1526] p-5 xl:w-[320px] shadow-xs">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[14.5px] font-bold text-slate-900 dark:text-white">Leave Request Details</h2>
+              <button onClick={() => setSelectedId(null)} className="text-slate-400 dark:text-[#5B6478] hover:text-slate-600 dark:hover:text-white"><X size={16} /></button>
+            </div>
+
+            <div className="mt-4 flex items-center gap-3">
+              {selected.teacher?.avatar ? (
+                <img src={selected.teacher.avatar} alt={selected.name} className="h-11 w-11 rounded-full object-cover shrink-0" />
+              ) : (
+                <div style={{ background: AVATAR_BG[leaves.findIndex((l) => l.id === selected.id) % AVATAR_BG.length] }} className="flex h-11 w-11 items-center justify-center rounded-full text-[13px] font-bold text-white">
+                  {initials(selected.name)}
+                </div>
+              )}
+              <div>
+                <p className="text-[13.5px] font-bold leading-tight text-slate-900 dark:text-white">{selected.name}</p>
+                <p className="text-[11.5px] text-slate-500 dark:text-[#5B6478]">{selected.subject}</p>
+                <p className="text-[10.5px] text-slate-400 dark:text-[#5B6478]">Employee ID: {selected.empId}</p>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-2.5 border-t border-slate-100 dark:border-[#161D2E] pt-4 text-[12px]">
+              <Row label="Leave Type">
+                <span style={{ 
+                  background: (LEAVE_META[selected.type] || LEAVE_META["Casual Leave"]).bg, 
+                  color: (LEAVE_META[selected.type] || LEAVE_META["Casual Leave"]).color 
+                }} className="rounded-full px-2.5 py-0.5 text-[11px] font-bold">
+                  {selected.type}
+                </span>
+              </Row>
+              <Row label="From Date" value={fmt(selected.from)} />
+              <Row label="To Date" value={fmt(selected.to)} />
+              <Row label="Duration" value={selected.duration} />
+              <Row label="Applied On" value={selected.appliedOn} />
+              <Row label="Contact Number" value={selected.phone} />
+            </div>
+
+            <div className="mt-4 border-t border-slate-100 dark:border-[#161D2E] pt-4">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-[#5B6478]">Reason</p>
+              <p className="mt-1 text-[12.5px] leading-relaxed text-slate-700 dark:text-slate-200">{selected.reason}</p>
+            </div>
+
+            {selected.attachment && (
+              <div className="mt-4 border-t border-slate-100 dark:border-[#161D2E] pt-4">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-[#5B6478]">Attachments</p>
+                <div className="mt-2 flex items-center gap-2.5 rounded-xl border border-slate-200 dark:border-[#1C2333] bg-slate-50 dark:bg-[#0B1120] p-2.5">
+                  <div style={{ background: C.purpleDim }} className="flex h-8 w-8 items-center justify-center rounded-lg">
+                    <Paperclip size={14} color={C.purple} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[12px] font-semibold leading-tight text-slate-800 dark:text-white">{selected.attachment.name}</p>
+                    <p className="text-[10.5px] text-slate-400 dark:text-[#5B6478]">{selected.attachment.size}</p>
+                  </div>
+                  <Download size={14} className="text-slate-400 dark:text-[#5B6478]" />
+                </div>
+              </div>
+            )}
+
+            <div className="mt-4 border-t border-slate-100 dark:border-[#161D2E] pt-4">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-[#5B6478]">Approval History</p>
+              <div className="mt-2 flex gap-2">
+                <div className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-purple-600" />
+                <div>
+                  <p className="text-[11.5px] text-slate-700 dark:text-slate-300">{selected.appliedOn}</p>
+                  <p className="text-[11px] text-slate-400 dark:text-[#5B6478]">Leave application submitted by teacher.</p>
+                </div>
+              </div>
+            </div>
+
+            {selected.status === "Pending" ? (
+              <div className="mt-5 flex gap-2.5">
+                <button onClick={() => review(selected.id, "Approved")} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-2.5 text-[12.5px] font-bold text-white shadow-xs transition-colors">
+                  <Check size={14} /> Approve
+                </button>
+                <button onClick={() => review(selected.id, "Rejected")} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 py-2.5 text-[12.5px] font-bold text-white shadow-xs transition-colors">
+                  <X size={14} /> Reject
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setSelectedId(null)} className="mt-5 w-full rounded-xl border border-slate-200 dark:border-[#1C2333] py-2.5 text-[12.5px] font-bold text-slate-600 dark:text-[#8993A8] hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                Close
+              </button>
+            )}
+          </aside>
+        )}
+      </div>
     </div>
   );
 }
@@ -454,8 +458,8 @@ export default function TeacherLeaves() {
 function Row({ label, value, children }) {
   return (
     <div className="flex items-center justify-between">
-      <span style={{ color: "#8993A8" }}>{label}</span>
-      {children ?? <span style={{ color: "#F3F5F9" }} className="font-medium">{value}</span>}
+      <span className="text-slate-500 dark:text-[#8993A8]">{label}</span>
+      {children ?? <span className="font-medium text-slate-800 dark:text-[#F3F5F9]">{value}</span>}
     </div>
   );
 }

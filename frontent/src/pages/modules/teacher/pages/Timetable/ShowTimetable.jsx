@@ -285,7 +285,7 @@ function ShowTimetable() {
               onClick={() => setViewMode("day")}
               className={`px-3 py-1.5 rounded-lg text-xs font-extrabold cursor-pointer transition-all ${
                 viewMode === "day"
-                  ? "bg-purple-650 bg-purple-500 text-white shadow-sm"
+                  ? "bg-purple-600 bg-purple-500 text-white shadow-sm"
                   : "text-slate-450 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
@@ -322,12 +322,12 @@ function ShowTimetable() {
                       key={day.name}
                       className={`py-4 relative ${
                         day.isToday 
-                          ? "text-purple-650 dark:text-purple-400 bg-purple-500/[0.02]" 
+                          ? "text-purple-600 dark:text-purple-400 bg-purple-500/[0.02]" 
                           : "border-r border-slate-200/30 dark:border-white/[0.02]"
                       }`}
                     >
                       {day.isToday && (
-                        <span className="absolute top-1 left-1/2 -translate-x-1/2 bg-purple-650 text-white font-black text-[7px] uppercase px-1 py-0.5 rounded scale-90 select-none">
+                        <span className="absolute top-1 left-1/2 -translate-x-1/2 bg-purple-600 text-white font-black text-[7px] uppercase px-1 py-0.5 rounded scale-90 select-none">
                           Today
                         </span>
                       )}
@@ -381,7 +381,7 @@ function ShowTimetable() {
                         }
 
                         // Pick styles dynamically based on subject name
-                        let theme = "bg-purple-500/10 text-purple-650 border-purple-500/20";
+                        let theme = "bg-purple-500/10 text-purple-600 border-purple-500/20";
                         const subName = entry.subject?.name?.toLowerCase() || "";
                         if (subName.includes("science") && !subName.includes("social")) {
                           theme = "bg-blue-500/10 text-blue-650 border-blue-500/20";
@@ -417,7 +417,7 @@ function ShowTimetable() {
           <div>
             <div className="pb-3 border-b border-slate-100 dark:border-white/[0.03] mb-4 select-none flex items-center justify-between">
               <h3 className="text-xs font-black uppercase text-slate-450 tracking-wider">Today's Schedule</h3>
-              <span className="text-[8px] font-bold bg-purple-500/10 text-purple-650 px-2 py-0.5 rounded">Tue, 27 May</span>
+              <span className="text-[8px] font-bold bg-purple-500/10 text-purple-600 px-2 py-0.5 rounded">Tue, 27 May</span>
             </div>
 
             <div className="flex flex-col gap-4 pl-3 relative border-l border-slate-150 dark:border-white/10 select-none ml-1.5">
@@ -528,7 +528,7 @@ function ShowTimetable() {
 
           <Link
             to="/teacher/mark-attendance"
-            className="w-full py-2.5 rounded-xl bg-purple-650 hover:bg-purple-750 text-white font-extrabold text-[10px] uppercase tracking-wider shadow-sm flex items-center justify-center gap-1.5 cursor-pointer mt-5 select-none"
+            className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-750 text-white font-extrabold text-[10px] uppercase tracking-wider shadow-sm flex items-center justify-center gap-1.5 cursor-pointer mt-5 select-none"
           >
             <FaUserCheck className="text-xs" /> Mark Attendance
           </Link>
@@ -588,7 +588,7 @@ function ShowTimetable() {
       </div>
 
       {/* Bottom Alert timings warning */}
-      <div className="bg-purple-650/5 border border-purple-500/10 p-3.5 rounded-2xl flex items-center gap-2.5 select-none text-[10px] font-semibold text-slate-650 dark:text-slate-350 mt-6">
+      <div className="bg-purple-600/5 border border-purple-500/10 p-3.5 rounded-2xl flex items-center gap-2.5 select-none text-[10px] font-semibold text-slate-650 dark:text-slate-350 mt-6">
         <FaExclamationCircle className="text-xs text-purple-600 shrink-0" />
         <span>All timings are subject to change. Please check regularly for updates.</span>
       </div>

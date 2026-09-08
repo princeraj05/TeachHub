@@ -614,7 +614,7 @@ function SchoolDetails() {
                   </div>
                   <div className="flex justify-between pb-1">
                     <span className="text-slate-400 dark:text-slate-500">Admission Process</span>
-                    <span className="text-purple-650 dark:text-sky-400 font-extrabold">{Array.isArray(school.admissionProcess) ? school.admissionProcess.join(", ") : (school.admissionProcess || "Direct Admission")}</span>
+                    <span className="text-purple-600 dark:text-sky-400 font-extrabold">{Array.isArray(school.admissionProcess) ? school.admissionProcess.join(", ") : (school.admissionProcess || "Direct Admission")}</span>
                   </div>
                 </div>
               </div>
@@ -898,7 +898,7 @@ function SchoolDetails() {
                         {/* Subject Badges */}
                         <div className="flex flex-wrap items-center gap-1.5 pt-1">
                           {(teacher.subjects || []).map((sub, idx) => (
-                            <span key={idx} className="bg-purple-500/10 text-purple-650 dark:text-purple-400 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border border-purple-500/15">
+                            <span key={idx} className="bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border border-purple-500/15">
                               {sub.name}
                             </span>
                           ))}

@@ -52,15 +52,15 @@ function TeacherLeave() {
 
   const [leaves, setLeaves] = useState([]);
   const [summary, setSummary] = useState({
-    totalBalance: 15,
-    approved: 8,
-    pending: 2,
-    rejected: 1
+    totalBalance: 0,
+    approved: 0,
+    pending: 0,
+    rejected: 0
   });
   const [overview, setOverview] = useState({
-    casual: 10,
-    sick: 3,
-    special: 2,
+    casual: 0,
+    sick: 0,
+    special: 0,
     compOff: 0
   });
 
@@ -267,7 +267,7 @@ function TeacherLeave() {
                     onClick={() => setActiveTab(tabName)}
                     className={`px-4 py-2 font-black text-xs border-b-2 whitespace-nowrap transition-all cursor-pointer ${
                       activeTab === tabName
-                        ? "border-purple-650 text-purple-650 dark:text-purple-400"
+                        ? "border-purple-600 text-purple-600 dark:text-purple-400"
                         : "border-transparent text-slate-450 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
@@ -415,7 +415,7 @@ function TeacherLeave() {
               <span>Showing 1 to {filteredLeavesList.length} of {filteredLeavesList.length} requests</span>
               <div className="flex items-center gap-1">
                 <button className="px-2 py-0.5 rounded border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.02] cursor-pointer">Prev</button>
-                <span className="px-2 py-0.5 bg-purple-650 text-white rounded font-extrabold shadow-sm">1</span>
+                <span className="px-2 py-0.5 bg-purple-600 text-white rounded font-extrabold shadow-sm">1</span>
                 <button className="px-2 py-0.5 rounded border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.02] cursor-pointer">Next</button>
               </div>
             </div>
@@ -562,7 +562,7 @@ function TeacherLeave() {
               {/* Submit button */}
               <button 
                 type="submit"
-                className="w-full py-2.5 rounded-xl bg-purple-650 hover:bg-purple-700 text-white font-extrabold text-xs shadow-sm hover:shadow transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-1"
+                className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-1"
               >
                 <FaPaperPlane className="text-[10px]" /> Submit Leave Request
               </button>
