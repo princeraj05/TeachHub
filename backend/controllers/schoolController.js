@@ -106,63 +106,55 @@ exports.getMySchool = async (req, res) => {
 
     let modified = false;
 
-    // Self-clean legacy dummy seed data previously saved in MongoDB
-    if (school.principalName === "Banny Thapar") { school.principalName = ""; modified = true; }
-    if (school.email === "gdaccedmy@gmail.com") { school.email = ""; modified = true; }
-    if (school.phoneNumber === "+91 98765 43210") { school.phoneNumber = ""; modified = true; }
-    if (school.address && school.address.includes("Near Sadar Hospital")) { school.address = ""; modified = true; }
-    if (school.established === "2010") { school.established = ""; modified = true; }
-    if (school.code === "GDAC2026") { school.code = ""; modified = true; }
-    if (school.registrationNumber === "GD/REG/2010/4125") { school.registrationNumber = ""; modified = true; }
-    if (school.website === "www.gdaccedmy.edu.in") { school.website = ""; modified = true; }
-    if (school.motto === "Learn • Grow • Succeed") { school.motto = ""; modified = true; }
-    if (school.principalEmail === "banny.thapar@gdaccedmy.edu.in") { school.principalEmail = ""; modified = true; }
-    if (school.principalPhone === "+91 98765 43210") { school.principalPhone = ""; modified = true; }
-    if (school.principalDesignation === "Head of Institution") { school.principalDesignation = ""; modified = true; }
-    if (school.principalIntroduction && school.principalIntroduction.includes("With over 20 years of experience")) { school.principalIntroduction = ""; modified = true; }
-    if (school.description && (school.description.includes("G.D Academy") || school.description.includes("reputed educational institution"))) { school.description = ""; modified = true; }
-    if (school.affiliation === "CBSE") { school.affiliation = ""; modified = true; }
-    if (school.academicYear === "2026 - 2027") { school.academicYear = ""; modified = true; }
-    if (school.medium === "English") { school.medium = ""; modified = true; }
+    // Self-clean legacy dummy seed data ONLY if document still contains untouched auto-seeded dummy markers
+    const isUncleanedLegacySeed = Boolean(
+      school.email === "gdaccedmy@gmail.com" ||
+      school.code === "GDAC2026" ||
+      school.principalName === "Banny Thapar" ||
+      school.registrationNumber === "GD/REG/2010/4125" ||
+      (school.website && school.website.includes("gdaccedmy"))
+    );
 
-    // Clean Tab 3 (Admission & Settings) legacy dummy defaults
-    if (Array.isArray(school.schoolCategoriesList) && (
-      (school.schoolCategoriesList.length === 4 && school.schoolCategoriesList.includes("Primary") && school.schoolCategoriesList.includes("Residential")) ||
-      (school.schoolCategoriesList.length === 3 && school.schoolCategoriesList.includes("Primary") && school.schoolCategoriesList.includes("Co-Educational"))
-    )) {
-      school.schoolCategoriesList = [];
-      modified = true;
-    }
-    if (Array.isArray(school.admissionProcess) && school.admissionProcess.length === 1 && school.admissionProcess[0] === "Direct Admission") {
-      school.admissionProcess = [];
-      modified = true;
-    }
-    if (school.schoolBoardType === "Private") {
-      school.schoolBoardType = "";
-      modified = true;
-    }
-    if (Array.isArray(school.workingDays) && school.workingDays.length === 5 && school.workingDays.includes("Mon") && school.workingDays.includes("Fri")) {
-      school.workingDays = [];
-      modified = true;
-    }
-    if (school.openingTime === "08:00 AM") {
-      school.openingTime = "";
-      modified = true;
-    }
-    if (school.closingTime === "04:00 PM") {
-      school.closingTime = "";
-      modified = true;
-    }
-    if (school.shortBreakStartTime === "11:00 AM") {
-      school.shortBreakStartTime = "";
-      modified = true;
-    }
-    if (school.lunchBreakStartTime === "12:30 PM") {
-      school.lunchBreakStartTime = "";
-      modified = true;
-    }
-    if (Array.isArray(school.holidays) && school.holidays.some(h => h.name === "Independence Day" || h.name === "Teachers' Day" || h.name === "Gandhi Jayanti")) {
-      school.holidays = [];
+    if (isUncleanedLegacySeed) {
+      if (school.principalName === "Banny Thapar") { school.principalName = ""; }
+      if (school.email === "gdaccedmy@gmail.com") { school.email = ""; }
+      if (school.phoneNumber === "+91 98765 43210") { school.phoneNumber = ""; }
+      if (school.address && school.address.includes("Near Sadar Hospital")) { school.address = ""; }
+      if (school.established === "2010") { school.established = ""; }
+      if (school.code === "GDAC2026") { school.code = ""; }
+      if (school.registrationNumber === "GD/REG/2010/4125") { school.registrationNumber = ""; }
+      if (school.website === "www.gdaccedmy.edu.in") { school.website = ""; }
+      if (school.motto === "Learn • Grow • Succeed") { school.motto = ""; }
+      if (school.principalEmail === "banny.thapar@gdaccedmy.edu.in") { school.principalEmail = ""; }
+      if (school.principalPhone === "+91 98765 43210") { school.principalPhone = ""; }
+      if (school.principalDesignation === "Head of Institution") { school.principalDesignation = ""; }
+      if (school.principalIntroduction && school.principalIntroduction.includes("With over 20 years of experience")) { school.principalIntroduction = ""; }
+      if (school.description && (school.description.includes("G.D Academy") || school.description.includes("reputed educational institution"))) { school.description = ""; }
+      if (school.affiliation === "CBSE") { school.affiliation = ""; }
+      if (school.academicYear === "2026 - 2027") { school.academicYear = ""; }
+      if (school.medium === "English") { school.medium = ""; }
+      if (school.schoolBoardType === "Private") { school.schoolBoardType = ""; }
+
+      // Clean Tab 3 (Admission & Settings) legacy dummy defaults
+      if (Array.isArray(school.schoolCategoriesList) && (
+        (school.schoolCategoriesList.length === 4 && school.schoolCategoriesList.includes("Primary") && school.schoolCategoriesList.includes("Residential")) ||
+        (school.schoolCategoriesList.length === 3 && school.schoolCategoriesList.includes("Primary") && school.schoolCategoriesList.includes("Co-Educational"))
+      )) {
+        school.schoolCategoriesList = [];
+      }
+      if (Array.isArray(school.admissionProcess) && school.admissionProcess.length === 1 && school.admissionProcess[0] === "Direct Admission") {
+        school.admissionProcess = [];
+      }
+      if (Array.isArray(school.workingDays) && school.workingDays.length === 5 && school.workingDays.includes("Mon") && school.workingDays.includes("Fri")) {
+        school.workingDays = [];
+      }
+      if (school.openingTime === "08:00 AM") { school.openingTime = ""; }
+      if (school.closingTime === "04:00 PM") { school.closingTime = ""; }
+      if (school.shortBreakStartTime === "11:00 AM") { school.shortBreakStartTime = ""; }
+      if (school.lunchBreakStartTime === "12:30 PM") { school.lunchBreakStartTime = ""; }
+      if (Array.isArray(school.holidays) && school.holidays.some(h => h.name === "Independence Day" || h.name === "Teachers' Day" || h.name === "Gandhi Jayanti")) {
+        school.holidays = [];
+      }
       modified = true;
     }
 
