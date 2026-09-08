@@ -67,24 +67,29 @@ export default function TeacherOnLeave() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-black text-slate-900 dark:text-white leading-tight">
-                    {x.teacher?.name || "Instructor"}
+                    {x.teacher?.name || x.name || "Instructor"}
                   </h3>
-                  {x.subject && (
+                  {(x.subject || x.leaveType) && (
                     <p className="text-[11px] font-bold text-[#7C3AED] dark:text-[#A78BFA] mt-1 flex items-center gap-1.5">
-                      <FaBookOpen className="text-[10px]" /> {x.subject}
+                      <FaBookOpen className="text-[10px]" /> {x.subject || x.leaveType}
                     </p>
                   )}
                 </div>
                 <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[9px] font-black uppercase tracking-wider shrink-0">
-                  {x.status || "On Leave"}
+                  {x.status || "Approved"}
                 </span>
               </div>
 
               <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500">
                 <span className="flex items-center gap-1.5">
                   <FaCalendarAlt className="text-slate-400" />
-                  {new Date(x.startDate).toLocaleDateString()} – {new Date(x.endDate).toLocaleDateString()}
+                  {new Date(x.startDate || x.from).toLocaleDateString("en-US", { day: 'numeric', month: 'short', year: 'numeric' })} – {new Date(x.endDate || x.to).toLocaleDateString("en-US", { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
+                {x.duration && (
+                  <span className="bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded text-slate-500 font-extrabold">
+                    {typeof x.duration === 'number' ? `${x.duration} Days` : x.duration}
+                  </span>
+                )}
               </div>
             </div>
           ))}

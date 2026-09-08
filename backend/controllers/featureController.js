@@ -145,7 +145,53 @@ exports.getLeaves = async (req, res) => {
   }
 };
 exports.reviewLeave = async (req, res) => { try { const status = req.body.status; if (!["Approved", "Rejected", "Cancelled"].includes(status)) return res.status(400).json({ message: "Invalid leave status" }); const leave = await TeacherLeave.findOne({ _id: req.params.id, schoolName: req.user.schoolName }); if (!leave) return res.status(404).json({ message: "Leave request not found" }); if (leave.status !== "Pending") return res.status(400).json({ message: "Only pending leave requests can be reviewed" }); leave.status = status; leave.reviewedBy = req.user.id; await leave.save(); res.json(leave); } catch { res.status(400).json({ message: "Could not update leave request" }); } };
-exports.getActiveLeaves = async (req, res) => { try { const today = new Date(); today.setHours(0,0,0,0); const leaves = await TeacherLeave.find({ schoolName: req.user.schoolName, status: "Approved", startDate: { $lte: today }, endDate: { $gte: today } }).populate("teacher", "name email").sort({ startDate: 1 }).select("teacher startDate endDate status"); const teacherIds = leaves.map((leave) => leave.teacher?._id).filter(Boolean); const subjects = await Subject.find({ schoolName: req.user.schoolName, teacher: { $in: teacherIds } }).select("teacher name").lean(); const subjectByTeacher = new Map(subjects.map((subject) => [String(subject.teacher), subject.name])); res.json(leaves.map((leave) => ({ ...leave.toObject(), subject: subjectByTeacher.get(String(leave.teacher?._id)) || "" }))); } catch { res.status(500).json({ message: "Could not load active leaves" }); } };
+exports.getActiveLeaves = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const schoolFilter = req.user?.schoolName
+      ? { schoolName: { $regex: new RegExp("^" + req.user.schoolName.trim().replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "$", "i") } }
+      : {};
+
+    const leaves = await TeacherLeave.find({
+      ...schoolFilter,
+      status: { $regex: /^approved$/i },
+      endDate: { $gte: today }
+    })
+      .populate("teacher", "name email phoneNumber avatar requestedSchool")
+      .sort({ startDate: 1 });
+
+    const teacherIds = [...new Set(leaves.map((leave) => leave.teacher?._id).filter(Boolean))];
+
+    const subjects = await Subject.find({
+      ...(req.user?.schoolName ? schoolFilter : {}),
+      teacher: { $in: teacherIds }
+    })
+      .select("teacher name")
+      .lean();
+
+    const subjectByTeacher = new Map(
+      subjects.map((subject) => [String(subject.teacher), subject.name])
+    );
+
+    res.json(
+      leaves.map((leave) => {
+        const obj = leave.toObject();
+        const teacherObj = leave.teacher ? (leave.teacher.toObject ? leave.teacher.toObject() : leave.teacher) : null;
+        return {
+          ...obj,
+          teacher: teacherObj || { name: "Teacher" },
+          name: teacherObj?.name || "Teacher",
+          subject: subjectByTeacher.get(String(leave.teacher?._id || leave.teacher)) || leave.leaveType || "Faculty"
+        };
+      })
+    );
+  } catch (err) {
+    console.error("Error in getActiveLeaves:", err);
+    res.status(500).json({ message: "Could not load active leaves" });
+  }
+};
 
 exports.createAppointment = async (req, res) => { try { const { schoolName, date, time, notes = "" } = req.body; if (!schoolName || !date || !time) return res.status(400).json({ message: "School, date and time are required" }); const school = await School.findOne({ normalizedName: String(schoolName).trim().toLowerCase().replace(/\s+/g, " ") }); if (!school) return res.status(404).json({ message: "School not found" }); const dateValue = new Date(date); if (Number.isNaN(+dateValue) || dateValue < new Date(new Date().setHours(0,0,0,0))) return res.status(400).json({ message: "Choose a future appointment date" }); const appointment = await Appointment.create({ user: req.user.id, schoolName: school.name, date: dateValue, time, mode: "Offline", notes }); res.status(201).json(appointment); } catch { res.status(500).json({ message: "Could not book appointment" }); } };
 exports.getAppointments = async (req, res) => { try { const query = req.user.role === "admin" ? { schoolName: req.user.schoolName } : { user: req.user.id }; res.json(await Appointment.find(query).populate("user", "name email").sort({ date: 1, time: 1 })); } catch { res.status(500).json({ message: "Could not load appointments" }); } };
