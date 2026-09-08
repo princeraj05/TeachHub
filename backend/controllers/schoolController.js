@@ -105,6 +105,9 @@ exports.getMySchool = async (req, res) => {
     if (school.principalDesignation === "Head of Institution") { school.principalDesignation = ""; modified = true; }
     if (school.principalIntroduction && school.principalIntroduction.includes("With over 20 years of experience")) { school.principalIntroduction = ""; modified = true; }
     if (school.description && (school.description.includes("G.D Academy") || school.description.includes("reputed educational institution"))) { school.description = ""; modified = true; }
+    if (school.affiliation === "CBSE") { school.affiliation = ""; modified = true; }
+    if (school.academicYear === "2026 - 2027") { school.academicYear = ""; modified = true; }
+    if (school.medium === "English") { school.medium = ""; modified = true; }
 
     // Clean Tab 3 (Admission & Settings) legacy dummy defaults
     if (Array.isArray(school.schoolCategoriesList) && (
