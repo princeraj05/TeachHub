@@ -9,7 +9,6 @@ import {
   FaSearch, 
   FaFilter, 
   FaMapMarkerAlt, 
-  FaInfoCircle,
   FaCheckCircle
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
@@ -433,15 +432,7 @@ function StudentEvents() {
           </div>
         )}
 
-      {/* Bottom information note */}
-      <div className="bg-slate-100/50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.04] p-4.5 rounded-2.5xl flex items-start gap-3 select-none">
-        <FaInfoCircle className="text-base text-[#38BDF8] shrink-0 mt-0.5" />
-        <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
-          {activeTab === "upcoming"
-            ? "Event details are subject to change. Please check regularly for latest updates."
-            : "Completed events and galleries are stored for your reference. You can revisit photos and videos anytime."}
-        </p>
-      </div>
+
 
       {/* ================= GALLERY DISPLAY MODAL ================= */}
       {showGalleryModal && selectedEvent && (

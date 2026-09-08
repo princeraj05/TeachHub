@@ -343,24 +343,7 @@ export default function TeacherLeaves() {
             </table>
           </div>
 
-          {/* Pagination */}
-          <div className="flex flex-wrap items-center justify-between gap-3 px-1">
-            <p className="text-[12px] text-slate-500 dark:text-[#5B6478]">
-              Showing 1 to {filtered.length} of {leaves.length} entries
-            </p>
-            <div className="flex items-center gap-1.5">
-              <button className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 dark:border-[#1C2333] bg-white dark:bg-[#0F1526] text-slate-600 dark:text-[#8993A8]"><ChevronLeft size={13} /></button>
-              {[1, 2, 3, 4].map((p) => (
-                <button key={p} className={`flex h-7 w-7 items-center justify-center rounded-lg text-[12px] font-semibold ${p === 1 ? "bg-purple-600 text-white" : "text-slate-600 dark:text-[#8993A8]"}`}>
-                  {p}
-                </button>
-              ))}
-              <button className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 dark:border-[#1C2333] bg-white dark:bg-[#0F1526] text-slate-600 dark:text-[#8993A8]"><ChevronRight size={13} /></button>
-              <button className="ml-2 flex items-center gap-1 rounded-lg border border-slate-200 dark:border-[#1C2333] bg-white dark:bg-[#0F1526] px-2.5 py-1.5 text-[12px] text-slate-600 dark:text-[#8993A8]">
-                10 / page <ChevronDown size={12} />
-              </button>
-            </div>
-          </div>
+
         </div>
 
         {/* Right: detail panel */}
