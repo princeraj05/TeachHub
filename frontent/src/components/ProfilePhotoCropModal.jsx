@@ -1,5 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { FaArrowLeft, FaEllipsisV, FaRedo, FaGlobe, FaInfoCircle } from "react-icons/fa";
+import { 
+  FaArrowLeft, 
+  FaEllipsisV, 
+  FaRedo, 
+  FaGlobe, 
+  FaInfoCircle, 
+  FaSearchMinus, 
+  FaSearchPlus 
+} from "react-icons/fa";
 
 /**
  * ProfilePhotoCropModal - Google Account style profile picture crop & rotate modal.
@@ -13,14 +21,20 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
   const [step, setStep] = useState(1); // 1: Crop & rotate, 2: Preview, 3: Saving
   const [loadedImage, setLoadedImage] = useState(null);
   const [rotation, setRotation] = useState(0); // 0, 90, 180, 270
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(1); // 1x to 3x
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [croppedDataUrl, setCroppedDataUrl] = useState("");
   const [saving, setSaving] = useState(false);
 
   const containerRef = useRef(null);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const panRef = useRef({ x: 0, y: 0 });
+
+  // Keep panRef synced with pan state
+  useEffect(() => {
+    panRef.current = pan;
+  }, [pan]);
 
   // Load image object
   useEffect(() => {
@@ -37,6 +51,9 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
     img.src = url;
     img.onload = () => {
       setLoadedImage(img);
+      setRotation(0);
+      setZoom(1);
+      setPan({ x: 0, y: 0 });
     };
 
     return () => {
@@ -49,39 +66,83 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
   // Handle rotate
   const handleRotate = () => {
     setRotation((prev) => (prev + 90) % 360);
-    setPan({ x: 0, y: 0 }); // reset pan on rotate
+    setPan({ x: 0, y: 0 });
   };
 
-  // Drag pan handlers
-  const handleMouseDown = (e) => {
+  // Drag Pan handling via window listeners
+  const handleStartDrag = (e) => {
+    e.preventDefault();
     setIsDragging(true);
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    setDragStart({ x: clientX - pan.x, y: clientY - pan.y });
+    dragStartRef.current = {
+      x: clientX - panRef.current.x,
+      y: clientY - panRef.current.y
+    };
   };
 
-  const handleMouseMove = (e) => {
+  useEffect(() => {
     if (!isDragging) return;
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    setPan({
-      x: clientX - dragStart.x,
-      y: clientY - dragStart.y
-    });
+
+    const handleMove = (e) => {
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const newX = clientX - dragStartRef.current.x;
+      const newY = clientY - dragStartRef.current.y;
+      setPan({ x: newX, y: newY });
+    };
+
+    const handleEnd = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleEnd);
+    window.addEventListener("touchmove", handleMove, { passive: false });
+    window.addEventListener("touchend", handleEnd);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleEnd);
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("touchend", handleEnd);
+    };
+  }, [isDragging]);
+
+  // Wheel zoom handler
+  const handleWheel = (e) => {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 0.1 : -0.1;
+    setZoom((prev) => Math.min(Math.max(prev + delta, 1), 3));
   };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
+  // Calculate Base Scale & Display Dimensions
+  const getDisplayMetrics = useCallback(() => {
+    if (!loadedImage) return { baseScale: 1, displayW: 0, displayH: 0 };
+
+    const cropBoxSize = 260; // UI crop viewport size in px
+    const isRotated = rotation === 90 || rotation === 270;
+    const naturalW = isRotated ? loadedImage.height : loadedImage.width;
+    const naturalH = isRotated ? loadedImage.width : loadedImage.height;
+
+    // Scale so image covers the crop circle by default
+    const baseScale = Math.max(cropBoxSize / naturalW, cropBoxSize / naturalH);
+    const effectiveScale = baseScale * zoom;
+
+    const displayW = loadedImage.width * effectiveScale;
+    const displayH = loadedImage.height * effectiveScale;
+
+    return { baseScale, effectiveScale, displayW, displayH, cropBoxSize };
+  }, [loadedImage, rotation, zoom]);
 
   // Generate Cropped Image Canvas Data
   const generateCroppedImage = useCallback(() => {
     if (!loadedImage) return "";
 
-    const size = 500; // Output square size
+    const outputSize = 500; // Output square avatar resolution in px
     const canvas = document.createElement("canvas");
-    canvas.width = size;
-    canvas.height = size;
+    canvas.width = outputSize;
+    canvas.height = outputSize;
     const ctx = canvas.getContext("2d");
 
     if (!ctx) return "";
@@ -89,37 +150,22 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    // Translate to center
-    ctx.translate(size / 2, size / 2);
+    const { effectiveScale, cropBoxSize } = getDisplayMetrics();
+    const ratio = outputSize / cropBoxSize;
+
+    // Translate to canvas center
+    ctx.translate(outputSize / 2, outputSize / 2);
     ctx.rotate((rotation * Math.PI) / 180);
 
-    // Calculate scale factor relative to crop box
-    const cropBoxSize = 260; // Rendered crop box px in UI
-    const isRotated = rotation === 90 || rotation === 270;
-    const imgW = isRotated ? loadedImage.height : loadedImage.width;
-    const imgH = isRotated ? loadedImage.width : loadedImage.height;
+    const drawW = loadedImage.width * effectiveScale * ratio;
+    const drawH = loadedImage.height * effectiveScale * ratio;
+    const drawX = pan.x * ratio - drawW / 2;
+    const drawY = pan.y * ratio - drawH / 2;
 
-    const baseScale = Math.max(cropBoxSize / imgW, cropBoxSize / imgH);
-    const renderScale = baseScale * zoom;
+    ctx.drawImage(loadedImage, drawX, drawY, drawW, drawH);
 
-    // Scale factor from UI crop box to final canvas size
-    const uiToCanvasRatio = size / cropBoxSize;
-
-    const drawW = loadedImage.width * renderScale * uiToCanvasRatio;
-    const drawH = loadedImage.height * renderScale * uiToCanvasRatio;
-    const offsetX = pan.x * uiToCanvasRatio;
-    const offsetY = pan.y * uiToCanvasRatio;
-
-    ctx.drawImage(
-      loadedImage,
-      -drawW / 2 + offsetX,
-      -drawH / 2 + offsetY,
-      drawW,
-      drawH
-    );
-
-    return canvas.toDataURL("image/jpeg", 0.85);
-  }, [loadedImage, rotation, zoom, pan]);
+    return canvas.toDataURL("image/jpeg", 0.9);
+  }, [loadedImage, rotation, pan, getDisplayMetrics]);
 
   // Click Next -> move to preview
   const handleNext = () => {
@@ -138,14 +184,16 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
       }
     } catch (err) {
       console.error("Failed to save profile picture:", err);
-      setStep(2); // return to preview if error
+      setStep(2);
       setSaving(false);
     }
   };
 
+  const { displayW, displayH } = getDisplayMetrics();
+
   return (
     <div className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 select-none font-sans text-white animate-fadeIn">
-      <div className="w-full max-w-lg bg-[#18191B] border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex flex-col min-h-[520px] max-h-[92vh] relative">
+      <div className="w-full max-w-lg bg-[#18191B] border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex flex-col min-h-[540px] max-h-[95vh] relative">
         
         {/* Header Bar */}
         <div className="px-5 py-4 flex items-center justify-between border-b border-white/10 bg-[#141517]">
@@ -174,26 +222,26 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
             {/* Image Canvas Crop Container */}
             <div
               ref={containerRef}
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onTouchStart={handleMouseDown}
-              onTouchMove={handleMouseMove}
-              onTouchEnd={handleMouseUp}
-              className="relative w-full aspect-square max-w-[320px] mx-auto rounded-2xl bg-black overflow-hidden flex items-center justify-center cursor-grab active:cursor-grabbing border border-white/10 shadow-inner"
+              onMouseDown={handleStartDrag}
+              onTouchStart={handleStartDrag}
+              onWheel={handleWheel}
+              className="relative w-full aspect-square max-w-[310px] mx-auto rounded-2xl bg-[#0d0e10] overflow-hidden flex items-center justify-center cursor-grab active:cursor-grabbing border border-white/10 shadow-inner"
             >
               {loadedImage ? (
                 <div
-                  className="absolute transition-transform duration-100 ease-out"
+                  className="absolute pointer-events-none"
                   style={{
-                    transform: `translate(${pan.x}px, ${pan.y}px) rotate(${rotation}deg) scale(${zoom})`,
-                    transformOrigin: "center center"
+                    width: `${displayW}px`,
+                    height: `${displayH}px`,
+                    transform: `translate(${pan.x}px, ${pan.y}px) rotate(${rotation}deg)`,
+                    transformOrigin: "center center",
+                    transition: isDragging ? "none" : "transform 0.1s ease-out"
                   }}
                 >
                   <img
                     src={loadedImage.src}
                     alt="Source"
-                    className="max-w-[280px] max-h-[280px] object-contain pointer-events-none"
+                    className="w-full h-full object-fill pointer-events-none"
                     draggable={false}
                   />
                 </div>
@@ -203,44 +251,63 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
 
               {/* Crop Box Overlay & Circle Mask */}
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                {/* Translucent background overlay with circular viewport */}
                 <div className="w-full h-full relative">
+                  {/* Radial translucent mask */}
                   <div
                     className="absolute inset-0"
                     style={{
-                      background: "radial-gradient(circle at center, transparent 130px, rgba(0, 0, 0, 0.75) 131px)"
+                      background: "radial-gradient(circle at center, transparent 129px, rgba(0, 0, 0, 0.78) 130px)"
                     }}
                   />
-                  {/* Square boundary crop corner brackets */}
+                  {/* Square Crop Boundary with Corner Brackets */}
                   <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[260px] h-[260px] border-2 border-white/90 rounded-none shadow-2xl">
-                    {/* Top-Left Corner */}
                     <span className="absolute -top-1 -left-1 w-5 h-5 border-t-4 border-l-4 border-white" />
-                    {/* Top-Right Corner */}
                     <span className="absolute -top-1 -right-1 w-5 h-5 border-t-4 border-r-4 border-white" />
-                    {/* Bottom-Left Corner */}
                     <span className="absolute -bottom-1 -left-1 w-5 h-5 border-b-4 border-l-4 border-white" />
-                    {/* Bottom-Right Corner */}
                     <span className="absolute -bottom-1 -right-1 w-5 h-5 border-b-4 border-r-4 border-white" />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Bottom Actions Area */}
-            <div className="flex flex-col items-center gap-4 mt-4">
-              {/* Rotate Button */}
-              <button
-                onClick={handleRotate}
-                className="flex items-center gap-2.5 px-6 py-2.5 rounded-2xl bg-[#28292C] hover:bg-[#323337] active:scale-95 text-white/90 font-medium text-xs border border-white/10 transition cursor-pointer shadow-md"
-              >
-                <FaRedo className="text-xs text-white/80" />
-                <span>Rotate</span>
-              </button>
+            {/* Controls Area: Zoom Slider & Rotate Button */}
+            <div className="flex flex-col items-center gap-3 mt-3">
+              {/* Zoom Slider */}
+              <div className="flex items-center gap-3 w-full max-w-[280px] bg-[#232427] px-4 py-2 rounded-xl border border-white/10">
+                <FaSearchMinus className="text-white/60 text-xs shrink-0" />
+                <input
+                  type="range"
+                  min="1"
+                  max="3"
+                  step="0.05"
+                  value={zoom}
+                  onChange={(e) => setZoom(parseFloat(e.target.value))}
+                  className="w-full accent-[#A8C7FA] cursor-pointer"
+                />
+                <FaSearchPlus className="text-white/60 text-xs shrink-0" />
+              </div>
+
+              {/* Rotate & Reset Buttons */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleRotate}
+                  className="flex items-center gap-2 px-5 py-2 rounded-2xl bg-[#28292C] hover:bg-[#323337] active:scale-95 text-white/90 font-medium text-xs border border-white/10 transition cursor-pointer shadow-md"
+                >
+                  <FaRedo className="text-xs text-white/80" />
+                  <span>Rotate</span>
+                </button>
+                <button
+                  onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
+                  className="px-4 py-2 rounded-2xl bg-[#28292C] hover:bg-[#323337] active:scale-95 text-white/70 hover:text-white font-medium text-xs border border-white/10 transition cursor-pointer"
+                >
+                  Reset
+                </button>
+              </div>
 
               {/* Next Button */}
               <button
                 onClick={handleNext}
-                className="w-full max-w-[200px] py-3 rounded-full bg-[#A8C7FA] hover:bg-[#BBE0FF] active:scale-95 text-[#041E49] font-bold text-sm transition cursor-pointer shadow-lg tracking-wide"
+                className="w-full max-w-[200px] py-2.5 rounded-full bg-[#A8C7FA] hover:bg-[#BBE0FF] active:scale-95 text-[#041E49] font-bold text-sm transition cursor-pointer shadow-lg tracking-wide mt-1"
               >
                 Next
               </button>
