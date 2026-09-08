@@ -26,6 +26,7 @@ const Appointments = lazy(() => import("./pages/Appointments"));
 const TeacherLeaves = lazy(() => import("./pages/TeacherLeaves"));
 const TeacherManagement = lazy(() => import("./pages/TeacherManagement"));
 const PaymentCenter = lazy(() => import("../../../components/PaymentCenter"));
+const AboutAppPage = lazy(() => import("../student/pages/AboutAppPage"));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[400px] w-full">
@@ -80,6 +81,7 @@ function AdminRoutes() {
 
         {/* School Config */}
         <Route path="about-school" element={<Suspense fallback={<PageLoader />}><AboutYourSchool /></Suspense>} />
+        <Route path="about" element={<Suspense fallback={<PageLoader />}><AboutAppPage /></Suspense>} />
         <Route path="create-timetable" element={<Suspense fallback={<PageLoader />}><CreateTimetable /></Suspense>} />
         <Route path="appointments" element={<Suspense fallback={<PageLoader />}><Appointments /></Suspense>} />
         <Route path="teacher-leaves" element={<Suspense fallback={<PageLoader />}><TeacherLeaves /></Suspense>} />

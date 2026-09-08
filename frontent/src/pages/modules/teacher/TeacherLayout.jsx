@@ -24,7 +24,8 @@ import {
   FaBell,
   FaBookOpen,
   FaBars,
-  FaSearch
+  FaSearch,
+  FaInfoCircle
 } from "react-icons/fa";
 
 import { usePlatform } from "../../../context/PlatformContext";
@@ -117,7 +118,8 @@ function TeacherLayout() {
     { to: "/teacher/showtimetable", icon: <FaCalendarAlt className="text-rose-500" />, label: t("show_timetable", "Show Timetable") },
     { to: "/teacher/on-leave", icon: <FaUserShield className="text-orange-500" />, label: t("on_leave", "On Leave") },
     { to: "/teacher/payments", icon: <FaMoneyBillWave className="text-emerald-500" />, label: t("payments", "My Payments") },
-    { to: "/teacher/notifications", icon: <FaBell className="text-purple-500" />, label: t("notifications", "Notifications & Activity") }
+    { to: "/teacher/notifications", icon: <FaBell className="text-purple-500" />, label: t("notifications", "Notifications & Activity") },
+    { to: "/teacher/about", icon: <FaInfoCircle className="text-[#38BDF8]" />, label: t("about_app", "About App") }
   ];
 
   return (
