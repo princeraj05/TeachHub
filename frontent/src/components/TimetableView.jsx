@@ -165,33 +165,20 @@ export default function TimetableView() {
   return (
     <div className="w-full text-slate-800 dark:text-white select-none pb-12 font-sans px-1 sm:px-0">
       
-      {/* 1. Header Bar with Back Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 select-none bg-white dark:bg-[#0B132A] p-4 sm:p-5 rounded-3xl border border-slate-200/80 dark:border-white/[0.08] shadow-sm">
-        <div className="flex items-center gap-3">
+      {/* Horizontal Scrollable Day Selector Tab Bar with Back Button */}
+      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] p-2 sm:p-3 rounded-3xl shadow-sm mb-6">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none max-w-4xl mx-auto px-1 py-0.5">
+          
+          {/* Back Button before Monday */}
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white px-3 py-2 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200/60 dark:border-white/10 text-xs font-bold transition cursor-pointer"
+            className="px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 bg-slate-100 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10"
           >
-            <FaArrowLeft className="text-xs" /> Back
+            <FaArrowLeft className="text-xs text-[#7C3AED] dark:text-[#38BDF8]" />
+            <span>Back</span>
           </button>
-          <div className="flex items-center gap-2">
-            <FaCalendarAlt className="text-[#7C3AED] dark:text-[#38BDF8] text-lg sm:text-xl" />
-            <h1 className="text-lg sm:text-xl font-black tracking-tight text-slate-900 dark:text-white">
-              Class Schedule
-            </h1>
-          </div>
-        </div>
 
-        <div className="px-3.5 py-1.5 rounded-xl bg-[#7C3AED]/10 border border-[#7C3AED]/20 text-[#7C3AED] dark:text-[#38BDF8] text-xs font-extrabold flex items-center gap-2 self-start sm:self-auto shadow-sm">
-          <FaSchool className="text-xs text-[#7C3AED] dark:text-[#38BDF8]" />
-          <span>Academic Timetable</span>
-        </div>
-      </div>
-
-      {/* 2. Horizontal Scrollable Day Selector Tab Bar */}
-      <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] p-2 sm:p-3 rounded-3xl shadow-sm mb-6">
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none max-w-4xl mx-auto px-1 py-0.5">
           {DAYS_OF_WEEK.map((day) => {
             const isSelected = selectedDay === day;
             const dayCount = allEntries.filter(e => e.day?.toLowerCase() === day.toLowerCase()).length;
