@@ -104,7 +104,7 @@ function MyClasses() {
     if (score >= 80) return { stroke: "#10B981", label: "Excellent" };
     if (score >= 70) return { stroke: "#34D399", label: "Good" };
     if (score >= 60) return { stroke: "#F59E0B", label: "Average" };
-    return { stroke: "#EF4444", label: "Needs Help" };
+    return { stroke: "#EF4444", label: "" };
   };
 
   // Sparkline mock data mapping
@@ -956,7 +956,9 @@ function MyClasses() {
                     </ResponsiveContainer>
                     <div className="absolute flex flex-col items-center justify-center text-center leading-none">
                       <span className="text-sm font-black text-slate-850 dark:text-white">{c.performance}%</span>
-                      <span className="text-[7px] font-bold text-slate-400 dark:text-slate-500 uppercase mt-0.5 tracking-wider">{perf.label}</span>
+                      {perf.label && (
+                        <span className="text-[7px] font-bold text-slate-400 dark:text-slate-500 uppercase mt-0.5 tracking-wider">{perf.label}</span>
+                      )}
                     </div>
                   </div>
                 </div>
