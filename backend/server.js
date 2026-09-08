@@ -103,6 +103,13 @@ app.post("/api/payments/webhook", express.raw({ type: "application/json", limit:
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
+// Serve static uploaded files (photos, documents, attachments)
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch (e) {}
+}
+app.use("/uploads", express.static(uploadsDir));
+
 
 const mongoUri = process.env.MONGO_URI || "mongodb://localhost:27017/teachhub";
 

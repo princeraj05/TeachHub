@@ -72,12 +72,28 @@ exports.getMySchool = async (req, res) => {
     }
 
     const normalized = normalizeName(schoolName);
-    let school = await School.findOne({
-      $or: [
-        { normalizedName: normalized },
-        { name: new RegExp("^" + escapeRegex(schoolName.trim()) + "$", "i") }
-      ]
-    });
+    let school;
+    try {
+      school = await School.findOne({
+        $or: [
+          { normalizedName: normalized },
+          { name: new RegExp("^" + escapeRegex(schoolName.trim()) + "$", "i") }
+        ]
+      });
+    } catch (bsonErr) {
+      console.warn("BSON size error detected during School fetch, resetting oversized photo fields raw:", bsonErr.message);
+      await School.collection.updateMany(
+        { $or: [{ normalizedName: normalized }, { name: new RegExp("^" + escapeRegex(schoolName.trim()) + "$", "i") }] },
+        { $set: { photo: "", coverImage: "", principalPhoto: "", schoolPhotos: [] } }
+      );
+      school = await School.findOne({
+        $or: [
+          { normalizedName: normalized },
+          { name: new RegExp("^" + escapeRegex(schoolName.trim()) + "$", "i") }
+        ]
+      });
+    }
+
     if (!school) {
       school = await School.create({
         name: schoolName.trim(),
@@ -150,6 +166,27 @@ exports.getMySchool = async (req, res) => {
       modified = true;
     }
 
+    // Strip out legacy Base64 Data URIs to prevent BSON > 16MB document limit crash
+    if (school.photo && typeof school.photo === "string" && school.photo.startsWith("data:image")) {
+      school.photo = "";
+      modified = true;
+    }
+    if (school.coverImage && typeof school.coverImage === "string" && school.coverImage.startsWith("data:image")) {
+      school.coverImage = "";
+      modified = true;
+    }
+    if (school.principalPhoto && typeof school.principalPhoto === "string" && school.principalPhoto.startsWith("data:image")) {
+      school.principalPhoto = "";
+      modified = true;
+    }
+    if (Array.isArray(school.schoolPhotos)) {
+      const cleanPhotos = school.schoolPhotos.filter(p => !(p && typeof p === "string" && p.startsWith("data:image")));
+      if (cleanPhotos.length !== school.schoolPhotos.length) {
+        school.schoolPhotos = cleanPhotos;
+        modified = true;
+      }
+    }
+
     // Self-clean legacy dummy seed URLs that may have broken previously
     if (school.photo && school.photo.includes("/uploads/schoolPhotos-")) {
       school.photo = "";
@@ -162,13 +199,6 @@ exports.getMySchool = async (req, res) => {
     if (school.principalPhoto && school.principalPhoto.includes("/uploads/schoolPhotos-")) {
       school.principalPhoto = "";
       modified = true;
-    }
-    if (Array.isArray(school.schoolPhotos)) {
-      const filteredPhotos = school.schoolPhotos.filter(p => p && !p.includes("/uploads/schoolPhotos-"));
-      if (filteredPhotos.length !== school.schoolPhotos.length) {
-        school.schoolPhotos = filteredPhotos;
-        modified = true;
-      }
     }
 
     if (modified || school.isNew) {
@@ -455,17 +485,12 @@ exports.uploadSchoolPhoto = async (req, res) => {
       }
     }
 
-    // Convert file to permanent Base64 Data URI stored directly in MongoDB
-    const fileBuffer = fs.readFileSync(req.file.path);
-    const mimeType = req.file.mimetype || "image/jpeg";
-    const base64Data = fileBuffer.toString("base64");
-    const dataUri = `data:${mimeType};base64,${base64Data}`;
+    // Return lightweight relative file URL (/uploads/filename) to keep MongoDB document size small
+    const path = require("path");
+    const filename = req.file.filename || (req.file.path ? path.basename(req.file.path) : "");
+    const relativeUrl = `/uploads/${filename}`;
 
-    if (fs.existsSync(req.file.path)) {
-      try { fs.unlinkSync(req.file.path); } catch (e) {}
-    }
-
-    return res.json({ url: dataUri });
+    return res.json({ url: relativeUrl });
   } catch (error) {
     const fs = require("fs");
     if (req.file && fs.existsSync(req.file.path)) {
