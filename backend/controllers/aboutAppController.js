@@ -10,18 +10,35 @@ exports.getAboutInfo = async (req, res) => {
       info = await AboutApp.create({});
     }
 
-    // Clean legacy dummy G.D. Academy records
-    await School.deleteMany({ name: { $in: ["G.D Accedmy", "G.D Accedmy ", "G.D. Academy", "G.D Academy"] } });
-    await School.deleteMany({ normalizedName: { $in: ["g.d accedmy", "g.d. academy", "g.d academy"] } });
+    // Clean legacy typo records (misspelled G.D Accedmy)
+    await School.deleteMany({ name: { $in: ["G.D Accedmy", "G.D Accedmy "] } });
+    await School.deleteMany({ normalizedName: "g.d accedmy" });
+
+    // Sync any user's schoolName to School collection if missing
+    const userSchools = await User.distinct("schoolName", { schoolName: { $ne: "", $exists: true } });
+    for (const rawName of userSchools) {
+      if (!rawName || !rawName.trim()) continue;
+      const trimmed = rawName.trim();
+      const normalized = trimmed.toLowerCase().replace(/\s+/g, " ");
+      const exists = await School.findOne({ normalizedName: normalized });
+      if (!exists) {
+        const adminUser = await User.findOne({ schoolName: trimmed, role: "admin" });
+        await School.create({
+          name: trimmed,
+          normalizedName: normalized,
+          adminId: adminUser ? adminUser._id : null,
+          email: adminUser ? adminUser.email : null,
+          status: "Active"
+        });
+      }
+    }
 
     const studentCount = await User.countDocuments({ role: "student" });
     const teacherCount = await User.countDocuments({ role: "teacher" });
     const adminCount = await User.countDocuments({ role: { $in: ["admin", "superadmin"] } });
     const schoolCount = await School.countDocuments({});
 
-    const publicSchools = await School.find({
-      name: { $nin: ["G.D Accedmy", "G.D. Academy", "G.D Academy"] }
-    })
+    const publicSchools = await School.find({})
       .select("name photo coverImage motto address coverPosition")
       .lean();
 

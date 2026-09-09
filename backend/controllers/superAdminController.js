@@ -316,11 +316,26 @@ exports.getSchoolsDetail = async (req, res) => {
     const Payment = require("../models/Payment");
     const TeacherCompensation = require("../models/TeacherCompensation");
 
-    let schoolDocs = await School.find({}).lean();
-    if (schoolDocs.length === 0) {
-      schoolDocs = [];
+    // Auto-sync missing School records from User collection
+    const userSchools = await User.distinct("schoolName", { schoolName: { $ne: "", $exists: true } });
+    for (const rawName of userSchools) {
+      if (!rawName || !rawName.trim()) continue;
+      const trimmed = rawName.trim();
+      const normalized = trimmed.toLowerCase().replace(/\s+/g, " ");
+      const exists = await School.findOne({ normalizedName: normalized });
+      if (!exists) {
+        const adminUser = await User.findOne({ schoolName: trimmed, role: "admin" });
+        await School.create({
+          name: trimmed,
+          normalizedName: normalized,
+          adminId: adminUser ? adminUser._id : null,
+          email: adminUser ? adminUser.email : null,
+          status: "Active"
+        });
+      }
     }
 
+    let schoolDocs = await School.find({}).lean();
     const schoolsList = [];
 
     for (const school of schoolDocs) {
