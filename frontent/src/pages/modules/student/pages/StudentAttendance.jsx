@@ -73,8 +73,7 @@ function StudentAttendance() {
   const getTeacherForSubject = (subjName, itemTeacher) => {
     if (itemTeacher?.name) return `Faculty: ${itemTeacher.name}`;
     if (assignedTeacherMap[subjName]) return assignedTeacherMap[subjName];
-    // Default to 'Lovely Coder' as set by Admin for Hindi, English and core subjects
-    return "Faculty: Lovely Coder";
+    return "Faculty: Assigned Teacher";
   };
 
   // Helper: Get weekday short name (e.g. "Mon", "Tue" etc.)
@@ -104,35 +103,11 @@ function StudentAttendance() {
   // Helper: Decorate database records with subjects & real teachers
   const decoratedAttendance = useMemo(() => {
     if (!dbAttendance || dbAttendance.length === 0) {
-      const mockRecords = [];
-      const baseDate = new Date("2026-09-08");
-      
-      for (let i = 0; i < 30; i++) {
-        const currentDate = new Date(baseDate);
-        currentDate.setDate(baseDate.getDate() - i);
-        const dateISO = currentDate.toISOString().split("T")[0];
-
-        DEFAULT_SUBJECTS.forEach((subj, sIdx) => {
-          const isAbsent = (i % 7 === 0 && sIdx === 1) || (i % 11 === 0 && sIdx === 3);
-          const tName = getTeacherForSubject(subj, null);
-          
-          mockRecords.push({
-            _id: `mock_${i}_${sIdx}`,
-            date: dateISO,
-            status: isAbsent ? "Absent" : "Present",
-            subject: subj,
-            teacherName: tName,
-            dayShort: getWeekdayShort(dateISO),
-            formattedDate: formatDateString(dateISO)
-          });
-        });
-      }
-      return mockRecords;
+      return [];
     }
 
     return dbAttendance.map((item, idx) => {
-      const salt = item._id ? item._id.charCodeAt(item._id.length - 1) : idx;
-      const subjectName = item.subject?.name || item.subjectName || DEFAULT_SUBJECTS[salt % DEFAULT_SUBJECTS.length];
+      const subjectName = item.subject?.name || item.subjectName || "General";
       const teacherName = getTeacherForSubject(subjectName, item.teacher);
 
       return {
@@ -153,7 +128,7 @@ function StudentAttendance() {
     
     const presentRate = total > 0 ? ((present / total) * 100).toFixed(1) : "0.0";
     const absentRate = total > 0 ? ((absent / total) * 100).toFixed(1) : "0.0";
-    const workingDays = Math.max(1, Math.ceil(total / DEFAULT_SUBJECTS.length));
+    const workingDays = Math.max(1, Math.ceil(total / Math.max(1, studentSubjects.length)));
 
     return {
       total,
@@ -163,28 +138,34 @@ function StudentAttendance() {
       absentRate,
       workingDays
     };
-  }, [decoratedAttendance]);
+  }, [decoratedAttendance, studentSubjects]);
 
   // Subject-wise Breakdown stats calculation
   const subjectBreakdown = useMemo(() => {
     const map = {};
-    
-    // Ensure all default subjects are initialized
-    DEFAULT_SUBJECTS.forEach((subj) => {
-      map[subj] = {
-        subject: subj,
-        faculty: getTeacherForSubject(subj, null),
-        total: 0,
-        present: 0,
-        absent: 0,
-        lastAttended: "08 Sep 2026",
-        records: []
-      };
-    });
 
-    // Populate from decoratedAttendance
+    // Initialize from real student assigned subjects first if available
+    if (Array.isArray(studentSubjects) && studentSubjects.length > 0) {
+      studentSubjects.forEach((s) => {
+        const sName = s.name || s.subjectName;
+        if (sName) {
+          const tName = s.teacher?.name ? `Faculty: ${s.teacher.name}` : assignedTeacherMap[sName] || "Faculty: Assigned Teacher";
+          map[sName] = {
+            subject: sName,
+            faculty: tName,
+            total: 0,
+            present: 0,
+            absent: 0,
+            lastAttended: "No Sessions",
+            records: []
+          };
+        }
+      });
+    }
+
+    // Populate from real decoratedAttendance
     decoratedAttendance.forEach((item) => {
-      const subj = item.subject || "Mathematics";
+      const subj = item.subject || "General";
       if (!map[subj]) {
         map[subj] = {
           subject: subj,
@@ -192,7 +173,7 @@ function StudentAttendance() {
           total: 0,
           present: 0,
           absent: 0,
-          lastAttended: item.formattedDate || "08 Sep 2026",
+          lastAttended: item.formattedDate || "No Sessions",
           records: []
         };
       }
@@ -203,6 +184,9 @@ function StudentAttendance() {
         map[subj].present += 1;
       } else {
         map[subj].absent += 1;
+      }
+      if (item.formattedDate) {
+        map[subj].lastAttended = item.formattedDate;
       }
       map[subj].faculty = getTeacherForSubject(subj, item.teacher);
     });
@@ -216,7 +200,7 @@ function StudentAttendance() {
         rateFormatted: `${rate}%`
       };
     });
-  }, [decoratedAttendance, assignedTeacherMap]);
+  }, [decoratedAttendance, studentSubjects, assignedTeacherMap]);
 
   // Radial progress chart stroke offset for overall
   const radius = 45;
