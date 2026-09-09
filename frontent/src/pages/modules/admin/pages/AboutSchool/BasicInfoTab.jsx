@@ -422,9 +422,7 @@ function BasicInfoTab({
             </div>
             <div className="mt-1">
               <h4 className="text-lg font-black text-slate-900 dark:text-white">{school?.totalStudents ?? 0}</h4>
-              <p className="text-[8px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5 mt-0.5">
-                <FaArrowUp className="text-[7px]" /> 12 this month
-              </p>
+              <p className="text-[8px] font-bold text-slate-400 mt-0.5">Enrolled</p>
             </div>
           </div>
 
@@ -438,9 +436,7 @@ function BasicInfoTab({
             </div>
             <div className="mt-1">
               <h4 className="text-lg font-black text-slate-900 dark:text-white">{school?.totalTeachers ?? 0}</h4>
-              <p className="text-[8px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5 mt-0.5">
-                <FaArrowUp className="text-[7px]" /> 2 this month
-              </p>
+              <p className="text-[8px] font-bold text-slate-400 mt-0.5">Active</p>
             </div>
           </div>
 
@@ -454,7 +450,7 @@ function BasicInfoTab({
             </div>
             <div className="mt-1">
               <h4 className="text-lg font-black text-slate-900 dark:text-white">{school?.totalClasses ?? 0}</h4>
-              <p className="text-[8px] font-bold text-slate-400 mt-0.5">No change</p>
+              <p className="text-[8px] font-bold text-slate-400 mt-0.5">Configured</p>
             </div>
           </div>
 
@@ -468,9 +464,7 @@ function BasicInfoTab({
             </div>
             <div className="mt-1">
               <h4 className="text-lg font-black text-slate-900 dark:text-white">{school?.totalSubjects ?? 0}</h4>
-              <p className="text-[8px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5 mt-0.5">
-                <FaArrowUp className="text-[7px]" /> 3 this month
-              </p>
+              <p className="text-[8px] font-bold text-slate-400 mt-0.5">Active</p>
             </div>
           </div>
 
@@ -488,10 +482,11 @@ function BasicInfoTab({
                   type="text"
                   value={availableClasses}
                   onChange={(e) => setAvailableClasses(e.target.value)}
+                  placeholder="e.g. Class 1 to 10"
                   className="w-full px-2 py-1 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                 />
               ) : (
-                <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate">{availableClasses || "Class 1 to 10"}</h4>
+                <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate">{availableClasses || "Not Set"}</h4>
               )}
               <p className="text-[8px] font-bold text-teal-600 dark:text-teal-400 mt-0.5">{classCountText}</p>
             </div>
