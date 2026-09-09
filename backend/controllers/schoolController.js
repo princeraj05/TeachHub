@@ -104,13 +104,15 @@ const calculateProfileCompletion = (s) => {
 // Helper to fetch dynamic real counts from DB collections
 const getSchoolStatistics = async (schoolName) => {
   if (!schoolName) return { totalStudents: 0, totalTeachers: 0, totalClasses: 0, totalSubjects: 0 };
-  const escName = escapeRegex(schoolName);
-  const schoolRegex = new RegExp("^" + escName + "$", "i");
+  const trimmed = schoolName.trim();
+  const schoolRegex = new RegExp("^" + escapeRegex(trimmed) + "$", "i");
+  const matchFilter = { $in: [trimmed, schoolRegex] };
+
   const [totalStudents, totalTeachers, totalClasses, totalSubjects] = await Promise.all([
-    User.countDocuments({ schoolName: schoolRegex, role: "student" }),
-    User.countDocuments({ schoolName: schoolRegex, role: "teacher" }),
-    Class.countDocuments({ schoolName: schoolRegex }),
-    Subject.countDocuments({ schoolName: schoolRegex })
+    User.countDocuments({ schoolName: matchFilter, role: "student" }),
+    User.countDocuments({ schoolName: matchFilter, role: "teacher" }),
+    Class.countDocuments({ schoolName: matchFilter }),
+    Subject.countDocuments({ schoolName: matchFilter })
   ]);
   return { totalStudents, totalTeachers, totalClasses, totalSubjects };
 };

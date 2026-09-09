@@ -96,7 +96,7 @@ function AboutYourSchool() {
       setError("");
       const res = await axios.get(`${API}/api/schools/my-school`, {
         headers: { Authorization: `Bearer ${token}` },
-        timeout: 10000
+        timeout: 30000
       });
 
       if (res.data && (res.data.success || res.data.school)) {
