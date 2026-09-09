@@ -375,35 +375,58 @@ exports.getSchoolTeachers = async (req, res) => {
 
 // POST /api/schools/upload
 exports.uploadSchoolPhoto = async (req, res) => {
+  const fs = require("fs");
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: "No image file provided" });
     }
 
-    const cloudinary = require("../config/cloudinary");
-    const fs = require("fs");
-
     const userId = req.user.id || req.user._id;
+    let imageUrl = null;
+    let publicId = null;
 
-    // Upload to Cloudinary folder teachhub/schools/{userId}
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: `teachhub/schools/${userId}`,
-      resource_type: "image"
-    });
+    // Try Cloudinary upload
+    try {
+      const cloudinary = require("../config/cloudinary");
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: `teachhub/schools/${userId}`,
+        resource_type: "image"
+      });
+      if (result && result.secure_url) {
+        imageUrl = result.secure_url;
+        publicId = result.public_id;
+      }
+    } catch (cloudErr) {
+      console.warn("Cloudinary upload failed, falling back to base64 image encoding:", cloudErr.message);
+    }
 
-    // Remove local temporary file after upload
+    // Fallback: convert file to base64 Data URI if Cloudinary failed
+    if (!imageUrl && fs.existsSync(req.file.path)) {
+      try {
+        const fileBuffer = fs.readFileSync(req.file.path);
+        const mimeType = req.file.mimetype || "image/png";
+        imageUrl = `data:${mimeType};base64,${fileBuffer.toString("base64")}`;
+      } catch (fbErr) {
+        console.error("Image file read fallback error:", fbErr);
+      }
+    }
+
+    // Clean up temporary local file
     if (fs.existsSync(req.file.path)) {
       try { fs.unlinkSync(req.file.path); } catch (e) {}
     }
 
+    if (!imageUrl) {
+      return res.status(500).json({ success: false, message: "Failed to process image file" });
+    }
+
     return res.json({
       success: true,
-      url: result.secure_url,
-      publicId: result.public_id
+      url: imageUrl,
+      publicId: publicId
     });
   } catch (error) {
-    console.error("Cloudinary photo upload error:", error);
-    const fs = require("fs");
+    console.error("Photo upload error:", error);
     if (req.file && fs.existsSync(req.file.path)) {
       try { fs.unlinkSync(req.file.path); } catch (e) {}
     }

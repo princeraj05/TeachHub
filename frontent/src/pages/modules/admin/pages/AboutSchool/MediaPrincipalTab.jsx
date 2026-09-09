@@ -82,12 +82,23 @@ function MediaPrincipalTab({
         setCoverImage(res.data.url);
       }
     } catch (err) {
-      console.error("Failed to upload cropped cover banner:", err);
-      alert("Failed to save cover banner. Please try again.");
+      console.warn("Server upload for cover banner failed, using local cropped image fallback:", err);
+      if (croppedDataUrl) {
+        setCoverImage(croppedDataUrl);
+      }
     } finally {
       setShowBannerCropModal(false);
       setTempCoverForCrop(null);
     }
+  };
+
+  const readFileAsDataUrl = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = (e) => reject(e);
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleAddPhotoUpload = async (e) => {
@@ -117,8 +128,13 @@ function MediaPrincipalTab({
         setSchoolPhotos([...schoolPhotos, res.data.url]);
       }
     } catch (err) {
-      console.error("Failed to upload photo:", err);
-      alert(err.response?.data?.message || "Failed to upload image. Please try again.");
+      console.warn("Failed to upload photo to server, using local fallback:", err);
+      try {
+        const dataUrl = await readFileAsDataUrl(uploadFile);
+        setSchoolPhotos([...schoolPhotos, dataUrl]);
+      } catch (fErr) {
+        alert(err.response?.data?.message || "Failed to upload image. Please try again.");
+      }
     }
   };
 
@@ -148,8 +164,15 @@ function MediaPrincipalTab({
         setSchoolPhotos(updated);
       }
     } catch (err) {
-      console.error("Failed to replace photo:", err);
-      alert(err.response?.data?.message || "Failed to upload image. Please try again.");
+      console.warn("Failed to replace photo on server, using local fallback:", err);
+      try {
+        const dataUrl = await readFileAsDataUrl(uploadFile);
+        const updated = [...schoolPhotos];
+        updated[activeReplaceIndex] = dataUrl;
+        setSchoolPhotos(updated);
+      } catch (fErr) {
+        alert(err.response?.data?.message || "Failed to upload image. Please try again.");
+      }
     } finally {
       setActiveReplaceIndex(null);
     }
@@ -178,8 +201,13 @@ function MediaPrincipalTab({
         setPrincipalPhoto(res.data.url);
       }
     } catch (err) {
-      console.error("Failed to upload principal photo:", err);
-      alert(err.response?.data?.message || "Failed to upload principal photo. Please try again.");
+      console.warn("Failed to upload principal photo to server, using local fallback:", err);
+      try {
+        const dataUrl = await readFileAsDataUrl(uploadFile);
+        setPrincipalPhoto(dataUrl);
+      } catch (fErr) {
+        alert(err.response?.data?.message || "Failed to upload principal photo. Please try again.");
+      }
     }
   };
 
