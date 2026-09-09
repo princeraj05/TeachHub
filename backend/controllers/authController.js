@@ -444,9 +444,24 @@ exports.verifyOTP = async (req, res) => {
 // ================= GET PROFILE =================
 exports.getProfile = async (req, res) => {
   try {
-    let user = await User.findById(req.user.id).select("-password");
+    let user = await User.findById(req.user.id)
+      .populate("classId", "name section")
+      .select("-password");
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    // Sync student targetClass with assigned classId if available
+    if (user.classId && user.classId.name) {
+      const classNameFormatted = user.classId.name.startsWith("Class")
+        ? user.classId.name
+        : `Class ${user.classId.name}`;
+
+      if (user.targetClass !== classNameFormatted) {
+        user.targetClass = classNameFormatted;
+        await user.save();
+      }
     }
 
     // Auto-migrate legacy oversized base64 avatar to Cloudinary asynchronously in the background

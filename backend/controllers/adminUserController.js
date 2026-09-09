@@ -368,6 +368,9 @@ exports.assignClass = async (req, res) => {
     student.schoolName = req.user.schoolName;
     student.requestStatus = "approved";
     student.classId = targetClass._id;
+    if (targetClass.name) {
+      student.targetClass = targetClass.name.startsWith("Class") ? targetClass.name : `Class ${targetClass.name}`;
+    }
     student.rollNo = numericRoll;
 
     await student.save();

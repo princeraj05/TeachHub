@@ -124,13 +124,17 @@ function UserProfile() {
         const userAvatar = res.data.avatar || res.data.photo || res.data.profilePhoto || "";
         const roleType = res.data.requestedRole || (res.data.role === "teacher" ? "teacher" : "student");
 
+        const assignedClassName = res.data.classId?.name
+          ? (res.data.classId.name.startsWith("Class") ? res.data.classId.name : `Class ${res.data.classId.name}`)
+          : (res.data.targetClass || "Class 1");
+
         setFormData({
           name: res.data.name || "",
           phoneNumber: res.data.phoneNumber || "",
           avatar: userAvatar,
           requestedRole: roleType,
           requestedSchool: res.data.requestedSchool || res.data.schoolName || "",
-          targetClass: res.data.targetClass || "Class 1",
+          targetClass: assignedClassName,
           previousClass: res.data.previousClass || "",
           previousSchool: res.data.previousSchool || "",
           previousGrade: res.data.previousGrade || "",

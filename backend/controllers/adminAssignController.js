@@ -27,8 +27,15 @@ if (!studentUser) {
   return res.status(403).json({ message: "Student not found or does not belong to your school" });
 }
 
-// 3. Update student classId in User collection
-await User.findByIdAndUpdate(studentId, { classId });
+// 3. Update student classId & targetClass in User collection
+const classNameFormatted = classData.name
+  ? (classData.name.startsWith("Class") ? classData.name : `Class ${classData.name}`)
+  : "";
+
+await User.findByIdAndUpdate(studentId, {
+  classId: classId,
+  ...(classNameFormatted ? { targetClass: classNameFormatted } : {})
+});
 
 // 4. Update Student collection just in case
 try {
