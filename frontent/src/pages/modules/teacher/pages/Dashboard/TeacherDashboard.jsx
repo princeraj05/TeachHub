@@ -357,7 +357,7 @@ function TeacherDashboard() {
               </ResponsiveContainer>
               <div className="absolute flex flex-col items-center justify-center">
                 <span className="text-2xl font-black text-slate-800 dark:text-white leading-none">
-                  {dashboardData.attendanceStats?.percentage || 92}%
+                  {dashboardData.attendanceStats?.percentage ?? 0}%
                 </span>
                 <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">
                   Overall
