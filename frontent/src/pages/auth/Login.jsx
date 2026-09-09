@@ -298,7 +298,7 @@ function Login() {
         <div className="relative z-10 w-full max-w-xl text-center flex flex-col items-center">
           
           {/* Header Platform Logo */}
-          <div className="inline-flex items-center gap-3.5 bg-white/80 dark:bg-white/[0.04] backdrop-blur-xl border border-slate-200/80 dark:border-white/10 px-5 py-2.5 rounded-2xl mb-6 shadow-md">
+          <div className="inline-flex items-center gap-3.5 bg-white/90 dark:bg-white/[0.05] backdrop-blur-xl border border-slate-200/80 dark:border-white/10 px-5 py-2.5 rounded-2xl mb-6 shadow-md hover:border-purple-500/30 transition-all duration-300">
             {logoUrl ? (
               <img src={logoUrl} alt={platformName} className="w-8 h-8 object-contain rounded-xl shrink-0" />
             ) : (
@@ -374,17 +374,26 @@ function Login() {
 
           {/* 3 Metric Cards (Total School, Total Teachers, Total Students) */}
           <div className="grid grid-cols-3 gap-3.5 w-full max-w-md">
-            <div className="bg-gradient-to-b from-purple-500/10 to-purple-500/5 backdrop-blur-md border border-purple-500/20 rounded-2xl p-3.5 text-center shadow-sm">
-              <p className="text-lg font-black text-purple-600 dark:text-purple-400">{liveStats.schools !== undefined ? liveStats.schools : publicSchools.length}</p>
-              <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">Total School</p>
+            <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl border border-purple-500/20 rounded-2xl p-3.5 text-center shadow-sm hover:shadow-md hover:border-purple-500/40 transition-all duration-300 group">
+              <div className="w-7 h-7 mx-auto mb-1.5 rounded-xl bg-purple-500/10 dark:bg-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
+                <FaSchool className="text-xs" />
+              </div>
+              <p className="text-lg font-black text-purple-600 dark:text-purple-400 leading-none">{liveStats.schools !== undefined ? liveStats.schools : publicSchools.length}</p>
+              <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total School</p>
             </div>
-            <div className="bg-gradient-to-b from-indigo-500/10 to-indigo-500/5 backdrop-blur-md border border-indigo-500/20 rounded-2xl p-3.5 text-center shadow-sm">
-              <p className="text-lg font-black text-indigo-600 dark:text-indigo-400">{liveStats.teachers || 0}</p>
-              <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">Total Teacher</p>
+            <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl border border-indigo-500/20 rounded-2xl p-3.5 text-center shadow-sm hover:shadow-md hover:border-indigo-500/40 transition-all duration-300 group">
+              <div className="w-7 h-7 mx-auto mb-1.5 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+                <FaChalkboardTeacher className="text-xs" />
+              </div>
+              <p className="text-lg font-black text-indigo-600 dark:text-indigo-400 leading-none">{liveStats.teachers || 0}</p>
+              <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total Teacher</p>
             </div>
-            <div className="bg-gradient-to-b from-sky-500/10 to-sky-500/5 backdrop-blur-md border border-sky-500/20 rounded-2xl p-3.5 text-center shadow-sm">
-              <p className="text-lg font-black text-sky-600 dark:text-sky-400">{liveStats.students || 0}</p>
-              <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">Total Students</p>
+            <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl border border-sky-500/20 rounded-2xl p-3.5 text-center shadow-sm hover:shadow-md hover:border-sky-500/40 transition-all duration-300 group">
+              <div className="w-7 h-7 mx-auto mb-1.5 rounded-xl bg-sky-500/10 dark:bg-sky-500/20 flex items-center justify-center text-sky-600 dark:text-sky-400 group-hover:scale-110 transition-transform">
+                <FaUserGraduate className="text-xs" />
+              </div>
+              <p className="text-lg font-black text-sky-600 dark:text-sky-400 leading-none">{liveStats.students || 0}</p>
+              <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total Students</p>
             </div>
           </div>
 
@@ -468,26 +477,35 @@ function Login() {
 
           {/* Mobile 3 Metric Cards Grid (Total School, Total Teacher, Total Students) */}
           <div className="grid grid-cols-3 gap-2.5">
-            <div className="bg-white/80 dark:bg-[#0B132B]/80 backdrop-blur-xl border border-purple-500/20 rounded-2xl p-2.5 text-center shadow-sm">
-              <p className="text-base font-black text-purple-600 dark:text-purple-400">{liveStats.schools || publicSchools.length || 1}</p>
-              <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">Total School</p>
+            <div className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-xl border border-purple-500/20 rounded-2xl p-2.5 text-center shadow-sm">
+              <div className="w-5 h-5 mx-auto mb-1 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                <FaSchool className="text-[10px]" />
+              </div>
+              <p className="text-base font-black text-purple-600 dark:text-purple-400 leading-none">{liveStats.schools || publicSchools.length || 1}</p>
+              <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total School</p>
             </div>
 
-            <div className="bg-white/80 dark:bg-[#0B132B]/80 backdrop-blur-xl border border-indigo-500/20 rounded-2xl p-2.5 text-center shadow-sm flex flex-col items-center justify-center">
-              <p className="text-base font-black text-indigo-600 dark:text-indigo-400">{liveStats.teachers || 0}</p>
-              <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">Total Teacher</p>
+            <div className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-xl border border-indigo-500/20 rounded-2xl p-2.5 text-center shadow-sm">
+              <div className="w-5 h-5 mx-auto mb-1 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                <FaChalkboardTeacher className="text-[10px]" />
+              </div>
+              <p className="text-base font-black text-indigo-600 dark:text-indigo-400 leading-none">{liveStats.teachers || 0}</p>
+              <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total Teacher</p>
             </div>
 
-            <div className="bg-white/80 dark:bg-[#0B132B]/80 backdrop-blur-xl border border-sky-500/20 rounded-2xl p-2.5 text-center shadow-sm">
-              <p className="text-base font-black text-sky-600 dark:text-sky-400">{liveStats.students || 0}</p>
-              <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">Total Students</p>
+            <div className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-xl border border-sky-500/20 rounded-2xl p-2.5 text-center shadow-sm">
+              <div className="w-5 h-5 mx-auto mb-1 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-600 dark:text-sky-400">
+                <FaUserGraduate className="text-[10px]" />
+              </div>
+              <p className="text-base font-black text-sky-600 dark:text-sky-400 leading-none">{liveStats.students || 0}</p>
+              <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total Students</p>
             </div>
           </div>
 
         </div>
 
         {/* Glassmorphic Form Card */}
-        <div className="w-full max-w-[440px] bg-white/80 dark:bg-[#0B132B]/80 backdrop-blur-2xl p-6 sm:p-10 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-2xl shadow-purple-950/10 dark:shadow-black/70 transition-all duration-300">
+        <div className="w-full max-w-[440px] bg-white/90 dark:bg-[#0B132B]/85 backdrop-blur-2xl p-6 sm:p-10 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-2xl shadow-purple-950/10 dark:shadow-black/70 transition-all duration-300 hover:shadow-purple-950/15">
           
           {/* Header Brand Badge inside card */}
           <div className="flex flex-col items-center text-center mb-6">
@@ -524,11 +542,11 @@ function Login() {
             <form onSubmit={handleSendOtp} className="space-y-4">
               {/* Email Input */}
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-2">
+                <label className="block text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-2">
                   Email Address
                 </label>
-                <div className="relative">
-                  <FaEnvelope className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 dark:text-slate-500 text-sm pointer-events-none" />
+                <div className="relative group">
+                  <FaEnvelope className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 dark:text-slate-500 text-sm pointer-events-none group-focus-within:text-purple-600 dark:group-focus-within:text-purple-400 transition-colors" />
                   <input
                     name="email"
                     type="email"
@@ -536,7 +554,7 @@ function Login() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50/80 dark:bg-[#151D36] border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 focus:bg-white dark:focus:bg-[#1A2444] transition-all shadow-inner"
+                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50/90 dark:bg-[#151D36] border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 focus:bg-white dark:focus:bg-[#1A2444] transition-all shadow-inner"
                   />
                 </div>
               </div>
@@ -545,14 +563,14 @@ function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs tracking-wider transition-all duration-300 shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+                className="group w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs tracking-wider transition-all duration-300 shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
               >
                 {loading ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <>
                     <span>Send OTP</span>
-                    <FaArrowRight className="text-[10px]" />
+                    <FaArrowRight className="text-[10px] group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
               </button>
@@ -560,7 +578,7 @@ function Login() {
               {/* Divider */}
               <div className="relative my-5 flex items-center justify-center">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-200 dark:border-white/10" />
+                  <div className="w-full border-t border-slate-200/80 dark:border-white/10" />
                 </div>
                 <span className="relative z-10 bg-white dark:bg-[#0B132B] px-3 text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase tracking-widest">
                   Or login with
@@ -572,7 +590,7 @@ function Login() {
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={loading}
-                className="w-full py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.08] active:scale-[0.98] text-slate-700 dark:text-slate-200 font-bold text-xs tracking-wider transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
+                className="w-full py-3.5 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.08] hover:border-slate-300 dark:hover:border-white/20 active:scale-[0.98] text-slate-700 dark:text-slate-200 font-bold text-xs tracking-wider transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
