@@ -228,6 +228,51 @@ function AboutYourSchool() {
           const s = res.data.school;
           const stats = res.data.statistics || {};
           setSchool({ ...s, ...stats });
+
+          // Synchronize state variables with backend response
+          setPrincipalName(s.principalName || "");
+          setEmail(s.email || "");
+          setPhoneNumber(s.phoneNumber || "");
+          setAddress(s.address || "");
+          setEstablished(s.established || "");
+          setSchoolType(s.schoolType || "");
+          setCode(s.code || "");
+          setAffiliation(s.affiliation || "");
+          setAcademicYear(s.academicYear || "");
+          setMedium(s.medium || "");
+          setWebsite(s.website || "");
+          setStatus(s.status || "Active");
+          setRegistrationNumber(s.registrationNumber || "");
+          setCategory(s.category || "");
+          setMotto(s.motto || "");
+          setPhoto(s.photo || "");
+          setAvailableClasses(s.availableClasses || "");
+
+          setCoverImage(s.coverImage || "");
+          setCoverPosition(s.coverPosition !== undefined && s.coverPosition !== null ? s.coverPosition : 50);
+          setSchoolPhotos(s.schoolPhotos || []);
+          setPrincipalPhoto(s.principalPhoto || "");
+          setPrincipalDesignation(s.principalDesignation || "");
+          setPrincipalEmail(s.principalEmail || "");
+          setPrincipalPhone(s.principalPhone || "");
+          if (s.principalLeadershipSince) {
+            setPrincipalLeadershipSince(s.principalLeadershipSince.split("T")[0]);
+          }
+          setPrincipalIntroduction(s.principalIntroduction || "");
+
+          setSchoolCategoriesList(s.schoolCategoriesList || []);
+          setAdmissionProcess(Array.isArray(s.admissionProcess) ? s.admissionProcess : (s.admissionProcess ? [s.admissionProcess] : []));
+          setSchoolBoardType(s.schoolBoardType || "");
+          setWorkingDays(s.workingDays || []);
+          setOpeningTime(s.openingTime || "");
+          setClosingTime(s.closingTime || "");
+          setShortBreakStartTime(s.shortBreakStartTime || "");
+          setShortBreakDuration(s.shortBreakDuration ?? 30);
+          setLunchBreakStartTime(s.lunchBreakStartTime || "");
+          setLunchBreakDuration(s.lunchBreakDuration ?? 60);
+          setHolidays(s.holidays || []);
+
+          setDescription(s.description || "");
         }
         setTimeout(() => setSuccess(""), 4000);
       }

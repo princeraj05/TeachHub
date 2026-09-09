@@ -96,12 +96,8 @@ function BasicInfoTab({
         setPhoto(res.data.url);
       }
     } catch (err) {
-      console.warn("Logo upload to server failed, using local fallback:", err);
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        setPhoto(evt.target.result);
-      };
-      reader.readAsDataURL(file);
+      console.error("Logo upload error:", err);
+      alert(err.response?.data?.message || "Failed to upload logo image. Please try again.");
     }
   };
 

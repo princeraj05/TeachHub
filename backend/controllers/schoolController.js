@@ -384,54 +384,52 @@ exports.uploadSchoolPhoto = async (req, res) => {
     }
 
     const userId = req.user.id || req.user._id;
-    let imageUrl = null;
-    let publicId = null;
 
-    // Try Cloudinary upload
-    try {
-      const cloudinary = require("../config/cloudinary");
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: `teachhub/schools/${userId}`,
-        resource_type: "image"
+    // Find the school associated with this admin
+    let school = await School.findOne({ adminId: userId });
+    if (!school && req.user.schoolName) {
+      const normalized = normalizeName(req.user.schoolName);
+      const escName = escapeRegex(req.user.schoolName);
+      school = await School.findOne({
+        $or: [
+          { normalizedName: normalized },
+          { name: new RegExp("^" + escName + "$", "i") }
+        ]
       });
-      if (result && result.secure_url) {
-        imageUrl = result.secure_url;
-        publicId = result.public_id;
-      }
-    } catch (cloudErr) {
-      console.warn("Cloudinary upload failed, falling back to base64 image encoding:", cloudErr.message);
-    }
-
-    // Fallback: convert file to base64 Data URI if Cloudinary failed
-    if (!imageUrl && fs.existsSync(req.file.path)) {
-      try {
-        const fileBuffer = fs.readFileSync(req.file.path);
-        const mimeType = req.file.mimetype || "image/png";
-        imageUrl = `data:${mimeType};base64,${fileBuffer.toString("base64")}`;
-      } catch (fbErr) {
-        console.error("Image file read fallback error:", fbErr);
+      if (school) {
+        school.adminId = userId;
+        await school.save();
       }
     }
 
-    // Clean up temporary local file
-    if (fs.existsSync(req.file.path)) {
-      try { fs.unlinkSync(req.file.path); } catch (e) {}
-    }
+    const schoolFolderId = school ? school._id.toString() : userId.toString();
+    const cloudinary = require("../config/cloudinary");
 
-    if (!imageUrl) {
-      return res.status(500).json({ success: false, message: "Failed to process image file" });
+    // Upload to Cloudinary folder teachhub/schools/{schoolFolderId}
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: `teachhub/schools/${schoolFolderId}`,
+      resource_type: "image"
+    });
+
+    if (!result || !result.secure_url) {
+      throw new Error("Cloudinary upload failed: secure_url was not returned.");
     }
 
     return res.json({
       success: true,
-      url: imageUrl,
-      publicId: publicId
+      url: result.secure_url,
+      publicId: result.public_id
     });
   } catch (error) {
     console.error("Photo upload error:", error);
-    if (req.file && fs.existsSync(req.file.path)) {
-      try { fs.unlinkSync(req.file.path); } catch (e) {}
+    return res.status(500).json({ success: false, message: error.message || "Failed to upload image to Cloudinary" });
+  } finally {
+    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (e) {
+        console.warn("Failed to unlink temporary file:", e.message);
+      }
     }
-    return res.status(500).json({ success: false, message: error.message || "Failed to upload image" });
   }
 };
