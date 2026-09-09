@@ -76,10 +76,14 @@ function BasicInfoTab({
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+    if (file.size > 2 * 1024 * 1024) {
+      alert("File size exceeds 2MB limit. Please select a smaller image.");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("image", file);
-    
+
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(`${API}/api/schools/upload`, formData, {
@@ -90,12 +94,10 @@ function BasicInfoTab({
       });
       if (res.data?.url) {
         setPhoto(res.data.url);
-        await axios.put(`${API}/api/schools/my-school`, { photo: res.data.url }, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
       }
     } catch (err) {
-      alert("Failed to upload image. Please try again.");
+      console.error("Logo upload error:", err);
+      alert(err.response?.data?.message || "Failed to upload image. Please try again.");
     }
   };
 

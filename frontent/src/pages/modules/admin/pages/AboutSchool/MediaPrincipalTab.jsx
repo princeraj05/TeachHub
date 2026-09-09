@@ -37,33 +37,14 @@ function MediaPrincipalTab({
   const [showBannerCropModal, setShowBannerCropModal] = useState(false);
   const [tempCoverForCrop, setTempCoverForCrop] = useState(null);
 
-  const autoSaveMedia = async (updatedPayload) => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await axios.put(`${API}/api/schools/my-school`, updatedPayload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.data?.school) {
-        if (updatedPayload.principalPhoto !== undefined) {
-          setPrincipalPhoto(res.data.school.principalPhoto || "");
-        }
-        if (updatedPayload.schoolPhotos !== undefined) {
-          setSchoolPhotos(res.data.school.schoolPhotos || []);
-        }
-        if (updatedPayload.coverImage !== undefined) {
-          setCoverImage(res.data.school.coverImage || "");
-        }
-      }
-    } catch (err) {
-      console.error("Auto-save media failed:", err);
-    }
+  const autoSaveMedia = (updatedPayload) => {
+    // Local frontend auto save helper (no backend calls)
   };
 
   const handleDeletePhoto = (index) => {
     const updated = [...schoolPhotos];
     updated.splice(index, 1);
     setSchoolPhotos(updated);
-    autoSaveMedia({ schoolPhotos: updated });
   };
 
   const triggerReplacePhotoUpload = (index) => {
@@ -99,11 +80,10 @@ function MediaPrincipalTab({
 
       if (res.data?.url) {
         setCoverImage(res.data.url);
-        autoSaveMedia({ coverImage: res.data.url });
       }
     } catch (err) {
       console.error("Failed to upload cropped cover banner:", err);
-      alert("Failed to save cropped cover banner. Please try again.");
+      alert("Failed to save cover banner. Please try again.");
     } finally {
       setShowBannerCropModal(false);
       setTempCoverForCrop(null);
@@ -123,7 +103,7 @@ function MediaPrincipalTab({
 
     const formData = new FormData();
     formData.append("image", uploadFile);
-    
+
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(`${API}/api/schools/upload`, formData, {
@@ -132,13 +112,13 @@ function MediaPrincipalTab({
           Authorization: `Bearer ${token}`
         }
       });
+
       if (res.data?.url) {
-        const updated = [...schoolPhotos, res.data.url];
-        setSchoolPhotos(updated);
-        autoSaveMedia({ schoolPhotos: updated });
+        setSchoolPhotos([...schoolPhotos, res.data.url]);
       }
     } catch (err) {
-      alert("Failed to upload image. Please try again.");
+      console.error("Failed to upload photo:", err);
+      alert(err.response?.data?.message || "Failed to upload image. Please try again.");
     }
   };
 
@@ -146,13 +126,13 @@ function MediaPrincipalTab({
     if (activeReplaceIndex === null) return;
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     let uploadFile = file;
     try { uploadFile = await compressImage(file); } catch (cErr) {}
 
     const formData = new FormData();
     formData.append("image", uploadFile);
-    
+
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(`${API}/api/schools/upload`, formData, {
@@ -161,14 +141,15 @@ function MediaPrincipalTab({
           Authorization: `Bearer ${token}`
         }
       });
+
       if (res.data?.url) {
         const updated = [...schoolPhotos];
         updated[activeReplaceIndex] = res.data.url;
         setSchoolPhotos(updated);
-        autoSaveMedia({ schoolPhotos: updated });
       }
     } catch (err) {
-      alert("Failed to upload image. Please try again.");
+      console.error("Failed to replace photo:", err);
+      alert(err.response?.data?.message || "Failed to upload image. Please try again.");
     } finally {
       setActiveReplaceIndex(null);
     }
@@ -177,13 +158,13 @@ function MediaPrincipalTab({
   const handlePrincipalPhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     let uploadFile = file;
     try { uploadFile = await compressImage(file); } catch (cErr) {}
 
     const formData = new FormData();
     formData.append("image", uploadFile);
-    
+
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(`${API}/api/schools/upload`, formData, {
@@ -192,12 +173,13 @@ function MediaPrincipalTab({
           Authorization: `Bearer ${token}`
         }
       });
+
       if (res.data?.url) {
         setPrincipalPhoto(res.data.url);
-        autoSaveMedia({ principalPhoto: res.data.url });
       }
     } catch (err) {
-      alert("Failed to upload principal photo. Please try again.");
+      console.error("Failed to upload principal photo:", err);
+      alert(err.response?.data?.message || "Failed to upload principal photo. Please try again.");
     }
   };
 

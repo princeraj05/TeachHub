@@ -50,7 +50,7 @@ function AboutYourSchool() {
   const [academicYear, setAcademicYear] = useState("");
   const [medium, setMedium] = useState("");
   const [website, setWebsite] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState("Active");
   const [registrationNumber, setRegistrationNumber] = useState("");
   const [category, setCategory] = useState("");
   const [motto, setMotto] = useState("");
@@ -95,63 +95,61 @@ function AboutYourSchool() {
       const res = await axios.get(`${API}/api/schools/my-school`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const data = res.data;
-      if (data) {
-        setSchool(data);
-        
+
+      if (res.data && (res.data.success || res.data.school)) {
+        const s = res.data.school || res.data;
+        const stats = res.data.statistics || {};
+        setSchool({ ...s, ...stats });
+
         // Tab 1 fields
-        setPrincipalName(data.principalName || "");
-        setEmail(data.email || "");
-        setPhoneNumber(data.phoneNumber || "");
-        setAddress(data.address || "");
-        setEstablished(data.established || "");
-        setSchoolType(data.schoolType || "Private");
-        setCode(data.code || "");
-        setAffiliation(data.affiliation || "");
-        setAcademicYear(data.academicYear || "");
-        setMedium(data.medium || "");
-        setWebsite(data.website || "");
-        setStatus(data.status || "Active");
-        setRegistrationNumber(data.registrationNumber || "");
-        setCategory(data.category || "");
-        setMotto(data.motto || "");
-        setPhoto(data.photo || "");
-        setAvailableClasses(data.availableClasses || "");
+        setPrincipalName(s.principalName || "");
+        setEmail(s.email || "");
+        setPhoneNumber(s.phoneNumber || "");
+        setAddress(s.address || "");
+        setEstablished(s.established || "");
+        setSchoolType(s.schoolType || "");
+        setCode(s.code || "");
+        setAffiliation(s.affiliation || "");
+        setAcademicYear(s.academicYear || "");
+        setMedium(s.medium || "");
+        setWebsite(s.website || "");
+        setStatus(s.status || "Active");
+        setRegistrationNumber(s.registrationNumber || "");
+        setCategory(s.category || "");
+        setMotto(s.motto || "");
+        setPhoto(s.photo || "");
+        setAvailableClasses(s.availableClasses || "");
 
         // Tab 2 fields
-        setCoverImage(data.coverImage || "");
-        setCoverPosition(data.coverPosition !== undefined ? data.coverPosition : 50);
-        setSchoolPhotos(data.schoolPhotos || []);
-        setPrincipalPhoto(data.principalPhoto || "");
-        setPrincipalDesignation(data.principalDesignation || "");
-        setPrincipalEmail(data.principalEmail || "");
-        setPrincipalPhone(data.principalPhone || "");
-        
-        // Parse date for input type=date
-        if (data.principalLeadershipSince) {
-          const dateOnly = data.principalLeadershipSince.split("T")[0];
-          setPrincipalLeadershipSince(dateOnly);
+        setCoverImage(s.coverImage || "");
+        setCoverPosition(s.coverPosition !== undefined && s.coverPosition !== null ? s.coverPosition : 50);
+        setSchoolPhotos(s.schoolPhotos || []);
+        setPrincipalPhoto(s.principalPhoto || "");
+        setPrincipalDesignation(s.principalDesignation || "");
+        setPrincipalEmail(s.principalEmail || "");
+        setPrincipalPhone(s.principalPhone || "");
+        if (s.principalLeadershipSince) {
+          setPrincipalLeadershipSince(s.principalLeadershipSince.split("T")[0]);
         } else {
           setPrincipalLeadershipSince("");
         }
-        
-        setPrincipalIntroduction(data.principalIntroduction || "");
+        setPrincipalIntroduction(s.principalIntroduction || "");
 
         // Tab 3 fields
-        setSchoolCategoriesList(data.schoolCategoriesList || []);
-        setAdmissionProcess(Array.isArray(data.admissionProcess) ? data.admissionProcess : (data.admissionProcess ? [data.admissionProcess] : []));
-        setSchoolBoardType(data.schoolBoardType || "");
-        setWorkingDays(data.workingDays || []);
-        setOpeningTime(data.openingTime || "");
-        setClosingTime(data.closingTime || "");
-        setShortBreakStartTime(data.shortBreakStartTime || "");
-        setShortBreakDuration(data.shortBreakDuration || 30);
-        setLunchBreakStartTime(data.lunchBreakStartTime || "");
-        setLunchBreakDuration(data.lunchBreakDuration || 60);
-        setHolidays(data.holidays || []);
+        setSchoolCategoriesList(s.schoolCategoriesList || []);
+        setAdmissionProcess(Array.isArray(s.admissionProcess) ? s.admissionProcess : (s.admissionProcess ? [s.admissionProcess] : []));
+        setSchoolBoardType(s.schoolBoardType || "");
+        setWorkingDays(s.workingDays || []);
+        setOpeningTime(s.openingTime || "");
+        setClosingTime(s.closingTime || "");
+        setShortBreakStartTime(s.shortBreakStartTime || "");
+        setShortBreakDuration(s.shortBreakDuration ?? 30);
+        setLunchBreakStartTime(s.lunchBreakStartTime || "");
+        setLunchBreakDuration(s.lunchBreakDuration ?? 60);
+        setHolidays(s.holidays || []);
 
         // Tab 4 fields
-        setDescription(data.description || "");
+        setDescription(s.description || "");
       }
     } catch (err) {
       console.error("Error fetching school data:", err);
@@ -216,14 +214,20 @@ function AboutYourSchool() {
         description
       };
 
-      await axios.put(`${API}/api/schools/my-school`, payload, {
+      const res = await axios.put(`${API}/api/schools/my-school`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setSuccess("School details saved successfully!");
-      setIsEditing(false);
-      setTimeout(() => setSuccess(""), 4000);
-      fetchSchoolData();
+      if (res.data?.success || res.data?.school) {
+        setSuccess(res.data.message || "School details saved successfully!");
+        setIsEditing(false);
+        if (res.data.school) {
+          const s = res.data.school;
+          const stats = res.data.statistics || {};
+          setSchool({ ...s, ...stats });
+        }
+        setTimeout(() => setSuccess(""), 4000);
+      }
     } catch (err) {
       console.error("Error saving school details:", err);
       setError(err.response?.data?.message || "Failed to save changes.");

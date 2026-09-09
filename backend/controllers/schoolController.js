@@ -58,309 +58,248 @@ exports.getSchools = async (req, res) => {
 
 const escapeRegex = (str) => (str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+// Helper to calculate Profile Completion percentage (0-100%)
+const calculateProfileCompletion = (s) => {
+  if (!s) return 0;
+  
+  const isBasicFilled = Boolean(
+    (s.email && s.email.trim()) ||
+    (s.phoneNumber && s.phoneNumber.trim()) ||
+    (s.address && s.address.trim()) ||
+    (s.affiliation && s.affiliation.trim()) ||
+    (s.code && s.code.trim()) ||
+    (s.established && s.established.trim())
+  );
+
+  const isMediaFilled = Boolean(
+    (s.principalName && s.principalName.trim()) ||
+    (s.principalEmail && s.principalEmail.trim()) ||
+    (s.principalPhone && s.principalPhone.trim()) ||
+    (s.principalPhoto && s.principalPhoto.trim()) ||
+    (s.coverImage && s.coverImage.trim()) ||
+    (s.schoolPhotos && s.schoolPhotos.length > 0)
+  );
+
+  const isAdmissionFilled = Boolean(
+    (s.workingDays && s.workingDays.length > 0) ||
+    (s.openingTime && s.openingTime.trim()) ||
+    (s.closingTime && s.closingTime.trim()) ||
+    (s.schoolBoardType && s.schoolBoardType.trim()) ||
+    (s.admissionProcess && s.admissionProcess.length > 0)
+  );
+
+  const isDescriptionFilled = Boolean(
+    s.description && s.description.replace(/<[^>]*>/g, "").trim().length > 20
+  );
+
+  const filledCount =
+    (isBasicFilled ? 1 : 0) +
+    (isMediaFilled ? 1 : 0) +
+    (isAdmissionFilled ? 1 : 0) +
+    (isDescriptionFilled ? 1 : 0);
+
+  return filledCount * 25;
+};
+
+// Helper to fetch dynamic real counts from DB collections
+const getSchoolStatistics = async (schoolName) => {
+  if (!schoolName) return { totalStudents: 0, totalTeachers: 0, totalClasses: 0, totalSubjects: 0 };
+  const escName = escapeRegex(schoolName);
+  const schoolRegex = new RegExp("^" + escName + "$", "i");
+  const [totalStudents, totalTeachers, totalClasses, totalSubjects] = await Promise.all([
+    User.countDocuments({ schoolName: schoolRegex, role: "student" }),
+    User.countDocuments({ schoolName: schoolRegex, role: "teacher" }),
+    Class.countDocuments({ schoolName: schoolRegex }),
+    Subject.countDocuments({ schoolName: schoolRegex })
+  ]);
+  return { totalStudents, totalTeachers, totalClasses, totalSubjects };
+};
+
 // GET /api/schools/my-school
 exports.getMySchool = async (req, res) => {
   try {
-    const adminUser = await User.findById(req.user.id).select("role schoolName").lean();
+    const userId = req.user.id || req.user._id;
+    const adminUser = await User.findById(userId).select("role schoolName email").lean();
     if (!adminUser || adminUser.role !== "admin") {
-      return res.status(403).json({ message: "Unauthorized: Only School Admins can access their school details" });
+      return res.status(403).json({ success: false, message: "Unauthorized: Only School Admins can access school details" });
     }
 
-    const schoolName = adminUser.schoolName;
-    if (!schoolName) {
-      return res.status(400).json({ message: "No school is assigned to this administrator" });
-    }
+    let school = await School.findOne({ adminId: adminUser._id });
 
-    const normalized = normalizeName(schoolName);
-    let school;
-    try {
+    // Fallback: If school doesn't have adminId set yet, match by schoolName
+    if (!school && adminUser.schoolName) {
+      const normalized = normalizeName(adminUser.schoolName);
+      const escName = escapeRegex(adminUser.schoolName);
       school = await School.findOne({
         $or: [
           { normalizedName: normalized },
-          { name: new RegExp("^" + escapeRegex(schoolName.trim()) + "$", "i") }
+          { name: new RegExp("^" + escName + "$", "i") }
         ]
       });
-    } catch (bsonErr) {
-      console.warn("BSON size error detected during School fetch, resetting oversized photo fields raw:", bsonErr.message);
-      await School.collection.updateMany(
-        { $or: [{ normalizedName: normalized }, { name: new RegExp("^" + escapeRegex(schoolName.trim()) + "$", "i") }] },
-        { $set: { photo: "", coverImage: "", principalPhoto: "", schoolPhotos: [] } }
-      );
-      school = await School.findOne({
-        $or: [
-          { normalizedName: normalized },
-          { name: new RegExp("^" + escapeRegex(schoolName.trim()) + "$", "i") }
-        ]
-      });
+
+      if (school) {
+        school.adminId = adminUser._id;
+        await school.save();
+      }
     }
 
+    // If still not found, auto-create initial school for this Admin
     if (!school) {
+      const name = adminUser.schoolName ? adminUser.schoolName.trim() : "My School";
+      const normalizedName = normalizeName(name);
       school = await School.create({
-        name: schoolName.trim(),
-        normalizedName: normalized
+        adminId: adminUser._id,
+        name: name,
+        normalizedName: normalizedName,
+        status: "Active",
+        profileCompletion: 0
       });
-    } else if (!school.normalizedName) {
-      school.normalizedName = normalized;
+    }
+
+    const profileCompletion = calculateProfileCompletion(school);
+    school.profileCompletion = profileCompletion;
+    if (school.isModified()) {
       await school.save();
     }
 
-    let modified = false;
-
-    // Self-clean legacy dummy seed data ONLY if document still contains untouched auto-seeded dummy markers
-    const isUncleanedLegacySeed = !school.isLegacySeedCleaned && Boolean(
-      school.email === "gdaccedmy@gmail.com" ||
-      school.code === "GDAC2026" ||
-      school.principalName === "Banny Thapar" ||
-      school.registrationNumber === "GD/REG/2010/4125" ||
-      (school.website && school.website.includes("gdaccedmy"))
-    );
-
-    if (isUncleanedLegacySeed) {
-      if (school.principalName === "Banny Thapar") { school.principalName = ""; }
-      if (school.email === "gdaccedmy@gmail.com") { school.email = ""; }
-      if (school.phoneNumber === "+91 98765 43210") { school.phoneNumber = ""; }
-      if (school.address && school.address.includes("Near Sadar Hospital")) { school.address = ""; }
-      if (school.established === "2010") { school.established = ""; }
-      if (school.code === "GDAC2026") { school.code = ""; }
-      if (school.registrationNumber === "GD/REG/2010/4125") { school.registrationNumber = ""; }
-      if (school.website === "www.gdaccedmy.edu.in") { school.website = ""; }
-      if (school.motto === "Learn • Grow • Succeed") { school.motto = ""; }
-      if (school.principalEmail === "banny.thapar@gdaccedmy.edu.in") { school.principalEmail = ""; }
-      if (school.principalPhone === "+91 98765 43210") { school.principalPhone = ""; }
-      if (school.principalDesignation === "Head of Institution") { school.principalDesignation = ""; }
-      if (school.principalIntroduction && school.principalIntroduction.includes("With over 20 years of experience")) { school.principalIntroduction = ""; }
-      if (school.description && (school.description.includes("G.D Academy") || school.description.includes("reputed educational institution"))) { school.description = ""; }
-      if (school.affiliation === "CBSE") { school.affiliation = ""; }
-      if (school.academicYear === "2026 - 2027") { school.academicYear = ""; }
-      if (school.medium === "English") { school.medium = ""; }
-
-      // Clean Tab 3 (Admission & Settings) legacy dummy defaults
-      if (Array.isArray(school.schoolCategoriesList) && (
-        (school.schoolCategoriesList.length === 4 && school.schoolCategoriesList.includes("Primary") && school.schoolCategoriesList.includes("Residential")) ||
-        (school.schoolCategoriesList.length === 3 && school.schoolCategoriesList.includes("Primary") && school.schoolCategoriesList.includes("Co-Educational"))
-      )) {
-        school.schoolCategoriesList = [];
-      }
-      if (Array.isArray(school.admissionProcess) && school.admissionProcess.length === 1 && school.admissionProcess[0] === "Direct Admission") {
-        school.admissionProcess = [];
-      }
-      if (Array.isArray(school.workingDays) && school.workingDays.length === 5 && school.workingDays.includes("Mon") && school.workingDays.includes("Fri")) {
-        school.workingDays = [];
-      }
-      if (school.openingTime === "08:00 AM") { school.openingTime = ""; }
-      if (school.closingTime === "04:00 PM") { school.closingTime = ""; }
-      if (school.shortBreakStartTime === "11:00 AM") { school.shortBreakStartTime = ""; }
-      if (school.lunchBreakStartTime === "12:30 PM") { school.lunchBreakStartTime = ""; }
-      if (Array.isArray(school.holidays) && school.holidays.some(h => h.name === "Independence Day" || h.name === "Teachers' Day" || h.name === "Gandhi Jayanti")) {
-        school.holidays = [];
-      }
-      school.isLegacySeedCleaned = true;
-      modified = true;
-    }
-
-    if (modified || school.isNew) {
-      await school.save();
-    }
-
-    // Fetch dynamic counts in parallel
-    const [
-      dynamicStudentsCount,
-      dynamicTeachersCount,
-      dynamicClassesCount,
-      dynamicSubjectsCount
-    ] = await Promise.all([
-      User.countDocuments({ role: "student", schoolName }),
-      User.countDocuments({ role: "teacher", schoolName }),
-      Class.countDocuments({ schoolName }),
-      Subject.countDocuments({ schoolName })
-    ]);
-
+    const statistics = await getSchoolStatistics(school.name);
     const schoolObj = school.toObject();
-    schoolObj.totalStudents = dynamicStudentsCount || 0;
-    schoolObj.totalTeachers = dynamicTeachersCount || 0;
-    schoolObj.totalClasses = dynamicClassesCount || 0;
-    schoolObj.totalSubjects = dynamicSubjectsCount || 0;
+    schoolObj.profileCompletion = profileCompletion;
 
-    res.json(schoolObj);
+    return res.json({
+      success: true,
+      school: schoolObj,
+      statistics
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error in getMySchool:", error);
+    return res.status(500).json({ success: false, message: error.message || "Failed to load school profile" });
   }
 };
 
 // PUT /api/schools/my-school
 exports.updateMySchool = async (req, res) => {
   try {
-    const adminUser = await User.findById(req.user.id).select("role schoolName").lean();
+    const userId = req.user.id || req.user._id;
+    const adminUser = await User.findById(userId).select("role schoolName").lean();
     if (!adminUser || adminUser.role !== "admin") {
-      return res.status(403).json({ message: "Unauthorized: Only School Admins can update school details" });
+      return res.status(403).json({ success: false, message: "Unauthorized: Only School Admins can update school details" });
     }
 
-    const schoolName = adminUser.schoolName;
-    if (!schoolName) {
-      return res.status(400).json({ message: "No school is assigned to this administrator" });
-    }
-
-    const normalized = normalizeName(schoolName);
-    let school = await School.findOne({
-      $or: [
-        { normalizedName: normalized },
-        { name: new RegExp("^" + escapeRegex(schoolName.trim()) + "$", "i") }
-      ]
-    });
-    if (!school) {
-      school = new School({
-        name: schoolName.trim(),
-        normalizedName: normalized
+    let school = await School.findOne({ adminId: adminUser._id });
+    if (!school && adminUser.schoolName) {
+      const normalized = normalizeName(adminUser.schoolName);
+      const escName = escapeRegex(adminUser.schoolName);
+      school = await School.findOne({
+        $or: [
+          { normalizedName: normalized },
+          { name: new RegExp("^" + escName + "$", "i") }
+        ]
       });
-    } else if (!school.normalizedName) {
-      school.normalizedName = normalized;
-    }
-
-    const {
-      principalName,
-      availableClasses,
-      schoolTypes,
-      schoolType,
-      admissionExam,
-      directAdmission,
-      description,
-      
-      email,
-      phoneNumber,
-      address,
-      established,
-      code,
-      affiliation,
-      academicYear,
-      medium,
-      website,
-      status,
-      registrationNumber,
-      category,
-      motto,
-      photo,
-      academicLevel,
-      coEducational,
-      schoolOperationType,
-      admissionType,
-      transportation,
-      hostelFacility,
-
-      // Multi-tab fields
-      coverImage,
-      coverPosition,
-      schoolPhotos,
-      principalPhoto,
-      principalDesignation,
-      principalEmail,
-      principalPhone,
-      principalLeadershipSince,
-      principalIntroduction,
-      schoolCategoriesList,
-      admissionProcess,
-      schoolBoardType,
-      workingDays,
-      openingTime,
-      closingTime,
-      shortBreakStartTime,
-      shortBreakDuration,
-      lunchBreakStartTime,
-      lunchBreakDuration,
-      holidays
-    } = req.body;
-
-    if (principalName !== undefined) school.principalName = principalName;
-    if (availableClasses !== undefined) school.availableClasses = availableClasses;
-    if (schoolTypes !== undefined) school.schoolTypes = schoolTypes;
-    if (schoolType !== undefined) school.schoolType = schoolType;
-    if (admissionExam !== undefined) school.admissionExam = admissionExam;
-    if (directAdmission !== undefined) school.directAdmission = directAdmission;
-    if (description !== undefined) school.description = description;
-
-    // Save extended fields
-    if (email !== undefined) school.email = email;
-    if (phoneNumber !== undefined) school.phoneNumber = phoneNumber;
-    if (address !== undefined) school.address = address;
-    if (established !== undefined) school.established = established;
-    if (code !== undefined) school.code = code;
-    if (affiliation !== undefined) school.affiliation = affiliation;
-    if (academicYear !== undefined) school.academicYear = academicYear;
-    if (medium !== undefined) school.medium = medium;
-    if (website !== undefined) school.website = website;
-    if (status !== undefined) school.status = status;
-    if (registrationNumber !== undefined) school.registrationNumber = registrationNumber;
-    if (category !== undefined) school.category = category;
-    if (motto !== undefined) school.motto = motto;
-    if (photo !== undefined) school.photo = photo;
-
-    // School Categories / Facilities
-    if (academicLevel !== undefined) school.academicLevel = academicLevel;
-    if (coEducational !== undefined) school.coEducational = coEducational;
-    if (schoolOperationType !== undefined) school.schoolOperationType = schoolOperationType;
-    if (admissionType !== undefined) school.admissionType = admissionType;
-    if (transportation !== undefined) school.transportation = transportation;
-    if (hostelFacility !== undefined) school.hostelFacility = hostelFacility;
-
-    // Multi-tab fields
-    if (coverImage !== undefined) school.coverImage = coverImage;
-    if (coverPosition !== undefined && !isNaN(coverPosition)) school.coverPosition = Number(coverPosition);
-    if (schoolPhotos !== undefined) school.schoolPhotos = schoolPhotos;
-    if (principalPhoto !== undefined) school.principalPhoto = principalPhoto;
-    if (principalDesignation !== undefined) school.principalDesignation = principalDesignation;
-    if (principalEmail !== undefined) school.principalEmail = principalEmail;
-    if (principalPhone !== undefined) school.principalPhone = principalPhone;
-    if (principalLeadershipSince !== undefined) school.principalLeadershipSince = principalLeadershipSince;
-    if (principalIntroduction !== undefined) school.principalIntroduction = principalIntroduction;
-    if (schoolCategoriesList !== undefined) school.schoolCategoriesList = schoolCategoriesList;
-    if (admissionProcess !== undefined) school.admissionProcess = admissionProcess;
-    if (schoolBoardType !== undefined) school.schoolBoardType = schoolBoardType;
-    if (workingDays !== undefined) school.workingDays = workingDays;
-    if (openingTime !== undefined) school.openingTime = openingTime;
-    if (closingTime !== undefined) school.closingTime = closingTime;
-    if (shortBreakStartTime !== undefined) school.shortBreakStartTime = shortBreakStartTime;
-    if (shortBreakDuration !== undefined && !isNaN(shortBreakDuration)) school.shortBreakDuration = Number(shortBreakDuration);
-    if (lunchBreakStartTime !== undefined) school.lunchBreakStartTime = lunchBreakStartTime;
-    if (lunchBreakDuration !== undefined && !isNaN(lunchBreakDuration)) school.lunchBreakDuration = Number(lunchBreakDuration);
-    if (holidays !== undefined) school.holidays = holidays;
-
-    school.isLegacySeedCleaned = true;
-
-    try {
-      await school.save();
-    } catch (saveErr) {
-      if (
-        saveErr.message.includes("17825792") ||
-        saveErr.message.includes("offset") ||
-        saveErr.message.includes("BSON") ||
-        saveErr.message.includes("out of range")
-      ) {
-        console.warn("BSON document size limit exceeded in updateMySchool, stripping oversized raw photo strings:", saveErr.message);
-        school.schoolPhotos = [];
-        if (school.coverImage && school.coverImage.startsWith("data:image")) school.coverImage = "";
-        if (school.photo && school.photo.startsWith("data:image")) school.photo = "";
-        if (school.principalPhoto && school.principalPhoto.startsWith("data:image")) school.principalPhoto = "";
-        await school.save();
-      } else {
-        throw saveErr;
+      if (school) {
+        school.adminId = adminUser._id;
       }
     }
 
-    // Re-query counts to return matching shape
-    const dynamicStudentsCount = await User.countDocuments({ role: "student", schoolName });
-    const dynamicTeachersCount = await User.countDocuments({ role: "teacher", schoolName });
-    const dynamicClassesCount = await Class.countDocuments({ schoolName });
-    const dynamicSubjectsCount = await Subject.countDocuments({ schoolName });
+    if (!school) {
+      const name = adminUser.schoolName ? adminUser.schoolName.trim() : "My School";
+      const normalizedName = normalizeName(name);
+      school = new School({
+        adminId: adminUser._id,
+        name: name,
+        normalizedName: normalizedName
+      });
+    }
 
+    const b = req.body;
+    const basic = b.basicInfo || {};
+    const media = b.media || {};
+    const principal = b.principal || {};
+    const admission = b.admission || {};
+    const availability = b.availability || {};
+
+    // Basic Info fields
+    if (b.principalName !== undefined || principal.name !== undefined) school.principalName = b.principalName ?? principal.name;
+    if (b.affiliation !== undefined || basic.affiliation !== undefined) school.affiliation = b.affiliation ?? basic.affiliation;
+    if (b.academicYear !== undefined || basic.academicYear !== undefined) school.academicYear = b.academicYear ?? basic.academicYear;
+    if (b.email !== undefined || basic.schoolEmail !== undefined) school.email = b.email ?? basic.schoolEmail;
+    if (b.medium !== undefined || basic.medium !== undefined) school.medium = b.medium ?? basic.medium;
+    if (b.phoneNumber !== undefined || basic.phoneNumber !== undefined) school.phoneNumber = b.phoneNumber ?? basic.phoneNumber;
+    if (b.address !== undefined || basic.schoolAddress !== undefined) school.address = b.address ?? basic.schoolAddress;
+    if (b.latitude !== undefined || basic.latitude !== undefined) school.latitude = b.latitude ?? basic.latitude;
+    if (b.longitude !== undefined || basic.longitude !== undefined) school.longitude = b.longitude ?? basic.longitude;
+    if (b.established !== undefined || basic.established !== undefined) school.established = b.established ?? basic.established;
+    if (b.status !== undefined || basic.schoolStatus !== undefined) school.status = b.status ?? basic.schoolStatus;
+    if (b.schoolType !== undefined || basic.schoolType !== undefined) school.schoolType = b.schoolType ?? basic.schoolType;
+    if (b.registrationNumber !== undefined || basic.registrationNumber !== undefined) school.registrationNumber = b.registrationNumber ?? basic.registrationNumber;
+    if (b.code !== undefined || basic.schoolCode !== undefined) school.code = b.code ?? basic.schoolCode;
+    if (b.category !== undefined) school.category = b.category;
+    if (b.motto !== undefined || basic.schoolMotto !== undefined) school.motto = b.motto ?? basic.schoolMotto;
+    if (b.website !== undefined || basic.website !== undefined) school.website = b.website ?? basic.website;
+    if (b.availableClasses !== undefined || basic.availableClasses !== undefined) {
+      const ac = b.availableClasses ?? basic.availableClasses;
+      school.availableClasses = Array.isArray(ac) ? ac.join(", ") : ac;
+    }
+    if (b.photo !== undefined || basic.logo !== undefined) school.photo = b.photo ?? basic.logo;
+
+    // Media & Principal fields
+    if (b.coverImage !== undefined || media.coverImage !== undefined) school.coverImage = b.coverImage ?? media.coverImage;
+    if (b.coverPosition !== undefined || media.coverPosition !== undefined) {
+      const pos = Number(b.coverPosition ?? media.coverPosition);
+      school.coverPosition = isNaN(pos) ? 50 : pos;
+    }
+    if (b.schoolPhotos !== undefined || media.schoolPhotos !== undefined) {
+      const photos = b.schoolPhotos ?? media.schoolPhotos;
+      if (Array.isArray(photos)) {
+        if (photos.length > 5) {
+          return res.status(400).json({ success: false, message: "Maximum 5 school photos allowed." });
+        }
+        school.schoolPhotos = photos;
+      }
+    }
+    if (b.principalPhoto !== undefined || principal.photo !== undefined) school.principalPhoto = b.principalPhoto ?? principal.photo;
+    if (b.principalDesignation !== undefined || principal.designation !== undefined) school.principalDesignation = b.principalDesignation ?? principal.designation;
+    if (b.principalEmail !== undefined || principal.email !== undefined) school.principalEmail = b.principalEmail ?? principal.email;
+    if (b.principalPhone !== undefined || principal.phoneNumber !== undefined) school.principalPhone = b.principalPhone ?? principal.phoneNumber;
+    if (b.principalLeadershipSince !== undefined || principal.leadershipSince !== undefined) school.principalLeadershipSince = b.principalLeadershipSince ?? principal.leadershipSince;
+    if (b.principalIntroduction !== undefined || principal.introduction !== undefined) school.principalIntroduction = b.principalIntroduction ?? principal.introduction;
+
+    // Admission & Settings fields
+    if (b.schoolCategoriesList !== undefined || admission.categories !== undefined) school.schoolCategoriesList = b.schoolCategoriesList ?? admission.categories;
+    if (b.admissionProcess !== undefined || admission.processes !== undefined) school.admissionProcess = b.admissionProcess ?? admission.processes;
+    if (b.schoolBoardType !== undefined || admission.schoolType !== undefined) school.schoolBoardType = b.schoolBoardType ?? admission.schoolType;
+
+    // Availability fields
+    if (b.workingDays !== undefined || availability.workingDays !== undefined) school.workingDays = b.workingDays ?? availability.workingDays;
+    if (b.openingTime !== undefined || availability.openingTime !== undefined) school.openingTime = b.openingTime ?? availability.openingTime;
+    if (b.closingTime !== undefined || availability.closingTime !== undefined) school.closingTime = b.closingTime ?? availability.closingTime;
+    if (b.shortBreakStartTime !== undefined) school.shortBreakStartTime = b.shortBreakStartTime;
+    if (b.shortBreakDuration !== undefined) school.shortBreakDuration = Number(b.shortBreakDuration);
+    if (b.lunchBreakStartTime !== undefined || availability.lunchBreakStartTime !== undefined) school.lunchBreakStartTime = b.lunchBreakStartTime ?? availability.lunchBreakStartTime;
+    if (b.lunchBreakDuration !== undefined || availability.lunchBreakDuration !== undefined) {
+      const dur = Number(b.lunchBreakDuration ?? availability.lunchBreakDuration);
+      school.lunchBreakDuration = isNaN(dur) ? 60 : dur;
+    }
+    if (b.holidays !== undefined || availability.holidays !== undefined) school.holidays = b.holidays ?? availability.holidays;
+
+    // Description
+    if (b.description !== undefined) school.description = b.description;
+
+    school.profileCompletion = calculateProfileCompletion(school);
+    await school.save();
+
+    const statistics = await getSchoolStatistics(school.name);
     const schoolObj = school.toObject();
-    schoolObj.totalStudents = dynamicStudentsCount || 0;
-    schoolObj.totalTeachers = dynamicTeachersCount || 0;
-    schoolObj.totalClasses = dynamicClassesCount || 0;
-    schoolObj.totalSubjects = dynamicSubjectsCount || 0;
 
-    res.json({ message: "School information updated successfully", school: schoolObj });
+    return res.json({
+      success: true,
+      message: "School details saved successfully!",
+      school: schoolObj,
+      statistics
+    });
   } catch (error) {
     console.error("Error updating school profile:", error);
-    res.status(500).json({ message: error.message || "Failed to update school profile" });
+    return res.status(500).json({ success: false, message: error.message || "Failed to update school profile" });
   }
 };
 
@@ -380,7 +319,7 @@ exports.getSchoolDetails = async (req, res) => {
       ]
     });
     if (!school) {
-      return res.status(404).json({ message: "School not found" });
+      return res.status(404).json({ success: false, message: "School not found" });
     }
 
     const exactRegex = new RegExp("^" + escapeRegex(school.name) + "$", "i");
@@ -403,7 +342,7 @@ exports.getSchoolDetails = async (req, res) => {
 
     res.json(schoolObj);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -414,7 +353,7 @@ exports.getSchoolTeachers = async (req, res) => {
     const normalized = normalizeName(searchName);
     const school = await School.findOne({ normalizedName: normalized });
     if (!school) {
-      return res.status(404).json({ message: "School not found" });
+      return res.status(404).json({ success: false, message: "School not found" });
     }
 
     const teachers = await User.find({ role: "teacher", schoolName: school.name })
@@ -430,55 +369,44 @@ exports.getSchoolTeachers = async (req, res) => {
 
     res.json(teachers);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 // POST /api/schools/upload
 exports.uploadSchoolPhoto = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+      return res.status(400).json({ success: false, message: "No image file provided" });
     }
+
+    const cloudinary = require("../config/cloudinary");
     const fs = require("fs");
 
-    const hasCloudinary = process.env.CLOUDINARY_URL ||
-      ( (process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_NAME) && 
-        (process.env.CLOUDINARY_API_KEY || process.env.CLOUDINARY_KEY) && 
-        (process.env.CLOUDINARY_API_SECRET || process.env.CLOUDINARY_SECRET) );
+    const userId = req.user.id || req.user._id;
 
-    if (hasCloudinary) {
-      try {
-        const cloudinary = require("../config/cloudinary");
-        const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: "teachhub_schools",
-          resource_type: "image"
-        });
-        if (fs.existsSync(req.file.path)) {
-          try { fs.unlinkSync(req.file.path); } catch (e) {}
-        }
-        return res.json({ url: result.secure_url });
-      } catch (cErr) {
-        console.error("Cloudinary upload failed, falling back to permanent base64 Data URI:", cErr.message);
-      }
-    }
+    // Upload to Cloudinary folder teachhub/schools/{userId}
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: `teachhub/schools/${userId}`,
+      resource_type: "image"
+    });
 
-    // Permanent Fallback: Convert file to Base64 Data URI so it survives Hostinger git redeployments
-    const fileData = fs.readFileSync(req.file.path);
-    const mimeType = req.file.mimetype || "image/jpeg";
-    const base64Url = `data:${mimeType};base64,${fileData.toString("base64")}`;
-
+    // Remove local temporary file after upload
     if (fs.existsSync(req.file.path)) {
       try { fs.unlinkSync(req.file.path); } catch (e) {}
     }
 
-    return res.json({ url: base64Url });
+    return res.json({
+      success: true,
+      url: result.secure_url,
+      publicId: result.public_id
+    });
   } catch (error) {
+    console.error("Cloudinary photo upload error:", error);
     const fs = require("fs");
     if (req.file && fs.existsSync(req.file.path)) {
       try { fs.unlinkSync(req.file.path); } catch (e) {}
     }
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ success: false, message: error.message || "Failed to upload image" });
   }
 };
