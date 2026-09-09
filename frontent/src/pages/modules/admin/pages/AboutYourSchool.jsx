@@ -14,6 +14,8 @@ import MediaPrincipalTab from "./AboutSchool/MediaPrincipalTab";
 import AdmissionSettingsTab from "./AboutSchool/AdmissionSettingsTab";
 import SchoolDescriptionTab from "./AboutSchool/SchoolDescriptionTab";
 
+import API_URL from "../../../../config/api";
+
 const SORA = "'Sora', sans-serif";
 
 const TABS = [
@@ -24,7 +26,7 @@ const TABS = [
 ];
 
 function AboutYourSchool() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   // Tabs state
@@ -93,7 +95,8 @@ function AboutYourSchool() {
       setLoading(true);
       setError("");
       const res = await axios.get(`${API}/api/schools/my-school`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 10000
       });
 
       if (res.data && (res.data.success || res.data.school)) {

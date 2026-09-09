@@ -233,11 +233,11 @@ mongoose
           await School.create({
             name: trimmed,
             normalizedName: normalized,
-            photo: "",
+            photo: null,
             schoolPhotos: [],
-            principalName: "Banny Thapar",
-            principalPhoto: "",
-            description: `<h3><strong>${trimmed}</strong></h3><p>${trimmed} is a reputed educational institution committed to providing quality education in a safe, supportive, and engaging learning environment.</p>`
+            principalName: null,
+            principalPhoto: null,
+            description: null
           });
         }
       }
