@@ -212,7 +212,7 @@ exports.sendOTP = async (req, res) => {
     }
 
     // Bypass OTP sending for static test accounts
-    if (email === "razorpay@gmail.com" || email === "razorpay@teachhub.com") {
+    if (email === "razorpay@gmail.com" || email === "razorpay@teachhub.com" || email === "tester@teachhub.com") {
       return res.status(200).json({
         message: "OTP sent successfully (static OTP active)"
       });
@@ -278,7 +278,7 @@ exports.verifyOTP = async (req, res) => {
       return res.status(400).json({ message: "Email and OTP are required" });
     }
 
-    const isStaticTest = (email === "razorpay@gmail.com" || email === "razorpay@teachhub.com") && otp === "123456";
+    const isStaticTest = (email === "razorpay@gmail.com" || email === "razorpay@teachhub.com" || email === "tester@teachhub.com") && otp === "123456";
 
     let user;
     if (isStaticTest) {
