@@ -296,6 +296,46 @@ app.get("/", (req, res) => {
   res.status(200).json({ status: "OK", message: "TeachHub Backend Server is Running", timestamp: new Date() });
 });
 
+app.get("/privacy-policy", (req, res) => {
+  res.setHeader("Content-Type", "text/html");
+  res.status(200).send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - TeachHub (Your School)</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+    h1 { color: #1a73e8; }
+    h2 { color: #202124; margin-top: 24px; }
+    p, li { font-size: 15px; }
+  </style>
+</head>
+<body>
+  <h1>Privacy Policy for TeachHub / Your School</h1>
+  <p>Effective Date: September 10, 2026</p>
+  <p>This Privacy Policy describes how TeachHub ("we", "our", or "us") collects, uses, and protects your information when you use our mobile application and platform services.</p>
+
+  <h2>1. Information We Collect</h2>
+  <p>We collect information you provide directly to us when creating an account or using our features, including:</p>
+  <ul>
+    <li>Account credentials (name, email address, role, school name)</li>
+    <li>Educational data (classes, subjects, attendance, grades, announcements)</li>
+    <li>Communication data (chat messages and call logs within the app)</li>
+  </ul>
+
+  <h2>2. How We Use Your Information</h2>
+  <p>We use the collected information solely to provide, operate, maintain, and improve the TeachHub platform services, including user authentication, attendance management, and educational collaboration.</p>
+
+  <h2>3. Data Protection and Storage</h2>
+  <p>Your data is stored securely using industry-standard encryption protocols. We do not sell, trade, or rent your personal information to third parties.</p>
+
+  <h2>4. Contact Us</h2>
+  <p>If you have any questions regarding this Privacy Policy, please contact us at: <strong>princerajmne@gmail.com</strong></p>
+</body>
+</html>`);
+});
+
 app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "OK", message: "TeachHub Backend Health Check Passed", timestamp: new Date() });
 });
