@@ -361,7 +361,6 @@ function MediaPrincipalTab({
                   type="button"
                   onClick={() => {
                     setCoverImage("");
-                    autoSaveMedia({ coverImage: "" });
                   }}
                   className="px-3.5 py-2 bg-rose-600/95 hover:bg-rose-500 text-white text-xs font-extrabold rounded-xl transition cursor-pointer flex items-center gap-1.5"
                 >
@@ -407,7 +406,6 @@ function MediaPrincipalTab({
                 onChange={(e) => {
                   const val = Number(e.target.value);
                   setCoverPosition(val);
-                  autoSaveMedia({ coverPosition: val });
                 }}
                 className="w-full sm:w-48 accent-purple-600 cursor-pointer"
               />
@@ -416,7 +414,6 @@ function MediaPrincipalTab({
                   type="button"
                   onClick={() => {
                     setCoverPosition(0);
-                    autoSaveMedia({ coverPosition: 0 });
                   }}
                   className={`px-2 py-1 rounded-md text-[10px] font-extrabold border cursor-pointer transition ${
                     coverPosition === 0
@@ -430,7 +427,6 @@ function MediaPrincipalTab({
                   type="button"
                   onClick={() => {
                     setCoverPosition(50);
-                    autoSaveMedia({ coverPosition: 50 });
                   }}
                   className={`px-2 py-1 rounded-md text-[10px] font-extrabold border cursor-pointer transition ${
                     coverPosition === 50
@@ -444,7 +440,6 @@ function MediaPrincipalTab({
                   type="button"
                   onClick={() => {
                     setCoverPosition(100);
-                    autoSaveMedia({ coverPosition: 100 });
                   }}
                   className={`px-2 py-1 rounded-md text-[10px] font-extrabold border cursor-pointer transition ${
                     coverPosition === 100
@@ -525,7 +520,6 @@ function MediaPrincipalTab({
                       type="button"
                       onClick={() => {
                         setPrincipalPhoto("");
-                        autoSaveMedia({ principalPhoto: "" });
                       }}
                       className="px-4 py-1.5 border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 rounded-xl text-xs font-bold transition cursor-pointer select-none flex items-center justify-center gap-1.5"
                     >
