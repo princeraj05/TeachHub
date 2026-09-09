@@ -138,21 +138,21 @@ function SchoolDirectory() {
   }
 
   return (
-    <div style={{ fontFamily: SORA }} className="w-full max-w-4xl mx-auto p-0 md:p-4 bg-transparent transition-all duration-200">
+    <div style={{ fontFamily: SORA }} className="w-full max-w-4xl mx-auto px-3 sm:px-4 py-2 sm:py-4 bg-transparent transition-all duration-200">
       
       {/* Header section with SVG illustration */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4 px-1 text-left">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4 text-left">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED] dark:text-[#38BDF8] mb-1">School Directory</p>
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] dark:text-[#38BDF8] mb-1">School Directory</p>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
             Available Schools
           </h2>
-          <p className="text-xs text-slate-450 dark:text-slate-400 font-semibold mt-1">Explore centers and submit a request to join</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">Explore centers and submit a request to join</p>
         </div>
         
         {/* Modern school building SVG illustration */}
         <div className="hidden sm:block shrink-0">
-          <svg className="w-32 h-32 text-indigo-500 drop-shadow-lg" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg className="w-28 h-28 sm:w-32 sm:h-32 text-indigo-500 drop-shadow-lg" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M70 15V22H82V15H70Z" fill="#2563EB"/>
             <path d="M70 12V32" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round"/>
             <path d="M25 45L60 30L95 45" stroke="#1D4ED8" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
@@ -175,22 +175,22 @@ function SchoolDirectory() {
       </div>
 
       {/* Search toolbar */}
-      <div className="flex gap-3 mb-6 px-1">
+      <div className="flex gap-3 mb-5 sm:mb-6">
         <div className="relative flex-1">
-          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none" />
           <input
             type="text"
             placeholder="Search schools, location or principal..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-11 pr-4 py-3.5 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-2xl text-slate-800 dark:text-white placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold text-xs shadow-sm"
+            className="w-full pl-11 pr-4 py-3 sm:py-3.5 bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-2xl text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all font-semibold text-xs shadow-sm"
           />
         </div>
       </div>
 
       {/* Schools Cards List */}
       {filteredSchools.length > 0 ? (
-        <div className="grid grid-cols-1 gap-5">
+        <div className="grid grid-cols-1 gap-5 sm:gap-6">
           {filteredSchools.map((school) => {
             const hasActiveRequest = user && user.requestStatus !== "rejected" && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
             const isThisApplied = user && user.requestStatus !== "rejected" && user.requestedSchool === school.name && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
@@ -198,166 +198,177 @@ function SchoolDirectory() {
             const cardBgColor = getSchoolDetails(school.name, "color");
 
             return (
-              <div key={school._id} className="w-full bg-white dark:bg-[#0B132A] rounded-2.5xl sm:rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm p-3.5 sm:p-5 flex flex-col gap-3.5 sm:gap-5 text-left transition hover:shadow-md duration-200 overflow-hidden">
+              <div key={school._id} className="w-full bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden text-left flex flex-col">
                 
                 {/* School Cover Banner image */}
-                <div className="w-[calc(100%+1.75rem)] sm:w-[calc(100%+2.5rem)] h-36 sm:h-44 relative bg-slate-100 dark:bg-white/5 overflow-hidden -mt-3.5 -mx-3.5 sm:-mt-5 sm:-mx-5 mb-1 sm:mb-2 border-b border-slate-100 dark:border-white/5 shrink-0">
+                <div className="w-full h-36 sm:h-48 md:h-52 relative bg-slate-900 overflow-hidden shrink-0">
                   {school.coverImage ? (
                     <img
                       src={getMediaUrl(school.coverImage)}
                       alt={`${school.name} Cover Banner`}
                       style={{ objectPosition: `center ${school.coverPosition !== undefined ? school.coverPosition : 50}%` }}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                     />
                   ) : school.schoolPhotos && school.schoolPhotos.length > 0 ? (
                     <img
                       src={getMediaUrl(school.schoolPhotos[0])}
                       alt={`${school.name} Cover Banner`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                     />
                   ) : school.photo ? (
                     <img
                       src={getMediaUrl(school.photo)}
                       alt={`${school.name} Cover Banner`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                     />
                   ) : (
-                    <div className={`w-full h-full bg-gradient-to-r ${cardBgColor} flex items-center justify-center opacity-85`}>
+                    <div className={`w-full h-full bg-gradient-to-r ${cardBgColor} flex items-center justify-center opacity-90`}>
                       <FaSchool className="text-white/20 text-6xl" />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+
+                  {/* Top-Right Active Status Tag over cover */}
+                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-black tracking-wider uppercase rounded-full bg-emerald-500/90 text-white backdrop-blur-md shadow-md">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> Active Center
+                    </span>
+                  </div>
                 </div>
 
-                {/* School Card Header Row */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-start gap-4 min-w-0">
-                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${cardBgColor} text-white flex items-center justify-center shrink-0 shadow-sm overflow-hidden border border-slate-100 dark:border-white/10`}>
-                      {school.photo ? (
-                        <img src={getMediaUrl(school.photo)} alt="Logo" className="w-full h-full object-cover" />
-                      ) : (
-                        <FaSchool className="text-xl" />
-                      )}
+                {/* Card Body Container */}
+                <div className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-5 -mt-8 sm:-mt-10 relative z-10">
+                  
+                  {/* School Logo & Title Header Row */}
+                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4">
+                    <div className="flex items-end gap-3.5">
+                      <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${cardBgColor} text-white flex items-center justify-center shrink-0 shadow-lg border-4 border-white dark:border-[#0B132A] overflow-hidden`}>
+                        {school.photo ? (
+                          <img src={getMediaUrl(school.photo)} alt="Logo" className="w-full h-full object-cover" />
+                        ) : (
+                          <FaSchool className="text-xl sm:text-2xl" />
+                        )}
+                      </div>
+                      <div className="min-w-0 pb-0.5">
+                        <h4 className="text-base sm:text-lg font-black text-slate-900 dark:text-white truncate tracking-tight">{school.name}</h4>
+                        {school.principalName ? (
+                          <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5 flex items-center gap-1.5 truncate">
+                            <FaUser className="text-[10px] text-purple-500" /> Principal: {school.principalName}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5 flex items-center gap-1.5 truncate">
+                            <FaUser className="text-[10px] text-purple-500" /> Principal: Danny Thapar
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <h4 className="text-base font-extrabold text-slate-900 dark:text-white truncate">{school.name}</h4>
-                      {school.principalName ? (
-                        <p className="text-xs text-slate-400 dark:text-slate-500 font-semibold mt-1 flex items-center gap-1.5">
-                          <FaUser className="text-[10px]" /> Principal: {school.principalName}
-                        </p>
-                      ) : (
-                        <p className="text-xs text-slate-400 dark:text-slate-500 font-semibold mt-1 flex items-center gap-1.5">
-                          <FaUser className="text-[10px]" /> Principal: Danny Thapar
-                        </p>
-                      )}
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 mt-3.5 text-[10px] font-black tracking-wider uppercase rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Active Center
+
+                    {/* Location Badge */}
+                    <div className="self-start sm:self-end shrink-0">
+                      <span 
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100/80 dark:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 rounded-xl text-slate-600 dark:text-slate-300 text-xs font-semibold max-w-full sm:max-w-xs truncate"
+                        title={school.address || getSchoolDetails(school.name, "location")}
+                      >
+                        <FaMapMarkerAlt className="text-xs shrink-0 text-rose-500" />
+                        <span className="truncate">{school.address || getSchoolDetails(school.name, "location")}</span>
                       </span>
                     </div>
                   </div>
-                  <div className="self-start sm:self-center shrink-0">
-                    <span 
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 rounded-full text-slate-550 dark:text-slate-400 text-xs font-semibold max-w-[260px] sm:max-w-xs truncate"
-                      title={school.address || getSchoolDetails(school.name, "location")}
-                    >
-                      <FaMapMarkerAlt className="text-xs shrink-0 text-slate-450" />
-                      <span className="truncate">{school.address || getSchoolDetails(school.name, "location")}</span>
-                    </span>
-                  </div>
-                </div>
 
-                {/* Stats Row Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 bg-slate-50 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.04] p-3 sm:p-4 rounded-2.5xl">
-                  {/* Students stat */}
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 border border-purple-500/20">
-                      <FaUser className="text-xs" />
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/[0.06] p-3 sm:p-4 rounded-2xl">
+                    {/* Students stat */}
+                    <div className="flex items-center gap-2.5 p-1">
+                      <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 border border-purple-500/20">
+                        <FaUser className="text-xs" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-black text-slate-900 dark:text-white leading-none">{getSchoolDetails(school.name, "students", school.totalStudents)}</p>
+                        <p className="text-[9px] text-slate-400 dark:text-slate-400 font-extrabold mt-1 uppercase tracking-wider truncate">Students</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-extrabold text-slate-950 dark:text-white leading-none">{getSchoolDetails(school.name, "students", school.totalStudents)}</p>
-                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1 uppercase tracking-wider">Students</p>
-                    </div>
-                  </div>
 
-                  {/* Teachers stat */}
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0 border border-blue-500/20">
-                      <FaGraduationCap className="text-xs" />
+                    {/* Teachers stat */}
+                    <div className="flex items-center gap-2.5 p-1">
+                      <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/20">
+                        <FaGraduationCap className="text-xs" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-black text-slate-900 dark:text-white leading-none">{getSchoolDetails(school.name, "teachers", school.totalTeachers)}</p>
+                        <p className="text-[9px] text-slate-400 dark:text-slate-400 font-extrabold mt-1 uppercase tracking-wider truncate">Teachers</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-extrabold text-slate-955 dark:text-white leading-none">{getSchoolDetails(school.name, "teachers", school.totalTeachers)}</p>
-                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1 uppercase tracking-wider">Teachers</p>
-                    </div>
-                  </div>
 
-                  {/* Classes stat */}
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 border border-amber-500/20">
-                      <FaBook className="text-xs" />
+                    {/* Classes stat */}
+                    <div className="flex items-center gap-2.5 p-1">
+                      <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/20">
+                        <FaBook className="text-xs" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-black text-slate-900 dark:text-white leading-none">{getSchoolDetails(school.name, "classes", school.totalClasses)}</p>
+                        <p className="text-[9px] text-slate-400 dark:text-slate-400 font-extrabold mt-1 uppercase tracking-wider truncate">Classes</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-extrabold text-slate-955 dark:text-white leading-none">{getSchoolDetails(school.name, "classes", school.totalClasses)}</p>
-                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1 uppercase tracking-wider">Classes</p>
-                    </div>
-                  </div>
 
-                  {/* Events stat */}
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20">
-                      <FaCalendarAlt className="text-xs" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-extrabold text-slate-955 dark:text-white leading-none">{getSchoolDetails(school.name, "events", school.totalEvents)}</p>
-                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1 uppercase tracking-wider">Events</p>
+                    {/* Events stat */}
+                    <div className="flex items-center gap-2.5 p-1">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20">
+                        <FaCalendarAlt className="text-xs" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-black text-slate-900 dark:text-white leading-none">{getSchoolDetails(school.name, "events", school.totalEvents)}</p>
+                        <p className="text-[9px] text-slate-400 dark:text-slate-400 font-extrabold mt-1 uppercase tracking-wider truncate">Events</p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Actions Bottom Bar */}
-                <div className="flex items-center gap-2.5 sm:gap-3 w-full border-t border-slate-100 dark:border-white/5 pt-3 sm:pt-4">
-                  <button
-                    onClick={() => handleViewDetails(school.name)}
-                    className="flex-1 border border-slate-200/60 dark:border-white/10 text-slate-655 dark:text-slate-300 py-3 rounded-2xl text-xs font-bold transition hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer text-center font-sans"
-                  >
-                    View Details
-                  </button>
-
-                  {isApprovedHere ? (
-                    <span className="flex-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-center py-3.5 rounded-2xl text-xs font-bold uppercase tracking-wider">
-                      Joined
-                    </span>
-                  ) : isThisApplied ? (
-                    <span className={`flex-1 text-center py-3.5 rounded-2xl text-xs font-bold uppercase tracking-wider border ${
-                      user.requestStatus === "scheduled"
-                        ? "bg-teal-500/15 text-teal-650 border-teal-500/20 dark:bg-teal-500/10 dark:text-teal-450"
-                        : user.requestStatus === "exam_completed"
-                          ? "bg-emerald-500/15 text-emerald-650 border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-450"
-                          : "bg-amber-500/15 text-amber-500 border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-450"
-                    }`}>
-                      {user.requestStatus === "scheduled" 
-                        ? "Exam Scheduled" 
-                        : user.requestStatus === "exam_completed" 
-                          ? "Exam Completed" 
-                          : "Pending Approval"}
-                    </span>
-                  ) : hasActiveRequest ? (
+                  {/* Actions Bottom Bar */}
+                  <div className="flex items-center gap-2.5 sm:gap-3 w-full border-t border-slate-100 dark:border-white/5 pt-3 sm:pt-4">
                     <button
-                      disabled
-                      className="flex-1 bg-slate-100 dark:bg-slate-800/40 text-slate-400/50 py-3.5 rounded-2xl text-xs font-bold cursor-not-allowed text-center"
+                      onClick={() => handleViewDetails(school.name)}
+                      className="flex-1 border border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 text-slate-700 dark:text-slate-200 py-3 rounded-2xl text-xs font-extrabold transition hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer text-center active:scale-[0.98]"
                     >
-                      Apply
+                      View Details
                     </button>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        setSelectedSchool(school.name);
-                        setAppointmentDate(""); setAppointmentTime(""); setAppointmentNotes(""); setShowJoinModal(true);
-                      }}
-                      className="flex-1 bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-[#38BDF8] dark:hover:bg-[#0EA5E9] text-white dark:text-[#090F1C] py-3.5 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm shadow-[#7C3AED]/20 cursor-pointer font-sans"
-                    >
-                      Join School <FaArrowRight className="text-[10px]" />
-                    </button>
-                  )}
+
+                    {isApprovedHere ? (
+                      <span className="flex-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-center py-3 rounded-2xl text-xs font-extrabold uppercase tracking-wider">
+                        Joined
+                      </span>
+                    ) : isThisApplied ? (
+                      <span className={`flex-1 text-center py-3 rounded-2xl text-xs font-extrabold uppercase tracking-wider border ${
+                        user.requestStatus === "scheduled"
+                          ? "bg-teal-500/15 text-teal-600 border-teal-500/20 dark:bg-teal-500/10 dark:text-teal-400"
+                          : user.requestStatus === "exam_completed"
+                            ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400"
+                            : "bg-amber-500/15 text-amber-600 border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400"
+                      }`}>
+                        {user.requestStatus === "scheduled" 
+                          ? "Exam Scheduled" 
+                          : user.requestStatus === "exam_completed" 
+                            ? "Exam Completed" 
+                            : "Pending Approval"}
+                      </span>
+                    ) : hasActiveRequest ? (
+                      <button
+                        disabled
+                        className="flex-1 bg-slate-100 dark:bg-slate-800/40 text-slate-400 py-3 rounded-2xl text-xs font-extrabold cursor-not-allowed text-center"
+                      >
+                        Apply
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setSelectedSchool(school.name);
+                          setAppointmentDate(""); setAppointmentTime(""); setAppointmentNotes(""); setShowJoinModal(true);
+                        }}
+                        className="flex-1 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white py-3 rounded-2xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 shadow-md shadow-purple-600/20 cursor-pointer active:scale-[0.98]"
+                      >
+                        <span>Join School</span>
+                        <FaArrowRight className="text-[10px]" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );
