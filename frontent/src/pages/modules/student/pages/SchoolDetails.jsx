@@ -580,20 +580,20 @@ function SchoolDetails() {
                 <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-4">School Highlights</h3>
                 <div className="grid grid-cols-2 gap-3 select-none">
                   <div className="bg-slate-50 dark:bg-white/[0.01] border border-slate-200/40 dark:border-white/[0.04] p-3.5 rounded-2xl">
-                    <p className="text-lg font-black text-slate-800 dark:text-white leading-none">{school.totalStudents ? `${school.totalStudents.toLocaleString()}+` : "1,250+"}</p>
+                    <p className="text-lg font-black text-slate-800 dark:text-white leading-none">{(school.totalStudents ?? 0).toLocaleString()}</p>
                     <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1.5 uppercase tracking-wider">Students</p>
                   </div>
                   <div className="bg-slate-50 dark:bg-white/[0.01] border border-slate-200/40 dark:border-white/[0.04] p-3.5 rounded-2xl">
-                    <p className="text-lg font-black text-slate-800 dark:text-white leading-none">{school.totalTeachers ? `${school.totalTeachers}+` : "85+"}</p>
+                    <p className="text-lg font-black text-slate-800 dark:text-white leading-none">{(school.totalTeachers ?? 0).toLocaleString()}</p>
                     <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1.5 uppercase tracking-wider">Teachers</p>
                   </div>
                   <div className="bg-slate-50 dark:bg-white/[0.01] border border-slate-200/40 dark:border-white/[0.04] p-3.5 rounded-2xl">
-                    <p className="text-lg font-black text-slate-800 dark:text-white leading-none">{school.totalClasses ? `${school.totalClasses}+` : "30+"}</p>
+                    <p className="text-lg font-black text-slate-800 dark:text-white leading-none">{(school.totalClasses ?? 0).toLocaleString()}</p>
                     <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1.5 uppercase tracking-wider">Classes</p>
                   </div>
                   <div className="bg-slate-50 dark:bg-white/[0.01] border border-slate-200/40 dark:border-white/[0.04] p-3.5 rounded-2xl">
-                    <p className="text-lg font-black text-slate-800 dark:text-white leading-none">98%</p>
-                    <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1.5 uppercase tracking-wider">Pass Rate</p>
+                    <p className="text-lg font-black text-slate-800 dark:text-white leading-none">{(school.totalEvents ?? 0).toLocaleString()}</p>
+                    <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1.5 uppercase tracking-wider">Events</p>
                   </div>
                 </div>
               </div>

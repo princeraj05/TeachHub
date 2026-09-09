@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import { getMediaUrl } from "../../../../config/api";
 import {
   FaSchool,
   FaUser,
@@ -197,13 +198,46 @@ function SchoolDirectory() {
             const cardBgColor = getSchoolDetails(school.name, "color");
 
             return (
-              <div key={school._id} className="w-full bg-white dark:bg-[#0B132A] rounded-2.5xl sm:rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm p-3.5 sm:p-5 flex flex-col gap-3.5 sm:gap-5 text-left transition hover:shadow-md duration-200">
+              <div key={school._id} className="w-full bg-white dark:bg-[#0B132A] rounded-2.5xl sm:rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm p-3.5 sm:p-5 flex flex-col gap-3.5 sm:gap-5 text-left transition hover:shadow-md duration-200 overflow-hidden">
                 
+                {/* School Cover Banner image */}
+                <div className="w-[calc(100%+1.75rem)] sm:w-[calc(100%+2.5rem)] h-36 sm:h-44 relative bg-slate-100 dark:bg-white/5 overflow-hidden -mt-3.5 -mx-3.5 sm:-mt-5 sm:-mx-5 mb-1 sm:mb-2 border-b border-slate-100 dark:border-white/5 shrink-0">
+                  {school.coverImage ? (
+                    <img
+                      src={getMediaUrl(school.coverImage)}
+                      alt={`${school.name} Cover Banner`}
+                      style={{ objectPosition: `center ${school.coverPosition !== undefined ? school.coverPosition : 50}%` }}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : school.schoolPhotos && school.schoolPhotos.length > 0 ? (
+                    <img
+                      src={getMediaUrl(school.schoolPhotos[0])}
+                      alt={`${school.name} Cover Banner`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : school.photo ? (
+                    <img
+                      src={getMediaUrl(school.photo)}
+                      alt={`${school.name} Cover Banner`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className={`w-full h-full bg-gradient-to-r ${cardBgColor} flex items-center justify-center opacity-85`}>
+                      <FaSchool className="text-white/20 text-6xl" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 via-transparent to-transparent pointer-events-none" />
+                </div>
+
                 {/* School Card Header Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-start gap-4 min-w-0">
-                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${cardBgColor} text-white flex items-center justify-center shrink-0 shadow-sm`}>
-                      <FaSchool className="text-xl" />
+                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${cardBgColor} text-white flex items-center justify-center shrink-0 shadow-sm overflow-hidden border border-slate-100 dark:border-white/10`}>
+                      {school.photo ? (
+                        <img src={getMediaUrl(school.photo)} alt="Logo" className="w-full h-full object-cover" />
+                      ) : (
+                        <FaSchool className="text-xl" />
+                      )}
                     </div>
                     <div className="min-w-0">
                       <h4 className="text-base font-extrabold text-slate-900 dark:text-white truncate">{school.name}</h4>
