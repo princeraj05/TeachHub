@@ -31,7 +31,6 @@ export default function VideoGallery({ videos, getMediaUrl, onDeleteVideo }) {
             controls
             preload="auto"
             playsInline
-            crossOrigin={activeUrl?.startsWith("http") ? "anonymous" : undefined}
             onError={() => setVideoError(true)}
             onLoadedMetadata={() => setVideoError(false)}
             onCanPlay={() => setVideoError(false)}

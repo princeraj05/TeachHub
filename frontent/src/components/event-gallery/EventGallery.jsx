@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FaImage, FaVideo } from "react-icons/fa";
 import PhotoGallery from "./PhotoGallery";
 import VideoGallery from "./VideoGallery";
@@ -7,14 +7,18 @@ export default function EventGallery({ event, api = "", onDeletePhoto, onDeleteV
   const photos = event?.photos || [];
   const videos = event?.videos || [];
   const [activeTab, setActiveTab] = useState(photos.length ? "photos" : "videos");
+  const prevVideosLength = useRef(videos.length);
 
   useEffect(() => {
-    if (activeTab === "photos" && !photos.length && videos.length) {
+    if (videos.length > prevVideosLength.current) {
+      setActiveTab("videos");
+    } else if (activeTab === "photos" && !photos.length && videos.length) {
       setActiveTab("videos");
     } else if (activeTab === "videos" && !videos.length && photos.length) {
       setActiveTab("photos");
     }
-  }, [photos.length, videos.length]);
+    prevVideosLength.current = videos.length;
+  }, [photos.length, videos.length, activeTab]);
 
   const defaultApi = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
   const effectiveApi = api || defaultApi;
@@ -33,8 +37,8 @@ export default function EventGallery({ event, api = "", onDeletePhoto, onDeleteV
 
   return <section className="border-t border-slate-100 pt-6 dark:border-white/5">
     <div className="mb-6 flex rounded-2xl border border-slate-200/70 bg-slate-50 p-1.5 dark:border-white/10 dark:bg-white/5">
-      <button type="button" onClick={() => setActiveTab("photos")} disabled={!photos.length} className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-3 text-xs font-black transition ${activeTab === "photos" ? "bg-gradient-to-r from-[#7C3AED] to-[#312E81] text-white shadow-md" : "text-slate-500 hover:bg-white dark:text-slate-400 dark:hover:bg-white/5"} disabled:cursor-not-allowed disabled:opacity-40`}><FaImage /> Photos ({photos.length})</button>
-      <button type="button" onClick={() => setActiveTab("videos")} disabled={!videos.length} className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-3 text-xs font-black transition ${activeTab === "videos" ? "bg-gradient-to-r from-[#7C3AED] to-[#312E81] text-white shadow-md" : "text-slate-500 hover:bg-white dark:text-slate-400 dark:hover:bg-white/5"} disabled:cursor-not-allowed disabled:opacity-40`}><FaVideo /> Videos ({videos.length})</button>
+      <button type="button" onClick={() => setActiveTab("photos")} className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-3 text-xs font-black transition cursor-pointer ${activeTab === "photos" ? "bg-gradient-to-r from-[#7C3AED] to-[#312E81] text-white shadow-md" : "text-slate-500 hover:bg-white dark:text-slate-400 dark:hover:bg-white/5"}`}><FaImage /> Photos ({photos.length})</button>
+      <button type="button" onClick={() => setActiveTab("videos")} className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-3 text-xs font-black transition cursor-pointer ${activeTab === "videos" ? "bg-gradient-to-r from-[#7C3AED] to-[#312E81] text-white shadow-md" : "text-slate-500 hover:bg-white dark:text-slate-400 dark:hover:bg-white/5"}`}><FaVideo /> Videos ({videos.length})</button>
     </div>
     {activeTab === "photos" ? <PhotoGallery photos={photos} getMediaUrl={getMediaUrl} onDeletePhoto={onDeletePhoto} /> : <VideoGallery videos={videos} getMediaUrl={getMediaUrl} onDeleteVideo={onDeleteVideo} />}
   </section>;

@@ -402,6 +402,15 @@ exports.uploadVideos = async (req, res) => {
         (process.env.CLOUDINARY_API_KEY || process.env.CLOUDINARY_KEY) && 
         (process.env.CLOUDINARY_API_SECRET || process.env.CLOUDINARY_SECRET) );
 
+    const uploadLargePromise = (filePath, options) => {
+      return new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_large(filePath, options, (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        });
+      });
+    };
+
     const newVideos = [];
     for (const file of req.files) {
       let videoUrl = "";
@@ -410,16 +419,18 @@ exports.uploadVideos = async (req, res) => {
       if (hasCloudinary) {
         // Try upload_large first with 6MB chunks and 10min (600,000ms) timeout
         try {
-          const result = await cloudinary.uploader.upload_large(file.path, {
+          const result = await uploadLargePromise(file.path, {
             folder: "teachhub/events/videos",
             resource_type: "video",
             chunk_size: 6000000,
             timeout: 600000
           });
-          uploadedIds.push(result.public_id);
-          videoUrl = result.secure_url;
-          filename = result.public_id;
-          deletePhysicalFile(file.filename);
+          if (result && result.secure_url) {
+            uploadedIds.push(result.public_id);
+            videoUrl = result.secure_url;
+            filename = result.public_id;
+            deletePhysicalFile(file.filename);
+          }
         } catch (cErr) {
           console.error("Cloudinary video upload_large error:", cErr.message);
           // Fallback to standard upload with 10min timeout
@@ -429,10 +440,12 @@ exports.uploadVideos = async (req, res) => {
               resource_type: "video",
               timeout: 600000
             });
-            uploadedIds.push(result.public_id);
-            videoUrl = result.secure_url;
-            filename = result.public_id;
-            deletePhysicalFile(file.filename);
+            if (result && result.secure_url) {
+              uploadedIds.push(result.public_id);
+              videoUrl = result.secure_url;
+              filename = result.public_id;
+              deletePhysicalFile(file.filename);
+            }
           } catch (cErr2) {
             console.error("Cloudinary video upload error fallback failed:", cErr2.message);
           }
