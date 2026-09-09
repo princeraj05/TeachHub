@@ -290,14 +290,7 @@ function GlobalEvents() {
         </div>
       )}
 
-      {/* Info notice */}
-      <div className="flex items-center justify-between bg-blue-500/5 dark:bg-blue-500/5 border border-blue-500/10 dark:border-blue-500/15 rounded-2xl p-4 text-xs mt-6 select-none">
-        <div className="flex items-center gap-2 text-slate-655 dark:text-slate-400">
-          <FaInfoCircle className="text-[#38BDF8] text-sm shrink-0" />
-          <span>Events are submitted and managed by schools.</span>
-        </div>
-        <button className="text-[#38BDF8] hover:underline font-extrabold shrink-0 cursor-pointer">Learn more</button>
-      </div>
+
 
       {/* Detail / Gallery Modal */}
       {selectedEvent && (

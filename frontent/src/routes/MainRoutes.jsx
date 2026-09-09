@@ -16,7 +16,7 @@ const ModuleLoader = () => (
     <div className="flex flex-col items-center gap-3">
       <div className="w-12 h-12 border-4 border-[#7C3AED]/20 border-t-[#7C3AED] rounded-full animate-spin" />
       <span className="text-xs font-extrabold text-[#7C3AED] dark:text-[#38BDF8] tracking-wider uppercase animate-pulse">
-        TeachHub
+        {localStorage.getItem("platformName") || "TeachHub"}
       </span>
     </div>
   </div>

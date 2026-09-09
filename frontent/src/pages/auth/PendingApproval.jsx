@@ -57,7 +57,7 @@ function PendingApproval() {
   const token = localStorage.getItem("token");
 
   const { theme, toggleTheme } = useTheme();
-  const { confirmLogout } = usePlatform();
+  const { platformName, logoUrl, confirmLogout } = usePlatform();
   const { t } = useLanguage();
   const { startCall } = useCall() || {};
   const [user, setUser] = useState({ name: "Loading...", email: "", role: "", avatar: "" });
@@ -307,10 +307,10 @@ function PendingApproval() {
     
     list.push({
       id: "not-welcome",
-      title: "Welcome to TeachHub",
+      title: `Welcome to ${platformName || "TeachHub"}`,
       message: isTeacher
-        ? "Welcome to TeachHub! Explore registered school centers and submit your application for a teaching position."
-        : "Welcome to TeachHub! Explore available school centers in your area and submit a request to join.",
+        ? `Welcome to ${platformName || "TeachHub"}! Explore registered school centers and submit your application for a teaching position.`
+        : `Welcome to ${platformName || "TeachHub"}! Explore available school centers in your area and submit a request to join.`,
       date: user.createdAt || new Date(),
       category: "system"
     });
@@ -1237,11 +1237,15 @@ function PendingApproval() {
         <div className="space-y-8">
           {/* Logo */}
           <div className="flex items-center justify-center lg:justify-start lg:px-4 gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black shadow-md shadow-[#7C3AED]/20">
-              <FaGraduationCap className="text-xl" />
-            </div>
-            <span className="hidden lg:block text-lg font-black tracking-tight text-slate-900 dark:text-white">
-              TeachHub
+            {logoUrl ? (
+              <img src={logoUrl} alt={platformName} className="w-10 h-10 object-contain rounded-xl shrink-0" />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black shadow-md shadow-[#7C3AED]/20 shrink-0">
+                <FaGraduationCap className="text-xl" />
+              </div>
+            )}
+            <span className="hidden lg:block text-lg font-black tracking-tight text-slate-900 dark:text-white truncate max-w-[140px]">
+              {platformName || "TeachHub"}
             </span>
           </div>
 
@@ -1581,7 +1585,7 @@ function PendingApproval() {
 
             <div className="min-w-0 text-left">
               <h1 className="text-sm sm:text-base md:text-lg font-black text-slate-800 dark:text-white tracking-tight truncate max-w-[200px] sm:max-w-md md:max-w-xl" style={{ fontFamily: SORA }}>
-                {user.requestedSchool ? `${user.requestedSchool} Application` : "TeachHub Portal"}
+                {user.requestedSchool ? `${user.requestedSchool} Application` : `${platformName || "TeachHub"} Portal`}
               </h1>
               <p className="text-[9px] sm:text-[10px] text-[#7C3AED] dark:text-[#38BDF8] font-extrabold uppercase tracking-widest mt-0.5">
                 {isTeacher ? "Teacher Applicant Console" : "Student Applicant Console"}

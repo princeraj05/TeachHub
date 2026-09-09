@@ -22,8 +22,8 @@ export const usePlatform = () => {
 import API_URL from "../config/api";
 
 export const PlatformProvider = ({ children }) => {
-  const [platformName, setPlatformName] = useState("TeachHub");
-  const [logoUrl, setLogoUrl] = useState("");
+  const [platformName, setPlatformName] = useState(localStorage.getItem("platformName") || "TeachHub");
+  const [logoUrl, setLogoUrl] = useState(localStorage.getItem("platformLogoUrl") || "");
   const [tagline, setTagline] = useState("Smart School Management & Communication Platform");
   const [platformConfig, setPlatformConfig] = useState(null);
 
@@ -38,8 +38,14 @@ export const PlatformProvider = ({ children }) => {
       const res = await axios.get(`${API}/api/about-app`, { headers });
       if (res.data) {
         setPlatformConfig(res.data);
-        if (res.data.platformName) setPlatformName(res.data.platformName);
-        if (res.data.logoUrl !== undefined) setLogoUrl(res.data.logoUrl || "");
+        if (res.data.platformName) {
+          setPlatformName(res.data.platformName);
+          localStorage.setItem("platformName", res.data.platformName);
+        }
+        if (res.data.logoUrl !== undefined) {
+          setLogoUrl(res.data.logoUrl || "");
+          localStorage.setItem("platformLogoUrl", res.data.logoUrl || "");
+        }
         if (res.data.tagline) setTagline(res.data.tagline);
       }
     } catch (err) {
