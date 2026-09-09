@@ -38,9 +38,7 @@ function MediaPrincipalTab({
   const [tempCoverForCrop, setTempCoverForCrop] = useState(null);
 
   const handleDeletePhoto = (index) => {
-    const updated = [...schoolPhotos];
-    updated.splice(index, 1);
-    setSchoolPhotos(updated);
+    setSchoolPhotos(prev => (prev || []).filter((_, i) => i !== index));
   };
 
   const triggerReplacePhotoUpload = (index) => {
@@ -89,7 +87,7 @@ function MediaPrincipalTab({
   const handleAddPhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (schoolPhotos.length >= 5) {
+    if ((schoolPhotos || []).length >= 5) {
       alert("Maximum 5 photos allowed.");
       return;
     }
@@ -110,7 +108,7 @@ function MediaPrincipalTab({
       });
 
       if (res.data?.url) {
-        setSchoolPhotos([...schoolPhotos, res.data.url]);
+        setSchoolPhotos(prev => [...(prev || []), res.data.url]);
       }
     } catch (err) {
       console.error("Failed to upload photo:", err);
@@ -139,9 +137,13 @@ function MediaPrincipalTab({
       });
 
       if (res.data?.url) {
-        const updated = [...schoolPhotos];
-        updated[activeReplaceIndex] = res.data.url;
-        setSchoolPhotos(updated);
+        const urlToSet = res.data.url;
+        const targetIndex = activeReplaceIndex;
+        setSchoolPhotos(prev => {
+          const updated = [...(prev || [])];
+          updated[targetIndex] = urlToSet;
+          return updated;
+        });
       }
     } catch (err) {
       console.error("Failed to replace photo:", err);

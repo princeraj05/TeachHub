@@ -170,7 +170,7 @@ function AboutYourSchool() {
 
     try {
       const payload = {
-        // Tab 1 fields
+        // Flat fields
         principalName,
         email,
         phoneNumber,
@@ -214,7 +214,54 @@ function AboutYourSchool() {
         holidays,
 
         // Tab 4 fields
-        description
+        description,
+
+        // Nested section aliases for complete backward compatibility
+        basicInfo: {
+          affiliation,
+          academicYear,
+          schoolEmail: email,
+          medium,
+          phoneNumber,
+          website,
+          schoolAddress: address,
+          established,
+          schoolStatus: status,
+          schoolType,
+          registrationNumber,
+          schoolCode: code,
+          category,
+          schoolMotto: motto,
+          logo: photo,
+          availableClasses
+        },
+        media: {
+          coverImage,
+          coverPosition,
+          schoolPhotos
+        },
+        principal: {
+          name: principalName,
+          photo: principalPhoto,
+          designation: principalDesignation,
+          email: principalEmail,
+          phoneNumber: principalPhone,
+          leadershipSince: principalLeadershipSince,
+          introduction: principalIntroduction
+        },
+        admission: {
+          categories: schoolCategoriesList,
+          processes: admissionProcess,
+          schoolType: schoolBoardType
+        },
+        availability: {
+          workingDays,
+          openingTime,
+          closingTime,
+          lunchBreakStartTime,
+          lunchBreakDuration,
+          holidays
+        }
       };
 
       const res = await axios.put(`${API}/api/schools/my-school`, payload, {
