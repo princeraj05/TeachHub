@@ -405,24 +405,40 @@ exports.uploadSchoolPhoto = async (req, res) => {
     const schoolFolderId = school ? school._id.toString() : userId.toString();
     const cloudinary = require("../config/cloudinary");
 
-    // Upload to Cloudinary folder teachhub/schools/{schoolFolderId}
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: `teachhub/schools/${schoolFolderId}`,
-      resource_type: "image"
-    });
+    let finalUrl = "";
+    let publicId = "";
 
-    if (!result || !result.secure_url) {
-      throw new Error("Cloudinary upload failed: secure_url was not returned.");
+    try {
+      // Upload to Cloudinary folder teachhub/schools/{schoolFolderId}
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: `teachhub/schools/${schoolFolderId}`,
+        resource_type: "image"
+      });
+
+      if (result && result.secure_url) {
+        finalUrl = result.secure_url;
+        publicId = result.public_id;
+      }
+    } catch (cErr) {
+      console.error("Cloudinary school photo upload error, falling back to base64 encoding:", cErr.message);
+      // Fallback: Convert file buffer to base64 Data URL if Cloudinary fails
+      const fileBuffer = fs.readFileSync(req.file.path);
+      const mimeType = req.file.mimetype || "image/jpeg";
+      finalUrl = `data:${mimeType};base64,${fileBuffer.toString("base64")}`;
+    }
+
+    if (!finalUrl) {
+      return res.status(500).json({ success: false, message: "Failed to process image upload." });
     }
 
     return res.json({
       success: true,
-      url: result.secure_url,
-      publicId: result.public_id
+      url: finalUrl,
+      publicId: publicId
     });
   } catch (error) {
     console.error("Photo upload error:", error);
-    return res.status(500).json({ success: false, message: error.message || "Failed to upload image to Cloudinary" });
+    return res.status(500).json({ success: false, message: error.message || "Failed to upload image" });
   } finally {
     if (req.file && req.file.path && fs.existsSync(req.file.path)) {
       try {
