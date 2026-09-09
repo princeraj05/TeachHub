@@ -25,15 +25,9 @@ const SORA = "'Sora', sans-serif";
 
 const DEFAULT_SCHOOL_BANNERS = [
   {
-    name: "TeachHub Partner School",
-    motto: "Excellence in Education & Character",
-    coverImage: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80",
-    photo: ""
-  },
-  {
-    name: "National Public School",
-    motto: "Service Before Self",
-    coverImage: "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80",
+    name: "TeachHub School Management",
+    motto: "A Secure & Unified Platform for Modern Education",
+    coverImage: "",
     photo: ""
   }
 ];
@@ -319,28 +313,40 @@ function Login() {
 
           {/* School Cover Banner 5-second Auto-Slider Card */}
           <div className="w-full relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80 dark:border-white/10 mb-6 bg-slate-900 group aspect-[2.4/1]">
-            <img
-              key={currentBanner.coverImage}
-              src={getMediaUrl(currentBanner.coverImage)}
-              alt={currentBanner.name}
-              style={{ objectPosition: `center ${currentBanner.coverPosition !== undefined ? currentBanner.coverPosition : 50}%` }}
-              className="w-full h-full object-cover transition-all duration-1000 ease-in-out scale-105 group-hover:scale-100"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-5 text-left text-white">
-              <div className="flex items-center gap-2.5 mb-1.5">
-                {currentBanner.photo ? (
-                  <img src={getMediaUrl(currentBanner.photo)} alt="Logo" className="w-8 h-8 rounded-xl object-cover border border-white/30" />
-                ) : (
-                  <div className="w-8 h-8 rounded-xl bg-purple-600/80 backdrop-blur-md flex items-center justify-center border border-white/30 text-white font-black text-xs">
-                    <FaSchool />
+            {currentBanner.coverImage ? (
+              <img
+                key={currentBanner.coverImage}
+                src={getMediaUrl(currentBanner.coverImage)}
+                alt={currentBanner.name}
+                style={{ objectPosition: `center ${currentBanner.coverPosition !== undefined ? currentBanner.coverPosition : 50}%` }}
+                className="w-full h-full object-cover transition-all duration-1000 ease-in-out scale-105 group-hover:scale-100"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-purple-900/80 via-slate-900 to-indigo-950 flex flex-col items-center justify-center p-6 text-center border border-purple-500/20">
+                <div className="w-12 h-12 rounded-2xl bg-purple-600/30 border border-purple-400/30 flex items-center justify-center text-purple-300 mb-2 text-xl shadow-lg">
+                  <FaGraduationCap />
+                </div>
+                <h3 className="font-black text-lg text-white tracking-wide">{currentBanner.name}</h3>
+                <p className="text-xs text-purple-200/80 font-medium mt-1">{currentBanner.motto || "Learn • Grow • Succeed"}</p>
+              </div>
+            )}
+            {currentBanner.coverImage && (
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-5 text-left text-white">
+                <div className="flex items-center gap-2.5 mb-1.5">
+                  {currentBanner.photo ? (
+                    <img src={getMediaUrl(currentBanner.photo)} alt="Logo" className="w-8 h-8 rounded-xl object-cover border border-white/30" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-xl bg-purple-600/80 backdrop-blur-md flex items-center justify-center border border-white/30 text-white font-black text-xs">
+                      <FaSchool />
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="font-black text-base tracking-wide text-white leading-none">{currentBanner.name}</h3>
+                    <p className="text-[10px] text-white/75 font-semibold mt-0.5">{currentBanner.motto || "Learn • Grow • Succeed"}</p>
                   </div>
-                )}
-                <div>
-                  <h3 className="font-black text-base tracking-wide text-white leading-none">{currentBanner.name}</h3>
-                  <p className="text-[10px] text-white/75 font-semibold mt-0.5">{currentBanner.motto || "Learn • Grow • Succeed"}</p>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Slider Dots */}
             {bannersList.length > 1 && (
@@ -369,7 +375,7 @@ function Login() {
           {/* 3 Metric Cards (Total School, Total Teachers, Total Students) */}
           <div className="grid grid-cols-3 gap-3.5 w-full max-w-md">
             <div className="bg-gradient-to-b from-purple-500/10 to-purple-500/5 backdrop-blur-md border border-purple-500/20 rounded-2xl p-3.5 text-center shadow-sm">
-              <p className="text-lg font-black text-purple-600 dark:text-purple-400">{liveStats.schools || publicSchools.length || 1}</p>
+              <p className="text-lg font-black text-purple-600 dark:text-purple-400">{liveStats.schools !== undefined ? liveStats.schools : publicSchools.length}</p>
               <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">Total School</p>
             </div>
             <div className="bg-gradient-to-b from-indigo-500/10 to-indigo-500/5 backdrop-blur-md border border-indigo-500/20 rounded-2xl p-3.5 text-center shadow-sm">
