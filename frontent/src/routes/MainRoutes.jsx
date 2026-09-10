@@ -11,6 +11,7 @@ const AdminRoutes = lazy(() => import("../pages/modules/admin/AdminRoutes"));
 const StudentRoutes = lazy(() => import("../pages/modules/student/StudentRoutes"));
 const TeacherRoutes = lazy(() => import("../pages/modules/teacher/TeacherRoutes"));
 const SuperAdminRoutes = lazy(() => import("../pages/modules/superadmin/SuperAdminRoutes"));
+const SupportRoutes = lazy(() => import("../pages/modules/support/SupportRoutes"));
 
 const ModuleLoader = () => (
   <div className="flex items-center justify-center h-screen w-screen bg-[#F8FAFC] dark:bg-[#090F1C]">
@@ -100,6 +101,16 @@ function MainRoutes() {
           element={
             <ProtectedRoute allowedRoles={["student"]}>
               <StudentRoutes />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Support Team Portal */}
+        <Route
+          path="/support/*"
+          element={
+            <ProtectedRoute allowedRoles={["support", "superadmin"]}>
+              <SupportRoutes />
             </ProtectedRoute>
           }
         />
