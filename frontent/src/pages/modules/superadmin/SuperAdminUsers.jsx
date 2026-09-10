@@ -221,6 +221,8 @@ function SuperAdminUsers() {
         return "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30";
       case "teacher":
         return "bg-purple-500/20 text-purple-400 border border-purple-500/30";
+      case "support":
+        return "bg-purple-600/25 text-purple-500 dark:text-purple-300 border border-purple-500/40 font-bold";
       case "student":
         return "bg-sky-500/20 text-sky-300 border border-sky-500/30";
       default:
@@ -340,6 +342,7 @@ function SuperAdminUsers() {
               <option value="All" className="bg-white dark:bg-[#131B2E] text-slate-800 dark:text-slate-200">Filter by Role: All</option>
               <option value="superadmin" className="bg-white dark:bg-[#131B2E] text-slate-800 dark:text-slate-200">SuperAdmin</option>
               <option value="admin" className="bg-white dark:bg-[#131B2E] text-slate-800 dark:text-slate-200">Admin</option>
+              <option value="support" className="bg-white dark:bg-[#131B2E] text-slate-800 dark:text-slate-200">Support Team</option>
               <option value="teacher" className="bg-white dark:bg-[#131B2E] text-slate-800 dark:text-slate-200">Teacher</option>
               <option value="student" className="bg-white dark:bg-[#131B2E] text-slate-800 dark:text-slate-200">Student</option>
               <option value="unassigned" className="bg-white dark:bg-[#131B2E] text-slate-800 dark:text-slate-200">Unassigned / Pending</option>
@@ -551,6 +554,7 @@ function SuperAdminUsers() {
                   className="w-full bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
                 >
                   <option value="admin">Admin (School Owner)</option>
+                  <option value="support">Support Team Agent</option>
                   <option value="teacher">Teacher</option>
                   <option value="student">Student</option>
                   <option value="unassigned">Unassigned (Pending)</option>

@@ -9,6 +9,7 @@ import {
   FaGraduationCap,
   FaUserShield,
   FaComments,
+  FaHeadset,
   FaSun,
   FaMoon,
   FaUserCircle,
@@ -121,6 +122,7 @@ function SuperAdminLayout() {
     { to: "/superadmin/payments", icon: <FaMoneyBillWave className="text-xl" />, label: "Payments" },
     { to: "/superadmin/about", icon: <FaInfoCircle className="text-xl" />, label: "About / Config" },
     { to: "/superadmin/support", icon: <FaComments className="text-xl" />, label: "Support" },
+    { to: "/superadmin/support-team", icon: <FaHeadset className="text-xl" />, label: "Support Team" },
     { 
       to: "/superadmin/notifications", 
       icon: (

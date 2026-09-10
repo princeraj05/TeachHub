@@ -8,6 +8,7 @@ const SuperAdminDashboard = lazy(() => import("./SuperAdminDashboard"));
 const SuperAdminUsers = lazy(() => import("./SuperAdminUsers"));
 const SuperAdminSchools = lazy(() => import("./SuperAdminSchools"));
 const SuperAdminSupport = lazy(() => import("./SuperAdminSupport"));
+const SuperAdminSupportTeam = lazy(() => import("./SuperAdminSupportTeam"));
 const SuperAdminProfile = lazy(() => import("./SuperAdminProfile"));
 const SuperAdminEvents = lazy(() => import("./SuperAdminEvents"));
 const SuperAdminAboutApp = lazy(() => import("./SuperAdminAboutApp"));
@@ -32,6 +33,7 @@ function SuperAdminRoutes() {
         <Route path="users" element={<Suspense fallback={<PageLoader />}><SuperAdminUsers /></Suspense>} />
         <Route path="schools" element={<Suspense fallback={<PageLoader />}><SuperAdminSchools /></Suspense>} />
         <Route path="support" element={<Suspense fallback={<PageLoader />}><SuperAdminSupport /></Suspense>} />
+        <Route path="support-team" element={<Suspense fallback={<PageLoader />}><SuperAdminSupportTeam /></Suspense>} />
         <Route path="profile" element={<Suspense fallback={<PageLoader />}><SuperAdminProfile /></Suspense>} />
         <Route path="events" element={<Suspense fallback={<PageLoader />}><SuperAdminEvents /></Suspense>} />
         <Route path="about" element={<Suspense fallback={<PageLoader />}><SuperAdminAboutApp /></Suspense>} />
