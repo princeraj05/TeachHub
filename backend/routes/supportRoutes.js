@@ -9,7 +9,8 @@ const {
   addReaction, 
   deleteMessage, 
   getCallHistory,
-  getActiveCall
+  getActiveCall,
+  getSupportShowcase
 } = require("../controllers/supportController");
 const multer = require("multer");
 const path = require("path");
@@ -40,6 +41,9 @@ const upload = multer({
   fileFilter: fileFilter,
   limits: { fileSize: 50 * 1024 * 1024 }
 });
+
+// Public routes
+router.get("/showcase", getSupportShowcase);
 
 router.use(protect);
 

@@ -4,6 +4,7 @@ import { lazyWithRetry as lazy } from "../utils/lazyWithRetry";
 import { CallProvider } from "../context/CallContext";
 
 import Login from "../pages/auth/Login";
+import SupportLogin from "../pages/auth/SupportLogin";
 
 const PendingApproval = lazy(() => import("../pages/auth/PendingApproval"));
 const AdminRoutes = lazy(() => import("../pages/modules/admin/AdminRoutes"));
@@ -36,6 +37,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     if (role === "admin") return <Navigate to="/admin/dashboard" replace />;
     if (role === "teacher") return <Navigate to="/teacher/dashboard" replace />;
     if (role === "student") return <Navigate to="/student/dashboard" replace />;
+    if (role === "support") return <Navigate to="/support/dashboard" replace />;
     return <Navigate to="/pending" replace />;
   }
 
@@ -48,6 +50,7 @@ function MainRoutes() {
       <Routes>
         {/* Auth */}
         <Route path="/" element={<Login />} />
+        <Route path="/support/login" element={<SupportLogin />} />
         
         {/* Pending Approval */}
         <Route

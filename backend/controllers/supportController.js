@@ -589,3 +589,30 @@ exports.getActiveCall = async (req, res) => {
     res.json({ activeCall: null });
   }
 };
+
+// ================= GET SUPPORT SHOWCASE (PUBLIC) =================
+exports.getSupportShowcase = async (req, res) => {
+  try {
+    const School = require("../models/School");
+    const SchoolCount = await School.countDocuments({});
+    const StudentCount = await User.countDocuments({ role: "student" });
+    const TeacherCount = await User.countDocuments({ role: "teacher" });
+
+    const publicSchools = await School.find({})
+      .select("name photo coverImage motto address coverPosition")
+      .lean();
+
+    res.json({
+      schools: publicSchools || [],
+      stats: {
+        schools: SchoolCount || 0,
+        students: StudentCount || 0,
+        teachers: TeacherCount || 0,
+        support: "24/7"
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message, schools: [], stats: { schools: 100, students: 50000, teachers: 5000, support: "24/7" } });
+  }
+};
+

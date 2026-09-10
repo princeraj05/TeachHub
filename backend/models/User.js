@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["student", "teacher", "admin", "superadmin", "unassigned"],
+    enum: ["student", "teacher", "admin", "superadmin", "support", "unassigned"],
     default: "unassigned"
   },
   schoolName: {
@@ -58,7 +58,7 @@ const userSchema = new mongoose.Schema({
   },
   requestedRole: {
     type: String,
-    enum: ["student", "teacher", "admin", "superadmin", "unassigned", ""],
+    enum: ["student", "teacher", "admin", "superadmin", "support", "unassigned", ""],
     default: ""
   },
   requestStatus: {
