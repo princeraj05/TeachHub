@@ -1,7 +1,21 @@
 const express = require("express");
 const router = express.Router();
 const { protect, authorize } = require("../middleware/authMiddleware");
-const { getUsers, assignRole, getSchools, deleteUser, getDashboardStats, getSchoolsDetail, createSchool, updateSchool, deleteSchool } = require("../controllers/superAdminController");
+const { 
+  getUsers, 
+  assignRole, 
+  getSchools, 
+  deleteUser, 
+  getDashboardStats, 
+  getSchoolsDetail, 
+  createSchool, 
+  updateSchool, 
+  deleteSchool,
+  getSupportTeam,
+  createSupportAgent,
+  toggleSupportStatus,
+  revokeSupportRole
+} = require("../controllers/superAdminController");
 
 router.use(protect);
 router.use(authorize("superadmin"));
@@ -12,6 +26,12 @@ router.get("/schools", getSchools);
 router.delete("/users/:id", deleteUser);
 router.get("/dashboard-stats", getDashboardStats);
 router.get("/schools-detail", getSchoolsDetail);
+
+// Support Team Management Routes
+router.get("/support-team", getSupportTeam);
+router.post("/support-team/create", createSupportAgent);
+router.patch("/support-team/:id/status", toggleSupportStatus);
+router.delete("/support-team/:id", revokeSupportRole);
 
 router.post("/schools", createSchool);
 router.put("/schools/:id", updateSchool);

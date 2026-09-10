@@ -61,9 +61,9 @@ exports.getUsers = async (req, res) => {
 // POST /api/superadmin/assign-role
 exports.assignRole = async (req, res) => {
   try {
-    const { userId, role, schoolName } = req.body;
+    const { userId, role, schoolName, supportDepartment, supportShift } = req.body;
 
-    const allowedRoles = ["admin", "teacher", "student", "unassigned"];
+    const allowedRoles = ["admin", "teacher", "student", "support", "unassigned"];
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({ message: "Invalid role specified" });
     }
@@ -78,8 +78,14 @@ exports.assignRole = async (req, res) => {
     }
 
     user.role = role;
-    const assignedSchoolName = (role === "unassigned") ? "" : (schoolName || "").trim();
+    const assignedSchoolName = (role === "unassigned" || role === "support") ? "" : (schoolName || "").trim();
     user.schoolName = assignedSchoolName;
+
+    if (role === "support") {
+      if (supportDepartment) user.supportDepartment = supportDepartment;
+      if (supportShift) user.supportShift = supportShift;
+      user.supportStatus = "active";
+    }
 
     if (role !== "student") {
       user.classId = null; // Reset class if no longer a student
@@ -107,6 +113,9 @@ exports.assignRole = async (req, res) => {
         email: user.email,
         role: user.role,
         schoolName: user.schoolName,
+        supportDepartment: user.supportDepartment,
+        supportShift: user.supportShift,
+        supportStatus: user.supportStatus
       },
     });
   } catch (error) {
@@ -504,3 +513,143 @@ exports.deleteSchool = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// ================= SUPPORT TEAM MANAGEMENT =================
+
+// GET /api/superadmin/support-team
+exports.getSupportTeam = async (req, res) => {
+  try {
+    const agents = await User.find({
+      $or: [{ role: "support" }, { requestedRole: "support" }]
+    })
+      .select("-password")
+      .sort({ createdAt: -1 });
+
+    const mapped = agents.map((u, idx) => ({
+      _id: u._id,
+      name: u.name || "Support Agent",
+      email: u.email || "",
+      phone: u.phoneNumber || u.alternatePhone || "+91 98765 43210",
+      role: "support",
+      department: u.supportDepartment || (idx % 2 === 0 ? "Technical" : "Billing & SaaS"),
+      shift: u.supportShift || "Morning (09:00 - 17:00)",
+      status: u.supportStatus || (u.requestStatus === "rejected" ? "suspended" : "active"),
+      dutyState: u.isOnline ? "On Duty" : "Offline",
+      ticketsResolved: u.ticketsResolved || 0,
+      activeTickets: u.activeTickets || 0,
+      joinedDate: u.createdAt ? new Date(u.createdAt).toISOString().split("T")[0] : "2026-01-01",
+      avatar: u.avatar || ""
+    }));
+
+    res.json(mapped);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// POST /api/superadmin/support-team/create
+exports.createSupportAgent = async (req, res) => {
+  try {
+    const bcrypt = require("bcryptjs");
+    const { name, email, password, phone, department, shift } = req.body;
+
+    if (!name || !email) {
+      return res.status(400).json({ message: "Name and email are required" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User with this email already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password || "support123", 10);
+
+    const newAgent = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      phoneNumber: phone || "",
+      role: "support",
+      requestedRole: "support",
+      requestStatus: "approved",
+      supportDepartment: department || "Technical",
+      supportShift: shift || "Morning (09:00 - 17:00)",
+      supportStatus: "active",
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=7C3AED&color=fff`
+    });
+
+    res.status(201).json({
+      message: "Support Agent account created successfully",
+      agent: {
+        _id: newAgent._id,
+        name: newAgent.name,
+        email: newAgent.email,
+        phone: newAgent.phoneNumber,
+        role: "support",
+        department: newAgent.supportDepartment,
+        shift: newAgent.supportShift,
+        status: newAgent.supportStatus,
+        dutyState: "Offline",
+        ticketsResolved: 0,
+        activeTickets: 0,
+        joinedDate: new Date(newAgent.createdAt).toISOString().split("T")[0],
+        avatar: newAgent.avatar
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// PATCH /api/superadmin/support-team/:id/status
+exports.toggleSupportStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, department, shift } = req.body;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "Support member not found" });
+    }
+
+    if (status) user.supportStatus = status;
+    if (department) user.supportDepartment = department;
+    if (shift) user.supportShift = shift;
+
+    await user.save();
+
+    res.json({
+      message: "Support agent updated successfully",
+      user: {
+        _id: user._id,
+        name: user.name,
+        status: user.supportStatus,
+        department: user.supportDepartment,
+        shift: user.supportShift
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// DELETE /api/superadmin/support-team/:id
+exports.revokeSupportRole = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.role = "unassigned";
+    user.requestedRole = "";
+    user.supportStatus = "off_duty";
+    await user.save();
+
+    res.json({ message: "Support role revoked successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

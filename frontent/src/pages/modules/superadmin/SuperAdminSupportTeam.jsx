@@ -97,7 +97,11 @@ function SuperAdminSupportTeam() {
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const realOnly = parsed.filter(a => !["sup_1", "sup_2", "sup_3", "sup_4"].includes(a._id));
+          if (realOnly.length > 0) return realOnly;
+          return parsed;
+        }
       } catch (e) {}
     }
     return defaultSupportAgents;
@@ -140,32 +144,42 @@ function SuperAdminSupportTeam() {
   const fetchSupportAgents = async () => {
     try {
       setSyncing(true);
-      const res = await axios.get(`${API}/api/superadmin/users`, {
-        params: { role: "support" },
+      const res = await axios.get(`${API}/api/superadmin/support-team`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const data = Array.isArray(res.data) ? res.data : (res.data?.users || []);
+      const data = Array.isArray(res.data) ? res.data : [];
       if (data.length > 0) {
-        const mapped = data.map((u, idx) => ({
-          _id: u._id,
-          name: u.name || "Support Agent",
-          email: u.email || "",
-          phone: u.phone || "+91 90000 00000",
-          role: "support",
-          department: u.supportDepartment || (idx % 2 === 0 ? "Technical" : "Billing & SaaS"),
-          shift: u.supportShift || "Morning (09:00 - 17:00)",
-          status: u.requestStatus === "rejected" ? "suspended" : "active",
-          dutyState: u.isOnline ? "On Duty" : "Offline",
-          ticketsResolved: u.ticketsResolved || Math.floor(Math.random() * 150) + 20,
-          activeTickets: u.activeTickets || Math.floor(Math.random() * 8) + 1,
-          joinedDate: u.createdAt ? new Date(u.createdAt).toISOString().split("T")[0] : "2026-01-10",
-          avatar: u.avatar || u.photo || u.profilePhoto || defaultSupportAgents[idx % defaultSupportAgents.length].avatar
-        }));
-        setAgents(mapped);
-        localStorage.setItem("cached_superadmin_support_agents", JSON.stringify(mapped));
+        setAgents(data);
+        localStorage.setItem("cached_superadmin_support_agents", JSON.stringify(data));
+      } else {
+        // Fallback to role search if support-team endpoint returns empty
+        const userRes = await axios.get(`${API}/api/superadmin/users`, {
+          params: { role: "support" },
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const users = Array.isArray(userRes.data) ? userRes.data : (userRes.data?.users || []);
+        if (users.length > 0) {
+          const mapped = users.map((u, idx) => ({
+            _id: u._id,
+            name: u.name || "Support Agent",
+            email: u.email || "",
+            phone: u.phoneNumber || u.phone || "+91 98765 43210",
+            role: "support",
+            department: u.supportDepartment || (idx % 2 === 0 ? "Technical" : "Billing & SaaS"),
+            shift: u.supportShift || "Morning (09:00 - 17:00)",
+            status: u.supportStatus || (u.requestStatus === "rejected" ? "suspended" : "active"),
+            dutyState: u.isOnline ? "On Duty" : "Offline",
+            ticketsResolved: u.ticketsResolved || 0,
+            activeTickets: u.activeTickets || 0,
+            joinedDate: u.createdAt ? new Date(u.createdAt).toISOString().split("T")[0] : "2026-01-01",
+            avatar: u.avatar || ""
+          }));
+          setAgents(mapped);
+          localStorage.setItem("cached_superadmin_support_agents", JSON.stringify(mapped));
+        }
       }
     } catch (err) {
-      console.log("Using cached/fallback support agents data");
+      console.log("Error fetching support team data from backend");
     } finally {
       setSyncing(false);
     }
@@ -232,46 +246,47 @@ function SuperAdminSupportTeam() {
       return;
     }
 
-    const newAgent = {
-      _id: selectedUserToPromote._id,
-      name: selectedUserToPromote.name || "Support Member",
-      email: selectedUserToPromote.email,
-      phone: selectedUserToPromote.phone || "+91 99999 88888",
-      role: "support",
-      department: formData.department,
-      shift: formData.shift,
-      status: "active",
-      dutyState: "On Duty",
-      ticketsResolved: 0,
-      activeTickets: 0,
-      joinedDate: new Date().toISOString().split("T")[0],
-      avatar: selectedUserToPromote.avatar || selectedUserToPromote.photo || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200"
-    };
-
-    const updated = [newAgent, ...agents.filter((a) => a._id !== newAgent._id)];
-    setAgents(updated);
-    localStorage.setItem("cached_superadmin_support_agents", JSON.stringify(updated));
-
-    // Reset Form
-    setIsAddModalOpen(false);
-    setSelectedUserToPromote(null);
-    setUserQuery("");
-    setSuccess(`Successfully promoted ${newAgent.name} to Support Team!`);
-    setTimeout(() => setSuccess(""), 4000);
-
-    // Call API backend
     try {
-      await axios.post(
+      const res = await axios.post(
         `${API}/api/superadmin/assign-role`,
         {
           userId: selectedUserToPromote._id,
           role: "support",
-          supportDepartment: formData.department
+          supportDepartment: formData.department,
+          supportShift: formData.shift
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      const updatedUser = res.data?.user || selectedUserToPromote;
+      const newAgent = {
+        _id: updatedUser._id,
+        name: updatedUser.name || "Support Member",
+        email: updatedUser.email,
+        phone: updatedUser.phoneNumber || "+91 99999 88888",
+        role: "support",
+        department: formData.department,
+        shift: formData.shift,
+        status: "active",
+        dutyState: "Offline",
+        ticketsResolved: 0,
+        activeTickets: 0,
+        joinedDate: new Date().toISOString().split("T")[0],
+        avatar: updatedUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(updatedUser.name || "Support")}&background=7C3AED&color=fff`
+      };
+
+      const updated = [newAgent, ...agents.filter((a) => a._id !== newAgent._id)];
+      setAgents(updated);
+      localStorage.setItem("cached_superadmin_support_agents", JSON.stringify(updated));
+
+      setIsAddModalOpen(false);
+      setSelectedUserToPromote(null);
+      setUserQuery("");
+      setSuccess(`Successfully promoted ${newAgent.name} to Support Team!`);
+      setTimeout(() => setSuccess(""), 4000);
+      fetchSupportAgents();
     } catch (err) {
-      console.log("Backend assign-role logged");
+      setError(err.response?.data?.message || "Failed to promote user to support team.");
     }
   };
 
@@ -283,67 +298,96 @@ function SuperAdminSupportTeam() {
       return;
     }
 
-    const newAgent = {
-      _id: "sup_" + Date.now(),
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone || "+91 98888 77777",
-      role: "support",
-      department: formData.department,
-      shift: formData.shift,
-      status: "active",
-      dutyState: "On Duty",
-      ticketsResolved: 0,
-      activeTickets: 0,
-      joinedDate: new Date().toISOString().split("T")[0],
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=7C3AED&color=fff`
-    };
+    try {
+      const res = await axios.post(
+        `${API}/api/superadmin/support-team/create`,
+        formData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    const updated = [newAgent, ...agents];
-    setAgents(updated);
-    localStorage.setItem("cached_superadmin_support_agents", JSON.stringify(updated));
+      const created = res.data?.agent || {
+        _id: "sup_" + Date.now(),
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || "+91 98888 77777",
+        role: "support",
+        department: formData.department,
+        shift: formData.shift,
+        status: "active",
+        dutyState: "Offline",
+        ticketsResolved: 0,
+        activeTickets: 0,
+        joinedDate: new Date().toISOString().split("T")[0],
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=7C3AED&color=fff`
+      };
 
-    setIsAddModalOpen(false);
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      password: "",
-      department: "Technical",
-      shift: "Morning (09:00 - 17:00)"
-    });
-    setSuccess(`Support Agent account created for ${newAgent.name}!`);
-    setTimeout(() => setSuccess(""), 4000);
+      const updated = [created, ...agents];
+      setAgents(updated);
+      localStorage.setItem("cached_superadmin_support_agents", JSON.stringify(updated));
+
+      setIsAddModalOpen(false);
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+        department: "Technical",
+        shift: "Morning (09:00 - 17:00)"
+      });
+      setSuccess(`Support Agent account created for ${created.name}!`);
+      setTimeout(() => setSuccess(""), 4000);
+      fetchSupportAgents();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to create support agent account.");
+    }
   };
 
   // Handle Toggle Suspend / Activate
-  const handleToggleStatus = (agentId) => {
-    const updated = agents.map((a) => {
-      if (a._id === agentId) {
-        const nextStatus = a.status === "active" ? "suspended" : "active";
-        return { ...a, status: nextStatus, dutyState: nextStatus === "suspended" ? "Offline" : a.dutyState };
-      }
-      return a;
-    });
+  const handleToggleStatus = async (agentId) => {
+    const targetAgent = agents.find((a) => a._id === agentId);
+    if (!targetAgent) return;
+
+    const nextStatus = targetAgent.status === "active" ? "suspended" : "active";
+
+    const updated = agents.map((a) =>
+      a._id === agentId ? { ...a, status: nextStatus, dutyState: nextStatus === "suspended" ? "Offline" : a.dutyState } : a
+    );
     setAgents(updated);
     localStorage.setItem("cached_superadmin_support_agents", JSON.stringify(updated));
-    setSuccess("Support Agent status updated!");
+
+    try {
+      await axios.patch(
+        `${API}/api/superadmin/support-team/${agentId}/status`,
+        { status: nextStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSuccess("Support Agent status updated!");
+    } catch (err) {
+      console.log("Status updated locally");
+    }
     setTimeout(() => setSuccess(""), 3000);
   };
 
   // Handle Revoke Support Role
-  const handleRevokeRole = () => {
+  const handleRevokeRole = async () => {
     if (!deleteAgentId) return;
+
     const updated = agents.filter((a) => a._id !== deleteAgentId);
     setAgents(updated);
     localStorage.setItem("cached_superadmin_support_agents", JSON.stringify(updated));
 
-    // Call Backend API to set role back to unassigned
-    axios.post(
-      `${API}/api/superadmin/assign-role`,
-      { userId: deleteAgentId, role: "unassigned" },
-      { headers: { Authorization: `Bearer ${token}` } }
-    ).catch(() => {});
+    try {
+      await axios.delete(
+        `${API}/api/superadmin/support-team/${deleteAgentId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (err) {
+      await axios.post(
+        `${API}/api/superadmin/assign-role`,
+        { userId: deleteAgentId, role: "unassigned" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      ).catch(() => {});
+    }
 
     setDeleteAgentId(null);
     setSuccess("Support Team role revoked successfully.");
