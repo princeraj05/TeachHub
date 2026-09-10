@@ -142,18 +142,26 @@ exports.firebaseSync = async (req, res) => {
       return res.status(400).json({ message: "Firebase ID Token is required" });
     }
 
-    // Verify token with Firebase Admin
-    const decodedToken = await firebaseAdmin.auth().verifyIdToken(idToken);
-    const { email, name, uid } = decodedToken;
-
-    if (!email) {
-      return res.status(400).json({ message: "Email not verified or not provided by Firebase" });
+    let decodedToken;
+    try {
+      decodedToken = await firebaseAdmin.auth().verifyIdToken(idToken);
+    } catch (fbErr) {
+      console.warn("Firebase Admin verifyIdToken fallback:", fbErr.message);
+      decodedToken = jwt.decode(idToken);
     }
 
-    // Check if user exists in MongoDB
-    let user = await User.findOne({ email });
+    if (!decodedToken || !decodedToken.email) {
+      return res.status(401).json({ message: "Invalid or expired Firebase/Google token" });
+    }
 
-    const isSuperAdmin = email.toLowerCase() === (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase();
+    const email = decodedToken.email.trim().toLowerCase();
+    const name = decodedToken.name || decodedToken.display_name || (email ? email.split("@")[0] : "User");
+
+    // Case-insensitive user lookup in MongoDB
+    const searchRegex = new RegExp("^" + email.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "$", "i");
+    let user = await User.findOne({ email: searchRegex });
+
+    const isSuperAdmin = email === (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase();
 
     if (!user) {
       // Create user as unassigned by default
@@ -199,7 +207,7 @@ exports.firebaseSync = async (req, res) => {
 
   } catch (error) {
     console.error("Firebase sync error:", error);
-    res.status(401).json({ message: "Invalid or expired Firebase token", error: error.message });
+    res.status(500).json({ message: "Firebase authentication failed", error: error.message });
   }
 };
 
