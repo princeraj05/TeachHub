@@ -24,69 +24,6 @@ import {
   FaBuilding
 } from "react-icons/fa";
 
-const defaultSupportAgents = [
-  {
-    _id: "sup_1",
-    name: "Aavani Raj",
-    email: "aavani.support@teachhub.com",
-    phone: "+91 98765 43210",
-    role: "support",
-    department: "Technical",
-    shift: "Morning (09:00 - 17:00)",
-    status: "active",
-    dutyState: "On Duty",
-    ticketsResolved: 142,
-    activeTickets: 5,
-    joinedDate: "2026-01-15",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200"
-  },
-  {
-    _id: "sup_2",
-    name: "Vikram Malhotra",
-    email: "vikram.m@teachhub.com",
-    phone: "+91 91234 56789",
-    role: "support",
-    department: "Billing & SaaS",
-    shift: "Evening (14:00 - 22:00)",
-    status: "active",
-    dutyState: "On Duty",
-    ticketsResolved: 98,
-    activeTickets: 3,
-    joinedDate: "2026-02-01",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200"
-  },
-  {
-    _id: "sup_3",
-    name: "Sneha Sharma",
-    email: "sneha.support@teachhub.com",
-    phone: "+91 98111 22334",
-    role: "support",
-    department: "Account Onboarding",
-    shift: "Flexible",
-    status: "active",
-    dutyState: "Away",
-    ticketsResolved: 215,
-    activeTickets: 8,
-    joinedDate: "2025-11-20",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200"
-  },
-  {
-    _id: "sup_4",
-    name: "Rohan Verma",
-    email: "rohan.v@teachhub.com",
-    phone: "+91 97777 88899",
-    role: "support",
-    department: "Escalation",
-    shift: "Night (22:00 - 06:00)",
-    status: "active",
-    dutyState: "Offline",
-    ticketsResolved: 86,
-    activeTickets: 2,
-    joinedDate: "2026-03-05",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200"
-  }
-];
-
 function SuperAdminSupportTeam() {
   const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
   const token = localStorage.getItem("token");
@@ -97,14 +34,13 @@ function SuperAdminSupportTeam() {
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const realOnly = parsed.filter(a => !["sup_1", "sup_2", "sup_3", "sup_4"].includes(a._id));
-          if (realOnly.length > 0) return realOnly;
-          return parsed;
+        if (Array.isArray(parsed)) {
+          const realOnly = parsed.filter(a => !["sup_1", "sup_2", "sup_3", "sup_4"].includes(a._id) && !a._id.startsWith("sup_"));
+          return realOnly;
         }
       } catch (e) {}
     }
-    return defaultSupportAgents;
+    return [];
   });
 
   const [allUsers, setAllUsers] = useState([]);
@@ -148,9 +84,11 @@ function SuperAdminSupportTeam() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = Array.isArray(res.data) ? res.data : [];
-      if (data.length > 0) {
-        setAgents(data);
-        localStorage.setItem("cached_superadmin_support_agents", JSON.stringify(data));
+      const realData = data.filter(a => !["sup_1", "sup_2", "sup_3", "sup_4"].includes(a._id) && !a._id.startsWith("sup_"));
+      
+      if (realData.length > 0) {
+        setAgents(realData);
+        localStorage.setItem("cached_superadmin_support_agents", JSON.stringify(realData));
       } else {
         // Fallback to role search if support-team endpoint returns empty
         const userRes = await axios.get(`${API}/api/superadmin/users`, {
@@ -158,16 +96,17 @@ function SuperAdminSupportTeam() {
           headers: { Authorization: `Bearer ${token}` }
         });
         const users = Array.isArray(userRes.data) ? userRes.data : (userRes.data?.users || []);
-        if (users.length > 0) {
-          const mapped = users.map((u, idx) => ({
+        const realUsers = users.filter(u => u.role === "support");
+        if (realUsers.length > 0) {
+          const mapped = realUsers.map((u, idx) => ({
             _id: u._id,
             name: u.name || "Support Agent",
             email: u.email || "",
-            phone: u.phoneNumber || u.phone || "+91 98765 43210",
+            phone: u.phoneNumber || u.phone || "",
             role: "support",
-            department: u.supportDepartment || (idx % 2 === 0 ? "Technical" : "Billing & SaaS"),
+            department: u.supportDepartment || "Technical",
             shift: u.supportShift || "Morning (09:00 - 17:00)",
-            status: u.supportStatus || (u.requestStatus === "rejected" ? "suspended" : "active"),
+            status: u.supportStatus || "active",
             dutyState: u.isOnline ? "On Duty" : "Offline",
             ticketsResolved: u.ticketsResolved || 0,
             activeTickets: u.activeTickets || 0,
@@ -176,6 +115,9 @@ function SuperAdminSupportTeam() {
           }));
           setAgents(mapped);
           localStorage.setItem("cached_superadmin_support_agents", JSON.stringify(mapped));
+        } else {
+          setAgents([]);
+          localStorage.setItem("cached_superadmin_support_agents", JSON.stringify([]));
         }
       }
     } catch (err) {
