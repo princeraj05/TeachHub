@@ -594,12 +594,32 @@ exports.getActiveCall = async (req, res) => {
 exports.getSupportShowcase = async (req, res) => {
   try {
     const School = require("../models/School");
+    
+    // Sync any user's schoolName to School collection if missing
+    const userSchools = await User.distinct("schoolName", { schoolName: { $ne: "", $exists: true } });
+    for (const rawName of userSchools) {
+      if (!rawName || !rawName.trim()) continue;
+      const trimmed = rawName.trim();
+      const normalized = trimmed.toLowerCase().replace(/\s+/g, " ");
+      const exists = await School.findOne({ normalizedName: normalized });
+      if (!exists) {
+        const adminUser = await User.findOne({ schoolName: trimmed, role: "admin" });
+        await School.create({
+          name: trimmed,
+          normalizedName: normalized,
+          adminId: adminUser ? adminUser._id : null,
+          email: adminUser ? adminUser.email : null,
+          status: "Active"
+        });
+      }
+    }
+
     const SchoolCount = await School.countDocuments({});
     const StudentCount = await User.countDocuments({ role: "student" });
     const TeacherCount = await User.countDocuments({ role: "teacher" });
 
     const publicSchools = await School.find({})
-      .select("name photo coverImage motto address coverPosition")
+      .select("name photo coverImage motto address coverPosition description")
       .lean();
 
     res.json({
@@ -612,7 +632,11 @@ exports.getSupportShowcase = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: error.message, schools: [], stats: { schools: 100, students: 50000, teachers: 5000, support: "24/7" } });
+    res.status(500).json({ 
+      message: error.message, 
+      schools: [], 
+      stats: { schools: 0, students: 0, teachers: 0, support: "24/7" } 
+    });
   }
 };
 

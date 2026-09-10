@@ -22,35 +22,11 @@ import { Capacitor } from "@capacitor/core";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import API_URL from "../../config/api";
 
-const DEFAULT_SCHOOL_BANNERS = [
-  {
-    name: "G.D Academy",
-    motto: "Learn • Grow • Succeed",
-    location: "Siwan, Bihar",
-    photo: "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80",
-    coverImage: "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80"
-  },
-  {
-    name: "St. Xavier Public School",
-    motto: "Excellence in Education",
-    location: "Patna, Bihar",
-    photo: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80",
-    coverImage: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80"
-  },
-  {
-    name: "Delhi Public School",
-    motto: "Service Before Self",
-    location: "New Delhi",
-    photo: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80",
-    coverImage: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80"
-  },
-  {
-    name: "Central Modern School",
-    motto: "Knowledge is Power",
-    location: "Kolkata, West Bengal",
-    photo: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80",
-    coverImage: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80"
-  }
+const DEFAULT_BACKGROUND_IMAGES = [
+  "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80"
 ];
 
 export default function SupportLogin() {
@@ -66,26 +42,35 @@ export default function SupportLogin() {
   const [cooldown, setCooldown] = useState(0);
 
   // Live stats & school showcase state
-  const [liveStats, setLiveStats] = useState({ schools: 100, students: 50000, teachers: 5000, support: "24/7" });
+  const [liveStats, setLiveStats] = useState({ schools: 0, students: 0, teachers: 0, support: "24/7" });
   const [publicSchools, setPublicSchools] = useState([]);
   const [currentBannerIdx, setCurrentBannerIdx] = useState(0);
 
-  // Fetch showcase info from backend
+  // Fetch real showcase & school info from backend
   useEffect(() => {
     const fetchShowcaseData = async () => {
       try {
-        const res = await axios.get(`${API}/api/support/showcase`);
-        if (res.data) {
+        let res;
+        try {
+          res = await axios.get(`${API}/api/support/showcase`);
+        } catch (e) {
+          // Fallback to about-app endpoint if support showcase endpoint is not available yet
+          res = await axios.get(`${API}/api/about-app`);
+        }
+
+        if (res?.data) {
           if (res.data.stats) {
             setLiveStats({
-              schools: res.data.stats.schools || 100,
-              students: res.data.stats.students || 50000,
-              teachers: res.data.stats.teachers || 5000,
-              support: res.data.stats.support || "24/7"
+              schools: res.data.stats.schools || 0,
+              students: res.data.stats.students || 0,
+              teachers: res.data.stats.teachers || 0,
+              support: "24/7"
             });
           }
-          if (res.data.schools && Array.isArray(res.data.schools) && res.data.schools.length > 0) {
-            setPublicSchools(res.data.schools);
+
+          const schoolList = res.data.schools || res.data.publicSchools || [];
+          if (Array.isArray(schoolList) && schoolList.length > 0) {
+            setPublicSchools(schoolList);
           }
         }
       } catch (err) {
@@ -115,18 +100,24 @@ export default function SupportLogin() {
     return `${cleanBase}/${url}`;
   };
 
-  // Process banner list
+  // Process real banner list from database
   const bannersList = useMemo(() => {
     if (publicSchools.length > 0) {
       return publicSchools.map((s, idx) => ({
         name: s.name || `School ${idx + 1}`,
         motto: s.motto || "Learn • Grow • Succeed",
-        location: s.address || DEFAULT_SCHOOL_BANNERS[idx % DEFAULT_SCHOOL_BANNERS.length].location,
-        photo: getMediaUrl(s.photo) || DEFAULT_SCHOOL_BANNERS[idx % DEFAULT_SCHOOL_BANNERS.length].photo,
-        coverImage: getMediaUrl(s.coverImage) || getMediaUrl(s.photo) || DEFAULT_SCHOOL_BANNERS[idx % DEFAULT_SCHOOL_BANNERS.length].coverImage
+        location: s.address || "India",
+        photo: getMediaUrl(s.photo),
+        coverImage: getMediaUrl(s.coverImage) || getMediaUrl(s.photo) || DEFAULT_BACKGROUND_IMAGES[idx % DEFAULT_BACKGROUND_IMAGES.length]
       }));
     }
-    return DEFAULT_SCHOOL_BANNERS;
+    return [{
+      name: "TeachHub School Management",
+      motto: "A Secure & Unified Platform for Modern Education",
+      location: "India",
+      photo: "",
+      coverImage: DEFAULT_BACKGROUND_IMAGES[0]
+    }];
   }, [publicSchools]);
 
   // Auto carousel effect (every 5 seconds)
