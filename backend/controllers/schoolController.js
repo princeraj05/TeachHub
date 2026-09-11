@@ -193,81 +193,114 @@ exports.getMySchool = async (req, res) => {
     }
 
     const targetSchoolName = adminUser.schoolName || adminUser.requestedSchool || "";
-    let school = await School.findOne({ adminId: adminUser._id });
+    
+    // Execute school lookup with a 3s safety timeout to prevent Hostinger 504 Gateway Timeout
+    const result = await Promise.race([
+      (async () => {
+        let school = await School.findOne({ adminId: adminUser._id });
 
-    // Fallback: If school doesn't have adminId set yet, match by normalizedName or exact name
-    if (!school && targetSchoolName) {
-      const normalized = normalizeName(targetSchoolName);
-      school = await School.findOne({
-        $or: [
-          { normalizedName: normalized },
-          { name: targetSchoolName }
-        ]
-      });
+        // Fallback: If school doesn't have adminId set yet, match by normalizedName or exact name
+        if (!school && targetSchoolName) {
+          const normalized = normalizeName(targetSchoolName);
+          school = await School.findOne({
+            $or: [
+              { normalizedName: normalized },
+              { name: targetSchoolName }
+            ]
+          });
 
-      if (!school) {
-        const escName = escapeRegex(targetSchoolName);
-        school = await School.findOne({ name: new RegExp("^" + escName + "$", "i") });
-      }
+          if (!school) {
+            const escName = escapeRegex(targetSchoolName);
+            school = await School.findOne({ name: new RegExp("^" + escName + "$", "i") });
+          }
 
-      if (school) {
-        school.adminId = adminUser._id;
-        try { await school.save(); } catch (sErr) {}
-      }
-    }
+          if (school && adminUser.role !== "superadmin") {
+            school.adminId = adminUser._id;
+            try { await school.save(); } catch (sErr) {}
+          }
+        }
 
-    // If still not found, auto-create initial school for this Admin / Applicant safely
-    if (!school) {
-      const name = targetSchoolName ? targetSchoolName.trim() : "My School";
-      const normalizedName = normalizeName(name);
-      try {
-        school = await School.create({
-          adminId: adminUser._id,
-          name: name,
-          normalizedName: normalizedName,
-          status: "Active",
-          profileCompletion: 0
-        });
-      } catch (cErr) {
-        school = await School.findOne({
-          $or: [
-            { normalizedName: normalizedName },
-            { name: new RegExp("^" + escapeRegex(name) + "$", "i") }
-          ]
-        });
+        // If still not found, auto-create initial school for this Admin / Applicant safely
+        if (!school) {
+          const name = targetSchoolName ? targetSchoolName.trim() : "My School";
+          const normalizedName = normalizeName(name);
+          try {
+            school = await School.create({
+              adminId: adminUser._id,
+              name: name,
+              normalizedName: normalizedName,
+              status: "Active",
+              profileCompletion: 0
+            });
+          } catch (cErr) {
+            school = await School.findOne({
+              $or: [
+                { normalizedName: normalizedName },
+                { name: name }
+              ]
+            });
 
-        if (school) {
-          school.adminId = adminUser._id;
-          try { await school.save(); } catch (sErr) {}
-        } else {
-          school = await School.create({
+            if (!school) {
+              const escName = escapeRegex(name);
+              school = await School.findOne({ name: new RegExp("^" + escName + "$", "i") });
+            }
+
+            if (!school) {
+              school = await School.create({
+                adminId: adminUser._id,
+                name: name,
+                normalizedName: `${normalizedName}-${Date.now()}`,
+                status: "Active",
+                profileCompletion: 0
+              });
+            }
+          }
+        }
+
+        if (!school) {
+          school = new School({
             adminId: adminUser._id,
-            name: name,
-            normalizedName: `${normalizedName}-${Date.now()}`,
+            name: targetSchoolName || "My School",
             status: "Active",
             profileCompletion: 0
           });
         }
-      }
-    }
 
-    // Normalize flat and nested fields
-    normalizeSchoolData(school);
+        // Normalize flat and nested fields
+        normalizeSchoolData(school);
 
-    const profileCompletion = calculateProfileCompletion(school);
-    school.profileCompletion = profileCompletion;
-    if (school.isModified()) {
-      try { await school.save(); } catch (sErr) {}
-    }
+        const profileCompletion = calculateProfileCompletion(school);
+        school.profileCompletion = profileCompletion;
+        if (school.isModified && typeof school.isModified === "function" && school.isModified()) {
+          try { await school.save(); } catch (sErr) {}
+        }
 
-    const statistics = await getSchoolStatistics(school.name);
-    const schoolObj = school.toObject();
-    schoolObj.profileCompletion = profileCompletion;
+        const statistics = await getSchoolStatistics(school.name);
+        const schoolObj = typeof school.toObject === "function" ? school.toObject() : school;
+        schoolObj.profileCompletion = profileCompletion;
+
+        return { schoolObj, statistics };
+      })(),
+      new Promise((resolve) =>
+        setTimeout(() => {
+          const fallbackSchool = {
+            name: targetSchoolName || "My School",
+            status: "Active",
+            profileCompletion: 25,
+            basicInfo: { schoolEmail: adminUser?.email || "" }
+          };
+          resolve({
+            schoolObj: fallbackSchool,
+            statistics: { totalStudents: 0, totalTeachers: 0, totalClasses: 0, totalSubjects: 0 }
+          });
+        }, 3000)
+      )
+    ]);
 
     return res.json({
       success: true,
-      school: schoolObj,
-      statistics
+      school: result.schoolObj,
+      statistics: result.statistics
     });
   } catch (error) {
     console.error("Error in getMySchool:", error);

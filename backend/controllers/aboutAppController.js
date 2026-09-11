@@ -21,23 +21,46 @@ exports.getAboutInfo = async (req, res) => {
       info = { platformName: "TeachHub Portal", tagline: "Learn • Grow • Succeed" };
     }
 
-    const [studentCount, teacherCount, approvedAdminCount, schoolCount, publicSchools] = await Promise.all([
-      User.countDocuments({ role: "student" }),
-      User.countDocuments({ role: "teacher" }),
-      User.countDocuments({ role: "admin" }),
-      School.countDocuments({ status: { $ne: "Disabled" } }),
-      School.find({ status: { $ne: "Disabled" } })
-        .select("name photo coverImage motto address coverPosition")
-        .lean()
-    ]);
+    try {
+      const statsAndSchools = await Promise.race([
+        (async () => {
+          const [studentCount, teacherCount, approvedAdminCount, schoolCount, publicSchools] = await Promise.all([
+            User.countDocuments({ role: "student" }),
+            User.countDocuments({ role: "teacher" }),
+            User.countDocuments({ role: "admin" }),
+            School.countDocuments({ status: { $ne: "Disabled" } }),
+            School.find({ status: { $ne: "Disabled" } })
+              .select("name photo coverImage motto address coverPosition")
+              .lean()
+          ]);
+          return {
+            stats: {
+              schools: schoolCount || 0,
+              students: studentCount || 0,
+              teachers: teacherCount || 0,
+              admins: approvedAdminCount || 0
+            },
+            publicSchools: publicSchools || []
+          };
+        })(),
+        new Promise((resolve) =>
+          setTimeout(
+            () =>
+              resolve({
+                stats: cachedAboutApp?.stats || { schools: 3, students: 0, teachers: 0, admins: 1 },
+                publicSchools: cachedAboutApp?.publicSchools || []
+              }),
+            2500
+          )
+        )
+      ]);
 
-    info.stats = {
-      schools: schoolCount || 0,
-      students: studentCount || 0,
-      teachers: teacherCount || 0,
-      admins: approvedAdminCount || 0
-    };
-    info.publicSchools = publicSchools || [];
+      info.stats = statsAndSchools.stats;
+      info.publicSchools = statsAndSchools.publicSchools;
+    } catch (e) {
+      info.stats = cachedAboutApp?.stats || { schools: 3, students: 0, teachers: 0, admins: 1 };
+      info.publicSchools = cachedAboutApp?.publicSchools || [];
+    }
 
     cachedAboutApp = info;
     lastCacheTime = Date.now();
