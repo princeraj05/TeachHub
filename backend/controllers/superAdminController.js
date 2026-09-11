@@ -82,53 +82,61 @@ exports.getUsers = async (req, res) => {
     const School = require("../models/School");
     const PaymentSettings = require("../models/PaymentSettings");
 
-    const enrichedUsers = await Promise.all(
-      users.map(async (u) => {
-        const uObj = u.toObject();
-        const schoolName = (uObj.requestedSchool || uObj.schoolName || "").trim();
+    const [allSchools, allPaymentSettings] = await Promise.all([
+      School.find().lean(),
+      PaymentSettings.find().lean()
+    ]);
 
-        const profileCompleted = Boolean(
-          uObj.name && uObj.name.trim() &&
-          uObj.phoneNumber && uObj.phoneNumber.trim() &&
-          uObj.address && uObj.address.trim()
-        );
+    const schoolMapByAdmin = new Map();
+    const schoolMapByName = new Map();
+    for (const s of allSchools) {
+      if (s.adminId) schoolMapByAdmin.set(s.adminId.toString(), s);
+      if (s.name) schoolMapByName.set(s.name.trim().toLowerCase(), s);
+    }
 
-        let schoolCompleted = false;
-        if (schoolName) {
-          const school = await School.findOne({
-            $or: [
-              { adminId: uObj._id },
-              { name: new RegExp("^" + schoolName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "$", "i") }
-            ]
-          });
-          if (school && (school.code || school.establishedYear || school.contactPhone || school.description || school.logo || school.photo)) {
-            schoolCompleted = true;
-          }
+    const payMapByUser = new Map();
+    const payMapBySchool = new Map();
+    for (const p of allPaymentSettings) {
+      if (p.userId) payMapByUser.set(p.userId.toString(), p);
+      if (p.schoolName) payMapBySchool.set(p.schoolName.trim().toLowerCase(), p);
+    }
+
+    const enrichedUsers = users.map((u) => {
+      const uObj = u.toObject();
+      const sName = (uObj.requestedSchool || uObj.schoolName || "").trim();
+      const sNorm = sName.toLowerCase();
+
+      const profileCompleted = Boolean(
+        uObj.name && uObj.name.trim() &&
+        uObj.phoneNumber && uObj.phoneNumber.trim() &&
+        uObj.address && uObj.address.trim()
+      );
+
+      let schoolCompleted = false;
+      if (sName) {
+        const school = schoolMapByAdmin.get(uObj._id.toString()) || schoolMapByName.get(sNorm);
+        if (school && (school.code || school.establishedYear || school.contactPhone || school.description || school.logo || school.photo)) {
+          schoolCompleted = true;
         }
+      }
 
-        let paymentCompleted = false;
-        if (schoolName) {
-          const paymentSettings = await PaymentSettings.findOne({
-            $or: [
-              { userId: uObj._id },
-              { schoolName: new RegExp("^" + schoolName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "$", "i") }
-            ]
-          });
-          if (paymentSettings && (paymentSettings.upiId || paymentSettings.razorpayKeyId || paymentSettings.bankAccountNumber || paymentSettings.qrCodeUrl)) {
-            paymentCompleted = true;
-          }
+      let paymentCompleted = false;
+      if (sName) {
+        const pay = payMapByUser.get(uObj._id.toString()) || payMapBySchool.get(sNorm);
+        if (pay && (pay.upiId || pay.razorpayKeyId || pay.bankAccountNumber || pay.qrCodeUrl)) {
+          paymentCompleted = true;
         }
+      }
 
-        uObj.onboardingProgress = {
-          profileCompleted,
-          schoolCompleted,
-          paymentCompleted,
-          isSubmitted: Boolean(uObj.isSubmittedToSuperAdmin)
-        };
+      uObj.onboardingProgress = {
+        profileCompleted,
+        schoolCompleted,
+        paymentCompleted,
+        isSubmitted: Boolean(uObj.isSubmittedToSuperAdmin)
+      };
 
-        return uObj;
-      })
-    );
+      return uObj;
+    });
 
     res.json(enrichedUsers);
   } catch (error) {
