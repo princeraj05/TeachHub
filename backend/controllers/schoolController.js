@@ -90,7 +90,7 @@ const calculateProfileCompletion = (s) => {
   return filledCount * 25;
 };
 
-// Helper to fetch dynamic real counts from DB collections with 60-second in-memory caching and 3s safety timeout
+// Helper to fetch dynamic real counts from DB collections with 60-second in-memory caching and 1s safety timeout
 const statsCache = new Map();
 const getSchoolStatistics = async (schoolName) => {
   if (!schoolName) return { totalStudents: 0, totalTeachers: 0, totalClasses: 0, totalSubjects: 0 };
@@ -112,7 +112,7 @@ const getSchoolStatistics = async (schoolName) => {
         ]);
         return { totalStudents, totalTeachers, totalClasses, totalSubjects };
       })(),
-      new Promise((resolve) => setTimeout(() => resolve({ totalStudents: 0, totalTeachers: 0, totalClasses: 0, totalSubjects: 0 }), 3000))
+      new Promise((resolve) => setTimeout(() => resolve({ totalStudents: 0, totalTeachers: 0, totalClasses: 0, totalSubjects: 0 }), 1000))
     ]);
     statsCache.set(key, { data, timestamp: Date.now() });
     return data;
@@ -298,7 +298,7 @@ exports.getMySchool = async (req, res) => {
             schoolObj: fallbackSchool,
             statistics: { totalStudents: 0, totalTeachers: 0, totalClasses: 0, totalSubjects: 0 }
           });
-        }, 3000)
+        }, 6000)
       )
     ]);
 
