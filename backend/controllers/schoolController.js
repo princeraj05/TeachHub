@@ -183,7 +183,7 @@ exports.getMySchool = async (req, res) => {
   try {
     const userId = req.user.id || req.user._id;
     const adminUser = await User.findById(userId).select("role requestedRole schoolName requestedSchool email").lean();
-    const isAllowed = adminUser && (adminUser.role === "admin" || adminUser.requestedRole === "admin" || adminUser.role === "unassigned");
+    const isAllowed = adminUser && (adminUser.role === "admin" || adminUser.role === "superadmin" || adminUser.requestedRole === "admin" || adminUser.role === "unassigned");
     if (!isAllowed) {
       return res.status(403).json({ success: false, message: "Unauthorized: Only School Admins can access school details" });
     }
@@ -273,7 +273,7 @@ exports.updateMySchool = async (req, res) => {
   try {
     const userId = req.user.id || req.user._id;
     const adminUser = await User.findById(userId).select("role requestedRole schoolName requestedSchool").lean();
-    const isAllowed = adminUser && (adminUser.role === "admin" || adminUser.requestedRole === "admin" || adminUser.role === "unassigned");
+    const isAllowed = adminUser && (adminUser.role === "admin" || adminUser.role === "superadmin" || adminUser.requestedRole === "admin" || adminUser.role === "unassigned");
     if (!isAllowed) {
       return res.status(403).json({ success: false, message: "Unauthorized: Only School Admins can update school details" });
     }

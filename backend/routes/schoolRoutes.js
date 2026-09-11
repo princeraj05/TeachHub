@@ -27,9 +27,9 @@ const upload = multer({
 });
 
 // Register specific routes first
-router.get("/my-school", protect, authorize("admin", "unassigned"), getMySchool);
-router.put("/my-school", protect, authorize("admin", "unassigned"), updateMySchool);
-router.post("/upload", protect, authorize("admin", "unassigned"), upload.single("image"), uploadSchoolPhoto);
+router.get("/my-school", protect, authorize("admin", "superadmin", "unassigned"), getMySchool);
+router.put("/my-school", protect, authorize("admin", "superadmin", "unassigned"), updateMySchool);
+router.post("/upload", protect, authorize("admin", "superadmin", "unassigned"), upload.single("image"), uploadSchoolPhoto);
 
 // Register list and parameterized routes last
 router.get("/", protect, getSchools);
