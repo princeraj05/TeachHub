@@ -223,29 +223,35 @@ exports.updateMySchool = async (req, res) => {
     const admission = b.admission || {};
     const availability = b.availability || {};
 
+    const getVal = (v1, v2) => {
+      if (v1 !== undefined && v1 !== null && v1 !== "") return v1;
+      if (v2 !== undefined && v2 !== null && v2 !== "") return v2;
+      return v1 !== undefined ? v1 : v2;
+    };
+
     // Basic Info fields
-    if (b.principalName !== undefined || principal.name !== undefined) school.principalName = b.principalName ?? principal.name;
-    if (b.affiliation !== undefined || basic.affiliation !== undefined) school.affiliation = b.affiliation ?? basic.affiliation;
-    if (b.academicYear !== undefined || basic.academicYear !== undefined) school.academicYear = b.academicYear ?? basic.academicYear;
-    if (b.email !== undefined || basic.schoolEmail !== undefined) school.email = b.email ?? basic.schoolEmail;
-    if (b.medium !== undefined || basic.medium !== undefined) school.medium = b.medium ?? basic.medium;
-    if (b.phoneNumber !== undefined || basic.phoneNumber !== undefined) school.phoneNumber = b.phoneNumber ?? basic.phoneNumber;
-    if (b.address !== undefined || basic.schoolAddress !== undefined) school.address = b.address ?? basic.schoolAddress;
-    if (b.latitude !== undefined || basic.latitude !== undefined) school.latitude = b.latitude ?? basic.latitude;
-    if (b.longitude !== undefined || basic.longitude !== undefined) school.longitude = b.longitude ?? basic.longitude;
-    if (b.established !== undefined || basic.established !== undefined) school.established = b.established ?? basic.established;
-    if (b.status !== undefined || basic.schoolStatus !== undefined) school.status = b.status ?? basic.schoolStatus;
-    if (b.schoolType !== undefined || basic.schoolType !== undefined) school.schoolType = b.schoolType ?? basic.schoolType;
-    if (b.registrationNumber !== undefined || basic.registrationNumber !== undefined) school.registrationNumber = b.registrationNumber ?? basic.registrationNumber;
-    if (b.code !== undefined || basic.schoolCode !== undefined) school.code = b.code ?? basic.schoolCode;
+    if (b.principalName !== undefined || principal.name !== undefined) school.principalName = getVal(b.principalName, principal.name);
+    if (b.affiliation !== undefined || basic.affiliation !== undefined) school.affiliation = getVal(b.affiliation, basic.affiliation);
+    if (b.academicYear !== undefined || basic.academicYear !== undefined) school.academicYear = getVal(b.academicYear, basic.academicYear);
+    if (b.email !== undefined || basic.schoolEmail !== undefined) school.email = getVal(b.email, basic.schoolEmail);
+    if (b.medium !== undefined || basic.medium !== undefined) school.medium = getVal(b.medium, basic.medium);
+    if (b.phoneNumber !== undefined || basic.phoneNumber !== undefined) school.phoneNumber = getVal(b.phoneNumber, basic.phoneNumber);
+    if (b.address !== undefined || basic.schoolAddress !== undefined) school.address = getVal(b.address, basic.schoolAddress);
+    if (b.latitude !== undefined || basic.latitude !== undefined) school.latitude = getVal(b.latitude, basic.latitude);
+    if (b.longitude !== undefined || basic.longitude !== undefined) school.longitude = getVal(b.longitude, basic.longitude);
+    if (b.established !== undefined || basic.established !== undefined) school.established = getVal(b.established, basic.established);
+    if (b.status !== undefined || basic.schoolStatus !== undefined) school.status = getVal(b.status, basic.schoolStatus);
+    if (b.schoolType !== undefined || basic.schoolType !== undefined) school.schoolType = getVal(b.schoolType, basic.schoolType);
+    if (b.registrationNumber !== undefined || basic.registrationNumber !== undefined) school.registrationNumber = getVal(b.registrationNumber, basic.registrationNumber);
+    if (b.code !== undefined || basic.schoolCode !== undefined) school.code = getVal(b.code, basic.schoolCode);
     if (b.category !== undefined) school.category = b.category;
-    if (b.motto !== undefined || basic.schoolMotto !== undefined) school.motto = b.motto ?? basic.schoolMotto;
-    if (b.website !== undefined || basic.website !== undefined) school.website = b.website ?? basic.website;
+    if (b.motto !== undefined || basic.schoolMotto !== undefined) school.motto = getVal(b.motto, basic.schoolMotto);
+    if (b.website !== undefined || basic.website !== undefined) school.website = getVal(b.website, basic.website);
     if (b.availableClasses !== undefined || basic.availableClasses !== undefined) {
-      const ac = b.availableClasses ?? basic.availableClasses;
+      const ac = getVal(b.availableClasses, basic.availableClasses);
       school.availableClasses = Array.isArray(ac) ? ac.join(", ") : ac;
     }
-    if (b.photo !== undefined || basic.logo !== undefined) school.photo = b.photo ?? basic.logo;
+    if (b.photo !== undefined || basic.logo !== undefined) school.photo = getVal(b.photo, basic.logo);
 
     // Media & Principal fields
     if (b.coverImage !== undefined || media.coverImage !== undefined) school.coverImage = b.coverImage ?? media.coverImage;
