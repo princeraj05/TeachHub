@@ -198,27 +198,50 @@ exports.getMySchool = async (req, res) => {
       school = await School.findOne({
         $or: [
           { normalizedName: normalized },
-          { name: new RegExp("^" + escName + "$", "i") }
+          { name: new RegExp("^" + escName + "$", "i") },
+          { name: new RegExp(escName, "i") }
         ]
       });
 
       if (school) {
         school.adminId = adminUser._id;
-        await school.save();
+        try { await school.save(); } catch (sErr) {}
       }
     }
 
-    // If still not found, auto-create initial school for this Admin / Applicant
+    // If still not found, auto-create initial school for this Admin / Applicant safely
     if (!school) {
       const name = targetSchoolName ? targetSchoolName.trim() : "My School";
       const normalizedName = normalizeName(name);
-      school = await School.create({
-        adminId: adminUser._id,
-        name: name,
-        normalizedName: normalizedName,
-        status: "Active",
-        profileCompletion: 0
-      });
+      try {
+        school = await School.create({
+          adminId: adminUser._id,
+          name: name,
+          normalizedName: normalizedName,
+          status: "Active",
+          profileCompletion: 0
+        });
+      } catch (cErr) {
+        school = await School.findOne({
+          $or: [
+            { normalizedName: normalizedName },
+            { name: new RegExp("^" + escapeRegex(name) + "$", "i") }
+          ]
+        });
+
+        if (school) {
+          school.adminId = adminUser._id;
+          try { await school.save(); } catch (sErr) {}
+        } else {
+          school = await School.create({
+            adminId: adminUser._id,
+            name: name,
+            normalizedName: `${normalizedName}-${Date.now()}`,
+            status: "Active",
+            profileCompletion: 0
+          });
+        }
+      }
     }
 
     // Normalize flat and nested fields
@@ -227,7 +250,7 @@ exports.getMySchool = async (req, res) => {
     const profileCompletion = calculateProfileCompletion(school);
     school.profileCompletion = profileCompletion;
     if (school.isModified()) {
-      await school.save();
+      try { await school.save(); } catch (sErr) {}
     }
 
     const statistics = await getSchoolStatistics(school.name);
@@ -263,7 +286,8 @@ exports.updateMySchool = async (req, res) => {
       school = await School.findOne({
         $or: [
           { normalizedName: normalized },
-          { name: new RegExp("^" + escName + "$", "i") }
+          { name: new RegExp("^" + escName + "$", "i") },
+          { name: new RegExp(escName, "i") }
         ]
       });
       if (school) {
@@ -274,11 +298,20 @@ exports.updateMySchool = async (req, res) => {
     if (!school) {
       const name = targetSchoolName ? targetSchoolName.trim() : "My School";
       const normalizedName = normalizeName(name);
-      school = new School({
-        adminId: adminUser._id,
-        name: name,
-        normalizedName: normalizedName
-      });
+      try {
+        school = new School({
+          adminId: adminUser._id,
+          name: name,
+          normalizedName: normalizedName
+        });
+      } catch (cErr) {
+        school = await School.findOne({
+          $or: [
+            { normalizedName: normalizedName },
+            { name: new RegExp("^" + escapeRegex(name) + "$", "i") }
+          ]
+        });
+      }
     }
 
     const b = req.body;
