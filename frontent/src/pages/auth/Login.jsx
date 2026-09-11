@@ -27,8 +27,8 @@ const DEFAULT_SCHOOL_BANNERS = [
   {
     name: "BAPU JI SMARK SCHOOL",
     motto: "Learn • Grow • Succeed",
-    coverImage: "https://res.cloudinary.com/dwyx97eyw/image/upload/v1741727788/school_covers/6aa43bb26f2439de223ba11f.jpg",
-    photo: "https://res.cloudinary.com/dwyx97eyw/image/upload/v1741727788/school_logos/6aa43bb26f2439de223ba11f.jpg"
+    coverImage: "https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=1000&auto=format&fit=crop",
+    photo: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=300&auto=format&fit=crop"
   }
 ];
 
@@ -373,6 +373,10 @@ function Login({ scope }) {
                 key={currentBanner.coverImage}
                 src={getMediaUrl(currentBanner.coverImage)}
                 alt={currentBanner.name}
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = "https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=1000&auto=format&fit=crop";
+                }}
                 style={{ objectPosition: `center ${currentBanner.coverPosition !== undefined ? currentBanner.coverPosition : 50}%` }}
                 className="w-full h-full object-cover transition-all duration-1000 ease-in-out scale-105 group-hover:scale-100"
               />
@@ -389,7 +393,12 @@ function Login({ scope }) {
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-5 text-left text-white">
                 <div className="flex items-center gap-2.5 mb-1.5">
                   {currentBanner.photo ? (
-                    <img src={getMediaUrl(currentBanner.photo)} alt="Logo" className="w-8 h-8 rounded-xl object-cover border border-white/30" />
+                    <img
+                      src={getMediaUrl(currentBanner.photo)}
+                      alt="Logo"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      className="w-8 h-8 rounded-xl object-cover border border-white/30"
+                    />
                   ) : (
                     <div className="w-8 h-8 rounded-xl bg-purple-600/80 backdrop-blur-md flex items-center justify-center border border-white/30 text-white font-black text-xs">
                       <FaSchool />
