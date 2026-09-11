@@ -127,7 +127,7 @@ function SuperAdminUsers() {
     const nonSuperAdminUsers = users.filter((u) => u.role !== "superadmin");
     const total = nonSuperAdminUsers.length;
     const schoolApplicants = users.filter(
-      (u) => u.requestedRole === "admin" || (u.isSubmittedToSuperAdmin && u.role === "unassigned")
+      (u) => Boolean(u.isSubmittedToSuperAdmin) && u.role !== "admin" && u.role !== "superadmin"
     ).length;
     const pending = nonSuperAdminUsers.filter(
       (u) => u.role === "unassigned" || u.requestStatus === "pending" || u.requestStatus === "scheduled" || u.requestStatus === "exam_completed"
@@ -146,10 +146,10 @@ function SuperAdminUsers() {
       const role = u.role || "unassigned";
 
       if (categoryTab === "school_applicants") {
-        const isApplicant = u.requestedRole === "admin" || (u.isSubmittedToSuperAdmin && u.role === "unassigned");
+        const isApplicant = Boolean(u.isSubmittedToSuperAdmin) && u.role !== "admin" && u.role !== "superadmin";
         if (!isApplicant) return false;
       } else if (categoryTab === "platform_users") {
-        const isApplicant = u.requestedRole === "admin" || (u.isSubmittedToSuperAdmin && u.role === "unassigned");
+        const isApplicant = Boolean(u.isSubmittedToSuperAdmin) && u.role !== "admin" && u.role !== "superadmin";
         if (isApplicant) return false;
       }
 

@@ -702,35 +702,21 @@ function PendingApproval() {
 
                       </div>
 
-                      {/* Step 3: Submit to Super Admin Action Card */}
+                      {/* Submit to Super Admin Action Card */}
                       <div className="pt-4 border-t border-slate-150 dark:border-white/5">
-                        {(onboardingStatus.profileCompleted && onboardingStatus.schoolCompleted) || onboardingStatus.allStepsCompleted ? (
-                          <div className="bg-emerald-500/10 border border-emerald-500/30 p-5 rounded-2.5xl text-center space-y-3">
-                            <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                              🎉 You have successfully completed your school setup! Click below to submit for Super Admin approval.
-                            </p>
-                            <button
-                              onClick={handleSubmitAdminOnboarding}
-                              disabled={submittingOnboarding}
-                              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-2xl text-xs font-black shadow-lg shadow-emerald-500/20 transition cursor-pointer active:scale-98 disabled:opacity-50 flex items-center justify-center gap-2"
-                            >
-                              <FaCheckCircle className="text-xs" />
-                              {submittingOnboarding ? "Submitting Request..." : "🚀 Submit Request for Super Admin Approval"}
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="bg-amber-500/10 border border-amber-500/20 p-5 rounded-2.5xl text-center space-y-2">
-                            <p className="text-xs font-bold text-amber-600 dark:text-amber-400">
-                              ⚠️ Complete all 2 steps above to enable your Super Admin approval request.
-                            </p>
-                            <button
-                              disabled
-                              className="w-full bg-slate-200 dark:bg-white/10 text-slate-400 dark:text-slate-500 py-3.5 rounded-2xl text-xs font-black cursor-not-allowed"
-                            >
-                              🔒 Submit Request for Super Admin Approval (Locked)
-                            </button>
-                          </div>
-                        )}
+                        <div className="bg-[#7C3AED]/10 border border-[#7C3AED]/30 p-5 rounded-2.5xl text-center space-y-3">
+                          <p className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                            Ready to submit your school registration? Click below to send your request for Super Admin approval.
+                          </p>
+                          <button
+                            onClick={handleSubmitAdminOnboarding}
+                            disabled={submittingOnboarding}
+                            className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white py-3.5 rounded-2xl text-xs font-black shadow-lg shadow-[#7C3AED]/20 transition cursor-pointer active:scale-98 disabled:opacity-50 flex items-center justify-center gap-2"
+                          >
+                            <FaCheckCircle className="text-xs" />
+                            {submittingOnboarding ? "Submitting Request..." : "🚀 Submit Request for Super Admin Approval"}
+                          </button>
+                        </div>
                       </div>
 
                     </div>
