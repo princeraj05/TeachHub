@@ -122,7 +122,9 @@ function UserProfile() {
       if (res.data) {
         setUser(res.data);
         const userAvatar = res.data.avatar || res.data.photo || res.data.profilePhoto || "";
-        const roleType = res.data.requestedRole || (res.data.role === "teacher" ? "teacher" : "student");
+        const loginSource = localStorage.getItem("loginSource");
+        const defaultRole = loginSource === "student" ? "student" : (loginSource === "teacher" ? "teacher" : null);
+        const roleType = defaultRole || res.data.requestedRole || (res.data.role === "teacher" ? "teacher" : "student");
 
         const assignedClassName = res.data.classId?.name
           ? (res.data.classId.name.startsWith("Class") ? res.data.classId.name : `Class ${res.data.classId.name}`)
@@ -626,30 +628,40 @@ function UserProfile() {
               {isPendingApplicant && (!user?.role || user?.role === "unassigned") && (!user?.requestedRole || user?.requestedRole === "unassigned") && (
                 <div>
                   <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider block mb-1.5">Applying As</label>
-                  <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/60 dark:border-white/10">
-                    <button
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, requestedRole: "student" }))}
-                      className={`py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition cursor-pointer ${
-                        formData.requestedRole === "student"
-                          ? "bg-[#7C3AED] text-white shadow-md"
-                          : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
-                      }`}
-                    >
+                  {localStorage.getItem("loginSource") === "student" ? (
+                    <div className="py-2.5 px-4 rounded-xl text-xs font-black bg-[#7C3AED] text-white shadow-md flex items-center justify-center gap-2">
                       <FaGraduationCap className="text-sm" /> Student Applicant
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, requestedRole: "teacher" }))}
-                      className={`py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition cursor-pointer ${
-                        formData.requestedRole === "teacher"
-                          ? "bg-[#7C3AED] text-white shadow-md"
-                          : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
-                      }`}
-                    >
+                    </div>
+                  ) : localStorage.getItem("loginSource") === "teacher" ? (
+                    <div className="py-2.5 px-4 rounded-xl text-xs font-black bg-[#7C3AED] text-white shadow-md flex items-center justify-center gap-2">
                       <FaChalkboardTeacher className="text-sm" /> Teacher Applicant
-                    </button>
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/60 dark:border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, requestedRole: "student" }))}
+                        className={`py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition cursor-pointer ${
+                          formData.requestedRole === "student"
+                            ? "bg-[#7C3AED] text-white shadow-md"
+                            : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                        }`}
+                      >
+                        <FaGraduationCap className="text-sm" /> Student Applicant
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, requestedRole: "teacher" }))}
+                        className={`py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition cursor-pointer ${
+                          formData.requestedRole === "teacher"
+                            ? "bg-[#7C3AED] text-white shadow-md"
+                            : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                        }`}
+                      >
+                        <FaChalkboardTeacher className="text-sm" /> Teacher Applicant
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 

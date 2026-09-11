@@ -32,10 +32,16 @@ const DEFAULT_SCHOOL_BANNERS = [
   }
 ];
 
-function Login() {
+function Login({ scope }) {
   const navigate = useNavigate();
   const API = API_URL;
   const { platformName, logoUrl, platformConfig } = usePlatform();
+
+  useEffect(() => {
+    if (scope) {
+      localStorage.setItem("loginSource", scope);
+    }
+  }, [scope]);
 
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");

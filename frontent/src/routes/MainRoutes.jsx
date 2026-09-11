@@ -50,7 +50,10 @@ function MainRoutes() {
     <Suspense fallback={<ModuleLoader />}>
       <Routes>
         {/* Auth */}
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<Login scope="universal" />} />
+        <Route path="/student/login" element={<Login scope="student" />} />
+        <Route path="/teacher/login" element={<Login scope="teacher" />} />
+        <Route path="/admin/login" element={<Login scope="admin" />} />
         <Route path="/support/login" element={<SupportLogin />} />
         
         {/* Pending Approval */}
