@@ -182,13 +182,17 @@ const normalizeSchoolData = (s) => {
   return s;
 };
 
-// Helper to robustly find a school by adminId first (highest completion), then by name identity
-const findTargetSchool = async (adminUserId, targetSchoolName) => {
+// Helper to robustly find a school by adminId or email first (highest completion), then by name identity
+const findTargetSchool = async (adminUserId, targetSchoolName, adminEmail) => {
   let school = null;
 
-  // 1. First priority: Match by adminId sorted by profileCompletion (-1) and updatedAt (-1)
-  if (adminUserId) {
-    const adminSchools = await School.find({ adminId: adminUserId }).sort({ profileCompletion: -1, updatedAt: -1 });
+  // 1. First priority: Match by adminId or adminEmail sorted by profileCompletion (-1) and updatedAt (-1)
+  if (adminUserId || adminEmail) {
+    const query = [];
+    if (adminUserId) query.push({ adminId: adminUserId });
+    if (adminEmail) query.push({ email: adminEmail }, { principalEmail: adminEmail }, { "basicInfo.schoolEmail": adminEmail });
+
+    const adminSchools = await School.find({ $or: query }).sort({ profileCompletion: -1, updatedAt: -1 });
     if (adminSchools && adminSchools.length > 0) {
       return adminSchools[0];
     }
@@ -228,7 +232,7 @@ exports.getMySchool = async (req, res) => {
     // Execute school lookup with a 3s safety timeout to prevent Hostinger 504 Gateway Timeout
     const result = await Promise.race([
       (async () => {
-        let school = await findTargetSchool(adminUser._id, targetSchoolName);
+        let school = await findTargetSchool(adminUser._id, targetSchoolName, adminUser.email);
 
         if (school && !school.adminId && adminUser.role !== "superadmin") {
           school.adminId = adminUser._id;
@@ -248,7 +252,7 @@ exports.getMySchool = async (req, res) => {
               profileCompletion: 0
             });
           } catch (cErr) {
-            school = await findTargetSchool(adminUser._id, name);
+            school = await findTargetSchool(adminUser._id, name, adminUser.email);
 
             if (!school) {
               school = await School.create({
@@ -317,14 +321,14 @@ exports.getMySchool = async (req, res) => {
 exports.updateMySchool = async (req, res) => {
   try {
     const userId = req.user.id || req.user._id;
-    const adminUser = await User.findById(userId).select("role requestedRole schoolName requestedSchool").lean();
+    const adminUser = await User.findById(userId).select("role requestedRole schoolName requestedSchool email").lean();
     const isAllowed = adminUser && (adminUser.role === "admin" || adminUser.role === "superadmin" || adminUser.requestedRole === "admin" || adminUser.role === "unassigned");
     if (!isAllowed) {
       return res.status(403).json({ success: false, message: "Unauthorized: Only School Admins can update school details" });
     }
 
     const targetSchoolName = adminUser.schoolName || adminUser.requestedSchool || "";
-    let school = await findTargetSchool(adminUser._id, targetSchoolName);
+    let school = await findTargetSchool(adminUser._id, targetSchoolName, adminUser.email);
 
     if (!school) {
       const name = targetSchoolName ? targetSchoolName.trim() : "My School";
