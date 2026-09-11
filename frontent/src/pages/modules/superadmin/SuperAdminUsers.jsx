@@ -82,23 +82,16 @@ function SuperAdminUsers() {
     redirectDelay: 5
   });
 
-  // Background fetch on mount & filter change
+  // Fetch complete users list for accurate stats and instant filtering
   useEffect(() => {
     fetchUsers();
     fetchSchools();
-  }, [roleFilter, statusFilter, categoryTab]);
+  }, []);
 
   const fetchUsers = async () => {
     try {
       setSyncing(true);
-      const params = {};
-      if (roleFilter !== "All") params.role = roleFilter;
-      if (statusFilter !== "All") params.status = statusFilter;
-      if (categoryTab !== "all") params.type = categoryTab;
-      if (search) params.search = search;
-
       const res = await axios.get(`${API}/api/superadmin/users`, {
-        params,
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = Array.isArray(res.data) ? res.data : (res.data?.users || res.data?.data || []);

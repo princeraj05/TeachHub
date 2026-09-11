@@ -13,17 +13,6 @@ const normalizeName = (name) => {
 exports.getSchools = async (req, res) => {
   try {
     const Event = require("../models/Event");
-
-    // Self-cleaning duplicate check: Clean up misspelled G.D Accedmy and migrate to correct G.D Academy
-    await School.deleteOne({ name: { $in: ["G.D Accedmy", "G.D Accedmy ", "G.D Accedmy"] } });
-    await School.deleteOne({ normalizedName: "g.d accedmy" });
-    
-    // Migrate users/classes/subjects referencing the misspelled school
-    await User.updateMany({ schoolName: { $in: ["G.D Accedmy", "G.D Accedmy "] } }, { schoolName: "G.D Academy" });
-    await User.updateMany({ requestedSchool: { $in: ["G.D Accedmy", "G.D Accedmy "] } }, { requestedSchool: "G.D Academy" });
-    await Class.updateMany({ schoolName: { $in: ["G.D Accedmy", "G.D Accedmy "] } }, { schoolName: "G.D Academy" });
-    await Subject.updateMany({ schoolName: { $in: ["G.D Accedmy", "G.D Accedmy "] } }, { schoolName: "G.D Academy" });
-
     const rawSchools = await School.find({ name: { $not: /demo school/i } }).sort({ name: 1 }).lean();
 
     const schools = await Promise.all(
