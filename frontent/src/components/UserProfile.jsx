@@ -95,6 +95,7 @@ function UserProfile() {
     name: "",
     phoneNumber: "",
     avatar: "",
+    address: "",
     requestedRole: "student",
     requestedSchool: "",
     targetClass: "Class 1",
@@ -134,6 +135,7 @@ function UserProfile() {
           name: res.data.name || "",
           phoneNumber: res.data.phoneNumber || "",
           avatar: userAvatar,
+          address: res.data.address || res.data.schoolAddress || "",
           requestedRole: roleType,
           requestedSchool: res.data.requestedSchool || res.data.schoolName || "",
           targetClass: assignedClassName,
@@ -178,6 +180,7 @@ function UserProfile() {
   // Distinct Role & Path Checks
   const isPendingPath = location.pathname.startsWith("/pending");
   const isStudentPath = location.pathname.startsWith("/student");
+  const isAdminApplicant = localStorage.getItem("loginSource") === "admin" || user?.role === "admin" || user?.requestedRole === "admin";
 
   // Admitted Student vs Pending Applicant distinction
   const isAdmittedStudent = !isPendingPath && (user?.role === "student" || isStudentPath);
@@ -304,7 +307,12 @@ function UserProfile() {
                   <span>{user?.requestedSchool || user?.schoolName || "School Not Selected"}</span>
                 </span>
                 
-                {isTeacherApplicant ? (
+                {isAdminApplicant ? (
+                  <span className="px-3 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1.5 border border-white/20">
+                    <FaPhone className="text-cyan-300 text-xs" />
+                    <span>{user?.phoneNumber || formData.phoneNumber || "No Phone"}</span>
+                  </span>
+                ) : isTeacherApplicant ? (
                   <span className="px-3 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1.5 border border-white/20">
                     <FaBriefcase className="text-cyan-300 text-xs" />
                     <span>{formData.experience || "1 Year"} Exp</span>
@@ -355,7 +363,7 @@ function UserProfile() {
           </div>
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-              {isAdmittedStudent ? "STUDENT ID" : isAdmittedTeacher ? "TEACHER ID" : "APPLICANT ID"}
+              {isAdminApplicant ? "ADMIN ID" : isAdmittedStudent ? "STUDENT ID" : isAdmittedTeacher ? "TEACHER ID" : "APPLICANT ID"}
             </p>
             <p className="text-sm font-black text-slate-800 dark:text-white tracking-wider mt-0.5">
               #{user?._id ? user._id.slice(-6).toUpperCase() : "7045A0"}
@@ -369,7 +377,7 @@ function UserProfile() {
           </div>
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-              {isAdmittedStudent ? "STUDENT STATUS" : isAdmittedTeacher ? "FACULTY STATUS" : "APPLICATION STATUS"}
+              {isAdminApplicant ? "REGISTRATION STATUS" : isAdmittedStudent ? "STUDENT STATUS" : isAdmittedTeacher ? "FACULTY STATUS" : "APPLICATION STATUS"}
             </p>
             <p className="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mt-0.5 flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -403,7 +411,7 @@ function UserProfile() {
               <div>
                 <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">{t("account_details", "Account Details")}</h2>
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
-                  {isPendingApplicant ? t("personal_records", "Personal & Application Records") : "Personal & Institutional Records"}
+                  {isAdminApplicant ? "School Admin Profile Records" : isPendingApplicant ? t("personal_records", "Personal & Application Records") : "Personal & Institutional Records"}
                 </p>
               </div>
               <button
@@ -434,12 +442,16 @@ function UserProfile() {
               </div>
 
               <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{isPendingApplicant ? t("target_school", "TARGET SCHOOL") : "SCHOOL NAME"}</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{isAdminApplicant ? "SCHOOL NAME" : isPendingApplicant ? t("target_school", "TARGET SCHOOL") : "SCHOOL NAME"}</p>
                 <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{user?.requestedSchool || user?.schoolName || "Not Selected"}</p>
               </div>
 
-              {/* Student Specific Applicant Fields */}
-              {!isTeacherApplicant ? (
+              {isAdminApplicant ? (
+                <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4 sm:col-span-2">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">SCHOOL / ADMIN ADDRESS</p>
+                  <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{user?.address || formData.address || "Not Provided"}</p>
+                </div>
+              ) : !isTeacherApplicant ? (
                 <>
                   <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{isPendingApplicant ? "TARGET ADMISSION CLASS" : "CLASS"}</p>
@@ -609,10 +621,20 @@ function UserProfile() {
             <div className="p-5 border-b border-slate-150 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
               <div>
                 <h3 className="text-base font-black text-slate-900 dark:text-white">
-                  {isAdmittedStudent ? "Edit Student Profile" : isAdmittedTeacher ? "Edit Faculty Profile" : "Edit Applicant Profile"}
+                  {isAdminApplicant
+                    ? "Edit Admin School Profile"
+                    : isAdmittedStudent
+                    ? "Edit Student Profile"
+                    : isAdmittedTeacher
+                    ? "Edit Faculty Profile"
+                    : "Edit Applicant Profile"}
                 </h3>
                 <p className="text-[10px] text-slate-400 font-bold">
-                  {isPendingApplicant ? "Update your details for school admission/recruitment" : "Update your personal details & contact records"}
+                  {isAdminApplicant
+                    ? "Update your school admin profile & contact details"
+                    : isPendingApplicant
+                    ? "Update your details for school admission/recruitment"
+                    : "Update your personal details & contact records"}
                 </p>
               </div>
               <button
@@ -627,7 +649,7 @@ function UserProfile() {
             <form onSubmit={handleSave} className="p-5 overflow-y-auto space-y-4 flex-1">
               
               {/* Applicant Role Toggle - ONLY for new unassigned applicants */}
-              {isPendingApplicant && (!user?.role || user?.role === "unassigned") && (!user?.requestedRole || user?.requestedRole === "unassigned") && (
+              {!isAdminApplicant && isPendingApplicant && (!user?.role || user?.role === "unassigned") && (!user?.requestedRole || user?.requestedRole === "unassigned") && (
                 <div>
                   <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider block mb-1.5">Applying As</label>
                   {localStorage.getItem("loginSource") === "student" ? (
@@ -715,8 +737,34 @@ function UserProfile() {
                 </div>
               </div>
 
-              {/* Student Fields */}
-              {!isTeacherApplicant ? (
+              {/* Role-Specific Fields */}
+              {isAdminApplicant ? (
+                <div className="space-y-3 pt-1 border-t border-slate-100 dark:border-white/5">
+                  <div>
+                    <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">School Name</label>
+                    <input
+                      type="text"
+                      name="requestedSchool"
+                      value={formData.requestedSchool}
+                      onChange={handleChange}
+                      placeholder="Enter school name"
+                      className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">School / Admin Address</label>
+                    <input
+                      type="text"
+                      name="address"
+                      value={formData.address || ""}
+                      onChange={handleChange}
+                      placeholder="Enter school address or location"
+                      className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
+                    />
+                  </div>
+                </div>
+              ) : !isTeacherApplicant ? (
                 <div className="space-y-3 pt-1 border-t border-slate-100 dark:border-white/5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
