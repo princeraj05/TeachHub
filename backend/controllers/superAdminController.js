@@ -78,8 +78,12 @@ exports.assignRole = async (req, res) => {
     }
 
     user.role = role;
-    const assignedSchoolName = (role === "unassigned" || role === "support") ? "" : (schoolName || "").trim();
+    const targetSchoolName = (schoolName || user.requestedSchool || user.schoolName || "").trim();
+    const assignedSchoolName = (role === "unassigned" || role === "support") ? "" : targetSchoolName;
     user.schoolName = assignedSchoolName;
+    if (role === "admin") {
+      user.requestStatus = "approved";
+    }
 
     if (role === "support") {
       if (supportDepartment) user.supportDepartment = supportDepartment;
@@ -94,12 +98,25 @@ exports.assignRole = async (req, res) => {
     if (assignedSchoolName) {
       const School = require("../models/School");
       const normalized = assignedSchoolName.toLowerCase().replace(/\s+/g, " ");
-      const exists = await School.findOne({ normalizedName: normalized });
-      if (!exists) {
+      let school = await School.findOne({
+        $or: [
+          { adminId: user._id },
+          { normalizedName: normalized },
+          { name: new RegExp("^" + assignedSchoolName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "$", "i") }
+        ]
+      });
+      if (!school) {
         await School.create({
+          adminId: user._id,
           name: assignedSchoolName,
-          normalizedName: normalized
+          normalizedName: normalized,
+          status: "Active"
         });
+      } else {
+        school.adminId = user._id;
+        if (!school.name) school.name = assignedSchoolName;
+        school.normalizedName = normalized;
+        await school.save();
       }
     }
 

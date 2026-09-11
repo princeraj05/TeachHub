@@ -233,9 +233,10 @@ exports.listPayments = async (req, res) => { try { const u = await User.findById
 exports.getReceipt = async (req, res) => { try { const u = await User.findById(req.user.id); const q = u.role === "superadmin" ? { _id: req.params.id } : u.role === "admin" ? { _id: req.params.id, schoolName: u.schoolName } : { _id: req.params.id, $or: [{ payer: u._id }, { receiver: u._id }] }; const p = await Payment.findOne(q).populate("payer receiver", "name email role"); if (!p || !["Successful", "Refunded", "Partially Refunded"].includes(p.status)) throw Object.assign(new Error("Receipt not found"), { status: 404 }); const data = { receiptNumber: p.receiptNumber, payer: p.payer, receiver: p.receiver, school: p.schoolName, amount: p.amount, currency: p.currency, date: p.paidAt || p.verifiedAt || p.createdAt, paymentMethod: p.paymentMethod, transactionId: p.transactionReference || p.razorpayPaymentId || p.offlineReference, purpose: p.purpose, status: p.status }; if (req.query.download === "1") { const formatPurpose = (purp) => { if (purp === "STUDENT_SCHOOL_FEE") return "School Fee"; if (purp === "SCHOOL_SUBSCRIPTION") return "School Subscription"; if (purp === "TEACHER_SALARY") return "Teacher Salary"; return purp.replaceAll("_", " "); }; const formattedDateStr = data.date ? new Date(data.date).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit", hour12: true }) : ""; const rows = [["Receipt", data.receiptNumber], ["Payer", data.payer?.name], ["Receiver", data.receiver?.name], ["School", data.school], ["Amount", `${data.currency} ${(data.amount / 100).toFixed(2)}`], ["Date", formattedDateStr], ["Method", data.paymentMethod], ["Transaction ID", data.transactionId], ["Purpose", formatPurpose(data.purpose)], ["Status", data.status]].map(([label, value]) => `<tr><th>${escapeHtml(label)}</th><td>${escapeHtml(value)}</td></tr>`).join(""); res.set({ "Content-Type": "text/html; charset=utf-8", "Content-Disposition": `attachment; filename=receipt-${p.receiptNumber}.html` }); return res.send(`<!doctype html><html><head><title>Receipt ${escapeHtml(p.receiptNumber)}</title><style>body{font-family:Arial;margin:40px;color:#172033}table{border-collapse:collapse;width:100%;max-width:650px}th,td{border:1px solid #dbe1ea;padding:12px;text-align:left}th{width:35%;background:#f5f3ff}h1{color:#5b21b6}</style></head><body><h1>TeachHub Payment Receipt</h1><table>${rows}</table></body></html>`); } res.json({ ...data, formattedDate: data.date ? new Date(data.date).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit", hour12: true }) : "" }); } catch (e) { fail(res, e); } };
 exports.getSettings = async (req, res) => {
   try {
+    const sName = req.user.schoolName || req.user.requestedSchool || "";
     let query = { userId: req.user.id };
-    if (req.user.role === "admin" && req.user.schoolName) {
-      query = { role: "admin", schoolName: new RegExp("^" + escapeRegexStr(req.user.schoolName) + "$", "i") };
+    if ((req.user.role === "admin" || req.user.requestedRole === "admin" || req.user.role === "unassigned") && sName) {
+      query = { schoolName: new RegExp("^" + escapeRegexStr(sName) + "$", "i") };
     } else if (req.user.role === "superadmin") {
       query = { role: "superadmin" };
     }
@@ -302,9 +303,10 @@ exports.updateSettings = async (req, res) => {
     const onlineEnabled = req.body.onlineEnabled !== false, offlineEnabled = req.body.offlineEnabled !== false;
     if (!onlineEnabled && !offlineEnabled) throw invalid("At least one payment mode must be enabled");
 
+    const sName = req.user.schoolName || req.user.requestedSchool || "";
     let query = { userId: req.user.id };
-    if (req.user.role === "admin" && req.user.schoolName) {
-      query = { role: "admin", schoolName: new RegExp("^" + escapeRegexStr(req.user.schoolName) + "$", "i") };
+    if ((req.user.role === "admin" || req.user.requestedRole === "admin" || req.user.role === "unassigned") && sName) {
+      query = { schoolName: new RegExp("^" + escapeRegexStr(sName) + "$", "i") };
     } else if (req.user.role === "superadmin") {
       query = { role: "superadmin" };
     }
@@ -390,19 +392,20 @@ exports.updateSettings = async (req, res) => {
 };
 exports.setFeePlan = async (req, res) => {
   try {
+    const sName = req.user.schoolName || req.user.requestedSchool || "";
     const monthlyFee = Number(req.body.monthlyFee), validityDays = Number(req.body.validityDays || 30);
     if (!Number.isSafeInteger(monthlyFee) || monthlyFee < 1) throw invalid("Fee must be a positive integer in paise");
     if (!Number.isSafeInteger(validityDays) || validityDays < 1) throw invalid("Validity period must be a positive integer of days");
-    const old = await FeePlan.findOne({ schoolName: req.user.schoolName }).lean();
-    const plan = await FeePlan.findOneAndUpdate({ schoolName: req.user.schoolName }, { $set: { monthlyFee, validityDays, active: req.body.active !== false, updatedBy: req.user.id } }, { new: true, upsert: true });
+    const old = await FeePlan.findOne({ schoolName: new RegExp("^" + escapeRegexStr(sName) + "$", "i") }).lean();
+    const plan = await FeePlan.findOneAndUpdate({ schoolName: sName }, { $set: { monthlyFee, validityDays, active: req.body.active !== false, updatedBy: req.user.id } }, { new: true, upsert: true });
     await audit(req, "STUDENT_FEE_CHANGED", old, plan.toObject());
-    broadcastEvent(req, "feePlan:updated", { schoolName: req.user.schoolName, plan });
+    broadcastEvent(req, "feePlan:updated", { schoolName: sName, plan });
     res.json(plan);
   } catch (e) {
     fail(res, e);
   }
 };
-exports.getFeePlan = async (req, res) => { try { res.json(await FeePlan.findOne({ schoolName: req.user.schoolName }).select("monthlyFee validityDays currency active updatedAt") || null); } catch (e) { fail(res, e); } };
+exports.getFeePlan = async (req, res) => { try { const sName = req.user.schoolName || req.user.requestedSchool || ""; res.json(await FeePlan.findOne({ schoolName: new RegExp("^" + escapeRegexStr(sName) + "$", "i") }).select("monthlyFee validityDays currency active updatedAt") || null); } catch (e) { fail(res, e); } };
 exports.getMyCompensation = async (req, res) => { try { const teacher = await User.findOne({ _id: req.user.id, role: "teacher" }); if (!teacher?.schoolName) throw Object.assign(new Error("Teacher is not assigned to a school"), { status: 403 }); res.json(await TeacherCompensation.findOne({ teacher: teacher._id, schoolName: teacher.schoolName, active: true }).select("salary currency paymentCycle dueDate updatedAt") || null); } catch (e) { fail(res, e); } };
 exports.listTeacherCompensations = async (req, res) => { try { res.json(await TeacherCompensation.find({ schoolName: req.user.schoolName }).populate("teacher", "name email").sort({ updatedAt: -1 })); } catch (e) { fail(res, e); } };
 exports.getStudentFeePlan = async (req, res) => { try { const student = await User.findOne({ _id: req.user.id, role: "student" }); if (!student?.schoolName) throw Object.assign(new Error("Student is not assigned to a school"), { status: 403 }); res.json(await FeePlan.findOne({ schoolName: student.schoolName }).select("monthlyFee validityDays currency active updatedAt") || null); } catch (e) { fail(res, e); } };

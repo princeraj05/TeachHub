@@ -121,17 +121,19 @@ const getSchoolStatistics = async (schoolName) => {
 exports.getMySchool = async (req, res) => {
   try {
     const userId = req.user.id || req.user._id;
-    const adminUser = await User.findById(userId).select("role schoolName email").lean();
-    if (!adminUser || adminUser.role !== "admin") {
+    const adminUser = await User.findById(userId).select("role requestedRole schoolName requestedSchool email").lean();
+    const isAllowed = adminUser && (adminUser.role === "admin" || adminUser.requestedRole === "admin" || adminUser.role === "unassigned");
+    if (!isAllowed) {
       return res.status(403).json({ success: false, message: "Unauthorized: Only School Admins can access school details" });
     }
 
+    const targetSchoolName = adminUser.schoolName || adminUser.requestedSchool || "";
     let school = await School.findOne({ adminId: adminUser._id });
 
-    // Fallback: If school doesn't have adminId set yet, match by schoolName
-    if (!school && adminUser.schoolName) {
-      const normalized = normalizeName(adminUser.schoolName);
-      const escName = escapeRegex(adminUser.schoolName);
+    // Fallback: If school doesn't have adminId set yet, match by schoolName or requestedSchool
+    if (!school && targetSchoolName) {
+      const normalized = normalizeName(targetSchoolName);
+      const escName = escapeRegex(targetSchoolName);
       school = await School.findOne({
         $or: [
           { normalizedName: normalized },
@@ -145,9 +147,9 @@ exports.getMySchool = async (req, res) => {
       }
     }
 
-    // If still not found, auto-create initial school for this Admin
+    // If still not found, auto-create initial school for this Admin / Applicant
     if (!school) {
-      const name = adminUser.schoolName ? adminUser.schoolName.trim() : "My School";
+      const name = targetSchoolName ? targetSchoolName.trim() : "My School";
       const normalizedName = normalizeName(name);
       school = await School.create({
         adminId: adminUser._id,
@@ -183,15 +185,17 @@ exports.getMySchool = async (req, res) => {
 exports.updateMySchool = async (req, res) => {
   try {
     const userId = req.user.id || req.user._id;
-    const adminUser = await User.findById(userId).select("role schoolName").lean();
-    if (!adminUser || adminUser.role !== "admin") {
+    const adminUser = await User.findById(userId).select("role requestedRole schoolName requestedSchool").lean();
+    const isAllowed = adminUser && (adminUser.role === "admin" || adminUser.requestedRole === "admin" || adminUser.role === "unassigned");
+    if (!isAllowed) {
       return res.status(403).json({ success: false, message: "Unauthorized: Only School Admins can update school details" });
     }
 
+    const targetSchoolName = adminUser.schoolName || adminUser.requestedSchool || "";
     let school = await School.findOne({ adminId: adminUser._id });
-    if (!school && adminUser.schoolName) {
-      const normalized = normalizeName(adminUser.schoolName);
-      const escName = escapeRegex(adminUser.schoolName);
+    if (!school && targetSchoolName) {
+      const normalized = normalizeName(targetSchoolName);
+      const escName = escapeRegex(targetSchoolName);
       school = await School.findOne({
         $or: [
           { normalizedName: normalized },
@@ -204,7 +208,7 @@ exports.updateMySchool = async (req, res) => {
     }
 
     if (!school) {
-      const name = adminUser.schoolName ? adminUser.schoolName.trim() : "My School";
+      const name = targetSchoolName ? targetSchoolName.trim() : "My School";
       const normalizedName = normalizeName(name);
       school = new School({
         adminId: adminUser._id,
