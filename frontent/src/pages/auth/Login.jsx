@@ -25,7 +25,7 @@ const SORA = "'Sora', sans-serif";
 
 const DEFAULT_SCHOOL_BANNERS = [
   {
-    name: "G.D Academy",
+    name: "TeachHub Portal",
     motto: "Learn • Grow • Succeed",
     coverImage: "",
     photo: ""
@@ -524,7 +524,7 @@ function Login({ scope }) {
               <div className="w-5 h-5 mx-auto mb-1 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400">
                 <FaSchool className="text-[10px]" />
               </div>
-              <p className="text-base font-black text-purple-600 dark:text-purple-400 leading-none">{liveStats.schools || publicSchools.length || 1}</p>
+              <p className="text-base font-black text-purple-600 dark:text-purple-400 leading-none">{liveStats.schools ?? publicSchools.length}</p>
               <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total School</p>
             </div>
 
