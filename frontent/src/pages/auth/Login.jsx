@@ -166,13 +166,9 @@ function Login({ scope }) {
   useEffect(() => {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
-    const schoolName = localStorage.getItem("schoolName");
     if (token && role) {
       if (role === "superadmin") navigate("/superadmin/dashboard", { replace: true });
-      else if (role === "admin") {
-        if (schoolName && schoolName.trim() !== "") navigate("/admin/dashboard", { replace: true });
-        else navigate("/pending", { replace: true });
-      }
+      else if (role === "admin") navigate("/admin/dashboard", { replace: true });
       else if (role === "teacher") navigate("/teacher/dashboard", { replace: true });
       else if (role === "student") navigate("/student/dashboard", { replace: true });
       else navigate("/pending", { replace: true });
@@ -188,17 +184,11 @@ function Login({ scope }) {
     localStorage.setItem("avatar", data.user.avatar || "");
 
     const role = data.user.role;
-    const schoolName = (data.user.schoolName || "").trim();
-    const reqStatus = data.user.requestStatus;
 
     if (role === "superadmin") {
       navigate("/superadmin/dashboard");
     } else if (role === "admin") {
-      if (schoolName && reqStatus === "approved") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/pending");
-      }
+      navigate("/admin/dashboard");
     } else if (role === "teacher") {
       navigate("/teacher/dashboard");
     } else if (role === "student") {

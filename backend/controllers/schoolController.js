@@ -288,6 +288,14 @@ exports.updateMySchool = async (req, res) => {
     school.profileCompletion = calculateProfileCompletion(school);
     await school.save();
 
+    // Sync the admin user's schoolName and requestedSchool in User model
+    if (school.name) {
+      await User.findByIdAndUpdate(userId, {
+        schoolName: school.name,
+        requestedSchool: school.name
+      }).catch(err => console.error("Error syncing schoolName to User:", err));
+    }
+
     const statistics = await getSchoolStatistics(school.name);
     const schoolObj = school.toObject();
 

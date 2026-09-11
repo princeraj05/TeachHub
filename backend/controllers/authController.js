@@ -443,7 +443,9 @@ exports.verifyOTP = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        schoolName: user.schoolName
+        schoolName: user.schoolName || "",
+        requestStatus: user.requestStatus || "",
+        isSubmittedToSuperAdmin: user.isSubmittedToSuperAdmin || false
       }
     });
 
@@ -473,6 +475,21 @@ exports.getProfile = async (req, res) => {
       if (user.targetClass !== classNameFormatted) {
         user.targetClass = classNameFormatted;
         await user.save();
+      }
+    }
+
+    // Sync admin user's schoolName from School collection if missing or empty
+    if (user.role === "admin" && (!user.schoolName || user.schoolName === "Not Assigned")) {
+      try {
+        const School = require("../models/School");
+        const foundSchool = await School.findOne({ adminId: user._id }).lean();
+        if (foundSchool && foundSchool.name) {
+          user.schoolName = foundSchool.name;
+          user.requestedSchool = foundSchool.name;
+          await User.updateOne({ _id: user._id }, { schoolName: foundSchool.name, requestedSchool: foundSchool.name });
+        }
+      } catch (sErr) {
+        console.error("Error auto-syncing admin schoolName in getProfile:", sErr.message);
       }
     }
 
