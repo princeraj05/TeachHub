@@ -286,15 +286,17 @@ function UserProfile() {
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight">{user?.name || "Applicant User"}</h1>
                 <span className="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 backdrop-blur-md border border-white/25">
-                  {localStorage.getItem("loginSource") === "admin" || user?.role === "admin" || user?.requestedRole === "admin"
-                    ? "SCHOOL ADMIN (PENDING)"
-                    : isAdmittedStudent
-                      ? "STUDENT"
-                      : isAdmittedTeacher
-                        ? "FACULTY / TEACHER"
-                        : isTeacherApplicant
-                          ? "TEACHER APPLICANT"
-                          : "STUDENT APPLICANT"}
+                  {user?.requestStatus === "approved" || (user?.role === "admin" && user?.schoolName && user?.schoolName.trim() !== "")
+                    ? "SCHOOL ADMIN (ACTIVE)"
+                    : user?.role === "admin" || user?.requestedRole === "admin" || localStorage.getItem("loginSource") === "admin"
+                      ? "SCHOOL ADMIN (PENDING)"
+                      : isAdmittedStudent
+                        ? "STUDENT"
+                        : isAdmittedTeacher
+                          ? "FACULTY / TEACHER"
+                          : isTeacherApplicant
+                            ? "TEACHER APPLICANT"
+                            : "STUDENT APPLICANT"}
                 </span>
               </div>
 
@@ -304,7 +306,7 @@ function UserProfile() {
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3 text-xs font-bold">
                 <span className="px-3 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1.5 border border-white/20">
                   <FaSchool className="text-amber-300 text-xs" />
-                  <span>{user?.requestedSchool || user?.schoolName || "School Not Selected"}</span>
+                  <span>{user?.schoolName || user?.requestedSchool || "School Not Selected"}</span>
                 </span>
                 
                 {isAdminApplicant ? (
