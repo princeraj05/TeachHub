@@ -90,7 +90,7 @@ const calculateProfileCompletion = (s) => {
   return filledCount * 25;
 };
 
-// Helper to fetch dynamic real counts from DB collections with 60-second in-memory caching
+// Helper to fetch dynamic real counts from DB collections with 60-second in-memory caching and 3s safety timeout
 const statsCache = new Map();
 const getSchoolStatistics = async (schoolName) => {
   if (!schoolName) return { totalStudents: 0, totalTeachers: 0, totalClasses: 0, totalSubjects: 0 };
@@ -100,16 +100,20 @@ const getSchoolStatistics = async (schoolName) => {
     return cached.data;
   }
   const trimmed = schoolName.trim();
-  const schoolRegex = new RegExp("^" + escapeRegex(trimmed) + "$", "i");
 
   try {
-    const [totalStudents, totalTeachers, totalClasses, totalSubjects] = await Promise.all([
-      User.countDocuments({ schoolName: schoolRegex, role: "student" }),
-      User.countDocuments({ schoolName: schoolRegex, role: "teacher" }),
-      Class.countDocuments({ schoolName: schoolRegex }),
-      Subject.countDocuments({ schoolName: schoolRegex })
+    const data = await Promise.race([
+      (async () => {
+        const [totalStudents, totalTeachers, totalClasses, totalSubjects] = await Promise.all([
+          User.countDocuments({ schoolName: trimmed, role: "student" }),
+          User.countDocuments({ schoolName: trimmed, role: "teacher" }),
+          Class.countDocuments({ schoolName: trimmed }),
+          Subject.countDocuments({ schoolName: trimmed })
+        ]);
+        return { totalStudents, totalTeachers, totalClasses, totalSubjects };
+      })(),
+      new Promise((resolve) => setTimeout(() => resolve({ totalStudents: 0, totalTeachers: 0, totalClasses: 0, totalSubjects: 0 }), 3000))
     ]);
-    const data = { totalStudents, totalTeachers, totalClasses, totalSubjects };
     statsCache.set(key, { data, timestamp: Date.now() });
     return data;
   } catch (err) {
@@ -191,17 +195,20 @@ exports.getMySchool = async (req, res) => {
     const targetSchoolName = adminUser.schoolName || adminUser.requestedSchool || "";
     let school = await School.findOne({ adminId: adminUser._id });
 
-    // Fallback: If school doesn't have adminId set yet, match by schoolName or requestedSchool
+    // Fallback: If school doesn't have adminId set yet, match by normalizedName or exact name
     if (!school && targetSchoolName) {
       const normalized = normalizeName(targetSchoolName);
-      const escName = escapeRegex(targetSchoolName);
       school = await School.findOne({
         $or: [
           { normalizedName: normalized },
-          { name: new RegExp("^" + escName + "$", "i") },
-          { name: new RegExp(escName, "i") }
+          { name: targetSchoolName }
         ]
       });
+
+      if (!school) {
+        const escName = escapeRegex(targetSchoolName);
+        school = await School.findOne({ name: new RegExp("^" + escName + "$", "i") });
+      }
 
       if (school) {
         school.adminId = adminUser._id;
