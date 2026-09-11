@@ -9,7 +9,7 @@ export const usePlatform = () => {
   const context = useContext(PlatformContext);
   if (!context) {
     return {
-      platformName: "TeachHub",
+      platformName: "Your School",
       logoUrl: "",
       tagline: "Smart School Management & Communication Platform",
       refreshPlatformConfig: () => {},
@@ -22,7 +22,7 @@ export const usePlatform = () => {
 import API_URL from "../config/api";
 
 export const PlatformProvider = ({ children }) => {
-  const [platformName, setPlatformName] = useState(localStorage.getItem("platformName") || "TeachHub");
+  const [platformName, setPlatformName] = useState(localStorage.getItem("platformName") || "Your School");
   const [logoUrl, setLogoUrl] = useState(localStorage.getItem("platformLogoUrl") || "");
   const [tagline, setTagline] = useState("Smart School Management & Communication Platform");
   const [platformConfig, setPlatformConfig] = useState(null);

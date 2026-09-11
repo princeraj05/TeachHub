@@ -25,8 +25,8 @@ const SORA = "'Sora', sans-serif";
 
 const DEFAULT_SCHOOL_BANNERS = [
   {
-    name: "TeachHub School Management",
-    motto: "A Secure & Unified Platform for Modern Education",
+    name: "G.D Academy",
+    motto: "Learn • Grow • Succeed",
     coverImage: "",
     photo: ""
   }
@@ -52,9 +52,24 @@ function Login({ scope }) {
   const [cooldown, setCooldown] = useState(0);
 
   // Live stats & school banners state
-  const [liveStats, setLiveStats] = useState({ schools: 0, students: 0, teachers: 0, admins: 0 });
-  const [publicSchools, setPublicSchools] = useState([]);
+  const [liveStats, setLiveStats] = useState(() => {
+    return platformConfig?.stats || { schools: 3, students: 1, teachers: 1, admins: 1 };
+  });
+  const [publicSchools, setPublicSchools] = useState(() => {
+    return (platformConfig?.publicSchools && Array.isArray(platformConfig.publicSchools)) ? platformConfig.publicSchools : [];
+  });
   const [currentBannerIdx, setCurrentBannerIdx] = useState(0);
+
+  useEffect(() => {
+    if (platformConfig) {
+      if (platformConfig.stats) {
+        setLiveStats(platformConfig.stats);
+      }
+      if (platformConfig.publicSchools && Array.isArray(platformConfig.publicSchools)) {
+        setPublicSchools(platformConfig.publicSchools);
+      }
+    }
+  }, [platformConfig]);
 
   useEffect(() => {
     const fetchAboutInfo = async () => {
@@ -313,7 +328,7 @@ function Login({ scope }) {
               </div>
             )}
             <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
-              {platformName || "TeachHub"}
+              {platformName || "Your School"}
             </span>
           </div>
 
@@ -420,7 +435,7 @@ function Login({ scope }) {
               </div>
             )}
             <span className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
-              {platformName || "TeachHub"}
+              {platformName || "Your School"}
             </span>
           </div>
 
@@ -694,7 +709,7 @@ function Login({ scope }) {
 
         {/* Footer text */}
         <p className="text-[11px] text-slate-400 dark:text-slate-500 font-semibold mt-6 text-center">
-          Protected by end-to-end OTP authentication &bull; TeachHub
+          Protected by end-to-end OTP authentication &bull; {platformName || "TeachHub"}
         </p>
 
       </div>
