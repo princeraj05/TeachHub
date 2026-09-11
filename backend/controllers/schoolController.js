@@ -182,28 +182,32 @@ const normalizeSchoolData = (s) => {
   return s;
 };
 
-// Helper to robustly find a school by name identity first, then by adminId
+// Helper to robustly find a school by adminId first (highest completion), then by name identity
 const findTargetSchool = async (adminUserId, targetSchoolName) => {
   let school = null;
-  const normalized = targetSchoolName ? normalizeName(targetSchoolName) : "";
 
-  // 1. Primary search: Match by normalizedName or exact name
+  // 1. First priority: Match by adminId sorted by profileCompletion (-1) and updatedAt (-1)
+  if (adminUserId) {
+    const adminSchools = await School.find({ adminId: adminUserId }).sort({ profileCompletion: -1, updatedAt: -1 });
+    if (adminSchools && adminSchools.length > 0) {
+      return adminSchools[0];
+    }
+  }
+
+  // 2. Second priority: Match by normalizedName or exact name
+  const normalized = targetSchoolName ? normalizeName(targetSchoolName) : "";
   if (normalized) {
     school = await School.findOne({
       $or: [
         { normalizedName: normalized },
         { name: targetSchoolName }
       ]
-    });
+    }).sort({ profileCompletion: -1 });
+
     if (!school) {
       const escName = escapeRegex(targetSchoolName);
-      school = await School.findOne({ name: new RegExp("^" + escName + "$", "i") });
+      school = await School.findOne({ name: new RegExp("^" + escName + "$", "i") }).sort({ profileCompletion: -1 });
     }
-  }
-
-  // 2. Secondary search: Match by adminId
-  if (!school && adminUserId) {
-    school = await School.findOne({ adminId: adminUserId });
   }
 
   return school;
