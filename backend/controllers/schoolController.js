@@ -106,13 +106,12 @@ const getSchoolStatistics = async (schoolName) => {
   if (!schoolName) return { totalStudents: 0, totalTeachers: 0, totalClasses: 0, totalSubjects: 0 };
   const trimmed = schoolName.trim();
   const schoolRegex = new RegExp("^" + escapeRegex(trimmed) + "$", "i");
-  const matchFilter = { $in: [trimmed, schoolRegex] };
 
   const [totalStudents, totalTeachers, totalClasses, totalSubjects] = await Promise.all([
-    User.countDocuments({ schoolName: matchFilter, role: "student" }),
-    User.countDocuments({ schoolName: matchFilter, role: "teacher" }),
-    Class.countDocuments({ schoolName: matchFilter }),
-    Subject.countDocuments({ schoolName: matchFilter })
+    User.countDocuments({ schoolName: schoolRegex, role: "student" }),
+    User.countDocuments({ schoolName: schoolRegex, role: "teacher" }),
+    Class.countDocuments({ schoolName: schoolRegex }),
+    Subject.countDocuments({ schoolName: schoolRegex })
   ]);
   return { totalStudents, totalTeachers, totalClasses, totalSubjects };
 };
