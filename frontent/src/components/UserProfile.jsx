@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { usePlatform } from "../context/PlatformContext";
 import { useLanguage } from "../context/LanguageContext";
+import API_URL from "../config/api";
 import {
   FaUserCircle,
   FaEnvelope,
@@ -50,7 +51,7 @@ const AVAILABLE_SUBJECTS = [
 const CLASS_OPTIONS = Array.from({ length: 12 }, (_, i) => `Class ${i + 1}`);
 
 function UserProfile() {
-  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
+  const API = API_URL;
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
   const location = useLocation();

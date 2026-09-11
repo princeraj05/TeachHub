@@ -18,13 +18,14 @@ import {
   FaSpinner,
   FaSync,
   FaBuilding,
-  FaUserCheck
+  FaUserCheck,
 } from "react-icons/fa";
+import API_URL from "../../../config/api";
 
 const defaultUsers = [];
 
 function SuperAdminUsers() {
-  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
+  const API = API_URL;
   const token = localStorage.getItem("token");
   const [searchParams] = useSearchParams();
 
