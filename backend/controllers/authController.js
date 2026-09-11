@@ -645,6 +645,18 @@ exports.updateProfile = async (req, res) => {
     if (dndMode !== undefined) user.dndMode = dndMode;
 
     if (requestedRole !== undefined) user.requestedRole = requestedRole;
+    if (requestedSchool !== undefined) {
+      user.requestedSchool = requestedSchool;
+      if (!user.schoolName || user.role !== "admin") {
+        user.schoolName = requestedSchool;
+      }
+    }
+    if (schoolName !== undefined) {
+      user.schoolName = schoolName;
+      if (!user.requestedSchool) {
+        user.requestedSchool = schoolName;
+      }
+    }
     if (targetClass !== undefined) user.targetClass = targetClass;
     if (previousClass !== undefined) user.previousClass = previousClass;
     if (previousSchool !== undefined) user.previousSchool = previousSchool;

@@ -97,7 +97,8 @@ function PendingApproval() {
     }).then((res) => {
       if (res.data) {
         setOnboardingStatus(res.data);
-        if (res.data.requestStatus === "approved" && !showApprovalModal && approvalCountdown === null) {
+        const isApproved = res.data.requestStatus === "approved" || res.data.role === "admin";
+        if (isApproved && !showApprovalModal && approvalCountdown === null) {
           const delay = res.data.approvalRedirectDelay || 5;
           setApprovalCountdown(delay);
           setShowApprovalModal(true);
@@ -108,12 +109,12 @@ function PendingApproval() {
 
   useEffect(() => {
     fetchOnboardingStatus();
-    const interval = setInterval(fetchOnboardingStatus, 5000);
+    const interval = setInterval(fetchOnboardingStatus, 2500);
     return () => clearInterval(interval);
   }, [token, API]);
 
   useEffect(() => {
-    if (showApprovalModal && approvalCountdown !== null) {
+    if ((showApprovalModal || onboardingStatus.requestStatus === "approved" || user.requestStatus === "approved") && approvalCountdown !== null) {
       if (approvalCountdown <= 0) {
         navigate("/admin/dashboard");
         return;
@@ -123,7 +124,7 @@ function PendingApproval() {
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [showApprovalModal, approvalCountdown, navigate]);
+  }, [showApprovalModal, onboardingStatus.requestStatus, user.requestStatus, approvalCountdown, navigate]);
 
   const handleSubmitAdminOnboarding = async () => {
     try {
@@ -287,7 +288,11 @@ function PendingApproval() {
               if (res.data.role === "superadmin") {
                 navigate("/superadmin/dashboard");
               } else if (res.data.role === "admin" && (res.data.requestStatus === "approved" || (res.data.schoolName && res.data.schoolName.trim() !== ""))) {
-                navigate("/admin/dashboard");
+                if (!showApprovalModal && approvalCountdown === null) {
+                  const delay = res.data.approvalRedirectDelay || 5;
+                  setApprovalCountdown(delay);
+                  setShowApprovalModal(true);
+                }
               } else if (res.data.role === "teacher" && res.data.requestStatus === "approved") {
                 navigate("/teacher/dashboard");
               } else if (res.data.role === "student" && res.data.requestStatus === "approved") {
@@ -307,7 +312,7 @@ function PendingApproval() {
     };
 
     checkRoleStatus(); // Run once immediately
-    intervalId = setInterval(checkRoleStatus, 15000);
+    intervalId = setInterval(checkRoleStatus, 3000);
     return () => {
       isMounted = false;
       if (intervalId) clearInterval(intervalId);

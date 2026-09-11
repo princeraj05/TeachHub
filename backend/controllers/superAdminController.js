@@ -167,6 +167,7 @@ exports.assignRole = async (req, res) => {
     const targetSchoolName = (schoolName || user.requestedSchool || user.schoolName || "").trim();
     const assignedSchoolName = (role === "unassigned" || role === "support") ? "" : targetSchoolName;
     user.schoolName = assignedSchoolName;
+    user.requestedSchool = assignedSchoolName;
     if (role === "admin") {
       user.requestStatus = "approved";
       user.approvedAt = new Date();

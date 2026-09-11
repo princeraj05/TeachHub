@@ -15,20 +15,30 @@ exports.getAboutInfo = async (req, res) => {
     await School.deleteMany({ normalizedName: { $in: ["g.d accedmy", "teachhub demo school", "demo school"] } });
     await User.deleteMany({ schoolName: { $in: ["TeachHub Demo School", "Demo School"] } });
 
-    // Sync any user's schoolName to School collection if missing
-    const userSchools = await User.distinct("schoolName", { schoolName: { $ne: "", $exists: true } });
-    for (const rawName of userSchools) {
-      if (!rawName || !rawName.trim() || rawName.toLowerCase().includes("demo school")) continue;
-      const trimmed = rawName.trim();
+    // Find all approved admins
+    const approvedAdmins = await User.find({ role: "admin", requestStatus: "approved" }).select("_id schoolName email").lean();
+    const approvedAdminIds = approvedAdmins.map(a => a._id);
+    const approvedSchoolNames = approvedAdmins.map(a => a.schoolName ? a.schoolName.trim().toLowerCase() : "").filter(Boolean);
+
+    // Clean up any school records that do not belong to an approved admin
+    await School.deleteMany({
+      name: { $not: /demo school/i },
+      adminId: { $nin: approvedAdminIds },
+      normalizedName: { $nin: approvedSchoolNames }
+    });
+
+    // Ensure approved admins have a corresponding School document
+    for (const adminUser of approvedAdmins) {
+      if (!adminUser.schoolName || !adminUser.schoolName.trim()) continue;
+      const trimmed = adminUser.schoolName.trim();
       const normalized = trimmed.toLowerCase().replace(/\s+/g, " ");
       const exists = await School.findOne({ normalizedName: normalized });
       if (!exists) {
-        const adminUser = await User.findOne({ schoolName: trimmed, role: "admin" });
         await School.create({
           name: trimmed,
           normalizedName: normalized,
-          adminId: adminUser ? adminUser._id : null,
-          email: adminUser ? adminUser.email : null,
+          adminId: adminUser._id,
+          email: adminUser.email,
           status: "Active"
         });
       }
@@ -36,7 +46,7 @@ exports.getAboutInfo = async (req, res) => {
 
     const studentCount = await User.countDocuments({ role: "student" });
     const teacherCount = await User.countDocuments({ role: "teacher" });
-    const adminCount = await User.countDocuments({ role: { $in: ["admin", "superadmin"] } });
+    const adminCount = approvedAdmins.length;
     const schoolCount = await School.countDocuments({ name: { $not: /demo school/i } });
 
     const publicSchools = await School.find({ name: { $not: /demo school/i } })
