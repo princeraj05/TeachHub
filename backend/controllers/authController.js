@@ -864,7 +864,7 @@ exports.submitAdminOnboarding = async (req, res) => {
 
     user.isSubmittedToSuperAdmin = true;
     user.requestStatus = "pending";
-    if (!user.requestedRole) user.requestedRole = "admin";
+    user.requestedRole = "admin";
     await user.save();
 
     res.json({

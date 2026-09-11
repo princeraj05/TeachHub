@@ -743,18 +743,18 @@ function PendingApproval() {
                       <h3 className="text-slate-950 dark:text-white text-xs font-black uppercase tracking-wider">
                         Submitted Onboarding Summary
                       </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
                           <p className="text-[10px] font-black uppercase text-emerald-500">Profile</p>
-                          <p className="text-xs font-extrabold text-slate-800 dark:text-white mt-0.5">Completed ✓</p>
+                          <p className="text-xs font-extrabold text-slate-800 dark:text-white mt-0.5">
+                            {onboardingStatus.profileCompleted ? "Completed ✓" : "Filled ✓"}
+                          </p>
                         </div>
                         <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
                           <p className="text-[10px] font-black uppercase text-emerald-500">About School</p>
-                          <p className="text-xs font-extrabold text-slate-800 dark:text-white mt-0.5">Completed ✓</p>
-                        </div>
-                        <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
-                          <p className="text-[10px] font-black uppercase text-emerald-500">Payments</p>
-                          <p className="text-xs font-extrabold text-slate-800 dark:text-white mt-0.5">Configured ✓</p>
+                          <p className="text-xs font-extrabold text-slate-800 dark:text-white mt-0.5">
+                            {onboardingStatus.schoolCompleted ? "Completed ✓" : "Filled ✓"}
+                          </p>
                         </div>
                       </div>
                     </div>

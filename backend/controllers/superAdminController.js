@@ -12,8 +12,8 @@ exports.getUsers = async (req, res) => {
     }
 
     if (type === "school_applicants") {
-      query.requestedRole = "admin";
       query.isSubmittedToSuperAdmin = true;
+      query.role = { $nin: ["admin", "superadmin"] };
       if (status && status !== "All") {
         if (status.toLowerCase() === "pending") {
           query.requestStatus = "pending";
@@ -22,7 +22,7 @@ exports.getUsers = async (req, res) => {
         }
       }
     } else if (type === "normal_users") {
-      query.requestedRole = { $ne: "admin" };
+      query.isSubmittedToSuperAdmin = { $ne: true };
       if (status && status !== "All") {
         if (status.toLowerCase() === "pending") {
           query.role = { $ne: "superadmin" };
@@ -40,8 +40,8 @@ exports.getUsers = async (req, res) => {
         if (status.toLowerCase() === "pending") {
           query.role = { $ne: "superadmin" };
           query.$or = [
-            { requestedRole: "admin", isSubmittedToSuperAdmin: true },
-            { requestedRole: { $ne: "admin" }, role: "unassigned" },
+            { isSubmittedToSuperAdmin: true },
+            { role: "unassigned" },
             { requestStatus: { $in: ["pending", "scheduled", "exam_completed"] } }
           ];
         } else if (status.toLowerCase() === "approved") {
