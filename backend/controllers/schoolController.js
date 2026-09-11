@@ -182,6 +182,33 @@ const normalizeSchoolData = (s) => {
   return s;
 };
 
+// Helper to robustly find a school by name identity first, then by adminId
+const findTargetSchool = async (adminUserId, targetSchoolName) => {
+  let school = null;
+  const normalized = targetSchoolName ? normalizeName(targetSchoolName) : "";
+
+  // 1. Primary search: Match by normalizedName or exact name
+  if (normalized) {
+    school = await School.findOne({
+      $or: [
+        { normalizedName: normalized },
+        { name: targetSchoolName }
+      ]
+    });
+    if (!school) {
+      const escName = escapeRegex(targetSchoolName);
+      school = await School.findOne({ name: new RegExp("^" + escName + "$", "i") });
+    }
+  }
+
+  // 2. Secondary search: Match by adminId
+  if (!school && adminUserId) {
+    school = await School.findOne({ adminId: adminUserId });
+  }
+
+  return school;
+};
+
 // GET /api/schools/my-school
 exports.getMySchool = async (req, res) => {
   try {
@@ -197,27 +224,11 @@ exports.getMySchool = async (req, res) => {
     // Execute school lookup with a 3s safety timeout to prevent Hostinger 504 Gateway Timeout
     const result = await Promise.race([
       (async () => {
-        let school = await School.findOne({ adminId: adminUser._id });
+        let school = await findTargetSchool(adminUser._id, targetSchoolName);
 
-        // Fallback: If school doesn't have adminId set yet, match by normalizedName or exact name
-        if (!school && targetSchoolName) {
-          const normalized = normalizeName(targetSchoolName);
-          school = await School.findOne({
-            $or: [
-              { normalizedName: normalized },
-              { name: targetSchoolName }
-            ]
-          });
-
-          if (!school) {
-            const escName = escapeRegex(targetSchoolName);
-            school = await School.findOne({ name: new RegExp("^" + escName + "$", "i") });
-          }
-
-          if (school && adminUser.role !== "superadmin") {
-            school.adminId = adminUser._id;
-            try { await school.save(); } catch (sErr) {}
-          }
+        if (school && !school.adminId && adminUser.role !== "superadmin") {
+          school.adminId = adminUser._id;
+          try { await school.save(); } catch (sErr) {}
         }
 
         // If still not found, auto-create initial school for this Admin / Applicant safely
@@ -233,17 +244,7 @@ exports.getMySchool = async (req, res) => {
               profileCompletion: 0
             });
           } catch (cErr) {
-            school = await School.findOne({
-              $or: [
-                { normalizedName: normalizedName },
-                { name: name }
-              ]
-            });
-
-            if (!school) {
-              const escName = escapeRegex(name);
-              school = await School.findOne({ name: new RegExp("^" + escName + "$", "i") });
-            }
+            school = await findTargetSchool(adminUser._id, name);
 
             if (!school) {
               school = await School.create({
@@ -319,21 +320,7 @@ exports.updateMySchool = async (req, res) => {
     }
 
     const targetSchoolName = adminUser.schoolName || adminUser.requestedSchool || "";
-    let school = await School.findOne({ adminId: adminUser._id });
-    if (!school && targetSchoolName) {
-      const normalized = normalizeName(targetSchoolName);
-      const escName = escapeRegex(targetSchoolName);
-      school = await School.findOne({
-        $or: [
-          { normalizedName: normalized },
-          { name: new RegExp("^" + escName + "$", "i") },
-          { name: new RegExp(escName, "i") }
-        ]
-      });
-      if (school) {
-        school.adminId = adminUser._id;
-      }
-    }
+    let school = await findTargetSchool(adminUser._id, targetSchoolName);
 
     if (!school) {
       const name = targetSchoolName ? targetSchoolName.trim() : "My School";
@@ -345,12 +332,7 @@ exports.updateMySchool = async (req, res) => {
           normalizedName: normalizedName
         });
       } catch (cErr) {
-        school = await School.findOne({
-          $or: [
-            { normalizedName: normalizedName },
-            { name: new RegExp("^" + escapeRegex(name) + "$", "i") }
-          ]
-        });
+        school = await findTargetSchool(adminUser._id, name);
       }
     }
 
