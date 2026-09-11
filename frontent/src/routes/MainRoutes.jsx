@@ -60,7 +60,7 @@ function MainRoutes() {
         <Route
           path="/pending/*"
           element={
-            <ProtectedRoute allowedRoles={["unassigned"]}>
+            <ProtectedRoute allowedRoles={["unassigned", "admin", "student", "teacher"]}>
               <CallProvider>
                 <PendingApproval />
               </CallProvider>

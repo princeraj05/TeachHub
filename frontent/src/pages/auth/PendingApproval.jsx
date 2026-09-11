@@ -602,7 +602,7 @@ function PendingApproval() {
                 </div>
 
                 {/* 1. APPROVAL REDIRECT COUNTDOWN OVERLAY / CARD */}
-                {(showApprovalModal || user.role === "admin" || user.requestStatus === "approved" || onboardingStatus.role === "admin") ? (
+                {(showApprovalModal || user.requestStatus === "approved" || onboardingStatus.requestStatus === "approved") ? (
                   <div className="w-full bg-[#171C35] rounded-3xl border border-emerald-500/40 shadow-2xl p-8 text-center relative overflow-hidden flex flex-col items-center select-none animate-fadeIn">
                     <div className="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-emerald-500/40 flex items-center justify-center text-emerald-400 text-3xl mb-4 animate-bounce">
                       <FaCheckCircle />
@@ -1914,18 +1914,26 @@ function PendingApproval() {
               </div>
             </div>
 
-            {/* Nav Items List (Profile is #1) */}
+            {/* Nav Items List */}
             <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
-              {[
-                { to: "/pending/profile", icon: <FaUserCircle className="text-[#7C3AED] dark:text-[#38BDF8]" />, label: "Profile" },
+              {(isAdminApplicant ? [
                 { to: "/pending", icon: <FaClock className="text-amber-500" />, label: "Status" },
                 { to: "/pending/notifications", icon: <FaBell className="text-[#7C3AED]" />, label: "Notifications" },
+                { to: "/pending/schools", icon: <FaSchool className="text-purple-500" />, label: "School" },
+                { to: "/pending/about-school", icon: <FaSchool className="text-amber-500" />, label: "About Your School" },
+                { to: "/pending/payments", icon: <FaShieldAlt className="text-emerald-500" />, label: "Payments" },
                 { to: "/pending/events", icon: <FaCalendarAlt className="text-cyan-500" />, label: "Event" },
-                { to: "/pending/schools", icon: <FaSchool className="text-purple-500" />, label: "School Directory" },
-                ...(!isTeacher ? [{ to: "/pending/exams", icon: <FaBookOpen className="text-blue-500" />, label: "Exam" }] : []),
-                { to: "/pending/support", icon: <FaHeadphones className="text-emerald-500" />, label: "Help & Support" },
+                { to: "/pending/profile", icon: <FaUserCircle className="text-[#7C3AED] dark:text-[#38BDF8]" />, label: "Profile" },
                 { to: "/pending/about", icon: <FaInfoCircle className="text-slate-400" />, label: "About App" }
-              ]
+              ] : [
+                { to: "/pending", icon: <FaClock className="text-amber-500" />, label: "Status" },
+                { to: "/pending/notifications", icon: <FaBell className="text-[#7C3AED]" />, label: "Notifications" },
+                { to: "/pending/schools", icon: <FaSchool className="text-purple-500" />, label: "School Directory" },
+                { to: "/pending/events", icon: <FaCalendarAlt className="text-cyan-500" />, label: "Event" },
+                ...(!isTeacher ? [{ to: "/pending/exams", icon: <FaBookOpen className="text-blue-500" />, label: "Exam" }] : []),
+                { to: "/pending/profile", icon: <FaUserCircle className="text-[#7C3AED] dark:text-[#38BDF8]" />, label: "Profile" },
+                { to: "/pending/about", icon: <FaInfoCircle className="text-slate-400" />, label: "About App" }
+              ])
                 .filter(link => link.label.toLowerCase().includes(searchQuery.toLowerCase()))
                 .map((link) => {
                   const active = location.pathname === link.to;

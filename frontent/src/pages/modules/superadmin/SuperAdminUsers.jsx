@@ -470,24 +470,6 @@ function SuperAdminUsers() {
                           <div>
                             <p className="font-semibold text-slate-900 dark:text-white text-sm">{user.name || "Unnamed User"}</p>
                             <p className="text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
-                            {user.onboardingProgress && (
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${user.onboardingProgress.profileCompleted ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "bg-slate-500/15 text-slate-400"}`}>
-                                  Profile {user.onboardingProgress.profileCompleted ? "✓" : "⏳"}
-                                </span>
-                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${user.onboardingProgress.schoolCompleted ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "bg-slate-500/15 text-slate-400"}`}>
-                                  School {user.onboardingProgress.schoolCompleted ? "✓" : "⏳"}
-                                </span>
-                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${user.onboardingProgress.paymentCompleted ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "bg-slate-500/15 text-slate-400"}`}>
-                                  Payment {user.onboardingProgress.paymentCompleted ? "✓" : "⏳"}
-                                </span>
-                                {user.onboardingProgress.isSubmitted && (
-                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                                    Submitted 🚀
-                                  </span>
-                                )}
-                              </div>
-                            )}
                           </div>
                         </div>
                       </td>
