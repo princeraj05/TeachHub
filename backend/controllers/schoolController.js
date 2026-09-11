@@ -186,19 +186,34 @@ const normalizeSchoolData = (s) => {
 const findTargetSchool = async (adminUserId, targetSchoolName, adminEmail) => {
   let school = null;
 
-  // 1. First priority: Match by adminId or adminEmail sorted by profileCompletion (-1) and updatedAt (-1)
-  if (adminUserId || adminEmail) {
-    const query = [];
-    if (adminUserId) query.push({ adminId: adminUserId });
-    if (adminEmail) query.push({ email: adminEmail }, { principalEmail: adminEmail }, { "basicInfo.schoolEmail": adminEmail });
-
-    const adminSchools = await School.find({ $or: query }).sort({ profileCompletion: -1, updatedAt: -1 });
+  // 1. First priority: Match by adminId (fastest indexed query)
+  if (adminUserId) {
+    const adminSchools = await School.find({
+      $or: [
+        { adminId: adminUserId },
+        { adminId: adminUserId.toString() }
+      ]
+    }).sort({ profileCompletion: -1, updatedAt: -1 });
     if (adminSchools && adminSchools.length > 0) {
       return adminSchools[0];
     }
   }
 
-  // 2. Second priority: Match by normalizedName or exact name
+  // 2. Second priority: Match by admin Email
+  if (adminEmail) {
+    const emailSchools = await School.find({
+      $or: [
+        { email: adminEmail },
+        { principalEmail: adminEmail },
+        { "basicInfo.schoolEmail": adminEmail }
+      ]
+    }).sort({ profileCompletion: -1, updatedAt: -1 });
+    if (emailSchools && emailSchools.length > 0) {
+      return emailSchools[0];
+    }
+  }
+
+  // 3. Third priority: Match by normalizedName or exact name
   const normalized = targetSchoolName ? normalizeName(targetSchoolName) : "";
   if (normalized) {
     school = await School.findOne({
@@ -206,11 +221,11 @@ const findTargetSchool = async (adminUserId, targetSchoolName, adminEmail) => {
         { normalizedName: normalized },
         { name: targetSchoolName }
       ]
-    }).sort({ profileCompletion: -1 });
+    }).sort({ profileCompletion: -1, updatedAt: -1 });
 
     if (!school) {
       const escName = escapeRegex(targetSchoolName);
-      school = await School.findOne({ name: new RegExp("^" + escName + "$", "i") }).sort({ profileCompletion: -1 });
+      school = await School.findOne({ name: new RegExp("^" + escName + "$", "i") }).sort({ profileCompletion: -1, updatedAt: -1 });
     }
   }
 
@@ -229,87 +244,66 @@ exports.getMySchool = async (req, res) => {
 
     const targetSchoolName = adminUser.schoolName || adminUser.requestedSchool || "";
     
-    // Execute school lookup with a 3s safety timeout to prevent Hostinger 504 Gateway Timeout
-    const result = await Promise.race([
-      (async () => {
-        let school = await findTargetSchool(adminUser._id, targetSchoolName, adminUser.email);
+    let school = await findTargetSchool(adminUser._id, targetSchoolName, adminUser.email);
 
-        if (school && !school.adminId && adminUser.role !== "superadmin") {
-          school.adminId = adminUser._id;
-          try { await school.save(); } catch (sErr) {}
-        }
+    if (school && !school.adminId && adminUser.role !== "superadmin") {
+      school.adminId = adminUser._id;
+      try { await school.save(); } catch (sErr) {}
+    }
 
-        // If still not found, auto-create initial school for this Admin / Applicant safely
-        if (!school) {
-          const name = targetSchoolName ? targetSchoolName.trim() : "My School";
-          const normalizedName = normalizeName(name);
-          try {
-            school = await School.create({
-              adminId: adminUser._id,
-              name: name,
-              normalizedName: normalizedName,
-              status: "Active",
-              profileCompletion: 0
-            });
-          } catch (cErr) {
-            school = await findTargetSchool(adminUser._id, name, adminUser.email);
-
-            if (!school) {
-              school = await School.create({
-                adminId: adminUser._id,
-                name: name,
-                normalizedName: `${normalizedName}-${Date.now()}`,
-                status: "Active",
-                profileCompletion: 0
-              });
-            }
-          }
-        }
+    // If still not found, auto-create initial school for this Admin / Applicant safely
+    if (!school) {
+      const name = targetSchoolName ? targetSchoolName.trim() : "My School";
+      const normalizedName = normalizeName(name);
+      try {
+        school = await School.create({
+          adminId: adminUser._id,
+          name: name,
+          normalizedName: normalizedName,
+          status: "Active",
+          profileCompletion: 0
+        });
+      } catch (cErr) {
+        school = await findTargetSchool(adminUser._id, name, adminUser.email);
 
         if (!school) {
-          school = new School({
+          school = await School.create({
             adminId: adminUser._id,
-            name: targetSchoolName || "My School",
+            name: name,
+            normalizedName: `${normalizedName}-${Date.now()}`,
             status: "Active",
             profileCompletion: 0
           });
         }
+      }
+    }
 
-        // Normalize flat and nested fields
-        normalizeSchoolData(school);
+    if (!school) {
+      school = new School({
+        adminId: adminUser._id,
+        name: targetSchoolName || "My School",
+        status: "Active",
+        profileCompletion: 0
+      });
+    }
 
-        const profileCompletion = calculateProfileCompletion(school);
-        school.profileCompletion = profileCompletion;
-        if (school.isModified && typeof school.isModified === "function" && school.isModified()) {
-          try { await school.save(); } catch (sErr) {}
-        }
+    // Normalize flat and nested fields
+    normalizeSchoolData(school);
 
-        const statistics = await getSchoolStatistics(school.name);
-        const schoolObj = typeof school.toObject === "function" ? school.toObject() : school;
-        schoolObj.profileCompletion = profileCompletion;
+    const profileCompletion = calculateProfileCompletion(school);
+    school.profileCompletion = profileCompletion;
+    if (school.isModified && typeof school.isModified === "function" && school.isModified()) {
+      try { await school.save(); } catch (sErr) {}
+    }
 
-        return { schoolObj, statistics };
-      })(),
-      new Promise((resolve) =>
-        setTimeout(() => {
-          const fallbackSchool = {
-            name: targetSchoolName || "My School",
-            status: "Active",
-            profileCompletion: 25,
-            basicInfo: { schoolEmail: adminUser?.email || "" }
-          };
-          resolve({
-            schoolObj: fallbackSchool,
-            statistics: { totalStudents: 0, totalTeachers: 0, totalClasses: 0, totalSubjects: 0 }
-          });
-        }, 6000)
-      )
-    ]);
+    const statistics = await getSchoolStatistics(school.name);
+    const schoolObj = typeof school.toObject === "function" ? school.toObject() : school;
+    schoolObj.profileCompletion = profileCompletion;
 
-    return res.json({
+    res.json({
       success: true,
-      school: result.schoolObj,
-      statistics: result.statistics
+      school: schoolObj,
+      statistics
     });
   } catch (error) {
     console.error("Error in getMySchool:", error);
