@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { getMediaUrl } from "../../../../config/api";
+import { usePlatform } from "../../../../context/PlatformContext";
 import {
   FaSchool,
   FaUser,
@@ -38,6 +39,8 @@ function SchoolDetails() {
   }
 
   const navigate = useNavigate();
+  const { platformName } = usePlatform() || {};
+  const platformTitle = platformName || localStorage.getItem("platformName") || "Your School";
   const API = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
 
@@ -210,7 +213,7 @@ function SchoolDetails() {
         onClick={handleApplyClick}
         className={`bg-[#7C3AED] hover:bg-[#6D28D9] text-white ${basePadding} text-xs font-bold transition shadow-md shadow-[#7C3AED]/20 cursor-pointer text-center flex items-center justify-center gap-1.5`}
       >
-        <span>Apply for Admission</span>
+        <span>Join in {platformTitle}</span>
       </button>
     );
   };

@@ -283,13 +283,15 @@ function UserProfile() {
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight">{user?.name || "Applicant User"}</h1>
                 <span className="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 backdrop-blur-md border border-white/25">
-                  {isAdmittedStudent
-                    ? "STUDENT"
-                    : isAdmittedTeacher
-                      ? "FACULTY / TEACHER"
-                      : isTeacherApplicant
-                        ? "TEACHER APPLICANT"
-                        : "STUDENT APPLICANT"}
+                  {localStorage.getItem("loginSource") === "admin" || user?.role === "admin" || user?.requestedRole === "admin"
+                    ? "SCHOOL ADMIN (PENDING)"
+                    : isAdmittedStudent
+                      ? "STUDENT"
+                      : isAdmittedTeacher
+                        ? "FACULTY / TEACHER"
+                        : isTeacherApplicant
+                          ? "TEACHER APPLICANT"
+                          : "STUDENT APPLICANT"}
                 </span>
               </div>
 

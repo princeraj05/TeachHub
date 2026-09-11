@@ -41,6 +41,8 @@ import SchoolDirectory from "../modules/student/pages/SchoolDirectory";
 import SchoolDetails from "../modules/student/pages/SchoolDetails";
 import RegisterExam from "../modules/student/pages/RegisterExam";
 import AboutAppPage from "../modules/student/pages/AboutAppPage";
+import AboutYourSchool from "../modules/admin/pages/AboutYourSchool";
+import PaymentCenter from "../../components/PaymentCenter";
 import { useTheme } from "../../context/ThemeContext";
 import { FaVideo } from "react-icons/fa";
 import { useCall } from "../../context/CallContext";
@@ -129,6 +131,8 @@ function PendingApproval() {
     const path = location.pathname;
     if (path.startsWith("/pending/events")) return "events";
     if (path.startsWith("/pending/schools") || path.startsWith("/pending/school")) return "schools";
+    if (path.startsWith("/pending/about-school")) return "about-school";
+    if (path.startsWith("/pending/payments")) return "payments";
     if (path.startsWith("/pending/exams")) return "exams";
     if (path.startsWith("/pending/profile")) return "profile";
     if (path.startsWith("/pending/about")) return "about";
@@ -301,16 +305,40 @@ function PendingApproval() {
   const isLinkActive = (tabName) => activeTab === tabName;
 
   const isTeacher = user.requestedRole === "teacher" || user.role === "teacher";
+  const loginSource = localStorage.getItem("loginSource");
+  const isAdminApplicant = loginSource === "admin" || user.requestedRole === "admin" || user.role === "admin";
 
   const getNotificationsList = () => {
     const list = [];
     
+    if (isAdminApplicant) {
+      list.push({
+        id: "not-admin-welcome",
+        title: `Welcome to ${platformName || "Your School"} Admin Portal`,
+        message: `Welcome! Your school registration request for ${user.requestedSchool || user.schoolName || "your school"} is under Super Admin review. You can configure your school profile and payment settings while waiting.`,
+        date: user.createdAt || new Date(),
+        category: "application"
+      });
+
+      if (user.requestStatus === "approved" || user.role === "admin") {
+        list.push({
+          id: "not-admin-approved",
+          title: "School Registration Approved!",
+          message: `Congratulations! Super Admin has approved ${user.requestedSchool || "your school"}. Click here to launch your Admin Dashboard.`,
+          date: user.updatedAt || new Date(),
+          category: "acceptance"
+        });
+      }
+
+      return list.reverse();
+    }
+
     list.push({
       id: "not-welcome",
-      title: `Welcome to ${platformName || "TeachHub"}`,
+      title: `Welcome to ${platformName || "Your School"}`,
       message: isTeacher
-        ? `Welcome to ${platformName || "TeachHub"}! Explore registered school centers and submit your application for a teaching position.`
-        : `Welcome to ${platformName || "TeachHub"}! Explore available school centers in your area and submit a request to join.`,
+        ? `Welcome to ${platformName || "Your School"}! Explore registered school centers and submit your application for a teaching position.`
+        : `Welcome to ${platformName || "Your School"}! Explore available school centers in your area and submit a request to join.`,
       date: user.createdAt || new Date(),
       category: "system"
     });
@@ -413,6 +441,10 @@ function PendingApproval() {
           );
         }
         return <RegisterExam />;
+      case "about-school":
+        return <AboutYourSchool />;
+      case "payments":
+        return <PaymentCenter />;
       case "profile":
         return <UserProfile />;
       case "about":
@@ -477,7 +509,166 @@ function PendingApproval() {
             
             {/* RENDER PERSONAL STATUS STATES A, B, C, D */}
 
-            {user.requestStatus === "rejected" ? (
+            {isAdminApplicant ? (
+              /* State: Admin School Registration Pending Super Admin Review */
+              <div className="w-full flex flex-col gap-6 max-w-xl mx-auto py-2">
+                {/* Top Header */}
+                <div className="flex items-center justify-between w-full mb-2 px-1">
+                  <div>
+                    <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight text-left">
+                      School Registration Status
+                    </h1>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 text-left font-medium">
+                      Track your school onboarding request & Super Admin approval status
+                    </p>
+                  </div>
+                  <Link to="/pending/notifications" className="relative p-2.5 bg-slate-100 dark:bg-white/5 rounded-full border border-slate-200/50 dark:border-white/10 text-slate-600 dark:text-slate-400 shrink-0 hover:bg-slate-200 dark:hover:bg-white/10 transition-all">
+                    <FaBell className="text-lg" />
+                    {getNotificationsList().length > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#7C3AED] text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-[#090F1C]">
+                        {getNotificationsList().length}
+                      </span>
+                    )}
+                  </Link>
+                </div>
+
+                {/* Admin Registration Banner Card */}
+                <div className="w-full bg-[#171C35] rounded-3xl border border-amber-500/30 shadow-xl p-7 text-center relative overflow-hidden flex flex-col items-center select-none">
+                  <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-amber-500/10 blur-[50px] pointer-events-none" />
+                  
+                  <div className="w-16 h-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-lg mb-5">
+                    <FaSchool className="text-3xl animate-pulse" />
+                  </div>
+
+                  <span className="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full text-[10px] font-black uppercase tracking-wider mb-3">
+                    ⏳ Under Super Admin Review
+                  </span>
+
+                  <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                    School Registration Submitted!
+                  </h2>
+
+                  <p className="text-xs text-slate-300 font-semibold leading-relaxed mt-2.5 max-w-md">
+                    Your registration request for <strong className="text-amber-300 font-bold">{user.requestedSchool || user.schoolName || platformName || "Your School"}</strong> has been submitted. Super Admin is reviewing your school credentials.
+                  </p>
+                </div>
+
+                {/* Stepper Timeline for Admin Applicant */}
+                <div className="w-full bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm p-6 flex flex-col gap-6 text-left">
+                  <h3 className="text-slate-950 dark:text-white text-xs font-black uppercase tracking-wider mb-1">
+                    School Onboarding Timeline
+                  </h3>
+
+                  {/* Step 1: School Registration Submitted */}
+                  <div className="flex gap-4 relative">
+                    <div className="absolute left-[15px] top-[32px] bottom-[-24px] w-[2px] bg-amber-500" />
+                    <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 z-10 border-4 border-white dark:border-[#0B132A] shadow-sm">
+                      <FaCheckCircle className="text-sm" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-slate-900 dark:text-white">School Registration Request Submitted</p>
+                      <p className="text-[10px] text-slate-450 dark:text-slate-500 mt-0.5 font-medium">{formatDate(user.createdAt)}</p>
+                    </div>
+                  </div>
+
+                  {/* Step 2: Under Super Admin Review */}
+                  <div className="flex gap-4 relative">
+                    <div className="absolute left-[15px] top-[32px] bottom-[-24px] w-[2px] border-l-2 border-dashed border-slate-200 dark:border-white/10" />
+                    <div className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 z-10 border-4 border-white dark:border-[#0B132A] shadow-sm">
+                      <FaClock className="text-sm animate-pulse" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-slate-900 dark:text-white">Under Super Admin Verification</p>
+                      <p className="text-[10px] text-slate-455 dark:text-slate-500 mt-0.5 font-medium">Platform Super Admin is verifying school details & credentials</p>
+                    </div>
+                  </div>
+
+                  {/* Step 3: School Profile & Payment Setup */}
+                  <div className="flex gap-4 relative">
+                    <div className="absolute left-[15px] top-[32px] bottom-[-24px] w-[2px] border-l-2 border-dashed border-slate-200 dark:border-white/10" />
+                    <div className="w-8 h-8 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0 z-10 border-4 border-white dark:border-[#0B132A] shadow-sm">
+                      <FaSchool className="text-xs" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-slate-900 dark:text-white">Complete School Profile & Settings</p>
+                      <p className="text-[10px] text-slate-455 dark:text-slate-500 mt-0.5 font-medium">Configure basic info, photos, and fee settings under 'About Your School'</p>
+                    </div>
+                  </div>
+
+                  {/* Step 4: Admin Workspace Access */}
+                  <div className="flex gap-4 relative">
+                    <div className="w-8 h-8 rounded-full border-2 border-dashed border-slate-200 dark:border-white/20 bg-white dark:bg-[#0B132A] flex items-center justify-center shrink-0 z-10">
+                      <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-white/20" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-slate-400 dark:text-slate-500">Full Admin Workspace Activation</p>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 font-medium">Automatic redirect to /admin/dashboard upon approval</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Actions for Admin Applicant */}
+                <div className="w-full flex flex-col gap-3">
+                  <h3 className="text-slate-900 dark:text-white text-xs font-black uppercase tracking-wider mb-1 px-1 text-left">Admin Quick Setup</h3>
+
+                  {/* About Your School */}
+                  <Link to="/pending/about-school" className="w-full bg-white dark:bg-[#0B132A] rounded-2.5xl border border-slate-200/60 dark:border-white/10 shadow-sm p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 border border-purple-500/20">
+                        <FaSchool className="text-lg" />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-xs font-extrabold text-slate-900 dark:text-white">About Your School</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5 font-semibold">Fill school info, banner photos & principal details</p>
+                      </div>
+                    </div>
+                    <FaChevronRight className="text-slate-400 text-xs shrink-0" />
+                  </Link>
+
+                  {/* Payments Center */}
+                  <Link to="/pending/payments" className="w-full bg-white dark:bg-[#0B132A] rounded-2.5xl border border-slate-200/60 dark:border-white/10 shadow-sm p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20">
+                        <FaShieldAlt className="text-lg" />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-xs font-extrabold text-slate-900 dark:text-white">School Payments Setup</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5 font-semibold">Set up fee structures and payment methods</p>
+                      </div>
+                    </div>
+                    <FaChevronRight className="text-slate-400 text-xs shrink-0" />
+                  </Link>
+
+                  {/* Browse Registered Schools */}
+                  <Link to="/pending/schools" className="w-full bg-white dark:bg-[#0B132A] rounded-2.5xl border border-slate-200/60 dark:border-white/10 shadow-sm p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0 border border-blue-500/20">
+                        <FaSchool className="text-lg" />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-xs font-extrabold text-slate-900 dark:text-white">Browse Schools</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5 font-semibold">Explore other registered school centers</p>
+                      </div>
+                    </div>
+                    <FaChevronRight className="text-slate-400 text-xs shrink-0" />
+                  </Link>
+
+                  {/* Admin Profile Setting */}
+                  <Link to="/pending/profile" className="w-full bg-white dark:bg-[#0B132A] rounded-2.5xl border border-slate-200/60 dark:border-white/10 shadow-sm p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 border border-amber-500/20">
+                        <FaUserCircle className="text-lg" />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-xs font-extrabold text-slate-900 dark:text-white">Admin Profile Settings</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5 font-semibold">Manage your admin contact & personal details</p>
+                      </div>
+                    </div>
+                    <FaChevronRight className="text-slate-400 text-xs shrink-0" />
+                  </Link>
+                </div>
+              </div>
+            ) : user.requestStatus === "rejected" ? (
               /* State D: Rejected */
               <div className="w-full bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl p-8 text-center relative overflow-hidden flex flex-col items-center gap-6">
                 <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-[#7C3AED]/5 blur-[50px] pointer-events-none" />
@@ -1277,20 +1468,7 @@ function PendingApproval() {
               <span className="hidden lg:block">{t("notifications", "Notifications")}</span>
             </Link>
 
-            {/* 2. Event */}
-            <Link
-              to="/pending/events"
-              className={`w-full flex items-center justify-center lg:justify-start gap-4 px-4 py-3.5 rounded-2xl text-xs font-bold transition duration-200 ${
-                isLinkActive("events")
-                  ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:bg-[#38BDF8]/10 dark:text-[#38BDF8]"
-                  : "text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-white/5"
-              }`}
-            >
-              <FaCalendarAlt className="text-xl shrink-0" />
-              <span className="hidden lg:block">{t("event", "Event")}</span>
-            </Link>
-
-            {/* 3. School (Directory) */}
+            {/* 2. School (Directory) */}
             <Link
               to="/pending/schools"
               className={`w-full flex items-center justify-center lg:justify-start gap-4 px-4 py-3.5 rounded-2xl text-xs font-bold transition duration-200 ${
@@ -1303,8 +1481,51 @@ function PendingApproval() {
               <span className="hidden lg:block">{t("school", "School")}</span>
             </Link>
 
+            {/* About Your School (Admin Applicants Only) */}
+            {isAdminApplicant && (
+              <Link
+                to="/pending/about-school"
+                className={`w-full flex items-center justify-center lg:justify-start gap-4 px-4 py-3.5 rounded-2xl text-xs font-bold transition duration-200 ${
+                  isLinkActive("about-school")
+                    ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:bg-[#38BDF8]/10 dark:text-[#38BDF8]"
+                    : "text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-white/5"
+                }`}
+              >
+                <FaSchool className="text-xl shrink-0 text-amber-500" />
+                <span className="hidden lg:block">About Your School</span>
+              </Link>
+            )}
+
+            {/* Payments (Admin Applicants Only) */}
+            {isAdminApplicant && (
+              <Link
+                to="/pending/payments"
+                className={`w-full flex items-center justify-center lg:justify-start gap-4 px-4 py-3.5 rounded-2xl text-xs font-bold transition duration-200 ${
+                  isLinkActive("payments")
+                    ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:bg-[#38BDF8]/10 dark:text-[#38BDF8]"
+                    : "text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-white/5"
+                }`}
+              >
+                <FaShieldAlt className="text-xl shrink-0 text-emerald-500" />
+                <span className="hidden lg:block">Payments</span>
+              </Link>
+            )}
+
+            {/* 3. Event */}
+            <Link
+              to="/pending/events"
+              className={`w-full flex items-center justify-center lg:justify-start gap-4 px-4 py-3.5 rounded-2xl text-xs font-bold transition duration-200 ${
+                isLinkActive("events")
+                  ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:bg-[#38BDF8]/10 dark:text-[#38BDF8]"
+                  : "text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-white/5"
+              }`}
+            >
+              <FaCalendarAlt className="text-xl shrink-0" />
+              <span className="hidden lg:block">{t("event", "Event")}</span>
+            </Link>
+
             {/* 4. Exam (Student Applicants Only) */}
-            {!isTeacher && (
+            {!isTeacher && !isAdminApplicant && (
               <Link
                 to="/pending/exams"
                 className={`w-full flex items-center justify-center lg:justify-start gap-4 px-4 py-3.5 rounded-2xl text-xs font-bold transition duration-200 ${
@@ -1588,7 +1809,7 @@ function PendingApproval() {
                 {user.requestedSchool ? `${user.requestedSchool} Application` : `${platformName || "TeachHub"} Portal`}
               </h1>
               <p className="text-[9px] sm:text-[10px] text-[#7C3AED] dark:text-[#38BDF8] font-extrabold uppercase tracking-widest mt-0.5">
-                {isTeacher ? "Teacher Applicant Console" : "Student Applicant Console"}
+                {isAdminApplicant ? "Admin Onboarding Console" : isTeacher ? "Teacher Applicant Console" : "Student Applicant Console"}
               </p>
             </div>
           </div>
@@ -1614,7 +1835,7 @@ function PendingApproval() {
                   {user.name}
                 </p>
                 <p className="text-[8px] sm:text-[9px] text-slate-455 font-extrabold uppercase tracking-wider">
-                  {isTeacher ? "Teacher (Pending)" : "Student (Pending)"}
+                  {isAdminApplicant ? "Admin (Pending)" : isTeacher ? "Teacher (Pending)" : "Student (Pending)"}
                 </p>
               </div>
 

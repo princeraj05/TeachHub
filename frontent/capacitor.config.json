@@ -1,7 +1,11 @@
 {
-  "appId": "com.yourschool.app",
-  "appName": "Your School",
+  "appId": "com.yourschool.adminapp",
+  "appName": "Your School Admin",
   "webDir": "dist",
+  "server": {
+    "url": "https://myschool-admin-panel.vercel.app/admin/login",
+    "cleartext": true
+  },
   "plugins": {
     "GoogleAuth": {
       "scopes": ["profile", "email"],

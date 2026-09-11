@@ -49,6 +49,141 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:50641468952:android:2b7f8007181ae3011f4d6d",
+        "android_client_info": {
+          "package_name": "com.yourschool.studentapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "50641468952-2752do0fpip73mpf9njnilu72g7ln1ce.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yourschool.studentapp",
+            "certificate_hash": "30b7b4a902cb827cd950def093c2393282555368"
+          }
+        },
+        {
+          "client_id": "50641468952-mhs1osep52275n1s7brhvgbc7n85h2uk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yourschool.studentapp",
+            "certificate_hash": "bf1f5a19f1896553e3dcda5229468b8d40ff2c14"
+          }
+        },
+        {
+          "client_id": "50641468952-mhouc9io3shkvc2df0dr15lt4ndc77ml.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTzTXromN6LcZSrIuF9whtl_KsDAHWTbs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "50641468952-mhouc9io3shkvc2df0dr15lt4ndc77ml.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:50641468952:android:2b7f8007181ae3011f4d6d",
+        "android_client_info": {
+          "package_name": "com.yourschool.teacherapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "50641468952-2752do0fpip73mpf9njnilu72g7ln1ce.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yourschool.teacherapp",
+            "certificate_hash": "30b7b4a902cb827cd950def093c2393282555368"
+          }
+        },
+        {
+          "client_id": "50641468952-mhs1osep52275n1s7brhvgbc7n85h2uk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yourschool.teacherapp",
+            "certificate_hash": "bf1f5a19f1896553e3dcda5229468b8d40ff2c14"
+          }
+        },
+        {
+          "client_id": "50641468952-mhouc9io3shkvc2df0dr15lt4ndc77ml.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTzTXromN6LcZSrIuF9whtl_KsDAHWTbs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "50641468952-mhouc9io3shkvc2df0dr15lt4ndc77ml.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:50641468952:android:2b7f8007181ae3011f4d6d",
+        "android_client_info": {
+          "package_name": "com.yourschool.adminapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "50641468952-2752do0fpip73mpf9njnilu72g7ln1ce.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yourschool.adminapp",
+            "certificate_hash": "30b7b4a902cb827cd950def093c2393282555368"
+          }
+        },
+        {
+          "client_id": "50641468952-mhs1osep52275n1s7brhvgbc7n85h2uk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yourschool.adminapp",
+            "certificate_hash": "bf1f5a19f1896553e3dcda5229468b8d40ff2c14"
+          }
+        },
+        {
+          "client_id": "50641468952-mhouc9io3shkvc2df0dr15lt4ndc77ml.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTzTXromN6LcZSrIuF9whtl_KsDAHWTbs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "50641468952-mhouc9io3shkvc2df0dr15lt4ndc77ml.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"
