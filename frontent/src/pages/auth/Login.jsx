@@ -131,9 +131,9 @@ function Login({ scope }) {
     return `${cleanBase}/${url}`;
   };
 
-  // Filter out any dummy/demo school records
+  // Filter out any dummy/demo or generic 'my school' placeholder records
   const validPublicSchools = useMemo(() => {
-    return publicSchools.filter(s => s && s.name && !s.name.toLowerCase().includes("demo school"));
+    return publicSchools.filter(s => s && s.name && !s.name.toLowerCase().includes("demo school") && s.name.trim().toLowerCase() !== "my school");
   }, [publicSchools]);
 
   // Combine uploaded school banners with default banners fallback
