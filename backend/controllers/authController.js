@@ -117,7 +117,9 @@ process.env.JWT_SECRET,
         name: user.name,
         email: user.email,
         role: user.role,
-        schoolName: user.schoolName || ""
+        schoolName: user.schoolName || "",
+        requestStatus: user.requestStatus || "",
+        isSubmittedToSuperAdmin: user.isSubmittedToSuperAdmin || false
       }
 
     });
@@ -201,7 +203,9 @@ exports.firebaseSync = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        schoolName: user.schoolName
+        schoolName: user.schoolName || "",
+        requestStatus: user.requestStatus || "",
+        isSubmittedToSuperAdmin: user.isSubmittedToSuperAdmin || false
       }
     });
 

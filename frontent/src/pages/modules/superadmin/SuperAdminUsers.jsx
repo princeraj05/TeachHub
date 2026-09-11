@@ -16,7 +16,9 @@ import {
   FaCheckCircle,
   FaExclamationCircle,
   FaSpinner,
-  FaSync
+  FaSync,
+  FaBuilding,
+  FaUserCheck
 } from "react-icons/fa";
 
 const defaultUsers = [];
@@ -52,6 +54,7 @@ function SuperAdminUsers() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState(initialRole);
   const [statusFilter, setStatusFilter] = useState(initialStatus);
+  const [categoryTab, setCategoryTab] = useState("all");
 
   // Sync state if URL query params change
   useEffect(() => {
@@ -82,7 +85,7 @@ function SuperAdminUsers() {
   useEffect(() => {
     fetchUsers();
     fetchSchools();
-  }, [roleFilter, statusFilter]);
+  }, [roleFilter, statusFilter, categoryTab]);
 
   const fetchUsers = async () => {
     try {
@@ -90,6 +93,7 @@ function SuperAdminUsers() {
       const params = {};
       if (roleFilter !== "All") params.role = roleFilter;
       if (statusFilter !== "All") params.status = statusFilter;
+      if (categoryTab !== "all") params.type = categoryTab;
       if (search) params.search = search;
 
       const res = await axios.get(`${API}/api/superadmin/users`, {
@@ -121,12 +125,15 @@ function SuperAdminUsers() {
   const stats = useMemo(() => {
     const nonSuperAdminUsers = users.filter((u) => u.role !== "superadmin");
     const total = nonSuperAdminUsers.length;
+    const schoolApplicants = users.filter(
+      (u) => u.requestedRole === "admin" || (u.isSubmittedToSuperAdmin && u.role === "unassigned")
+    ).length;
     const pending = nonSuperAdminUsers.filter(
       (u) => u.role === "unassigned" || u.requestStatus === "pending" || u.requestStatus === "scheduled" || u.requestStatus === "exam_completed"
     ).length;
     const admins = users.filter((u) => u.role === "admin").length;
     const teachers = users.filter((u) => u.role === "teacher").length;
-    return { total, pending, admins, teachers };
+    return { total, pending, schoolApplicants, admins, teachers };
   }, [users]);
 
   // Instant filtering
@@ -136,6 +143,14 @@ function SuperAdminUsers() {
       const email = u.email || "";
       const school = u.schoolName || u.requestedSchool || "";
       const role = u.role || "unassigned";
+
+      if (categoryTab === "school_applicants") {
+        const isApplicant = u.requestedRole === "admin" || (u.isSubmittedToSuperAdmin && u.role === "unassigned");
+        if (!isApplicant) return false;
+      } else if (categoryTab === "platform_users") {
+        const isApplicant = u.requestedRole === "admin" || (u.isSubmittedToSuperAdmin && u.role === "unassigned");
+        if (isApplicant) return false;
+      }
 
       const matchesSearch =
         name.toLowerCase().includes(search.toLowerCase()) ||
@@ -152,7 +167,7 @@ function SuperAdminUsers() {
 
       return matchesSearch && matchesRole && matchesStatus;
     });
-  }, [users, search, roleFilter, statusFilter]);
+  }, [users, search, roleFilter, statusFilter, categoryTab]);
 
   // Handle Assign/Edit Role
   const handleAssignRoleSubmit = async (e) => {
@@ -318,6 +333,50 @@ function SuperAdminUsers() {
             <FaChalkboardTeacher />
           </div>
         </div>
+      </div>
+
+      {/* Category Flow Tabs */}
+      <div className="flex items-center gap-2 mb-6 border-b border-slate-200 dark:border-slate-800 pb-3 overflow-x-auto">
+        <button
+          onClick={() => setCategoryTab("all")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 ${
+            categoryTab === "all"
+              ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+              : "bg-white dark:bg-[#131B2E] text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800"
+          }`}
+        >
+          <FaUsers />
+          <span>All Users ({stats.total})</span>
+        </button>
+
+        <button
+          onClick={() => setCategoryTab("school_applicants")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 ${
+            categoryTab === "school_applicants"
+              ? "bg-purple-600 text-white shadow-md shadow-purple-500/20"
+              : "bg-white dark:bg-[#131B2E] text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800"
+          }`}
+        >
+          <FaBuilding />
+          <span>School Registration Applicants ({stats.schoolApplicants})</span>
+          {stats.schoolApplicants > 0 && (
+            <span className="bg-purple-400 text-purple-950 font-extrabold text-[10px] px-1.5 py-0.5 rounded-full">
+              {stats.schoolApplicants}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setCategoryTab("platform_users")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 ${
+            categoryTab === "platform_users"
+              ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/20"
+              : "bg-white dark:bg-[#131B2E] text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800"
+          }`}
+        >
+          <FaUserCheck />
+          <span>Platform Users / Direct Assign</span>
+        </button>
       </div>
 
       {/* Search & Filters Bar */}

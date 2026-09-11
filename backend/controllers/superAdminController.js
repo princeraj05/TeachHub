@@ -3,7 +3,7 @@ const User = require("../models/User");
 // GET /api/superadmin/users
 exports.getUsers = async (req, res) => {
   try {
-    const { role, status, schoolName, search } = req.query;
+    const { role, status, schoolName, search, type } = req.query;
 
     const query = {};
 
@@ -11,16 +11,43 @@ exports.getUsers = async (req, res) => {
       query.role = role.toLowerCase();
     }
 
-    if (status && status !== "All") {
-      if (status.toLowerCase() === "pending") {
-        query.role = { $ne: "superadmin" };
-        query.$or = [
-          { role: "unassigned" },
-          { requestStatus: { $in: ["pending", "scheduled", "exam_completed"] } }
-        ];
-      } else if (status.toLowerCase() === "approved") {
-        query.role = { $ne: "unassigned" };
-        query.requestStatus = { $nin: ["pending", "scheduled", "exam_completed"] };
+    if (type === "school_applicants") {
+      query.requestedRole = "admin";
+      query.isSubmittedToSuperAdmin = true;
+      if (status && status !== "All") {
+        if (status.toLowerCase() === "pending") {
+          query.requestStatus = "pending";
+        } else if (status.toLowerCase() === "approved") {
+          query.requestStatus = "approved";
+        }
+      }
+    } else if (type === "normal_users") {
+      query.requestedRole = { $ne: "admin" };
+      if (status && status !== "All") {
+        if (status.toLowerCase() === "pending") {
+          query.role = { $ne: "superadmin" };
+          query.$or = [
+            { role: "unassigned" },
+            { requestStatus: { $in: ["pending", "scheduled", "exam_completed"] } }
+          ];
+        } else if (status.toLowerCase() === "approved") {
+          query.role = { $ne: "unassigned" };
+          query.requestStatus = { $nin: ["pending", "scheduled", "exam_completed"] };
+        }
+      }
+    } else {
+      if (status && status !== "All") {
+        if (status.toLowerCase() === "pending") {
+          query.role = { $ne: "superadmin" };
+          query.$or = [
+            { requestedRole: "admin", isSubmittedToSuperAdmin: true },
+            { requestedRole: { $ne: "admin" }, role: "unassigned" },
+            { requestStatus: { $in: ["pending", "scheduled", "exam_completed"] } }
+          ];
+        } else if (status.toLowerCase() === "approved") {
+          query.role = { $ne: "unassigned" };
+          query.requestStatus = { $nin: ["pending", "scheduled", "exam_completed"] };
+        }
       }
     }
 

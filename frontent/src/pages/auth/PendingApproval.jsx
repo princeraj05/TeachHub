@@ -97,7 +97,7 @@ function PendingApproval() {
     }).then((res) => {
       if (res.data) {
         setOnboardingStatus(res.data);
-        if ((res.data.role === "admin" || res.data.requestStatus === "approved") && !showApprovalModal && approvalCountdown === null) {
+        if (res.data.requestStatus === "approved" && !showApprovalModal && approvalCountdown === null) {
           const delay = res.data.approvalRedirectDelay || 5;
           setApprovalCountdown(delay);
           setShowApprovalModal(true);
@@ -286,11 +286,11 @@ function PendingApproval() {
               // Redirect automatically without requiring reload/logout
               if (res.data.role === "superadmin") {
                 navigate("/superadmin/dashboard");
-              } else if (res.data.role === "admin") {
+              } else if (res.data.role === "admin" && (res.data.requestStatus === "approved" || (res.data.schoolName && res.data.schoolName.trim() !== ""))) {
                 navigate("/admin/dashboard");
-              } else if (res.data.role === "teacher") {
+              } else if (res.data.role === "teacher" && res.data.requestStatus === "approved") {
                 navigate("/teacher/dashboard");
-              } else if (res.data.role === "student") {
+              } else if (res.data.role === "student" && res.data.requestStatus === "approved") {
                 navigate("/student/dashboard");
               }
             }
