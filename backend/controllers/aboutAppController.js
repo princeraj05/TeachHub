@@ -5,6 +5,8 @@ const School = require("../models/School");
 // GET /api/about-app
 exports.getAboutInfo = async (req, res) => {
   try {
+    res.set("Cache-Control", "public, max-age=30, s-maxage=60, stale-while-revalidate=120");
+
     let info = await AboutApp.findOne().lean();
     if (!info) {
       const created = await AboutApp.create({});

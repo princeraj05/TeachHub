@@ -25,7 +25,7 @@ const SORA = "'Sora', sans-serif";
 
 const DEFAULT_SCHOOL_BANNERS = [
   {
-    name: "TeachHub Portal",
+    name: "My School",
     motto: "Learn • Grow • Succeed",
     coverImage: "",
     photo: ""
@@ -51,11 +51,26 @@ function Login({ scope }) {
   const { theme, toggleTheme } = useTheme();
   const [cooldown, setCooldown] = useState(0);
 
-  // Live stats & school banners state
+  // Live stats & school banners state with 0ms localStorage pre-cache
   const [liveStats, setLiveStats] = useState(() => {
-    return platformConfig?.stats || { schools: 3, students: 1, teachers: 1, admins: 1 };
+    try {
+      const cached = localStorage.getItem("teachhub_platform_config");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.stats) return parsed.stats;
+      }
+    } catch (e) {}
+    return platformConfig?.stats || { schools: 0, students: 0, teachers: 0, admins: 0 };
   });
+
   const [publicSchools, setPublicSchools] = useState(() => {
+    try {
+      const cached = localStorage.getItem("teachhub_platform_config");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.publicSchools && Array.isArray(parsed.publicSchools)) return parsed.publicSchools;
+      }
+    } catch (e) {}
     return (platformConfig?.publicSchools && Array.isArray(platformConfig.publicSchools)) ? platformConfig.publicSchools : [];
   });
   const [currentBannerIdx, setCurrentBannerIdx] = useState(0);
@@ -70,25 +85,6 @@ function Login({ scope }) {
       }
     }
   }, [platformConfig]);
-
-  useEffect(() => {
-    const fetchAboutInfo = async () => {
-      try {
-        const res = await axios.get(`${API}/api/about-app`);
-        if (res.data) {
-          if (res.data.stats) {
-            setLiveStats(res.data.stats);
-          }
-          if (res.data.publicSchools && Array.isArray(res.data.publicSchools)) {
-            setPublicSchools(res.data.publicSchools);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to load about info:", err);
-      }
-    };
-    fetchAboutInfo();
-  }, [API]);
 
   const getMediaUrl = (url) => {
     if (!url) return "";
