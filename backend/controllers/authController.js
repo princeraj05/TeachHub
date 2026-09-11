@@ -784,6 +784,99 @@ exports.logoutSession = async (req, res) => {
   }
 };
 
+// ================= GET ONBOARDING STATUS =================
+exports.getOnboardingStatus = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const School = require("../models/School");
+    const PaymentSettings = require("../models/PaymentSettings");
+
+    // 1. Profile Completed Check
+    const profileCompleted = Boolean(
+      user.name && user.name.trim() &&
+      user.phoneNumber && user.phoneNumber.trim() &&
+      user.address && user.address.trim()
+    );
+
+    // 2. School Completed Check
+    const schoolName = (user.requestedSchool || user.schoolName || "").trim();
+    let schoolCompleted = false;
+    if (schoolName) {
+      const school = await School.findOne({
+        $or: [
+          { adminId: user._id },
+          { name: new RegExp("^" + schoolName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "$", "i") }
+        ]
+      });
+      if (school && (school.code || school.establishedYear || school.contactPhone || school.description || school.logo || school.photo)) {
+        schoolCompleted = true;
+      }
+    }
+
+    // 3. Payment Completed Check
+    let paymentCompleted = false;
+    if (schoolName) {
+      const paymentSettings = await PaymentSettings.findOne({
+        $or: [
+          { userId: user._id },
+          { schoolName: new RegExp("^" + schoolName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "$", "i") }
+        ]
+      });
+      if (paymentSettings && (paymentSettings.upiId || paymentSettings.razorpayKeyId || paymentSettings.bankAccountNumber || paymentSettings.qrCodeUrl)) {
+        paymentCompleted = true;
+      }
+    }
+
+    const allStepsCompleted = profileCompleted && schoolCompleted && paymentCompleted;
+
+    res.json({
+      role: user.role,
+      requestedRole: user.requestedRole,
+      requestStatus: user.requestStatus,
+      isSubmittedToSuperAdmin: Boolean(user.isSubmittedToSuperAdmin),
+      approvalRedirectDelay: user.approvalRedirectDelay || 5,
+      approvedAt: user.approvedAt,
+      profileCompleted,
+      schoolCompleted,
+      paymentCompleted,
+      allStepsCompleted
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ================= SUBMIT ADMIN ONBOARDING =================
+exports.submitAdminOnboarding = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.isSubmittedToSuperAdmin = true;
+    user.requestStatus = "pending";
+    if (!user.requestedRole) user.requestedRole = "admin";
+    await user.save();
+
+    res.json({
+      message: "School onboarding request submitted successfully to Super Admin",
+      user: {
+        _id: user._id,
+        name: user.name,
+        requestStatus: user.requestStatus,
+        isSubmittedToSuperAdmin: user.isSubmittedToSuperAdmin
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // ================= LOGOUT ALL OTHER SESSIONS =================
 exports.logoutAllOtherSessions = async (req, res) => {
   try {

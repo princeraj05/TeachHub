@@ -52,7 +52,58 @@ exports.getUsers = async (req, res) => {
       .select("-password")
       .sort({ createdAt: -1 });
 
-    res.json(users);
+    const School = require("../models/School");
+    const PaymentSettings = require("../models/PaymentSettings");
+
+    const enrichedUsers = await Promise.all(
+      users.map(async (u) => {
+        const uObj = u.toObject();
+        const schoolName = (uObj.requestedSchool || uObj.schoolName || "").trim();
+
+        const profileCompleted = Boolean(
+          uObj.name && uObj.name.trim() &&
+          uObj.phoneNumber && uObj.phoneNumber.trim() &&
+          uObj.address && uObj.address.trim()
+        );
+
+        let schoolCompleted = false;
+        if (schoolName) {
+          const school = await School.findOne({
+            $or: [
+              { adminId: uObj._id },
+              { name: new RegExp("^" + schoolName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "$", "i") }
+            ]
+          });
+          if (school && (school.code || school.establishedYear || school.contactPhone || school.description || school.logo || school.photo)) {
+            schoolCompleted = true;
+          }
+        }
+
+        let paymentCompleted = false;
+        if (schoolName) {
+          const paymentSettings = await PaymentSettings.findOne({
+            $or: [
+              { userId: uObj._id },
+              { schoolName: new RegExp("^" + schoolName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "$", "i") }
+            ]
+          });
+          if (paymentSettings && (paymentSettings.upiId || paymentSettings.razorpayKeyId || paymentSettings.bankAccountNumber || paymentSettings.qrCodeUrl)) {
+            paymentCompleted = true;
+          }
+        }
+
+        uObj.onboardingProgress = {
+          profileCompleted,
+          schoolCompleted,
+          paymentCompleted,
+          isSubmitted: Boolean(uObj.isSubmittedToSuperAdmin)
+        };
+
+        return uObj;
+      })
+    );
+
+    res.json(enrichedUsers);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -61,7 +112,7 @@ exports.getUsers = async (req, res) => {
 // POST /api/superadmin/assign-role
 exports.assignRole = async (req, res) => {
   try {
-    const { userId, role, schoolName, supportDepartment, supportShift } = req.body;
+    const { userId, role, schoolName, supportDepartment, supportShift, redirectDelay } = req.body;
 
     const allowedRoles = ["admin", "teacher", "student", "support", "unassigned"];
     if (!allowedRoles.includes(role)) {
@@ -83,6 +134,23 @@ exports.assignRole = async (req, res) => {
     user.schoolName = assignedSchoolName;
     if (role === "admin") {
       user.requestStatus = "approved";
+      user.approvedAt = new Date();
+      user.approvalRedirectDelay = Number(redirectDelay) || 5;
+
+      // Dispatch Notification to User
+      try {
+        const Notification = require("../models/Notification");
+        await Notification.create({
+          userId: user._id,
+          recipientId: user._id,
+          title: "School Registration Approved 🎉",
+          message: `Super Admin has approved your school '${assignedSchoolName}'. You will be redirected to your Admin School Dashboard in ${user.approvalRedirectDelay} seconds.`,
+          type: "approval",
+          isRead: false
+        });
+      } catch (notifErr) {
+        console.error("Error creating approval notification:", notifErr);
+      }
     }
 
     if (role === "support") {
@@ -130,6 +198,9 @@ exports.assignRole = async (req, res) => {
         email: user.email,
         role: user.role,
         schoolName: user.schoolName,
+        requestStatus: user.requestStatus,
+        approvalRedirectDelay: user.approvalRedirectDelay,
+        approvedAt: user.approvedAt,
         supportDepartment: user.supportDepartment,
         supportShift: user.supportShift,
         supportStatus: user.supportStatus

@@ -74,7 +74,8 @@ function SuperAdminUsers() {
     email: "",
     role: "student",
     schoolName: "",
-    status: "Approved"
+    status: "Approved",
+    redirectDelay: 5
   });
 
   // Background fetch on mount & filter change
@@ -175,11 +176,12 @@ function SuperAdminUsers() {
         {
           userId: formData.userId,
           role: formData.role,
-          schoolName: formData.schoolName
+          schoolName: formData.schoolName,
+          redirectDelay: formData.redirectDelay || 5
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSuccess("Role & School updated in database!");
+      setSuccess("Role & School approved in database!");
       setTimeout(() => setSuccess(""), 4000);
       fetchUsers();
     } catch (err) {
@@ -408,6 +410,24 @@ function SuperAdminUsers() {
                           <div>
                             <p className="font-semibold text-slate-900 dark:text-white text-sm">{user.name || "Unnamed User"}</p>
                             <p className="text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
+                            {user.onboardingProgress && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${user.onboardingProgress.profileCompleted ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "bg-slate-500/15 text-slate-400"}`}>
+                                  Profile {user.onboardingProgress.profileCompleted ? "✓" : "⏳"}
+                                </span>
+                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${user.onboardingProgress.schoolCompleted ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "bg-slate-500/15 text-slate-400"}`}>
+                                  School {user.onboardingProgress.schoolCompleted ? "✓" : "⏳"}
+                                </span>
+                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${user.onboardingProgress.paymentCompleted ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "bg-slate-500/15 text-slate-400"}`}>
+                                  Payment {user.onboardingProgress.paymentCompleted ? "✓" : "⏳"}
+                                </span>
+                                {user.onboardingProgress.isSubmitted && (
+                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                                    Submitted 🚀
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -453,9 +473,10 @@ function SuperAdminUsers() {
                                 userId: user._id,
                                 name: user.name,
                                 email: user.email,
-                                role: user.role,
+                                role: user.role === "unassigned" ? "admin" : user.role,
                                 schoolName: user.schoolName || user.requestedSchool || "",
-                                status: displayStatus
+                                status: displayStatus,
+                                redirectDelay: user.approvalRedirectDelay || 5
                               });
                             }}
                             title="Assign Role / School"
@@ -560,6 +581,24 @@ function SuperAdminUsers() {
                   <option value="unassigned">Unassigned (Pending)</option>
                 </select>
               </div>
+
+              {formData.role === "admin" && (
+                <div>
+                  <label className="block text-xs font-semibold text-amber-500 dark:text-amber-400 uppercase mb-1">Approval Redirect Delay Timer</label>
+                  <select
+                    value={formData.redirectDelay || 5}
+                    onChange={(e) => setFormData({ ...formData, redirectDelay: Number(e.target.value) })}
+                    className="w-full bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/30 rounded-xl px-3.5 py-2 text-sm text-amber-600 dark:text-amber-300 font-bold focus:outline-none"
+                  >
+                    <option value={5}>Instant / 5 Seconds (Recommended)</option>
+                    <option value={10}>10 Seconds</option>
+                    <option value={30}>30 Seconds</option>
+                    <option value={60}>60 Seconds (1 Minute)</option>
+                    <option value={3600}>60 Minutes (1 Hour)</option>
+                  </select>
+                  <p className="text-[10px] text-slate-400 mt-1">Sets how long user sees the approval success countdown before auto-redirecting to /admin/dashboard.</p>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">School Name</label>

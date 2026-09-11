@@ -70,12 +70,81 @@ function PendingApproval() {
   const [requestedSchoolData, setRequestedSchoolData] = useState(null);
   const [schoolAdmin, setSchoolAdmin] = useState(null);
 
+  // Onboarding status state
+  const [onboardingStatus, setOnboardingStatus] = useState({
+    profileCompleted: false,
+    schoolCompleted: false,
+    paymentCompleted: false,
+    allStepsCompleted: false,
+    isSubmittedToSuperAdmin: false,
+    approvalRedirectDelay: 5
+  });
+  const [submittingOnboarding, setSubmittingOnboarding] = useState(false);
+  const [approvalCountdown, setApprovalCountdown] = useState(null);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+
   // Live 1-second ticker for real-time countdown
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const fetchOnboardingStatus = () => {
+    if (!token) return;
+    axios.get(`${API}/api/auth/onboarding-status`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then((res) => {
+      if (res.data) {
+        setOnboardingStatus(res.data);
+        if ((res.data.role === "admin" || res.data.requestStatus === "approved") && !showApprovalModal && approvalCountdown === null) {
+          const delay = res.data.approvalRedirectDelay || 5;
+          setApprovalCountdown(delay);
+          setShowApprovalModal(true);
+        }
+      }
+    }).catch(err => console.error("Onboarding status fetch error:", err));
+  };
+
+  useEffect(() => {
+    fetchOnboardingStatus();
+    const interval = setInterval(fetchOnboardingStatus, 5000);
+    return () => clearInterval(interval);
+  }, [token, API]);
+
+  useEffect(() => {
+    if (showApprovalModal && approvalCountdown !== null) {
+      if (approvalCountdown <= 0) {
+        navigate("/admin/dashboard");
+        return;
+      }
+      const timer = setTimeout(() => {
+        setApprovalCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [showApprovalModal, approvalCountdown, navigate]);
+
+  const handleSubmitAdminOnboarding = async () => {
+    try {
+      setSubmittingOnboarding(true);
+      const res = await axios.post(`${API}/api/auth/submit-onboarding`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data) {
+        setOnboardingStatus(prev => ({
+          ...prev,
+          isSubmittedToSuperAdmin: true,
+          requestStatus: "pending"
+        }));
+        alert("School onboarding request submitted successfully to Super Admin! 🚀");
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to submit request to Super Admin");
+    } finally {
+      setSubmittingOnboarding(false);
+    }
+  };
 
   const getMeetingTimeStatus = (targetDate, targetTime) => {
     if (!targetDate) return { isReady: false, label: "Not Scheduled", secondsLeft: Infinity };
@@ -510,7 +579,7 @@ function PendingApproval() {
             {/* RENDER PERSONAL STATUS STATES A, B, C, D */}
 
             {isAdminApplicant ? (
-              /* State: Admin School Registration Pending Super Admin Review */
+              /* State: Admin School Registration Pending / Stepper / Approval */
               <div className="w-full flex flex-col gap-6 max-w-xl mx-auto py-2">
                 {/* Top Header */}
                 <div className="flex items-center justify-between w-full mb-2 px-1">
@@ -532,80 +601,203 @@ function PendingApproval() {
                   </Link>
                 </div>
 
-                {/* Admin Registration Banner Card */}
-                <div className="w-full bg-[#171C35] rounded-3xl border border-amber-500/30 shadow-xl p-7 text-center relative overflow-hidden flex flex-col items-center select-none">
-                  <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-amber-500/10 blur-[50px] pointer-events-none" />
-                  
-                  <div className="w-16 h-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-lg mb-5">
-                    <FaSchool className="text-3xl animate-pulse" />
+                {/* 1. APPROVAL REDIRECT COUNTDOWN OVERLAY / CARD */}
+                {(showApprovalModal || user.role === "admin" || user.requestStatus === "approved" || onboardingStatus.role === "admin") ? (
+                  <div className="w-full bg-[#171C35] rounded-3xl border border-emerald-500/40 shadow-2xl p-8 text-center relative overflow-hidden flex flex-col items-center select-none animate-fadeIn">
+                    <div className="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-emerald-500/40 flex items-center justify-center text-emerald-400 text-3xl mb-4 animate-bounce">
+                      <FaCheckCircle />
+                    </div>
+                    <span className="px-3.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-[10px] font-black uppercase tracking-wider mb-2">
+                      🎉 Super Admin Approved Your School!
+                    </span>
+                    <h2 className="text-2xl font-black text-white tracking-tight">
+                      Welcome to {user.requestedSchool || user.schoolName || "Your School"}
+                    </h2>
+                    <p className="text-xs text-slate-300 font-medium leading-relaxed mt-2 max-w-md">
+                      Super Admin has approved your school registration. Redirecting to your Admin Dashboard...
+                    </p>
+
+                    <div className="my-6 flex flex-col items-center justify-center gap-2">
+                      <div className="w-24 h-24 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin flex items-center justify-center relative">
+                        <span className="text-2xl font-black text-white tracking-widest animate-none">
+                          {approvalCountdown !== null ? approvalCountdown : 5}s
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-emerald-400 font-bold uppercase tracking-wider mt-2">
+                        Redirecting in {approvalCountdown !== null ? approvalCountdown : 5} Seconds
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => navigate("/admin/dashboard")}
+                      className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs px-6 py-3.5 rounded-2xl shadow-lg transition cursor-pointer active:scale-95 flex items-center gap-2"
+                    >
+                      Launch Admin Dashboard Now 🚀
+                    </button>
                   </div>
+                ) : !onboardingStatus.isSubmittedToSuperAdmin ? (
+                  /* 2. STEP-BY-STEP ONBOARDING SETUP (BEFORE SUBMISSION TO SUPER ADMIN) */
+                  <div className="w-full flex flex-col gap-6 text-left">
+                    <div className="bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm p-6 space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-150 dark:border-white/5 pb-3">
+                        <div>
+                          <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">School Onboarding Stepper</h2>
+                          <p className="text-[10px] text-slate-400 font-bold">Complete all 3 steps before submitting for Super Admin approval</p>
+                        </div>
+                        <span className="px-3 py-1 bg-[#7C3AED]/15 text-[#7C3AED] dark:text-[#38BDF8] border border-[#7C3AED]/20 rounded-full text-xs font-black self-start sm:self-auto">
+                          {(onboardingStatus.profileCompleted ? 1 : 0) + (onboardingStatus.schoolCompleted ? 1 : 0) + (onboardingStatus.paymentCompleted ? 1 : 0)} / 3 Completed
+                        </span>
+                      </div>
 
-                  <span className="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full text-[10px] font-black uppercase tracking-wider mb-3">
-                    ⏳ Under Super Admin Review
-                  </span>
+                      {/* Progressive Step Cards */}
+                      <div className="space-y-3 pt-1">
+                        
+                        {/* Step 1: Admin Profile */}
+                        <div className={`p-4 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                          onboardingStatus.profileCompleted
+                            ? "bg-emerald-500/5 border-emerald-500/20"
+                            : "bg-slate-50 dark:bg-white/[0.02] border-slate-200/60 dark:border-white/10"
+                        }`}>
+                          <div className="flex items-center gap-3.5 min-w-0">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shrink-0 ${
+                              onboardingStatus.profileCompleted ? "bg-emerald-500/20 text-emerald-500" : "bg-amber-500/10 text-amber-500"
+                            }`}>
+                              {onboardingStatus.profileCompleted ? <FaCheckCircle /> : "1"}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-black text-slate-900 dark:text-white truncate">Step 1: Admin Profile Details</p>
+                              <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">
+                                {onboardingStatus.profileCompleted ? "Profile Completed ✓" : "Fill Admin Name, Phone, and Address"}
+                              </p>
+                            </div>
+                          </div>
+                          <Link to="/pending/profile" className="px-3.5 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 text-slate-800 dark:text-white rounded-xl text-xs font-bold transition shrink-0">
+                            {onboardingStatus.profileCompleted ? "Edit Profile" : "Go to Profile"}
+                          </Link>
+                        </div>
 
-                  <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                    School Registration Submitted!
-                  </h2>
+                        {/* Step 2: About Your School */}
+                        <div className={`p-4 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                          onboardingStatus.schoolCompleted
+                            ? "bg-emerald-500/5 border-emerald-500/20"
+                            : "bg-slate-50 dark:bg-white/[0.02] border-slate-200/60 dark:border-white/10"
+                        }`}>
+                          <div className="flex items-center gap-3.5 min-w-0">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shrink-0 ${
+                              onboardingStatus.schoolCompleted ? "bg-emerald-500/20 text-emerald-500" : "bg-amber-500/10 text-amber-500"
+                            }`}>
+                              {onboardingStatus.schoolCompleted ? <FaCheckCircle /> : "2"}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-black text-slate-900 dark:text-white truncate">Step 2: About Your School</p>
+                              <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">
+                                {onboardingStatus.schoolCompleted ? "About School Completed ✓" : "Fill School Code, Year, Board, and Contact"}
+                              </p>
+                            </div>
+                          </div>
+                          <Link to="/pending/about-school" className="px-3.5 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 text-slate-800 dark:text-white rounded-xl text-xs font-bold transition shrink-0">
+                            {onboardingStatus.schoolCompleted ? "Edit School" : "Go to School"}
+                          </Link>
+                        </div>
 
-                  <p className="text-xs text-slate-300 font-semibold leading-relaxed mt-2.5 max-w-md">
-                    Your registration request for <strong className="text-amber-300 font-bold">{user.requestedSchool || user.schoolName || platformName || "Your School"}</strong> has been submitted. Super Admin is reviewing your school credentials.
-                  </p>
-                </div>
+                        {/* Step 3: Payments Setup */}
+                        <div className={`p-4 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                          onboardingStatus.paymentCompleted
+                            ? "bg-emerald-500/5 border-emerald-500/20"
+                            : "bg-slate-50 dark:bg-white/[0.02] border-slate-200/60 dark:border-white/10"
+                        }`}>
+                          <div className="flex items-center gap-3.5 min-w-0">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shrink-0 ${
+                              onboardingStatus.paymentCompleted ? "bg-emerald-500/20 text-emerald-500" : "bg-amber-500/10 text-amber-500"
+                            }`}>
+                              {onboardingStatus.paymentCompleted ? <FaCheckCircle /> : "3"}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-black text-slate-900 dark:text-white truncate">Step 3: Payments Setup</p>
+                              <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">
+                                {onboardingStatus.paymentCompleted ? "Payments Completed ✓" : "Fill Bank Details, UPI ID, or QR Code"}
+                              </p>
+                            </div>
+                          </div>
+                          <Link to="/pending/payments" className="px-3.5 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 text-slate-800 dark:text-white rounded-xl text-xs font-bold transition shrink-0">
+                            {onboardingStatus.paymentCompleted ? "Edit Payments" : "Go to Payments"}
+                          </Link>
+                        </div>
 
-                {/* Stepper Timeline for Admin Applicant */}
-                <div className="w-full bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm p-6 flex flex-col gap-6 text-left">
-                  <h3 className="text-slate-950 dark:text-white text-xs font-black uppercase tracking-wider mb-1">
-                    School Onboarding Timeline
-                  </h3>
+                      </div>
 
-                  {/* Step 1: School Registration Submitted */}
-                  <div className="flex gap-4 relative">
-                    <div className="absolute left-[15px] top-[32px] bottom-[-24px] w-[2px] bg-amber-500" />
-                    <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 z-10 border-4 border-white dark:border-[#0B132A] shadow-sm">
-                      <FaCheckCircle className="text-sm" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-900 dark:text-white">School Registration Request Submitted</p>
-                      <p className="text-[10px] text-slate-450 dark:text-slate-500 mt-0.5 font-medium">{formatDate(user.createdAt)}</p>
+                      {/* Step 4: Submit to Super Admin Action Card */}
+                      <div className="pt-4 border-t border-slate-150 dark:border-white/5">
+                        {onboardingStatus.allStepsCompleted ? (
+                          <div className="bg-emerald-500/10 border border-emerald-500/30 p-5 rounded-2.5xl text-center space-y-3">
+                            <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                              🎉 You have successfully completed your school setup! Click below to submit for Super Admin approval.
+                            </p>
+                            <button
+                              onClick={handleSubmitAdminOnboarding}
+                              disabled={submittingOnboarding}
+                              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-2xl text-xs font-black shadow-lg shadow-emerald-500/20 transition cursor-pointer active:scale-98 disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                              <FaCheckCircle className="text-xs" />
+                              {submittingOnboarding ? "Submitting Request..." : "🚀 Submit Request for Super Admin Approval"}
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="bg-amber-500/10 border border-amber-500/20 p-5 rounded-2.5xl text-center space-y-2">
+                            <p className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                              ⚠️ Complete all 3 steps above to enable your Super Admin approval request.
+                            </p>
+                            <button
+                              disabled
+                              className="w-full bg-slate-200 dark:bg-white/10 text-slate-400 dark:text-slate-500 py-3.5 rounded-2xl text-xs font-black cursor-not-allowed"
+                            >
+                              🔒 Submit Request for Super Admin Approval (Locked)
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
                     </div>
                   </div>
-
-                  {/* Step 2: Under Super Admin Review */}
-                  <div className="flex gap-4 relative">
-                    <div className="absolute left-[15px] top-[32px] bottom-[-24px] w-[2px] border-l-2 border-dashed border-slate-200 dark:border-white/10" />
-                    <div className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 z-10 border-4 border-white dark:border-[#0B132A] shadow-sm">
-                      <FaClock className="text-sm animate-pulse" />
+                ) : (
+                  /* 3. SUBMITTED & UNDER SUPER ADMIN REVIEW */
+                  <div className="w-full flex flex-col gap-6 text-left">
+                    <div className="w-full bg-[#171C35] rounded-3xl border border-amber-500/30 shadow-xl p-7 text-center relative overflow-hidden flex flex-col items-center select-none">
+                      <div className="w-16 h-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-lg mb-5">
+                        <FaSchool className="text-3xl animate-pulse" />
+                      </div>
+                      <span className="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full text-[10px] font-black uppercase tracking-wider mb-3">
+                        ⏳ Under Super Admin Review
+                      </span>
+                      <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                        School Registration Submitted!
+                      </h2>
+                      <p className="text-xs text-slate-300 font-semibold leading-relaxed mt-2.5 max-w-md">
+                        Your school registration request for <strong className="text-amber-300 font-bold">{user.requestedSchool || user.schoolName || platformName || "Your School"}</strong> has been submitted. Super Admin is verifying your school credentials.
+                      </p>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-900 dark:text-white">Under Super Admin Verification</p>
-                      <p className="text-[10px] text-slate-455 dark:text-slate-500 mt-0.5 font-medium">Platform Super Admin is verifying school details & credentials</p>
+
+                    <div className="w-full bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm p-6 flex flex-col gap-5 text-left">
+                      <h3 className="text-slate-950 dark:text-white text-xs font-black uppercase tracking-wider">
+                        Submitted Onboarding Summary
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                          <p className="text-[10px] font-black uppercase text-emerald-500">Profile</p>
+                          <p className="text-xs font-extrabold text-slate-800 dark:text-white mt-0.5">Completed ✓</p>
+                        </div>
+                        <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                          <p className="text-[10px] font-black uppercase text-emerald-500">About School</p>
+                          <p className="text-xs font-extrabold text-slate-800 dark:text-white mt-0.5">Completed ✓</p>
+                        </div>
+                        <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                          <p className="text-[10px] font-black uppercase text-emerald-500">Payments</p>
+                          <p className="text-xs font-extrabold text-slate-800 dark:text-white mt-0.5">Configured ✓</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
-
-                  {/* Step 3: School Profile & Payment Setup */}
-                  <div className="flex gap-4 relative">
-                    <div className="absolute left-[15px] top-[32px] bottom-[-24px] w-[2px] border-l-2 border-dashed border-slate-200 dark:border-white/10" />
-                    <div className="w-8 h-8 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0 z-10 border-4 border-white dark:border-[#0B132A] shadow-sm">
-                      <FaSchool className="text-xs" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-900 dark:text-white">Complete School Profile & Settings</p>
-                      <p className="text-[10px] text-slate-455 dark:text-slate-500 mt-0.5 font-medium">Configure basic info, photos, and fee settings under 'About Your School'</p>
-                    </div>
-                  </div>
-
-                  {/* Step 4: Admin Workspace Access */}
-                  <div className="flex gap-4 relative">
-                    <div className="w-8 h-8 rounded-full border-2 border-dashed border-slate-200 dark:border-white/20 bg-white dark:bg-[#0B132A] flex items-center justify-center shrink-0 z-10">
-                      <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-white/20" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-400 dark:text-slate-500">Full Admin Workspace Activation</p>
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 font-medium">Automatic redirect to /admin/dashboard upon approval</p>
-                    </div>
-                  </div>
-                </div>
+                )}
 
                 {/* Quick Actions for Admin Applicant */}
                 <div className="w-full flex flex-col gap-3">
@@ -634,20 +826,6 @@ function PendingApproval() {
                       <div className="text-left">
                         <p className="text-xs font-extrabold text-slate-900 dark:text-white">School Payments Setup</p>
                         <p className="text-[10px] text-slate-400 mt-0.5 font-semibold">Set up fee structures and payment methods</p>
-                      </div>
-                    </div>
-                    <FaChevronRight className="text-slate-400 text-xs shrink-0" />
-                  </Link>
-
-                  {/* Browse Registered Schools */}
-                  <Link to="/pending/schools" className="w-full bg-white dark:bg-[#0B132A] rounded-2.5xl border border-slate-200/60 dark:border-white/10 shadow-sm p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0 border border-blue-500/20">
-                        <FaSchool className="text-lg" />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-xs font-extrabold text-slate-900 dark:text-white">Browse Schools</p>
-                        <p className="text-[10px] text-slate-400 mt-0.5 font-semibold">Explore other registered school centers</p>
                       </div>
                     </div>
                     <FaChevronRight className="text-slate-400 text-xs shrink-0" />

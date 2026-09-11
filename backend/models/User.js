@@ -66,6 +66,18 @@ const userSchema = new mongoose.Schema({
     enum: ["pending", "scheduled", "exam_completed", "approved", "rejected", ""],
     default: ""
   },
+  isSubmittedToSuperAdmin: {
+    type: Boolean,
+    default: false
+  },
+  approvalRedirectDelay: {
+    type: Number,
+    default: 5
+  },
+  approvedAt: {
+    type: Date,
+    default: null
+  },
   admissionExamDate: {
     type: Date,
     default: null
