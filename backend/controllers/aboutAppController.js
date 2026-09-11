@@ -2,23 +2,31 @@ const AboutApp = require("../models/AboutApp");
 const User = require("../models/User");
 const School = require("../models/School");
 
+let cachedAboutApp = null;
+let lastCacheTime = 0;
+
 // GET /api/about-app
 exports.getAboutInfo = async (req, res) => {
   try {
-    res.set("Cache-Control", "public, max-age=30, s-maxage=60, stale-while-revalidate=120");
+    res.set("Cache-Control", "public, max-age=60, s-maxage=120");
+    const now = Date.now();
+
+    // Serve 10-second in-memory cache to eliminate MongoDB query bottlenecks and prevent 504 Gateway Timeouts
+    if (cachedAboutApp && (now - lastCacheTime < 10000)) {
+      return res.json(cachedAboutApp);
+    }
 
     let info = await AboutApp.findOne().lean();
     if (!info) {
-      const created = await AboutApp.create({});
-      info = created.toObject();
+      info = { platformName: "TeachHub Portal", tagline: "Learn • Grow • Succeed" };
     }
 
     const [studentCount, teacherCount, approvedAdminCount, schoolCount, publicSchools] = await Promise.all([
       User.countDocuments({ role: "student" }),
       User.countDocuments({ role: "teacher" }),
-      User.countDocuments({ role: "admin", requestStatus: "approved" }),
-      School.countDocuments({ name: { $not: /demo school/i } }),
-      School.find({ name: { $not: /demo school/i } })
+      User.countDocuments({ role: "admin" }),
+      School.countDocuments({ status: { $ne: "Disabled" } }),
+      School.find({ status: { $ne: "Disabled" } })
         .select("name photo coverImage motto address coverPosition")
         .lean()
     ]);
@@ -31,9 +39,14 @@ exports.getAboutInfo = async (req, res) => {
     };
     info.publicSchools = publicSchools || [];
 
-    res.json(info);
+    cachedAboutApp = info;
+    lastCacheTime = Date.now();
+
+    return res.json(info);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error in getAboutInfo:", error);
+    if (cachedAboutApp) return res.json(cachedAboutApp);
+    return res.status(500).json({ message: error.message });
   }
 };
 

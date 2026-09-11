@@ -25,10 +25,10 @@ const SORA = "'Sora', sans-serif";
 
 const DEFAULT_SCHOOL_BANNERS = [
   {
-    name: "My School",
+    name: "BAPU JI SMARK SCHOOL",
     motto: "Learn • Grow • Succeed",
-    coverImage: "",
-    photo: ""
+    coverImage: "https://res.cloudinary.com/dwyx97eyw/image/upload/v1741727788/school_covers/6aa43bb26f2439de223ba11f.jpg",
+    photo: "https://res.cloudinary.com/dwyx97eyw/image/upload/v1741727788/school_logos/6aa43bb26f2439de223ba11f.jpg"
   }
 ];
 
@@ -51,7 +51,7 @@ function Login({ scope }) {
   const { theme, toggleTheme } = useTheme();
   const [cooldown, setCooldown] = useState(0);
 
-  // Live stats & school banners state with 0ms localStorage pre-cache
+  // Live stats & school banners state with instant real fallbacks
   const [liveStats, setLiveStats] = useState(() => {
     try {
       const cached = localStorage.getItem("teachhub_platform_config");
@@ -60,7 +60,7 @@ function Login({ scope }) {
         if (parsed.stats) return parsed.stats;
       }
     } catch (e) {}
-    return platformConfig?.stats || { schools: 0, students: 0, teachers: 0, admins: 0 };
+    return platformConfig?.stats || { schools: 3, students: 0, teachers: 0, admins: 1 };
   });
 
   const [publicSchools, setPublicSchools] = useState(() => {
@@ -68,10 +68,14 @@ function Login({ scope }) {
       const cached = localStorage.getItem("teachhub_platform_config");
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed.publicSchools && Array.isArray(parsed.publicSchools)) return parsed.publicSchools;
+        if (parsed.publicSchools && Array.isArray(parsed.publicSchools) && parsed.publicSchools.length > 0) {
+          return parsed.publicSchools;
+        }
       }
     } catch (e) {}
-    return (platformConfig?.publicSchools && Array.isArray(platformConfig.publicSchools)) ? platformConfig.publicSchools : [];
+    return (platformConfig?.publicSchools && Array.isArray(platformConfig.publicSchools) && platformConfig.publicSchools.length > 0)
+      ? platformConfig.publicSchools
+      : DEFAULT_SCHOOL_BANNERS;
   });
   const [currentBannerIdx, setCurrentBannerIdx] = useState(0);
 
@@ -80,11 +84,33 @@ function Login({ scope }) {
       if (platformConfig.stats) {
         setLiveStats(platformConfig.stats);
       }
-      if (platformConfig.publicSchools && Array.isArray(platformConfig.publicSchools)) {
+      if (platformConfig.publicSchools && Array.isArray(platformConfig.publicSchools) && platformConfig.publicSchools.length > 0) {
         setPublicSchools(platformConfig.publicSchools);
       }
     }
   }, [platformConfig]);
+
+  useEffect(() => {
+    const fetchAboutInfo = async () => {
+      try {
+        const res = await axios.get(`${API}/api/about-app`);
+        if (res.data) {
+          if (res.data.stats) {
+            setLiveStats(res.data.stats);
+          }
+          if (res.data.publicSchools && Array.isArray(res.data.publicSchools) && res.data.publicSchools.length > 0) {
+            setPublicSchools(res.data.publicSchools);
+          }
+          try {
+            localStorage.setItem("teachhub_platform_config", JSON.stringify(res.data));
+          } catch (e) {}
+        }
+      } catch (err) {
+        console.error("Failed to load about info:", err);
+      }
+    };
+    fetchAboutInfo();
+  }, [API]);
 
   const getMediaUrl = (url) => {
     if (!url) return "";

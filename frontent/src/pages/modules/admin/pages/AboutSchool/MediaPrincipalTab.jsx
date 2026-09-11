@@ -56,6 +56,9 @@ function MediaPrincipalTab({
   };
 
   const handleSaveCroppedBanner = async (croppedDataUrl) => {
+    const oldCover = coverImage;
+    setCoverImage(croppedDataUrl);
+
     try {
       const response = await fetch(croppedDataUrl);
       const blob = await response.blob();
@@ -77,6 +80,7 @@ function MediaPrincipalTab({
       }
     } catch (err) {
       console.error("Failed to upload cover banner:", err);
+      setCoverImage(oldCover);
       alert(err.response?.data?.message || "Failed to upload cover banner. Please try again.");
     } finally {
       setShowBannerCropModal(false);
@@ -92,13 +96,19 @@ function MediaPrincipalTab({
       return;
     }
     
-    let uploadFile = file;
-    try { uploadFile = await compressImage(file); } catch (cErr) {}
-
-    const formData = new FormData();
-    formData.append("image", uploadFile);
+    // Instant 0ms local preview
+    const localPreviewUrl = URL.createObjectURL(file);
+    const targetIndex = (schoolPhotos || []).length;
+    setSchoolPhotos(prev => [...(prev || []), localPreviewUrl]);
+    e.target.value = "";
 
     try {
+      let uploadFile = file;
+      try { uploadFile = await compressImage(file); } catch (cErr) {}
+
+      const formData = new FormData();
+      formData.append("image", uploadFile);
+
       const token = localStorage.getItem("token");
       const res = await axios.post(`${API}/api/schools/upload`, formData, {
         headers: {
@@ -108,10 +118,12 @@ function MediaPrincipalTab({
       });
 
       if (res.data?.url) {
-        setSchoolPhotos(prev => [...(prev || []), res.data.url]);
+        setSchoolPhotos(prev => prev.map((url, i) => i === targetIndex ? res.data.url : url));
       }
     } catch (err) {
       console.error("Failed to upload photo:", err);
+      // Remove failed preview on error
+      setSchoolPhotos(prev => prev.filter((_, i) => i !== targetIndex));
       alert(err.response?.data?.message || "Failed to upload photo. Please try again.");
     }
   };
@@ -121,13 +133,25 @@ function MediaPrincipalTab({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    let uploadFile = file;
-    try { uploadFile = await compressImage(file); } catch (cErr) {}
+    const targetIndex = activeReplaceIndex;
+    const oldUrl = (schoolPhotos || [])[targetIndex];
+    const localPreviewUrl = URL.createObjectURL(file);
 
-    const formData = new FormData();
-    formData.append("image", uploadFile);
+    // Instant 0ms local preview
+    setSchoolPhotos(prev => {
+      const updated = [...(prev || [])];
+      updated[targetIndex] = localPreviewUrl;
+      return updated;
+    });
+    e.target.value = "";
 
     try {
+      let uploadFile = file;
+      try { uploadFile = await compressImage(file); } catch (cErr) {}
+
+      const formData = new FormData();
+      formData.append("image", uploadFile);
+
       const token = localStorage.getItem("token");
       const res = await axios.post(`${API}/api/schools/upload`, formData, {
         headers: {
@@ -138,7 +162,6 @@ function MediaPrincipalTab({
 
       if (res.data?.url) {
         const urlToSet = res.data.url;
-        const targetIndex = activeReplaceIndex;
         setSchoolPhotos(prev => {
           const updated = [...(prev || [])];
           updated[targetIndex] = urlToSet;
@@ -147,6 +170,11 @@ function MediaPrincipalTab({
       }
     } catch (err) {
       console.error("Failed to replace photo:", err);
+      setSchoolPhotos(prev => {
+        const updated = [...(prev || [])];
+        updated[targetIndex] = oldUrl;
+        return updated;
+      });
       alert(err.response?.data?.message || "Failed to replace photo. Please try again.");
     } finally {
       setActiveReplaceIndex(null);
@@ -157,13 +185,18 @@ function MediaPrincipalTab({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    let uploadFile = file;
-    try { uploadFile = await compressImage(file); } catch (cErr) {}
-
-    const formData = new FormData();
-    formData.append("image", uploadFile);
+    // Instant 0ms local preview
+    const localPreviewUrl = URL.createObjectURL(file);
+    const oldPhoto = principalPhoto;
+    setPrincipalPhoto(localPreviewUrl);
 
     try {
+      let uploadFile = file;
+      try { uploadFile = await compressImage(file); } catch (cErr) {}
+
+      const formData = new FormData();
+      formData.append("image", uploadFile);
+
       const token = localStorage.getItem("token");
       const res = await axios.post(`${API}/api/schools/upload`, formData, {
         headers: {
@@ -177,6 +210,7 @@ function MediaPrincipalTab({
       }
     } catch (err) {
       console.error("Failed to upload principal photo:", err);
+      setPrincipalPhoto(oldPhoto);
       alert(err.response?.data?.message || "Failed to upload principal photo. Please try again.");
     }
   };

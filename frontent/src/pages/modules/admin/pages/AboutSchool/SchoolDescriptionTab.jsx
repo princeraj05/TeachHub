@@ -57,6 +57,14 @@ function SchoolDescriptionTab({
     }
   };
 
+  const editorRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== description) {
+      editorRef.current.innerHTML = description || "";
+    }
+  }, [description]);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left animate-fadeIn">
       
@@ -102,11 +110,11 @@ function SchoolDescriptionTab({
             {/* WYSIWYG contentEditable Rich Text Area */}
             <div
               id="school-description-editor"
+              ref={editorRef}
               contentEditable
               suppressContentEditableWarning
               onInput={(e) => setDescription(e.currentTarget.innerHTML)}
               onBlur={(e) => setDescription(e.currentTarget.innerHTML)}
-              dangerouslySetInnerHTML={{ __html: description }}
               className="w-full min-h-[260px] max-h-[420px] overflow-y-auto p-4 bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none text-xs font-medium leading-relaxed prose dark:prose-invert max-w-none"
             />
           </div>

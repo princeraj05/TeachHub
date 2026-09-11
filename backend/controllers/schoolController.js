@@ -90,19 +90,92 @@ const calculateProfileCompletion = (s) => {
   return filledCount * 25;
 };
 
-// Helper to fetch dynamic real counts from DB collections
+// Helper to fetch dynamic real counts from DB collections with 60-second in-memory caching
+const statsCache = new Map();
 const getSchoolStatistics = async (schoolName) => {
   if (!schoolName) return { totalStudents: 0, totalTeachers: 0, totalClasses: 0, totalSubjects: 0 };
+  const key = schoolName.trim().toLowerCase();
+  const cached = statsCache.get(key);
+  if (cached && Date.now() - cached.timestamp < 60000) {
+    return cached.data;
+  }
   const trimmed = schoolName.trim();
   const schoolRegex = new RegExp("^" + escapeRegex(trimmed) + "$", "i");
 
-  const [totalStudents, totalTeachers, totalClasses, totalSubjects] = await Promise.all([
-    User.countDocuments({ schoolName: schoolRegex, role: "student" }),
-    User.countDocuments({ schoolName: schoolRegex, role: "teacher" }),
-    Class.countDocuments({ schoolName: schoolRegex }),
-    Subject.countDocuments({ schoolName: schoolRegex })
-  ]);
-  return { totalStudents, totalTeachers, totalClasses, totalSubjects };
+  try {
+    const [totalStudents, totalTeachers, totalClasses, totalSubjects] = await Promise.all([
+      User.countDocuments({ schoolName: schoolRegex, role: "student" }),
+      User.countDocuments({ schoolName: schoolRegex, role: "teacher" }),
+      Class.countDocuments({ schoolName: schoolRegex }),
+      Subject.countDocuments({ schoolName: schoolRegex })
+    ]);
+    const data = { totalStudents, totalTeachers, totalClasses, totalSubjects };
+    statsCache.set(key, { data, timestamp: Date.now() });
+    return data;
+  } catch (err) {
+    return cached ? cached.data : { totalStudents: 0, totalTeachers: 0, totalClasses: 0, totalSubjects: 0 };
+  }
+};
+
+// Helper to normalize and sync flat vs nested school fields
+const normalizeSchoolData = (s) => {
+  if (!s) return s;
+  const b = s.basicInfo || {};
+  const m = s.media || {};
+  const p = s.principal || {};
+  const a = s.admission || {};
+  const av = s.availability || {};
+
+  const getF = (top, nes) => (top !== undefined && top !== null && top !== "" ? top : (nes !== undefined && nes !== null && nes !== "" ? nes : top));
+
+  s.affiliation = getF(s.affiliation, b.affiliation);
+  s.academicYear = getF(s.academicYear, b.academicYear);
+  s.email = getF(s.email, b.schoolEmail);
+  s.medium = getF(s.medium, b.medium);
+  s.phoneNumber = getF(s.phoneNumber, b.phoneNumber);
+  s.address = getF(s.address, b.schoolAddress);
+  s.established = getF(s.established, b.established);
+  s.status = getF(s.status, b.schoolStatus || "Active");
+  s.schoolType = getF(s.schoolType, b.schoolType);
+  s.registrationNumber = getF(s.registrationNumber, b.registrationNumber);
+  s.code = getF(s.code, b.schoolCode);
+  s.motto = getF(s.motto, b.schoolMotto);
+  s.website = getF(s.website, b.website);
+  s.photo = getF(s.photo, b.logo);
+  s.availableClasses = getF(s.availableClasses, b.availableClasses);
+
+  s.coverImage = getF(s.coverImage, m.coverImage);
+  if ((!s.schoolPhotos || s.schoolPhotos.length === 0) && m.schoolPhotos && m.schoolPhotos.length > 0) {
+    s.schoolPhotos = m.schoolPhotos;
+  }
+
+  s.principalName = getF(s.principalName, p.name);
+  s.principalPhoto = getF(s.principalPhoto, p.photo);
+  s.principalDesignation = getF(s.principalDesignation, p.designation);
+  s.principalEmail = getF(s.principalEmail, p.email);
+  s.principalPhone = getF(s.principalPhone, p.phoneNumber);
+  s.principalLeadershipSince = getF(s.principalLeadershipSince, p.leadershipSince);
+  s.principalIntroduction = getF(s.principalIntroduction, p.introduction);
+
+  if ((!s.schoolCategoriesList || s.schoolCategoriesList.length === 0) && a.categories && a.categories.length > 0) {
+    s.schoolCategoriesList = a.categories;
+  }
+  if ((!s.admissionProcess || s.admissionProcess.length === 0) && a.processes && a.processes.length > 0) {
+    s.admissionProcess = a.processes;
+  }
+  s.schoolBoardType = getF(s.schoolBoardType, a.schoolType);
+
+  if ((!s.workingDays || s.workingDays.length === 0) && av.workingDays && av.workingDays.length > 0) {
+    s.workingDays = av.workingDays;
+  }
+  s.openingTime = getF(s.openingTime, av.openingTime);
+  s.closingTime = getF(s.closingTime, av.closingTime);
+  s.lunchBreakStartTime = getF(s.lunchBreakStartTime, av.lunchBreakStartTime);
+  if ((!s.holidays || s.holidays.length === 0) && av.holidays && av.holidays.length > 0) {
+    s.holidays = av.holidays;
+  }
+
+  return s;
 };
 
 // GET /api/schools/my-school
@@ -147,6 +220,9 @@ exports.getMySchool = async (req, res) => {
         profileCompletion: 0
       });
     }
+
+    // Normalize flat and nested fields
+    normalizeSchoolData(school);
 
     const profileCompletion = calculateProfileCompletion(school);
     school.profileCompletion = profileCompletion;
@@ -288,22 +364,20 @@ exports.updateMySchool = async (req, res) => {
     school.profileCompletion = calculateProfileCompletion(school);
     await school.save();
 
-    // Sync the admin user's schoolName and requestedSchool in User model
     if (school.name) {
-      await User.findByIdAndUpdate(userId, {
+      statsCache.delete(school.name.trim().toLowerCase());
+      User.findByIdAndUpdate(userId, {
         schoolName: school.name,
         requestedSchool: school.name
       }).catch(err => console.error("Error syncing schoolName to User:", err));
     }
 
-    const statistics = await getSchoolStatistics(school.name);
     const schoolObj = school.toObject();
 
     return res.json({
       success: true,
       message: "School details saved successfully!",
-      school: schoolObj,
-      statistics
+      school: schoolObj
     });
   } catch (error) {
     console.error("Error updating school profile:", error);
@@ -415,22 +489,23 @@ exports.uploadSchoolPhoto = async (req, res) => {
     let publicId = "";
 
     try {
-      // Upload to Cloudinary folder teachhub/schools/{schoolFolderId}
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: `teachhub/schools/${schoolFolderId}`,
-        resource_type: "image"
-      });
+      // Upload to Cloudinary folder teachhub/schools/{schoolFolderId} with an 8s timeout
+      const result = await Promise.race([
+        cloudinary.uploader.upload(req.file.path, {
+          folder: `teachhub/schools/${schoolFolderId}`,
+          resource_type: "image"
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Cloudinary upload timeout (8s limit)")), 8000))
+      ]);
 
       if (result && result.secure_url) {
         finalUrl = result.secure_url;
         publicId = result.public_id;
       }
     } catch (cErr) {
-      console.error("Cloudinary school photo upload error, falling back to base64 encoding:", cErr.message);
-      // Fallback: Convert file buffer to base64 Data URL if Cloudinary fails
-      const fileBuffer = fs.readFileSync(req.file.path);
-      const mimeType = req.file.mimetype || "image/jpeg";
-      finalUrl = `data:${mimeType};base64,${fileBuffer.toString("base64")}`;
+      console.warn("Cloudinary school photo upload bypassed/failed, using fast local static fallback:", cErr.message);
+      // Fast static fallback: Serve uploaded file from /uploads/
+      finalUrl = `/uploads/${req.file.filename}`;
     }
 
     if (!finalUrl) {
@@ -446,11 +521,14 @@ exports.uploadSchoolPhoto = async (req, res) => {
     console.error("Photo upload error:", error);
     return res.status(500).json({ success: false, message: error.message || "Failed to upload image" });
   } finally {
-    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (e) {
-        console.warn("Failed to unlink temporary file:", e.message);
+    // Only delete local temp file if Cloudinary upload succeeded
+    if (finalUrl && (finalUrl.startsWith("http://") || finalUrl.startsWith("https://"))) {
+      if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (e) {
+          console.warn("Failed to unlink temporary file:", e.message);
+        }
       }
     }
   }

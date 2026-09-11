@@ -159,7 +159,7 @@ export default function BannerCropModal({ imageSrc, onClose, onSave }) {
 
     ctx.drawImage(loadedImage, drawX, drawY, drawW, drawH);
 
-    return canvas.toDataURL("image/jpeg", 0.92);
+    return canvas.toDataURL("image/jpeg", 0.85);
   }, [loadedImage, rotation, pan, getDisplayMetrics]);
 
   const handleNext = () => {

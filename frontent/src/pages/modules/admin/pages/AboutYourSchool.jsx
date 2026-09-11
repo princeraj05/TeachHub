@@ -90,6 +90,70 @@ function AboutYourSchool() {
     fetchSchoolData();
   }, []);
 
+  const populateSchoolState = (s) => {
+    if (!s) return;
+    const b = s.basicInfo || {};
+    const m = s.media || {};
+    const p = s.principal || {};
+    const a = s.admission || {};
+    const av = s.availability || {};
+
+    // Tab 1 fields
+    setPrincipalName(s.principalName || p.name || "");
+    setEmail(s.email || b.schoolEmail || "");
+    setPhoneNumber(s.phoneNumber || b.phoneNumber || "");
+    setAddress(s.address || b.schoolAddress || "");
+    setEstablished(s.established || b.established || "");
+    setSchoolType(s.schoolType || b.schoolType || "");
+    setCode(s.code || b.schoolCode || "");
+    setAffiliation(s.affiliation || b.affiliation || "");
+    setAcademicYear(s.academicYear || b.academicYear || "");
+    setMedium(s.medium || b.medium || "");
+    setWebsite(s.website || b.website || "");
+    setStatus(s.status || b.schoolStatus || "Active");
+    setRegistrationNumber(s.registrationNumber || b.registrationNumber || "");
+    setCategory(s.category || b.category || "");
+    setMotto(s.motto || b.schoolMotto || "");
+    setPhoto(s.photo || b.logo || "");
+    setAvailableClasses(s.availableClasses || b.availableClasses || "");
+
+    // Tab 2 fields
+    setCoverImage(s.coverImage || m.coverImage || "");
+    setCoverPosition(s.coverPosition !== undefined && s.coverPosition !== null ? s.coverPosition : (m.coverPosition ?? 50));
+    setSchoolPhotos((s.schoolPhotos && s.schoolPhotos.length > 0) ? s.schoolPhotos : (m.schoolPhotos || []));
+    setPrincipalPhoto(s.principalPhoto || p.photo || "");
+    setPrincipalDesignation(s.principalDesignation || p.designation || "");
+    setPrincipalEmail(s.principalEmail || p.email || "");
+    setPrincipalPhone(s.principalPhone || p.phoneNumber || "");
+
+    const lSince = s.principalLeadershipSince || p.leadershipSince;
+    if (lSince) {
+      setPrincipalLeadershipSince(lSince.split("T")[0]);
+    } else {
+      setPrincipalLeadershipSince("");
+    }
+    setPrincipalIntroduction(s.principalIntroduction || p.introduction || "");
+
+    // Tab 3 fields
+    setSchoolCategoriesList((s.schoolCategoriesList && s.schoolCategoriesList.length > 0) ? s.schoolCategoriesList : (a.categories || []));
+    
+    const procRaw = (s.admissionProcess && s.admissionProcess.length > 0) ? s.admissionProcess : (a.processes || []);
+    setAdmissionProcess(Array.isArray(procRaw) ? procRaw : (procRaw ? [procRaw] : []));
+
+    setSchoolBoardType(s.schoolBoardType || a.schoolType || "");
+    setWorkingDays((s.workingDays && s.workingDays.length > 0) ? s.workingDays : (av.workingDays || []));
+    setOpeningTime(s.openingTime || av.openingTime || "");
+    setClosingTime(s.closingTime || av.closingTime || "");
+    setShortBreakStartTime(s.shortBreakStartTime || "");
+    setShortBreakDuration(s.shortBreakDuration ?? 30);
+    setLunchBreakStartTime(s.lunchBreakStartTime || av.lunchBreakStartTime || "");
+    setLunchBreakDuration(s.lunchBreakDuration ?? av.lunchBreakDuration ?? 60);
+    setHolidays((s.holidays && s.holidays.length > 0) ? s.holidays : (av.holidays || []));
+
+    // Tab 4 fields
+    setDescription(s.description || "");
+  };
+
   const fetchSchoolData = async () => {
     try {
       setLoading(true);
@@ -103,56 +167,7 @@ function AboutYourSchool() {
         const s = res.data.school || res.data;
         const stats = res.data.statistics || {};
         setSchool({ ...s, ...stats });
-
-        // Tab 1 fields
-        setPrincipalName(s.principalName || "");
-        setEmail(s.email || "");
-        setPhoneNumber(s.phoneNumber || "");
-        setAddress(s.address || "");
-        setEstablished(s.established || "");
-        setSchoolType(s.schoolType || "");
-        setCode(s.code || "");
-        setAffiliation(s.affiliation || "");
-        setAcademicYear(s.academicYear || "");
-        setMedium(s.medium || "");
-        setWebsite(s.website || "");
-        setStatus(s.status || "Active");
-        setRegistrationNumber(s.registrationNumber || "");
-        setCategory(s.category || "");
-        setMotto(s.motto || "");
-        setPhoto(s.photo || "");
-        setAvailableClasses(s.availableClasses || "");
-
-        // Tab 2 fields
-        setCoverImage(s.coverImage || "");
-        setCoverPosition(s.coverPosition !== undefined && s.coverPosition !== null ? s.coverPosition : 50);
-        setSchoolPhotos(s.schoolPhotos || []);
-        setPrincipalPhoto(s.principalPhoto || "");
-        setPrincipalDesignation(s.principalDesignation || "");
-        setPrincipalEmail(s.principalEmail || "");
-        setPrincipalPhone(s.principalPhone || "");
-        if (s.principalLeadershipSince) {
-          setPrincipalLeadershipSince(s.principalLeadershipSince.split("T")[0]);
-        } else {
-          setPrincipalLeadershipSince("");
-        }
-        setPrincipalIntroduction(s.principalIntroduction || "");
-
-        // Tab 3 fields
-        setSchoolCategoriesList(s.schoolCategoriesList || []);
-        setAdmissionProcess(Array.isArray(s.admissionProcess) ? s.admissionProcess : (s.admissionProcess ? [s.admissionProcess] : []));
-        setSchoolBoardType(s.schoolBoardType || "");
-        setWorkingDays(s.workingDays || []);
-        setOpeningTime(s.openingTime || "");
-        setClosingTime(s.closingTime || "");
-        setShortBreakStartTime(s.shortBreakStartTime || "");
-        setShortBreakDuration(s.shortBreakDuration ?? 30);
-        setLunchBreakStartTime(s.lunchBreakStartTime || "");
-        setLunchBreakDuration(s.lunchBreakDuration ?? 60);
-        setHolidays(s.holidays || []);
-
-        // Tab 4 fields
-        setDescription(s.description || "");
+        populateSchoolState(s);
       }
     } catch (err) {
       console.error("Error fetching school data:", err);
@@ -169,6 +184,12 @@ function AboutYourSchool() {
     setError("");
 
     try {
+      const sanitizeImg = (imgUrl) => (typeof imgUrl === "string" && imgUrl.startsWith("blob:") ? "" : imgUrl);
+      const cleanSchoolPhotos = (schoolPhotos || []).filter(p => typeof p === "string" && !p.startsWith("blob:"));
+      const cleanCoverImage = sanitizeImg(coverImage);
+      const cleanPrincipalPhoto = sanitizeImg(principalPhoto);
+      const cleanPhoto = sanitizeImg(photo);
+
       const payload = {
         // Flat fields
         principalName,
@@ -186,14 +207,14 @@ function AboutYourSchool() {
         registrationNumber,
         category,
         motto,
-        photo,
+        photo: cleanPhoto,
         availableClasses,
 
         // Tab 2 fields
-        coverImage,
+        coverImage: cleanCoverImage,
         coverPosition,
-        schoolPhotos,
-        principalPhoto,
+        schoolPhotos: cleanSchoolPhotos,
+        principalPhoto: cleanPrincipalPhoto,
         principalDesignation,
         principalEmail,
         principalPhone,
@@ -232,17 +253,17 @@ function AboutYourSchool() {
           schoolCode: code,
           category,
           schoolMotto: motto,
-          logo: photo,
+          logo: cleanPhoto,
           availableClasses
         },
         media: {
-          coverImage,
+          coverImage: cleanCoverImage,
           coverPosition,
-          schoolPhotos
+          schoolPhotos: cleanSchoolPhotos
         },
         principal: {
           name: principalName,
-          photo: principalPhoto,
+          photo: cleanPrincipalPhoto,
           designation: principalDesignation,
           email: principalEmail,
           phoneNumber: principalPhone,
@@ -265,7 +286,8 @@ function AboutYourSchool() {
       };
 
       const res = await axios.put(`${API}/api/schools/my-school`, payload, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 15000
       });
 
       if (res.data?.success || res.data?.school) {
@@ -275,51 +297,7 @@ function AboutYourSchool() {
           const s = res.data.school;
           const stats = res.data.statistics || {};
           setSchool({ ...s, ...stats });
-
-          // Synchronize state variables with backend response
-          setPrincipalName(s.principalName || "");
-          setEmail(s.email || "");
-          setPhoneNumber(s.phoneNumber || "");
-          setAddress(s.address || "");
-          setEstablished(s.established || "");
-          setSchoolType(s.schoolType || "");
-          setCode(s.code || "");
-          setAffiliation(s.affiliation || "");
-          setAcademicYear(s.academicYear || "");
-          setMedium(s.medium || "");
-          setWebsite(s.website || "");
-          setStatus(s.status || "Active");
-          setRegistrationNumber(s.registrationNumber || "");
-          setCategory(s.category || "");
-          setMotto(s.motto || "");
-          setPhoto(s.photo || "");
-          setAvailableClasses(s.availableClasses || "");
-
-          setCoverImage(s.coverImage || "");
-          setCoverPosition(s.coverPosition !== undefined && s.coverPosition !== null ? s.coverPosition : 50);
-          setSchoolPhotos(s.schoolPhotos || []);
-          setPrincipalPhoto(s.principalPhoto || "");
-          setPrincipalDesignation(s.principalDesignation || "");
-          setPrincipalEmail(s.principalEmail || "");
-          setPrincipalPhone(s.principalPhone || "");
-          if (s.principalLeadershipSince) {
-            setPrincipalLeadershipSince(s.principalLeadershipSince.split("T")[0]);
-          }
-          setPrincipalIntroduction(s.principalIntroduction || "");
-
-          setSchoolCategoriesList(s.schoolCategoriesList || []);
-          setAdmissionProcess(Array.isArray(s.admissionProcess) ? s.admissionProcess : (s.admissionProcess ? [s.admissionProcess] : []));
-          setSchoolBoardType(s.schoolBoardType || "");
-          setWorkingDays(s.workingDays || []);
-          setOpeningTime(s.openingTime || "");
-          setClosingTime(s.closingTime || "");
-          setShortBreakStartTime(s.shortBreakStartTime || "");
-          setShortBreakDuration(s.shortBreakDuration ?? 30);
-          setLunchBreakStartTime(s.lunchBreakStartTime || "");
-          setLunchBreakDuration(s.lunchBreakDuration ?? 60);
-          setHolidays(s.holidays || []);
-
-          setDescription(s.description || "");
+          populateSchoolState(s);
         }
         setTimeout(() => setSuccess(""), 4000);
       }
