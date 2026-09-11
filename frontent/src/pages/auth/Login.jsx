@@ -109,9 +109,14 @@ function Login({ scope }) {
     return `${cleanBase}/${url}`;
   };
 
+  // Filter out any dummy/demo school records
+  const validPublicSchools = useMemo(() => {
+    return publicSchools.filter(s => s && s.name && !s.name.toLowerCase().includes("demo school"));
+  }, [publicSchools]);
+
   // Combine uploaded school banners with default banners fallback
   const bannersList = useMemo(() => {
-    const uploaded = publicSchools.filter(s => s && ((s.coverImage && s.coverImage.trim() !== "") || (s.photo && s.photo.trim() !== "")));
+    const uploaded = validPublicSchools.filter(s => s && ((s.coverImage && s.coverImage.trim() !== "") || (s.photo && s.photo.trim() !== "")));
     if (uploaded.length > 0) {
       return uploaded.map((s, idx) => ({
         name: s.name || `School ${idx + 1}`,
@@ -123,8 +128,8 @@ function Login({ scope }) {
         coverPosition: s.coverPosition !== undefined ? s.coverPosition : 50
       }));
     }
-    if (publicSchools.length > 0) {
-      return publicSchools.map((s, idx) => ({
+    if (validPublicSchools.length > 0) {
+      return validPublicSchools.map((s, idx) => ({
         name: s.name || `School ${idx + 1}`,
         motto: s.motto || "Learn • Grow • Succeed",
         photo: s.photo || "",
@@ -133,7 +138,7 @@ function Login({ scope }) {
       }));
     }
     return DEFAULT_SCHOOL_BANNERS;
-  }, [publicSchools]);
+  }, [validPublicSchools]);
 
   // 5-second auto-slide banner carousel
   useEffect(() => {
@@ -539,7 +544,7 @@ function Login({ scope }) {
                 </div>
               )}
               <span className="text-xs font-black tracking-wide text-purple-700 dark:text-purple-300">
-                {currentBanner.name || platformName || "Your School"}
+                {(currentBanner?.name && !currentBanner.name.toLowerCase().includes("demo school")) ? currentBanner.name : (platformName || "Your School")}
               </span>
             </div>
 

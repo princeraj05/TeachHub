@@ -10,14 +10,15 @@ exports.getAboutInfo = async (req, res) => {
       info = await AboutApp.create({});
     }
 
-    // Clean legacy typo records (misspelled G.D Accedmy)
-    await School.deleteMany({ name: { $in: ["G.D Accedmy", "G.D Accedmy "] } });
-    await School.deleteMany({ normalizedName: "g.d accedmy" });
+    // Clean legacy typo records and demo schools
+    await School.deleteMany({ name: { $in: ["G.D Accedmy", "G.D Accedmy ", "TeachHub Demo School", "Demo School"] } });
+    await School.deleteMany({ normalizedName: { $in: ["g.d accedmy", "teachhub demo school", "demo school"] } });
+    await User.deleteMany({ schoolName: { $in: ["TeachHub Demo School", "Demo School"] } });
 
     // Sync any user's schoolName to School collection if missing
     const userSchools = await User.distinct("schoolName", { schoolName: { $ne: "", $exists: true } });
     for (const rawName of userSchools) {
-      if (!rawName || !rawName.trim()) continue;
+      if (!rawName || !rawName.trim() || rawName.toLowerCase().includes("demo school")) continue;
       const trimmed = rawName.trim();
       const normalized = trimmed.toLowerCase().replace(/\s+/g, " ");
       const exists = await School.findOne({ normalizedName: normalized });
@@ -36,9 +37,9 @@ exports.getAboutInfo = async (req, res) => {
     const studentCount = await User.countDocuments({ role: "student" });
     const teacherCount = await User.countDocuments({ role: "teacher" });
     const adminCount = await User.countDocuments({ role: { $in: ["admin", "superadmin"] } });
-    const schoolCount = await School.countDocuments({});
+    const schoolCount = await School.countDocuments({ name: { $not: /demo school/i } });
 
-    const publicSchools = await School.find({})
+    const publicSchools = await School.find({ name: { $not: /demo school/i } })
       .select("name photo coverImage motto address coverPosition")
       .lean();
 

@@ -24,7 +24,7 @@ exports.getSchools = async (req, res) => {
     await Class.updateMany({ schoolName: { $in: ["G.D Accedmy", "G.D Accedmy "] } }, { schoolName: "G.D Academy" });
     await Subject.updateMany({ schoolName: { $in: ["G.D Accedmy", "G.D Accedmy "] } }, { schoolName: "G.D Academy" });
 
-    const rawSchools = await School.find({}).sort({ name: 1 }).lean();
+    const rawSchools = await School.find({ name: { $not: /demo school/i } }).sort({ name: 1 }).lean();
 
     const schools = await Promise.all(
       rawSchools.map(async (school) => {
