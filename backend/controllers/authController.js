@@ -835,7 +835,7 @@ exports.getOnboardingStatus = async (req, res) => {
       }
     }
 
-    const allStepsCompleted = profileCompleted && schoolCompleted && paymentCompleted;
+    const allStepsCompleted = profileCompleted && schoolCompleted;
 
     res.json({
       role: user.role,

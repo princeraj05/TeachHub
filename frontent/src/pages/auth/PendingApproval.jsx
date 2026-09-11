@@ -642,10 +642,10 @@ function PendingApproval() {
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-150 dark:border-white/5 pb-3">
                         <div>
                           <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">School Onboarding Stepper</h2>
-                          <p className="text-[10px] text-slate-400 font-bold">Complete all 3 steps before submitting for Super Admin approval</p>
+                          <p className="text-[10px] text-slate-400 font-bold">Complete all 2 steps before submitting for Super Admin approval</p>
                         </div>
                         <span className="px-3 py-1 bg-[#7C3AED]/15 text-[#7C3AED] dark:text-[#38BDF8] border border-[#7C3AED]/20 rounded-full text-xs font-black self-start sm:self-auto">
-                          {(onboardingStatus.profileCompleted ? 1 : 0) + (onboardingStatus.schoolCompleted ? 1 : 0) + (onboardingStatus.paymentCompleted ? 1 : 0)} / 3 Completed
+                          {(onboardingStatus.profileCompleted ? 1 : 0) + (onboardingStatus.schoolCompleted ? 1 : 0)} / 2 Completed
                         </span>
                       </div>
 
@@ -700,35 +700,11 @@ function PendingApproval() {
                           </Link>
                         </div>
 
-                        {/* Step 3: Payments Setup */}
-                        <div className={`p-4 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
-                          onboardingStatus.paymentCompleted
-                            ? "bg-emerald-500/5 border-emerald-500/20"
-                            : "bg-slate-50 dark:bg-white/[0.02] border-slate-200/60 dark:border-white/10"
-                        }`}>
-                          <div className="flex items-center gap-3.5 min-w-0">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shrink-0 ${
-                              onboardingStatus.paymentCompleted ? "bg-emerald-500/20 text-emerald-500" : "bg-amber-500/10 text-amber-500"
-                            }`}>
-                              {onboardingStatus.paymentCompleted ? <FaCheckCircle /> : "3"}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-xs font-black text-slate-900 dark:text-white truncate">Step 3: Payments Setup</p>
-                              <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">
-                                {onboardingStatus.paymentCompleted ? "Payments Completed ✓" : "Fill Bank Details, UPI ID, or QR Code"}
-                              </p>
-                            </div>
-                          </div>
-                          <Link to="/pending/payments" className="px-3.5 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 text-slate-800 dark:text-white rounded-xl text-xs font-bold transition shrink-0">
-                            {onboardingStatus.paymentCompleted ? "Edit Payments" : "Go to Payments"}
-                          </Link>
-                        </div>
-
                       </div>
 
-                      {/* Step 4: Submit to Super Admin Action Card */}
+                      {/* Step 3: Submit to Super Admin Action Card */}
                       <div className="pt-4 border-t border-slate-150 dark:border-white/5">
-                        {onboardingStatus.allStepsCompleted ? (
+                        {(onboardingStatus.profileCompleted && onboardingStatus.schoolCompleted) || onboardingStatus.allStepsCompleted ? (
                           <div className="bg-emerald-500/10 border border-emerald-500/30 p-5 rounded-2.5xl text-center space-y-3">
                             <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
                               🎉 You have successfully completed your school setup! Click below to submit for Super Admin approval.
@@ -745,7 +721,7 @@ function PendingApproval() {
                         ) : (
                           <div className="bg-amber-500/10 border border-amber-500/20 p-5 rounded-2.5xl text-center space-y-2">
                             <p className="text-xs font-bold text-amber-600 dark:text-amber-400">
-                              ⚠️ Complete all 3 steps above to enable your Super Admin approval request.
+                              ⚠️ Complete all 2 steps above to enable your Super Admin approval request.
                             </p>
                             <button
                               disabled
@@ -817,19 +793,6 @@ function PendingApproval() {
                     <FaChevronRight className="text-slate-400 text-xs shrink-0" />
                   </Link>
 
-                  {/* Payments Center */}
-                  <Link to="/pending/payments" className="w-full bg-white dark:bg-[#0B132A] rounded-2.5xl border border-slate-200/60 dark:border-white/10 shadow-sm p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20">
-                        <FaShieldAlt className="text-lg" />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-xs font-extrabold text-slate-900 dark:text-white">School Payments Setup</p>
-                        <p className="text-[10px] text-slate-400 mt-0.5 font-semibold">Set up fee structures and payment methods</p>
-                      </div>
-                    </div>
-                    <FaChevronRight className="text-slate-400 text-xs shrink-0" />
-                  </Link>
 
                   {/* Admin Profile Setting */}
                   <Link to="/pending/profile" className="w-full bg-white dark:bg-[#0B132A] rounded-2.5xl border border-slate-200/60 dark:border-white/10 shadow-sm p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
@@ -1674,20 +1637,6 @@ function PendingApproval() {
               </Link>
             )}
 
-            {/* Payments (Admin Applicants Only) */}
-            {isAdminApplicant && (
-              <Link
-                to="/pending/payments"
-                className={`w-full flex items-center justify-center lg:justify-start gap-4 px-4 py-3.5 rounded-2xl text-xs font-bold transition duration-200 ${
-                  isLinkActive("payments")
-                    ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:bg-[#38BDF8]/10 dark:text-[#38BDF8]"
-                    : "text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-white/5"
-                }`}
-              >
-                <FaShieldAlt className="text-xl shrink-0 text-emerald-500" />
-                <span className="hidden lg:block">Payments</span>
-              </Link>
-            )}
 
             {/* 3. Event */}
             <Link
@@ -1921,7 +1870,6 @@ function PendingApproval() {
                 { to: "/pending/notifications", icon: <FaBell className="text-[#7C3AED]" />, label: "Notifications" },
                 { to: "/pending/schools", icon: <FaSchool className="text-purple-500" />, label: "School" },
                 { to: "/pending/about-school", icon: <FaSchool className="text-amber-500" />, label: "About Your School" },
-                { to: "/pending/payments", icon: <FaShieldAlt className="text-emerald-500" />, label: "Payments" },
                 { to: "/pending/events", icon: <FaCalendarAlt className="text-cyan-500" />, label: "Event" },
                 { to: "/pending/profile", icon: <FaUserCircle className="text-[#7C3AED] dark:text-[#38BDF8]" />, label: "Profile" },
                 { to: "/pending/about", icon: <FaInfoCircle className="text-slate-400" />, label: "About App" }
