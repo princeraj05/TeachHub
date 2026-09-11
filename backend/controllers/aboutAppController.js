@@ -5,64 +5,31 @@ const School = require("../models/School");
 // GET /api/about-app
 exports.getAboutInfo = async (req, res) => {
   try {
-    let info = await AboutApp.findOne();
+    let info = await AboutApp.findOne().lean();
     if (!info) {
-      info = await AboutApp.create({});
+      const created = await AboutApp.create({});
+      info = created.toObject();
     }
 
-    // Clean legacy typo records and demo schools
-    await School.deleteMany({ name: { $in: ["G.D Accedmy", "G.D Accedmy ", "TeachHub Demo School", "Demo School"] } });
-    await School.deleteMany({ normalizedName: { $in: ["g.d accedmy", "teachhub demo school", "demo school"] } });
-    await User.deleteMany({ schoolName: { $in: ["TeachHub Demo School", "Demo School"] } });
+    const [studentCount, teacherCount, approvedAdminCount, schoolCount, publicSchools] = await Promise.all([
+      User.countDocuments({ role: "student" }),
+      User.countDocuments({ role: "teacher" }),
+      User.countDocuments({ role: "admin", requestStatus: "approved" }),
+      School.countDocuments({ name: { $not: /demo school/i } }),
+      School.find({ name: { $not: /demo school/i } })
+        .select("name photo coverImage motto address coverPosition")
+        .lean()
+    ]);
 
-    // Find all approved admins
-    const approvedAdmins = await User.find({ role: "admin", requestStatus: "approved" }).select("_id schoolName email").lean();
-    const approvedAdminIds = approvedAdmins.map(a => a._id);
-    const approvedSchoolNames = approvedAdmins.map(a => a.schoolName ? a.schoolName.trim().toLowerCase() : "").filter(Boolean);
-
-    // Clean up any school records that do not belong to an approved admin
-    await School.deleteMany({
-      name: { $not: /demo school/i },
-      adminId: { $nin: approvedAdminIds },
-      normalizedName: { $nin: approvedSchoolNames }
-    });
-
-    // Ensure approved admins have a corresponding School document
-    for (const adminUser of approvedAdmins) {
-      if (!adminUser.schoolName || !adminUser.schoolName.trim()) continue;
-      const trimmed = adminUser.schoolName.trim();
-      const normalized = trimmed.toLowerCase().replace(/\s+/g, " ");
-      const exists = await School.findOne({ normalizedName: normalized });
-      if (!exists) {
-        await School.create({
-          name: trimmed,
-          normalizedName: normalized,
-          adminId: adminUser._id,
-          email: adminUser.email,
-          status: "Active"
-        });
-      }
-    }
-
-    const studentCount = await User.countDocuments({ role: "student" });
-    const teacherCount = await User.countDocuments({ role: "teacher" });
-    const adminCount = approvedAdmins.length;
-    const schoolCount = await School.countDocuments({ name: { $not: /demo school/i } });
-
-    const publicSchools = await School.find({ name: { $not: /demo school/i } })
-      .select("name photo coverImage motto address coverPosition")
-      .lean();
-
-    const data = info.toObject ? info.toObject() : { ...info };
-    data.stats = {
+    info.stats = {
       schools: schoolCount || 0,
       students: studentCount || 0,
       teachers: teacherCount || 0,
-      admins: adminCount || 0
+      admins: approvedAdminCount || 0
     };
-    data.publicSchools = publicSchools || [];
+    info.publicSchools = publicSchools || [];
 
-    res.json(data);
+    res.json(info);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

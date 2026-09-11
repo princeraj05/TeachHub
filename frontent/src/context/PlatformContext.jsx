@@ -25,7 +25,13 @@ export const PlatformProvider = ({ children }) => {
   const [platformName, setPlatformName] = useState(localStorage.getItem("platformName") || "Your School");
   const [logoUrl, setLogoUrl] = useState(localStorage.getItem("platformLogoUrl") || "");
   const [tagline, setTagline] = useState("Smart School Management & Communication Platform");
-  const [platformConfig, setPlatformConfig] = useState(null);
+  const [platformConfig, setPlatformConfig] = useState(() => {
+    try {
+      const cached = localStorage.getItem("teachhub_platform_config");
+      if (cached) return JSON.parse(cached);
+    } catch (e) {}
+    return null;
+  });
 
   // Global Logout Confirmation Modal state
   const [logoutTarget, setLogoutTarget] = useState({ isOpen: false, navigate: null });
@@ -38,6 +44,7 @@ export const PlatformProvider = ({ children }) => {
       const res = await axios.get(`${API}/api/about-app`, { headers });
       if (res.data) {
         setPlatformConfig(res.data);
+        try { localStorage.setItem("teachhub_platform_config", JSON.stringify(res.data)); } catch (e) {}
         if (res.data.platformName) {
           setPlatformName(res.data.platformName);
           localStorage.setItem("platformName", res.data.platformName);
