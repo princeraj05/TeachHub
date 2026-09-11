@@ -150,6 +150,10 @@ function SchoolDetails() {
   };
 
   const handleApplyClick = () => {
+    const loginSource = localStorage.getItem("loginSource");
+    const isAdminApplicant = loginSource === "admin" || user?.role === "admin" || user?.requestedRole === "admin";
+    if (isAdminApplicant) return;
+
     const hasActiveRequest = user && user.requestStatus !== "rejected" && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
     if (hasActiveRequest) {
       alert("You already have an active or pending join request.");
@@ -159,14 +163,25 @@ function SchoolDetails() {
   };
 
   const renderApplyButton = (size = "normal") => {
+    const loginSource = localStorage.getItem("loginSource");
+    const isAdminApplicant = loginSource === "admin" || user?.role === "admin" || user?.requestedRole === "admin";
+    const basePadding = size === "large" ? "py-3 px-6 rounded-2xl" : "py-2.5 px-5 rounded-xl";
+
+    if (isAdminApplicant) {
+      return (
+        <div className={`bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/25 ${basePadding} text-xs font-black uppercase tracking-wider text-center flex items-center justify-center gap-1.5 shadow-sm`}>
+          <FaSchool className="text-purple-500 text-xs shrink-0" />
+          <span>Registered School</span>
+        </div>
+      );
+    }
+
     const isApprovedHere = user && user.role !== "unassigned" && user.requestStatus !== "rejected" && (
       (user.schoolName && school?.name && user.schoolName.toLowerCase() === school.name.toLowerCase()) ||
       (user.school && school?.name && String(user.school).toLowerCase() === school.name.toLowerCase())
     );
     const isThisApplied = user && user.requestStatus !== "rejected" && user.requestedSchool && school?.name && user.requestedSchool.toLowerCase() === school.name.toLowerCase() && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
     const hasActiveRequest = user && user.requestStatus !== "rejected" && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
-
-    const basePadding = size === "large" ? "py-3 px-6 rounded-2xl" : "py-2.5 px-5 rounded-xl";
 
     if (isApprovedHere) {
       return (

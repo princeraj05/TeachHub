@@ -331,7 +331,12 @@ function SchoolDirectory() {
                       View Details
                     </button>
 
-                    {isApprovedHere ? (
+                    {localStorage.getItem("loginSource") === "admin" || user?.role === "admin" || user?.requestedRole === "admin" ? (
+                      <span className="flex-1 bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 text-center py-3 rounded-2xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-1.5">
+                        <FaSchool className="text-xs text-purple-500" />
+                        Registered School
+                      </span>
+                    ) : isApprovedHere ? (
                       <span className="flex-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-center py-3 rounded-2xl text-xs font-extrabold uppercase tracking-wider">
                         Joined
                       </span>
