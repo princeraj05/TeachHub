@@ -1,24 +1,6 @@
 const fs = require("fs");
 const path = require("path");
 
-// Auto-create physical .env file at runtime if missing (for Hostinger deployment checks)
-const envPath = path.join(__dirname, ".env");
-if (!fs.existsSync(envPath)) {
-  try {
-    let envContent = "";
-    for (const [key, val] of Object.entries(process.env)) {
-      if (val) {
-        const sanitizedVal = val.includes("\n") ? JSON.stringify(val) : val;
-        envContent += `${key}=${sanitizedVal}\n`;
-      }
-    }
-    fs.writeFileSync(envPath, envContent);
-    console.log("Runtime .env file created successfully from environment variables.");
-  } catch (e) {
-    console.error("Could not write runtime .env file:", e.message);
-  }
-}
-
 require("dotenv").config();
 
 const express = require("express");
@@ -112,30 +94,23 @@ app.use("/uploads", express.static(uploadsDir));
 
 
 const mongoUri = process.env.MONGO_URI || "mongodb://localhost:27017/teachhub";
+mongoose.set("bufferCommands", false);
 
-mongoose
-  .connect(mongoUri)
-  .then(async () => {
-    console.log("MongoDB Connected");
+async function startServer() {
+  try {
+    console.log("MongoDB URI configured:", !!process.env.MONGO_URI);
+    await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000
+    });
+    console.log("✅ MongoDB Connected");
+
     try {
       const User = require("./models/User");
-      const result = await User.updateMany(
+      await User.updateMany(
         { name: "Banny Thapar", role: "admin" },
         { schoolName: "G.D Academy" }
       );
-
-      const modelsToMigrate = [
-        { path: "./models/User", fields: ["schoolName", "requestedSchool"] },
-        { path: "./models/PaymentSettings", fields: ["schoolName"] },
-        { path: "./models/FeePlan", fields: ["schoolName"] },
-        { path: "./models/SchoolSubscription", fields: ["schoolName"] },
-        { path: "./models/FreePeriod", fields: ["schoolName"] },
-        { path: "./models/TeacherCompensation", fields: ["schoolName"] },
-        { path: "./models/Class", fields: ["schoolName"] },
-        { path: "./models/Subject", fields: ["schoolName"] },
-        { path: "./models/Payment", fields: ["schoolName"] },
-        { path: "./models/School", fields: ["name"] }
-      ];
 
       const AboutApp = require("./models/AboutApp");
       const appInfo = await AboutApp.findOne().lean();
@@ -145,14 +120,22 @@ mongoose
     } catch (migrationError) {
       console.error("Startup Initialization Notice:", migrationError.message);
     }
-  })
-  .catch((err) => {
+
+    const PORT = process.env.PORT || 5000;
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  } catch (err) {
     console.error("❌ MongoDB Connection Error:", err.message);
     if (err.name === "MongoServerError" && err.code === 18) {
       console.error("👉 BAD AUTHENTICATION: Check the username and password in your MONGO_URI environment variable on Hostinger.");
       console.error("👉 Tip: If your password contains special characters like @, #, $, %, etc., remember to URL-encode them (e.g. @ becomes %40).");
     }
-  });
+    process.exit(1);
+  }
+}
+
+startServer();
 
 
 // ================= ROUTES =================
@@ -791,12 +774,4 @@ process.on("uncaughtException", (err) => {
 
 process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled Rejection at:", promise, "reason:", reason);
-});
-
-// ================= SERVER =================
-
-const PORT = process.env.PORT || 5000;
-
-server.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on port ${PORT}`);
 });

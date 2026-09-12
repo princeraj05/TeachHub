@@ -224,17 +224,24 @@ const findTargetSchool = async (adminUserId, targetSchoolName, adminEmail) => {
 
 // GET /api/schools/my-school
 exports.getMySchool = async (req, res) => {
+  console.log("[getMySchool] START");
   try {
     const userId = req.user.id || req.user._id;
+    console.log("[getMySchool] userId:", userId);
+
     const adminUser = await User.findById(userId).select("role requestedRole schoolName requestedSchool email").lean();
+    console.log("[getMySchool] adminUser loaded:", adminUser ? adminUser._id : null);
+
     const isAllowed = adminUser && (adminUser.role === "admin" || adminUser.role === "superadmin" || adminUser.requestedRole === "admin" || adminUser.role === "unassigned");
     if (!isAllowed) {
       return res.status(403).json({ success: false, message: "Unauthorized: Only School Admins can access school details" });
     }
 
     const targetSchoolName = adminUser.schoolName || adminUser.requestedSchool || "";
-    
+    console.log("[getMySchool] targetSchoolName:", targetSchoolName);
+
     let school = await findTargetSchool(adminUser._id, targetSchoolName, adminUser.email);
+    console.log("[getMySchool] findTargetSchool completed:", school ? school._id : null);
 
     if (school && !school.adminId && adminUser.role !== "superadmin") {
       school.adminId = adminUser._id;
@@ -287,6 +294,8 @@ exports.getMySchool = async (req, res) => {
     }
 
     const statistics = await getSchoolStatistics(school.name);
+    console.log("[getMySchool] statistics completed:", statistics);
+
     const schoolObj = typeof school.toObject === "function" ? school.toObject() : school;
     schoolObj.profileCompletion = profileCompletion;
 
@@ -295,6 +304,7 @@ exports.getMySchool = async (req, res) => {
       school: schoolObj,
       statistics
     });
+    console.log("[getMySchool] RESPONSE SENT");
   } catch (error) {
     console.error("Error in getMySchool:", error);
     return res.status(500).json({ success: false, message: error.message || "Failed to load school profile" });
