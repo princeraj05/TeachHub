@@ -499,7 +499,7 @@ function AdmissionSettingsTab({
 
             {/* Tag items */}
             <div className="flex flex-wrap gap-2">
-              {holidays.map((h, i) => (
+              {(Array.isArray(holidays) ? holidays : []).map((h, i) => (
                 <span key={i} className="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 text-slate-800 dark:text-slate-200 text-[9px] font-bold px-2.5 py-1 rounded-lg">
                   {h.date} ({h.name})
                   <button
@@ -511,7 +511,7 @@ function AdmissionSettingsTab({
                   </button>
                 </span>
               ))}
-              {holidays.length === 0 && (
+              {(Array.isArray(holidays) ? holidays : []).length === 0 && (
                 <span className="text-[10px] text-slate-500 italic">No holidays configured.</span>
               )}
             </div>

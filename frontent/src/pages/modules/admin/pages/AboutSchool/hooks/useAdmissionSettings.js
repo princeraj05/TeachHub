@@ -80,7 +80,11 @@ export function useAdmissionSettings(options = {}) {
           const a = res.data.admissionSettings;
           setFormData(prev => ({
             ...prev,
-            ...a
+            ...a,
+            schoolCategoriesList: Array.isArray(a.schoolCategoriesList) ? a.schoolCategoriesList : (Array.isArray(prev.schoolCategoriesList) ? prev.schoolCategoriesList : []),
+            admissionProcess: Array.isArray(a.admissionProcess) ? a.admissionProcess : (a.admissionProcess ? [a.admissionProcess] : (Array.isArray(prev.admissionProcess) ? prev.admissionProcess : [])),
+            workingDays: Array.isArray(a.workingDays) ? a.workingDays : (Array.isArray(prev.workingDays) ? prev.workingDays : []),
+            holidays: Array.isArray(a.holidays) ? a.holidays : (Array.isArray(prev.holidays) ? prev.holidays : [])
           }));
         }
         setTimeout(() => setSuccess(""), 4000);

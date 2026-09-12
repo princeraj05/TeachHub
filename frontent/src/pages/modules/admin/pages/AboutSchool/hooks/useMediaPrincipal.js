@@ -91,6 +91,7 @@ export function useMediaPrincipal(options = {}) {
           setFormData(prev => ({
             ...prev,
             ...m,
+            schoolPhotos: Array.isArray(m.schoolPhotos) ? m.schoolPhotos : (Array.isArray(prev.schoolPhotos) ? prev.schoolPhotos : []),
             principalLeadershipSince: lSince ? lSince.split("T")[0] : prev.principalLeadershipSince
           }));
         }

@@ -118,12 +118,12 @@ function MediaPrincipalTab({
       });
 
       if (res.data?.url) {
-        setSchoolPhotos(prev => prev.map((url, i) => i === targetIndex ? res.data.url : url));
+        setSchoolPhotos(prev => (Array.isArray(prev) ? prev : []).map((url, i) => i === targetIndex ? res.data.url : url));
       }
     } catch (err) {
       console.error("Failed to upload photo:", err);
       // Remove failed preview on error
-      setSchoolPhotos(prev => prev.filter((_, i) => i !== targetIndex));
+      setSchoolPhotos(prev => (Array.isArray(prev) ? prev : []).filter((_, i) => i !== targetIndex));
       alert(err.response?.data?.message || "Failed to upload photo. Please try again.");
     }
   };
@@ -254,7 +254,7 @@ function MediaPrincipalTab({
 
         {/* Photos Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
-          {schoolPhotos.map((url, idx) => (
+          {(Array.isArray(schoolPhotos) ? schoolPhotos : []).map((url, idx) => (
             <div key={idx} className="flex flex-col gap-2">
               <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-[#0F172A] group">
                 <img
