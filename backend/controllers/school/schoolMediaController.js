@@ -43,30 +43,27 @@ const uploadSchoolPhoto = async (req, res) => {
 
     logger.start("cloudinaryUpload");
     try {
-      // Upload to Cloudinary folder teachhub/schools/{schoolFolderId} with an 8s timeout
+      // Upload to Cloudinary folder teachhub/schools/{schoolFolderId} with a 25s timeout
       const result = await Promise.race([
         cloudinary.uploader.upload(req.file.path, {
           folder: `teachhub/schools/${schoolFolderId}`,
           resource_type: "image"
         }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("Cloudinary upload timeout (8s limit)")), 8000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Cloudinary upload timeout (25s limit)")), 25000))
       ]);
 
       if (result && result.secure_url) {
         finalUrl = result.secure_url;
         publicId = result.public_id;
+      } else {
+        throw new Error("Cloudinary did not return a secure URL");
       }
     } catch (cErr) {
-      console.warn(`[uploadSchoolPhoto:${logger.reqId}] Cloudinary upload bypassed/failed, using local static fallback:`, cErr.message);
-      // Fast static fallback: Serve uploaded file from /uploads/
-      finalUrl = `/uploads/${req.file.filename}`;
+      console.error(`[uploadSchoolPhoto:${logger.reqId}] Cloudinary upload failed:`, cErr.message);
+      logger.summary();
+      return res.status(500).json({ success: false, message: `Image upload failed: ${cErr.message}` });
     }
     logger.end("cloudinaryUpload");
-
-    if (!finalUrl) {
-      logger.summary();
-      return res.status(500).json({ success: false, message: "Failed to process image upload." });
-    }
 
     logger.summary();
     return res.json({
@@ -79,14 +76,12 @@ const uploadSchoolPhoto = async (req, res) => {
     logger.summary();
     return res.status(500).json({ success: false, message: error.message || "Failed to upload image" });
   } finally {
-    // Only delete local temp file if Cloudinary upload succeeded
-    if (finalUrl && (finalUrl.startsWith("http://") || finalUrl.startsWith("https://"))) {
-      if (req.file && req.file.path && fs.existsSync(req.file.path)) {
-        try {
-          fs.unlinkSync(req.file.path);
-        } catch (e) {
-          console.warn("Failed to unlink temporary file:", e.message);
-        }
+    // Always delete local temp file after processing
+    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (e) {
+        console.warn("Failed to unlink temporary file:", e.message);
       }
     }
   }
