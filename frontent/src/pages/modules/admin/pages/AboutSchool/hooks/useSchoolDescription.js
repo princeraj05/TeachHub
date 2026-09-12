@@ -1,13 +1,15 @@
 // frontent/src/pages/modules/admin/pages/AboutSchool/hooks/useSchoolDescription.js
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import API_URL from "../../../../../config/api";
+import API_URL from "../../../../../../config/api";
 
-export function useSchoolDescription() {
+export function useSchoolDescription(options = {}) {
+  const { enabled = true } = options;
   const API = API_URL;
   const token = localStorage.getItem("token");
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
@@ -23,6 +25,7 @@ export function useSchoolDescription() {
       if (res.data && res.data.description !== undefined) {
         setDescription(res.data.description || "");
       }
+      setHasLoaded(true);
     } catch (err) {
       console.error("Error fetching school description:", err);
       setError(err.response?.data?.message || "Failed to load school description.");
@@ -32,8 +35,10 @@ export function useSchoolDescription() {
   }, [API, token]);
 
   useEffect(() => {
-    fetchDescription();
-  }, [fetchDescription]);
+    if (enabled && !hasLoaded) {
+      fetchDescription();
+    }
+  }, [enabled, hasLoaded, fetchDescription]);
 
   const saveDescription = async (descToSave = description) => {
     try {

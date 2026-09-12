@@ -2,6 +2,7 @@
 const School = require("../../models/School");
 const { measureDatabaseOperation } = require("../../utils/databaseDiagnostics");
 const { resolveSchoolForAdmin } = require("./schoolResolverService");
+const { sanitizeSchoolDescription } = require("../../utils/htmlSanitizer");
 
 const DESCRIPTION_PROJECTION = "description adminId name";
 
@@ -32,7 +33,8 @@ const updateSchoolDescription = async ({ adminUserId, targetSchoolName, adminEma
     });
   }
 
-  const description = updateData.description !== undefined ? updateData.description : "";
+  const rawDescription = updateData.description !== undefined ? updateData.description : "";
+  const description = sanitizeSchoolDescription(rawDescription);
 
   const updatedSchool = await measureDatabaseOperation("School.updateDescription", reqId, async () => {
     return await School.findByIdAndUpdate(

@@ -1,13 +1,15 @@
 // frontent/src/pages/modules/admin/pages/AboutSchool/hooks/useAdmissionSettings.js
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import API_URL from "../../../../../config/api";
+import API_URL from "../../../../../../config/api";
 
-export function useAdmissionSettings() {
+export function useAdmissionSettings(options = {}) {
+  const { enabled = true } = options;
   const API = API_URL;
   const token = localStorage.getItem("token");
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
@@ -49,6 +51,7 @@ export function useAdmissionSettings() {
           holidays: Array.isArray(a.holidays) ? a.holidays : []
         });
       }
+      setHasLoaded(true);
     } catch (err) {
       console.error("Error fetching admission settings:", err);
       setError(err.response?.data?.message || "Failed to load admission settings.");
@@ -58,8 +61,10 @@ export function useAdmissionSettings() {
   }, [API, token]);
 
   useEffect(() => {
-    fetchAdmissionSettings();
-  }, [fetchAdmissionSettings]);
+    if (enabled && !hasLoaded) {
+      fetchAdmissionSettings();
+    }
+  }, [enabled, hasLoaded, fetchAdmissionSettings]);
 
   const saveAdmissionSettings = async (dataToSave = formData) => {
     try {

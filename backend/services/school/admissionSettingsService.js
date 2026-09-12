@@ -32,38 +32,59 @@ const updateAdmissionSettings = async ({ adminUserId, targetSchoolName, adminEma
     });
   }
 
-  const allowedFields = [
-    "schoolCategoriesList", "admissionProcess", "schoolBoardType", "workingDays",
-    "openingTime", "closingTime", "shortBreakStartTime", "shortBreakDuration",
-    "lunchBreakStartTime", "lunchBreakDuration", "holidays", "admissionExam",
-    "directAdmission", "schoolTypes"
-  ];
-
   const updateFields = {};
-  for (const field of allowedFields) {
-    if (updateData[field] !== undefined) {
-      updateFields[field] = updateData[field];
-    }
+
+  const getVal = (field, fallbackField) => {
+    if (updateData[field] !== undefined) return updateData[field];
+    if (fallbackField && updateData.admission && updateData.admission[fallbackField] !== undefined) return updateData.admission[fallbackField];
+    if (fallbackField && updateData.availability && updateData.availability[fallbackField] !== undefined) return updateData.availability[fallbackField];
+    return undefined;
+  };
+
+  const cats = getVal("schoolCategoriesList", "categories");
+  if (cats !== undefined && Array.isArray(cats)) updateFields.schoolCategoriesList = cats;
+
+  const proc = getVal("admissionProcess", "processes");
+  if (proc !== undefined) {
+    updateFields.admissionProcess = Array.isArray(proc) ? proc : (proc ? [proc] : []);
   }
 
-  const admission = updateData.admission || {};
-  const availability = updateData.availability || {};
+  const board = getVal("schoolBoardType", "schoolType");
+  if (board !== undefined) updateFields.schoolBoardType = board;
 
-  if (updateData.schoolCategoriesList !== undefined || admission.categories !== undefined) updateFields.schoolCategoriesList = updateData.schoolCategoriesList ?? admission.categories;
-  if (updateData.admissionProcess !== undefined || admission.processes !== undefined) updateFields.admissionProcess = updateData.admissionProcess ?? admission.processes;
-  if (updateData.schoolBoardType !== undefined || admission.schoolType !== undefined) updateFields.schoolBoardType = updateData.schoolBoardType ?? admission.schoolType;
+  const days = getVal("workingDays", "workingDays");
+  if (days !== undefined && Array.isArray(days)) updateFields.workingDays = days;
 
-  if (updateData.workingDays !== undefined || availability.workingDays !== undefined) updateFields.workingDays = updateData.workingDays ?? availability.workingDays;
-  if (updateData.openingTime !== undefined || availability.openingTime !== undefined) updateFields.openingTime = updateData.openingTime ?? availability.openingTime;
-  if (updateData.closingTime !== undefined || availability.closingTime !== undefined) updateFields.closingTime = updateData.closingTime ?? availability.closingTime;
-  if (updateData.shortBreakStartTime !== undefined) updateFields.shortBreakStartTime = updateData.shortBreakStartTime;
-  if (updateData.shortBreakDuration !== undefined) updateFields.shortBreakDuration = Number(updateData.shortBreakDuration);
-  if (updateData.lunchBreakStartTime !== undefined || availability.lunchBreakStartTime !== undefined) updateFields.lunchBreakStartTime = updateData.lunchBreakStartTime ?? availability.lunchBreakStartTime;
-  if (updateData.lunchBreakDuration !== undefined || availability.lunchBreakDuration !== undefined) {
-    const dur = Number(updateData.lunchBreakDuration ?? availability.lunchBreakDuration);
+  const openT = getVal("openingTime", "openingTime");
+  if (openT !== undefined) updateFields.openingTime = openT;
+
+  const closeT = getVal("closingTime", "closingTime");
+  if (closeT !== undefined) updateFields.closingTime = closeT;
+
+  const shortStart = getVal("shortBreakStartTime", "shortBreakStartTime");
+  if (shortStart !== undefined) updateFields.shortBreakStartTime = shortStart;
+
+  const shortDur = getVal("shortBreakDuration", "shortBreakDuration");
+  if (shortDur !== undefined) {
+    const dur = Number(shortDur);
+    updateFields.shortBreakDuration = isNaN(dur) ? 30 : dur;
+  }
+
+  const lunchStart = getVal("lunchBreakStartTime", "lunchBreakStartTime");
+  if (lunchStart !== undefined) updateFields.lunchBreakStartTime = lunchStart;
+
+  const lunchDur = getVal("lunchBreakDuration", "lunchBreakDuration");
+  if (lunchDur !== undefined) {
+    const dur = Number(lunchDur);
     updateFields.lunchBreakDuration = isNaN(dur) ? 60 : dur;
   }
-  if (updateData.holidays !== undefined || availability.holidays !== undefined) updateFields.holidays = updateData.holidays ?? availability.holidays;
+
+  const hols = getVal("holidays", "holidays");
+  if (hols !== undefined && Array.isArray(hols)) updateFields.holidays = hols;
+
+  if (updateData.admissionExam !== undefined) updateFields.admissionExam = updateData.admissionExam;
+  if (updateData.directAdmission !== undefined) updateFields.directAdmission = updateData.directAdmission;
+  if (updateData.schoolTypes !== undefined && Array.isArray(updateData.schoolTypes)) updateFields.schoolTypes = updateData.schoolTypes;
 
   const updatedSchool = await measureDatabaseOperation("School.updateAdmissionSettings", reqId, async () => {
     return await School.findByIdAndUpdate(
@@ -80,3 +101,4 @@ module.exports = {
   getAdmissionSettings,
   updateAdmissionSettings
 };
+

@@ -32,43 +32,54 @@ const updateMediaPrincipal = async ({ adminUserId, targetSchoolName, adminEmail,
     });
   }
 
-  const allowedFields = [
-    "coverImage", "coverPosition", "schoolPhotos", "principalPhoto",
-    "principalName", "principalDesignation", "principalEmail",
-    "principalPhone", "principalLeadershipSince", "principalIntroduction"
-  ];
-
   const updateFields = {};
-  for (const field of allowedFields) {
-    if (updateData[field] !== undefined) {
-      updateFields[field] = updateData[field];
-    }
-  }
 
-  const media = updateData.media || {};
-  const principal = updateData.principal || {};
+  const getVal = (field, fallbackField) => {
+    if (updateData[field] !== undefined) return updateData[field];
+    if (fallbackField && updateData.media && updateData.media[fallbackField] !== undefined) return updateData.media[fallbackField];
+    if (fallbackField && updateData.principal && updateData.principal[fallbackField] !== undefined) return updateData.principal[fallbackField];
+    return undefined;
+  };
 
-  if (updateData.coverImage !== undefined || media.coverImage !== undefined) updateFields.coverImage = updateData.coverImage ?? media.coverImage;
-  if (updateData.coverPosition !== undefined || media.coverPosition !== undefined) {
-    const pos = Number(updateData.coverPosition ?? media.coverPosition);
+  const coverImage = getVal("coverImage", "coverImage");
+  if (coverImage !== undefined) updateFields.coverImage = coverImage;
+
+  const coverPosVal = getVal("coverPosition", "coverPosition");
+  if (coverPosVal !== undefined) {
+    const pos = Number(coverPosVal);
     updateFields.coverPosition = isNaN(pos) ? 50 : pos;
   }
-  if (updateData.schoolPhotos !== undefined || media.schoolPhotos !== undefined) {
-    const photos = updateData.schoolPhotos ?? media.schoolPhotos;
-    if (Array.isArray(photos)) {
-      if (photos.length > 5) {
+
+  const photosVal = getVal("schoolPhotos", "schoolPhotos");
+  if (photosVal !== undefined) {
+    if (Array.isArray(photosVal)) {
+      if (photosVal.length > 5) {
         throw new Error("Maximum 5 school photos allowed.");
       }
-      updateFields.schoolPhotos = photos;
+      updateFields.schoolPhotos = photosVal;
     }
   }
-  if (updateData.principalName !== undefined || principal.name !== undefined) updateFields.principalName = updateData.principalName ?? principal.name;
-  if (updateData.principalPhoto !== undefined || principal.photo !== undefined) updateFields.principalPhoto = updateData.principalPhoto ?? principal.photo;
-  if (updateData.principalDesignation !== undefined || principal.designation !== undefined) updateFields.principalDesignation = updateData.principalDesignation ?? principal.designation;
-  if (updateData.principalEmail !== undefined || principal.email !== undefined) updateFields.principalEmail = updateData.principalEmail ?? principal.email;
-  if (updateData.principalPhone !== undefined || principal.phoneNumber !== undefined) updateFields.principalPhone = updateData.principalPhone ?? principal.phoneNumber;
-  if (updateData.principalLeadershipSince !== undefined || principal.leadershipSince !== undefined) updateFields.principalLeadershipSince = updateData.principalLeadershipSince ?? principal.leadershipSince;
-  if (updateData.principalIntroduction !== undefined || principal.introduction !== undefined) updateFields.principalIntroduction = updateData.principalIntroduction ?? principal.introduction;
+
+  const pPhoto = getVal("principalPhoto", "photo");
+  if (pPhoto !== undefined) updateFields.principalPhoto = pPhoto;
+
+  const pName = getVal("principalName", "name");
+  if (pName !== undefined) updateFields.principalName = pName;
+
+  const pDesignation = getVal("principalDesignation", "designation");
+  if (pDesignation !== undefined) updateFields.principalDesignation = pDesignation;
+
+  const pEmail = getVal("principalEmail", "email");
+  if (pEmail !== undefined) updateFields.principalEmail = pEmail;
+
+  const pPhone = getVal("principalPhone", "phoneNumber");
+  if (pPhone !== undefined) updateFields.principalPhone = pPhone;
+
+  const pLeadershipSince = getVal("principalLeadershipSince", "leadershipSince");
+  if (pLeadershipSince !== undefined) updateFields.principalLeadershipSince = pLeadershipSince;
+
+  const pIntroduction = getVal("principalIntroduction", "introduction");
+  if (pIntroduction !== undefined) updateFields.principalIntroduction = pIntroduction;
 
   const updatedSchool = await measureDatabaseOperation("School.updateMediaPrincipal", reqId, async () => {
     return await School.findByIdAndUpdate(
@@ -85,3 +96,4 @@ module.exports = {
   getMediaPrincipal,
   updateMediaPrincipal
 };
+

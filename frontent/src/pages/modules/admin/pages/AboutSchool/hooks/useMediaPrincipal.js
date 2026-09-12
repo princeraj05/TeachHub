@@ -1,13 +1,15 @@
 // frontent/src/pages/modules/admin/pages/AboutSchool/hooks/useMediaPrincipal.js
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import API_URL from "../../../../../config/api";
+import API_URL from "../../../../../../config/api";
 
-export function useMediaPrincipal() {
+export function useMediaPrincipal(options = {}) {
+  const { enabled = true } = options;
   const API = API_URL;
   const token = localStorage.getItem("token");
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
@@ -48,6 +50,7 @@ export function useMediaPrincipal() {
           principalIntroduction: m.principalIntroduction || ""
         });
       }
+      setHasLoaded(true);
     } catch (err) {
       console.error("Error fetching media & principal profile:", err);
       setError(err.response?.data?.message || "Failed to load media and principal details.");
@@ -57,8 +60,10 @@ export function useMediaPrincipal() {
   }, [API, token]);
 
   useEffect(() => {
-    fetchMediaPrincipal();
-  }, [fetchMediaPrincipal]);
+    if (enabled && !hasLoaded) {
+      fetchMediaPrincipal();
+    }
+  }, [enabled, hasLoaded, fetchMediaPrincipal]);
 
   const saveMediaPrincipal = async (dataToSave = formData) => {
     try {

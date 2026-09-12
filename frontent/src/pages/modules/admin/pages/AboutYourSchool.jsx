@@ -33,11 +33,11 @@ function AboutYourSchool() {
   // Tab state
   const [activeTab, setActiveTab] = useState("basic");
 
-  // Section custom hooks
-  const basic = useBasicInfo();
-  const media = useMediaPrincipal();
-  const admission = useAdmissionSettings();
-  const desc = useSchoolDescription();
+  // Section custom hooks with True Lazy Loading
+  const basic = useBasicInfo({ enabled: activeTab === "basic" });
+  const media = useMediaPrincipal({ enabled: activeTab === "media" });
+  const admission = useAdmissionSettings({ enabled: activeTab === "admission" });
+  const desc = useSchoolDescription({ enabled: activeTab === "description" });
 
   // Completion breakdown state
   const [completion, setCompletion] = useState({
@@ -63,7 +63,7 @@ function AboutYourSchool() {
 
   useEffect(() => {
     fetchCompletion();
-  }, [fetchCompletion, activeTab]);
+  }, [fetchCompletion]);
 
   const currentTabObj = TABS.find(t => t.id === activeTab) || TABS[0];
 

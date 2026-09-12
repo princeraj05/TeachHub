@@ -1,13 +1,15 @@
 // frontent/src/pages/modules/admin/pages/AboutSchool/hooks/useBasicInfo.js
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import API_URL from "../../../../../config/api";
+import API_URL from "../../../../../../config/api";
 
-export function useBasicInfo() {
+export function useBasicInfo(options = {}) {
+  const { enabled = true } = options;
   const API = API_URL;
   const token = localStorage.getItem("token");
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
@@ -61,6 +63,7 @@ export function useBasicInfo() {
           availableClasses: b.availableClasses || ""
         });
       }
+      setHasLoaded(true);
     } catch (err) {
       console.error("Error fetching basic info:", err);
       setError(err.response?.data?.message || "Failed to load basic information.");
@@ -70,8 +73,10 @@ export function useBasicInfo() {
   }, [API, token]);
 
   useEffect(() => {
-    fetchBasicInfo();
-  }, [fetchBasicInfo]);
+    if (enabled && !hasLoaded) {
+      fetchBasicInfo();
+    }
+  }, [enabled, hasLoaded, fetchBasicInfo]);
 
   const saveBasicInfo = async (dataToSave = formData) => {
     try {

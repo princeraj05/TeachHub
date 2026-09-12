@@ -5,6 +5,7 @@ const { createPerformanceLogger } = require("../../utils/performanceLogger");
 const { resolveSchoolForAdmin, normalizeName } = require("../../services/school/schoolResolverService");
 const { getSchoolStatistics } = require("../../services/school/schoolStatisticsService");
 const { calculateProfileCompletion, calculateCompletionBreakdown, normalizeSchoolData } = require("../../services/school/schoolProfileService");
+const { sanitizeSchoolDescription } = require("../../utils/htmlSanitizer");
 
 // GET /api/schools/my-school
 const getMySchool = async (req, res) => {
@@ -292,7 +293,7 @@ const updateMySchool = async (req, res) => {
     if (b.holidays !== undefined || availability.holidays !== undefined) school.holidays = b.holidays ?? availability.holidays;
 
     // Description
-    if (b.description !== undefined) school.description = b.description;
+    if (b.description !== undefined) school.description = sanitizeSchoolDescription(b.description);
 
     school.profileCompletion = calculateProfileCompletion(school);
 
