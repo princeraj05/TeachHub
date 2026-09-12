@@ -96,14 +96,29 @@ app.use("/uploads", express.static(uploadsDir));
 const mongoUri = process.env.MONGO_URI || "mongodb://localhost:27017/teachhub";
 mongoose.set("bufferCommands", false);
 
+mongoose.connection.on("connected", () => console.log("MongoDB event: connected"));
+mongoose.connection.on("disconnected", () => console.log("MongoDB event: disconnected"));
+mongoose.connection.on("reconnected", () => console.log("MongoDB event: reconnected"));
+mongoose.connection.on("error", (err) => console.error("MongoDB event error:", err.message));
+
 async function startServer() {
   try {
     console.log("MongoDB URI configured:", !!process.env.MONGO_URI);
     await mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: 10000,
-      socketTimeoutMS: 45000
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 10000,
+      maxPoolSize: 10
     });
     console.log("✅ MongoDB Connected");
+
+    try {
+      const School = require("./models/School");
+      const indexes = await School.collection.indexes();
+      console.log("✅ School collection indexes verified:", JSON.stringify(indexes.map(idx => ({ name: idx.name, key: idx.key }))));
+    } catch (idxErr) {
+      console.error("⚠️ Index verification notice:", idxErr.message);
+    }
 
     try {
       const User = require("./models/User");

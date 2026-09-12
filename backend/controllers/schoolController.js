@@ -185,37 +185,107 @@ const normalizeSchoolData = (s) => {
 // Helper to robustly find a school by adminId or email first (highest completion), then by name identity
 const findTargetSchool = async (adminUserId, targetSchoolName, adminEmail) => {
   const mongoose = require("mongoose");
+  const readyStates = ["disconnected", "connected", "connecting", "disconnecting"];
+  const getDbState = () => `${readyStates[mongoose.connection.readyState] || mongoose.connection.readyState} (host: ${mongoose.connection.host || "none"}, db: ${mongoose.connection.name || "none"})`;
+
+  console.log(`[findTargetSchool] START | DB state: ${getDbState()}`);
   let school = null;
 
-  // 1. Direct indexed match by adminId (fastest)
+  // 1. Direct indexed match by adminId
   if (adminUserId) {
     let objId = adminUserId;
     if (typeof adminUserId === "string" && mongoose.Types.ObjectId.isValid(adminUserId)) {
       objId = new mongoose.Types.ObjectId(adminUserId);
     }
-    school = await School.findOne({ adminId: objId }).sort({ profileCompletion: -1, updatedAt: -1 });
+    console.log(`[findTargetSchool] DB state before adminId lookup: ${getDbState()}`);
+    console.time("[findTargetSchool] adminId lookup");
+    try {
+      school = await School.findOne({ adminId: objId })
+        .sort({ profileCompletion: -1, updatedAt: -1 })
+        .maxTimeMS(5000)
+        .lean();
+    } catch (err) {
+      console.error(`[findTargetSchool] adminId lookup failed: ${err.message} (code: ${err.code || "N/A"})`);
+    }
+    console.timeEnd("[findTargetSchool] adminId lookup");
+    console.log(`[findTargetSchool] adminId result: ${school ? "FOUND (" + school._id + ")" : "NOT FOUND"}`);
     if (school) return school;
   }
 
   // 2. Direct indexed match by normalizedName or exact name
   const normalized = targetSchoolName ? normalizeName(targetSchoolName) : "";
   if (normalized) {
-    school = await School.findOne({ normalizedName: normalized }).sort({ profileCompletion: -1, updatedAt: -1 });
+    console.log(`[findTargetSchool] DB state before normalizedName lookup: ${getDbState()}`);
+    console.time("[findTargetSchool] normalizedName lookup");
+    try {
+      school = await School.findOne({ normalizedName: normalized })
+        .sort({ profileCompletion: -1, updatedAt: -1 })
+        .maxTimeMS(5000)
+        .lean();
+    } catch (err) {
+      console.error(`[findTargetSchool] normalizedName lookup failed: ${err.message} (code: ${err.code || "N/A"})`);
+    }
+    console.timeEnd("[findTargetSchool] normalizedName lookup");
+    console.log(`[findTargetSchool] normalizedName result: ${school ? "FOUND (" + school._id + ")" : "NOT FOUND"}`);
     if (school) return school;
 
-    school = await School.findOne({ name: targetSchoolName }).sort({ profileCompletion: -1, updatedAt: -1 });
+    console.log(`[findTargetSchool] DB state before exact name lookup: ${getDbState()}`);
+    console.time("[findTargetSchool] exact name lookup");
+    try {
+      school = await School.findOne({ name: targetSchoolName })
+        .sort({ profileCompletion: -1, updatedAt: -1 })
+        .maxTimeMS(5000)
+        .lean();
+    } catch (err) {
+      console.error(`[findTargetSchool] exact name lookup failed: ${err.message} (code: ${err.code || "N/A"})`);
+    }
+    console.timeEnd("[findTargetSchool] exact name lookup");
+    console.log(`[findTargetSchool] exact name result: ${school ? "FOUND (" + school._id + ")" : "NOT FOUND"}`);
     if (school) return school;
   }
 
   // 3. Direct match by admin Email
   if (adminEmail) {
-    school = await School.findOne({ principalEmail: adminEmail }).sort({ profileCompletion: -1, updatedAt: -1 });
+    console.log(`[findTargetSchool] DB state before principalEmail lookup: ${getDbState()}`);
+    console.time("[findTargetSchool] principalEmail lookup");
+    try {
+      school = await School.findOne({ principalEmail: adminEmail })
+        .sort({ profileCompletion: -1, updatedAt: -1 })
+        .maxTimeMS(5000)
+        .lean();
+    } catch (err) {
+      console.error(`[findTargetSchool] principalEmail lookup failed: ${err.message} (code: ${err.code || "N/A"})`);
+    }
+    console.timeEnd("[findTargetSchool] principalEmail lookup");
+    console.log(`[findTargetSchool] principalEmail result: ${school ? "FOUND (" + school._id + ")" : "NOT FOUND"}`);
     if (school) return school;
 
-    school = await School.findOne({ email: adminEmail }).sort({ profileCompletion: -1, updatedAt: -1 });
+    console.log(`[findTargetSchool] DB state before email lookup: ${getDbState()}`);
+    console.time("[findTargetSchool] email lookup");
+    try {
+      school = await School.findOne({ email: adminEmail })
+        .sort({ profileCompletion: -1, updatedAt: -1 })
+        .maxTimeMS(5000)
+        .lean();
+    } catch (err) {
+      console.error(`[findTargetSchool] email lookup failed: ${err.message} (code: ${err.code || "N/A"})`);
+    }
+    console.timeEnd("[findTargetSchool] email lookup");
+    console.log(`[findTargetSchool] email result: ${school ? "FOUND (" + school._id + ")" : "NOT FOUND"}`);
     if (school) return school;
 
-    school = await School.findOne({ "basicInfo.schoolEmail": adminEmail }).sort({ profileCompletion: -1, updatedAt: -1 });
+    console.log(`[findTargetSchool] DB state before basicInfo.schoolEmail lookup: ${getDbState()}`);
+    console.time("[findTargetSchool] basicInfo.schoolEmail lookup");
+    try {
+      school = await School.findOne({ "basicInfo.schoolEmail": adminEmail })
+        .sort({ profileCompletion: -1, updatedAt: -1 })
+        .maxTimeMS(5000)
+        .lean();
+    } catch (err) {
+      console.error(`[findTargetSchool] basicInfo.schoolEmail lookup failed: ${err.message} (code: ${err.code || "N/A"})`);
+    }
+    console.timeEnd("[findTargetSchool] basicInfo.schoolEmail lookup");
+    console.log(`[findTargetSchool] basicInfo.schoolEmail result: ${school ? "FOUND (" + school._id + ")" : "NOT FOUND"}`);
     if (school) return school;
   }
 
