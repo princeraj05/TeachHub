@@ -3,6 +3,8 @@ const path = require("path");
 
 require("dotenv").config();
 
+console.log(`[startup] PID: ${process.pid} | PPID: ${process.ppid} | server.js initialized`);
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -93,31 +95,46 @@ if (!fs.existsSync(uploadsDir)) {
 app.use("/uploads", express.static(uploadsDir));
 
 
+const isProduction = process.env.NODE_ENV === "production";
+if (isProduction && !process.env.MONGO_URI) {
+  console.error("❌ CRITICAL ERROR: MONGO_URI environment variable is required in production!");
+  process.exit(1);
+}
+
 const mongoUri = process.env.MONGO_URI || "mongodb://localhost:27017/teachhub";
 mongoose.set("bufferCommands", false);
 
-mongoose.connection.on("connected", () => console.log("MongoDB event: connected"));
-mongoose.connection.on("disconnected", () => console.log("MongoDB event: disconnected"));
-mongoose.connection.on("reconnected", () => console.log("MongoDB event: reconnected"));
-mongoose.connection.on("error", (err) => console.error("MongoDB event error:", err.message));
+mongoose.connection.on("connected", () => console.log(`[mongo:${process.pid}] event: connected`));
+mongoose.connection.on("disconnected", () => console.log(`[mongo:${process.pid}] event: disconnected`));
+mongoose.connection.on("reconnected", () => console.log(`[mongo:${process.pid}] event: reconnected`));
+mongoose.connection.on("error", (err) => console.error(`[mongo:${process.pid}] event error:`, err.message));
 
+let isStarted = false;
 async function startServer() {
+  if (isStarted) {
+    console.log(`[startup:${process.pid}] startServer already called, skipping duplicate invocation.`);
+    return;
+  }
+  isStarted = true;
+
   try {
-    console.log("MongoDB URI configured:", !!process.env.MONGO_URI);
+    console.log(`[startup:${process.pid}] MongoDB URI configured:`, !!process.env.MONGO_URI);
     await mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
       connectTimeoutMS: 10000,
-      maxPoolSize: 10
+      maxPoolSize: 10,
+      minPoolSize: 2,
+      waitQueueTimeoutMS: 5000
     });
-    console.log("✅ MongoDB Connected");
+    console.log(`[startup:${process.pid}] ✅ MongoDB Connected`);
 
     try {
       const School = require("./models/School");
       const indexes = await School.collection.indexes();
-      console.log("✅ School collection indexes verified:", JSON.stringify(indexes.map(idx => ({ name: idx.name, key: idx.key }))));
+      console.log(`[startup:${process.pid}] ✅ School collection indexes verified:`, JSON.stringify(indexes.map(idx => ({ name: idx.name, key: idx.key }))));
     } catch (idxErr) {
-      console.error("⚠️ Index verification notice:", idxErr.message);
+      console.error(`[startup:${process.pid}] ⚠️ Index verification notice:`, idxErr.message);
     }
 
     try {
@@ -133,15 +150,15 @@ async function startServer() {
         await AboutApp.create({});
       }
     } catch (migrationError) {
-      console.error("Startup Initialization Notice:", migrationError.message);
+      console.error(`[startup:${process.pid}] Startup Initialization Notice:`, migrationError.message);
     }
 
     const PORT = process.env.PORT || 5000;
     server.listen(PORT, "0.0.0.0", () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`[startup:${process.pid}] 🚀 Server running on port ${PORT}`);
     });
   } catch (err) {
-    console.error("❌ MongoDB Connection Error:", err.message);
+    console.error(`[startup:${process.pid}] ❌ MongoDB Connection Error:`, err.message);
     if (err.name === "MongoServerError" && err.code === 18) {
       console.error("👉 BAD AUTHENTICATION: Check the username and password in your MONGO_URI environment variable on Hostinger.");
       console.error("👉 Tip: If your password contains special characters like @, #, $, %, etc., remember to URL-encode them (e.g. @ becomes %40).");
