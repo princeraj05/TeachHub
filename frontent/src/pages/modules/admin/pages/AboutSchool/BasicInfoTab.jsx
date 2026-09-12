@@ -179,18 +179,13 @@ function BasicInfoTab({
 
               {/* Principal Name */}
               <div>
-                <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Principal Name</span>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={principalName}
-                    onChange={(e) => setPrincipalName(e.target.value)}
-                    placeholder="Enter Principal Name"
-                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
-                  />
-                ) : (
-                  <p className="text-xs font-bold text-slate-800 dark:text-white px-1 py-1">{principalName || "—"}</p>
-                )}
+                <div className="flex items-center justify-between mb-1">
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Principal Name</span>
+                  <span className="text-[9px] font-semibold text-purple-600 dark:text-purple-400">Media & Principal tab</span>
+                </div>
+                <p className="text-xs font-bold text-slate-800 dark:text-white bg-slate-100/60 dark:bg-[#0F172A]/40 border border-slate-200 dark:border-slate-800 px-3.5 py-2 rounded-xl">
+                  {principalName || "—"}
+                </p>
               </div>
 
               {/* Academic Year */}

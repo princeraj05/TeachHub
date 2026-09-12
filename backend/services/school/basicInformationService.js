@@ -4,7 +4,7 @@ const User = require("../../models/User");
 const { measureDatabaseOperation } = require("../../utils/databaseDiagnostics");
 const { resolveSchoolForAdmin } = require("./schoolResolverService");
 
-const BASIC_INFO_PROJECTION = "name code affiliation academicYear email phoneNumber address latitude longitude established status registrationNumber category motto photo availableClasses website adminId normalizedName profileCompletion";
+const BASIC_INFO_PROJECTION = "name code affiliation academicYear email phoneNumber address latitude longitude established status registrationNumber category motto photo availableClasses website adminId normalizedName profileCompletion principalName medium";
 
 const getBasicInformation = async ({ adminUserId, targetSchoolName, adminEmail, reqId }) => {
   let school = await resolveSchoolForAdmin({ adminUserId, targetSchoolName, adminEmail, reqId });
@@ -36,7 +36,7 @@ const updateBasicInformation = async ({ adminUserId, targetSchoolName, adminEmai
   const allowedFields = [
     "name", "code", "affiliation", "academicYear", "email", "phoneNumber",
     "address", "latitude", "longitude", "established", "status",
-    "registrationNumber", "category", "motto", "photo", "availableClasses", "website"
+    "registrationNumber", "category", "motto", "photo", "availableClasses", "website", "medium"
   ];
 
   const updateFields = {};
