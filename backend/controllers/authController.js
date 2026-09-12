@@ -598,6 +598,8 @@ exports.updateProfile = async (req, res) => {
       pushNotifications,
       dndMode,
       requestedRole,
+      requestedSchool,
+      schoolName,
       targetClass,
       previousClass,
       previousSchool,
