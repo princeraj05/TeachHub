@@ -108,7 +108,10 @@ export function useMediaPrincipal(options = {}) {
   };
 
   const updateField = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [field]: typeof value === "function" ? value(prev[field]) : value
+    }));
   };
 
   return {
