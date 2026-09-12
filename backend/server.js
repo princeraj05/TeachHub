@@ -104,7 +104,17 @@ if (isProduction && !process.env.MONGO_URI) {
 const mongoUri = process.env.MONGO_URI || "mongodb://localhost:27017/teachhub";
 mongoose.set("bufferCommands", false);
 
-mongoose.connection.on("connected", () => console.log(`[mongo:${process.pid}] event: connected`));
+mongoose.connection.on("connected", () => {
+  console.log(`[mongo:${process.pid}] event: connected`);
+  try {
+    const client = mongoose.connection.client;
+    if (client && typeof client.on === "function") {
+      client.on("connectionCheckOutFailed", (event) => {
+        console.warn(`[mongo:${process.pid}] pool connectionCheckOutFailed:`, event.reason);
+      });
+    }
+  } catch (e) {}
+});
 mongoose.connection.on("disconnected", () => console.log(`[mongo:${process.pid}] event: disconnected`));
 mongoose.connection.on("reconnected", () => console.log(`[mongo:${process.pid}] event: reconnected`));
 mongoose.connection.on("error", (err) => console.error(`[mongo:${process.pid}] event error:`, err.message));
@@ -801,9 +811,29 @@ app.use((err, req, res, next) => {
 
 // ================= PROCESS ERROR HANDLERS =================
 process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception:", err);
+  console.error(`[process:${process.pid}] Uncaught Exception:`, err);
 });
 
 process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  console.error(`[process:${process.pid}] Unhandled Rejection at:`, promise, "reason:", reason);
 });
+
+const gracefulShutdown = async (signal) => {
+  console.log(`[shutdown:${process.pid}] Received ${signal}. Starting graceful shutdown...`);
+  try {
+    server.close(() => {
+      console.log(`[shutdown:${process.pid}] HTTP server closed.`);
+    });
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.connection.close(false);
+      console.log(`[shutdown:${process.pid}] Mongoose connection closed.`);
+    }
+  } catch (err) {
+    console.error(`[shutdown:${process.pid}] Error during shutdown:`, err.message);
+  } finally {
+    process.exit(0);
+  }
+};
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
