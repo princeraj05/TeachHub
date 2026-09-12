@@ -254,8 +254,16 @@ app.get("/privacy-policy", (req, res) => {
 </html>`);
 });
 
-app.get("/api/health", (req, res) => {
-  res.status(200).json({ status: "OK", message: "TeachHub Backend Health Check Passed", timestamp: new Date() });
+app.get("/api/health", async (req, res) => {
+  const { pingDatabase } = require("./utils/databaseDiagnostics");
+  const dbHealth = await pingDatabase("health-check");
+  const statusCode = dbHealth.connected ? 200 : 503;
+  res.status(statusCode).json({
+    status: dbHealth.connected ? "OK" : "DEGRADED",
+    message: "TeachHub Backend Health Check",
+    database: dbHealth,
+    timestamp: new Date()
+  });
 });
 
 const uploadDir = path.join(__dirname, "uploads");
