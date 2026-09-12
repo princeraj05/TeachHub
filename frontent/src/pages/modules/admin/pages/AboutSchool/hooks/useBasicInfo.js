@@ -1,0 +1,120 @@
+// frontent/src/pages/modules/admin/pages/AboutSchool/hooks/useBasicInfo.js
+import { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import API_URL from "../../../../../config/api";
+
+export function useBasicInfo() {
+  const API = API_URL;
+  const token = localStorage.getItem("token");
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
+
+  const [formData, setFormData] = useState({
+    principalName: "",
+    email: "",
+    phoneNumber: "",
+    address: "",
+    established: "",
+    schoolType: "",
+    code: "",
+    affiliation: "",
+    academicYear: "",
+    medium: "",
+    website: "",
+    status: "Active",
+    registrationNumber: "",
+    category: "",
+    motto: "",
+    photo: "",
+    availableClasses: ""
+  });
+
+  const fetchBasicInfo = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const res = await axios.get(`${API}/api/schools/my-school/basic-info`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data && res.data.basicInfo) {
+        const b = res.data.basicInfo;
+        setFormData({
+          principalName: b.principalName || "",
+          email: b.email || b.schoolEmail || "",
+          phoneNumber: b.phoneNumber || "",
+          address: b.address || b.schoolAddress || "",
+          established: b.established || "",
+          schoolType: b.schoolType || "",
+          code: b.code || b.schoolCode || "",
+          affiliation: b.affiliation || "",
+          academicYear: b.academicYear || "",
+          medium: b.medium || "",
+          website: b.website || "",
+          status: b.status || b.schoolStatus || "Active",
+          registrationNumber: b.registrationNumber || "",
+          category: b.category || "",
+          motto: b.motto || b.schoolMotto || "",
+          photo: b.photo || b.logo || "",
+          availableClasses: b.availableClasses || ""
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching basic info:", err);
+      setError(err.response?.data?.message || "Failed to load basic information.");
+    } finally {
+      setLoading(false);
+    }
+  }, [API, token]);
+
+  useEffect(() => {
+    fetchBasicInfo();
+  }, [fetchBasicInfo]);
+
+  const saveBasicInfo = async (dataToSave = formData) => {
+    try {
+      setSaving(true);
+      setSuccess("");
+      setError("");
+      const res = await axios.put(`${API}/api/schools/my-school/basic-info`, dataToSave, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data && res.data.success) {
+        setSuccess(res.data.message || "Basic information saved successfully!");
+        if (res.data.basicInfo) {
+          const b = res.data.basicInfo;
+          setFormData(prev => ({
+            ...prev,
+            ...b
+          }));
+        }
+        setTimeout(() => setSuccess(""), 4000);
+        return true;
+      }
+    } catch (err) {
+      console.error("Error saving basic info:", err);
+      setError(err.response?.data?.message || "Failed to save basic information.");
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateField = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  return {
+    loading,
+    saving,
+    success,
+    error,
+    formData,
+    setFormData,
+    updateField,
+    saveBasicInfo,
+    refetch: fetchBasicInfo
+  };
+}

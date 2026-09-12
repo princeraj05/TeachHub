@@ -1,8 +1,10 @@
 // backend/services/school/schoolProfileService.js
 
-const calculateProfileCompletion = (s) => {
-  if (!s) return 0;
-  
+const calculateCompletionBreakdown = (s) => {
+  if (!s) {
+    return { basicInformation: 0, mediaPrincipal: 0, admissionSettings: 0, description: 0, total: 0 };
+  }
+
   const isBasicFilled = Boolean(
     (s.email && s.email.trim()) ||
     (s.phoneNumber && s.phoneNumber.trim()) ||
@@ -33,13 +35,23 @@ const calculateProfileCompletion = (s) => {
     s.description && s.description.replace(/<[^>]*>/g, "").trim().length > 20
   );
 
-  const filledCount =
-    (isBasicFilled ? 1 : 0) +
-    (isMediaFilled ? 1 : 0) +
-    (isAdmissionFilled ? 1 : 0) +
-    (isDescriptionFilled ? 1 : 0);
+  const basicInformation = isBasicFilled ? 25 : 0;
+  const mediaPrincipal = isMediaFilled ? 25 : 0;
+  const admissionSettings = isAdmissionFilled ? 25 : 0;
+  const description = isDescriptionFilled ? 25 : 0;
+  const total = basicInformation + mediaPrincipal + admissionSettings + description;
 
-  return filledCount * 25;
+  return {
+    basicInformation,
+    mediaPrincipal,
+    admissionSettings,
+    description,
+    total
+  };
+};
+
+const calculateProfileCompletion = (s) => {
+  return calculateCompletionBreakdown(s).total;
 };
 
 const normalizeSchoolData = (s) => {
@@ -103,6 +115,7 @@ const normalizeSchoolData = (s) => {
 };
 
 module.exports = {
+  calculateCompletionBreakdown,
   calculateProfileCompletion,
   normalizeSchoolData
 };

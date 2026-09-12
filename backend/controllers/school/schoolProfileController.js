@@ -4,7 +4,7 @@ const User = require("../../models/User");
 const { createPerformanceLogger } = require("../../utils/performanceLogger");
 const { resolveSchoolForAdmin, normalizeName } = require("../../services/school/schoolResolverService");
 const { getSchoolStatistics } = require("../../services/school/schoolStatisticsService");
-const { calculateProfileCompletion, normalizeSchoolData } = require("../../services/school/schoolProfileService");
+const { calculateProfileCompletion, calculateCompletionBreakdown, normalizeSchoolData } = require("../../services/school/schoolProfileService");
 
 // GET /api/schools/my-school
 const getMySchool = async (req, res) => {
@@ -118,6 +118,46 @@ const getMySchool = async (req, res) => {
     console.error(`[getMySchool:${logger.reqId}] Error:`, error);
     logger.summary();
     return res.status(500).json({ success: false, message: error.message || "Failed to load school profile" });
+  }
+};
+
+// GET /api/schools/my-school/completion
+const getCompletionBreakdown = async (req, res) => {
+  const logger = createPerformanceLogger("getCompletionBreakdown");
+  try {
+    const userId = req.user.id || req.user._id;
+    const adminUser = await User.findById(userId).select("role requestedRole schoolName requestedSchool email").lean();
+    const isAllowed = adminUser && (
+      adminUser.role === "admin" ||
+      adminUser.role === "superadmin" ||
+      adminUser.requestedRole === "admin" ||
+      adminUser.role === "unassigned"
+    );
+
+    if (!isAllowed) {
+      logger.summary();
+      return res.status(403).json({ success: false, message: "Unauthorized access" });
+    }
+
+    const targetSchoolName = adminUser.schoolName || adminUser.requestedSchool || "";
+    const school = await resolveSchoolForAdmin({
+      adminUserId: adminUser._id,
+      targetSchoolName,
+      adminEmail: adminUser.email,
+      reqId: logger.reqId
+    });
+
+    const breakdown = calculateCompletionBreakdown(school);
+
+    logger.summary();
+    return res.json({
+      success: true,
+      breakdown
+    });
+  } catch (error) {
+    console.error(`[getCompletionBreakdown:${logger.reqId}] Error:`, error);
+    logger.summary();
+    return res.status(500).json({ success: false, message: error.message || "Failed to calculate profile completion" });
   }
 };
 
@@ -284,5 +324,6 @@ const updateMySchool = async (req, res) => {
 
 module.exports = {
   getMySchool,
+  getCompletionBreakdown,
   updateMySchool
 };
