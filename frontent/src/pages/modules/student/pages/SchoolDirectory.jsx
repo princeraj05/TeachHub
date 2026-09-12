@@ -71,17 +71,20 @@ function SchoolDirectory() {
       return;
     }
 
+    const loginSource = localStorage.getItem("loginSource");
+    const roleToSubmit = loginSource === "teacher" ? "teacher" : (loginSource === "student" ? "student" : requestedRole);
+
     setSubmitting(true);
     axios.put(
       `${API}/api/auth/join-request`,
-      { schoolName: selectedSchool, role: requestedRole },
+      { schoolName: selectedSchool, role: roleToSubmit },
       { headers: { Authorization: `Bearer ${token}` } }
     )
       .then((res) => {
         setUser((prev) => ({
           ...prev,
           requestedSchool: selectedSchool,
-          requestedRole: requestedRole,
+          requestedRole: roleToSubmit,
           requestStatus: "pending"
         }));
         setShowJoinModal(false);
@@ -365,7 +368,14 @@ function SchoolDirectory() {
                       <button
                         onClick={() => {
                           setSelectedSchool(school.name);
-                          setAppointmentDate(""); setAppointmentTime(""); setAppointmentNotes(""); setShowJoinModal(true);
+                          setAppointmentDate(""); setAppointmentTime(""); setAppointmentNotes("");
+                          const source = localStorage.getItem("loginSource");
+                          if (source === "teacher") {
+                            setRequestedRole("teacher");
+                          } else if (source === "student") {
+                            setRequestedRole("student");
+                          }
+                          setShowJoinModal(true);
                         }}
                         className="flex-1 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white py-3 rounded-2xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 shadow-md shadow-purple-600/20 cursor-pointer active:scale-[0.98]"
                       >
@@ -401,69 +411,83 @@ function SchoolDirectory() {
       )}
 
       {/* Join Request Modal */}
-      {showJoinModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowJoinModal(false)} />
-          <div className="bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 w-full max-w-md p-6 relative z-10 shadow-2xl transition-all duration-200 text-left">
-            <div className="mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-[#7C3AED]/10 dark:bg-[#38BDF8]/10 flex items-center justify-center text-[#7C3AED] dark:text-[#38BDF8] mb-4">
-                <FaSchool className="text-2xl" />
-              </div>
-              <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Apply to Join</h3>
-              <p className="text-xs text-slate-400 font-semibold mt-0.5">Submit request to join {selectedSchool}</p>
-            </div>
+      {showJoinModal && (() => {
+        const loginSource = localStorage.getItem("loginSource");
+        const effectiveRole = loginSource === "teacher" ? "teacher" : (loginSource === "student" ? "student" : requestedRole);
+        const showStudent = loginSource !== "teacher";
+        const showTeacher = loginSource !== "student";
+        const gridColsClass = showStudent && showTeacher ? "grid-cols-2" : "grid-cols-1";
 
-            <form onSubmit={handleJoinSubmit} className="space-y-5">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-widest mb-2">Select Role</label>
-                <div className="grid grid-cols-2 gap-3">
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowJoinModal(false)} />
+            <div className="bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 w-full max-w-md p-6 relative z-10 shadow-2xl transition-all duration-200 text-left">
+              <div className="mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-[#7C3AED]/10 dark:bg-[#38BDF8]/10 flex items-center justify-center text-[#7C3AED] dark:text-[#38BDF8] mb-4">
+                  <FaSchool className="text-2xl" />
+                </div>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Apply to Join</h3>
+                <p className="text-xs text-slate-400 font-semibold mt-0.5">Submit request to join {selectedSchool}</p>
+              </div>
+
+              <form onSubmit={handleJoinSubmit} className="space-y-5">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-widest mb-2">Select Role</label>
+                  <div className={`grid ${gridColsClass} gap-3`}>
+                    {showStudent && (
+                      <button
+                        type="button"
+                        onClick={() => setRequestedRole("student")}
+                        disabled={loginSource === "student"}
+                        className={`p-4 rounded-2xl border text-center flex flex-col items-center gap-2 transition cursor-pointer ${
+                          effectiveRole === "student"
+                            ? "border-[#7C3AED] bg-[#7C3AED]/5 text-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8]/5 dark:text-[#38BDF8] font-bold"
+                            : "border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] text-slate-500 dark:text-slate-400"
+                        }`}
+                      >
+                        <span className="text-xl">🎓</span>
+                        <span className="text-xs font-black">Student</span>
+                      </button>
+                    )}
+                    {showTeacher && (
+                      <button
+                        type="button"
+                        onClick={() => setRequestedRole("teacher")}
+                        disabled={loginSource === "teacher"}
+                        className={`p-4 rounded-2xl border text-center flex flex-col items-center gap-2 transition cursor-pointer ${
+                          effectiveRole === "teacher"
+                            ? "border-[#7C3AED] bg-[#7C3AED]/5 text-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8]/5 dark:text-[#38BDF8] font-bold"
+                            : "border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] text-slate-500 dark:text-slate-400"
+                        }`}
+                      >
+                        <span className="text-xl">💼</span>
+                        <span className="text-xs font-black">Teacher</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
                   <button
-                    type="button"
-                    onClick={() => setRequestedRole("student")}
-                    className={`p-4 rounded-2xl border text-center flex flex-col items-center gap-2 transition cursor-pointer ${
-                      requestedRole === "student"
-                        ? "border-[#7C3AED] bg-[#7C3AED]/5 text-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8]/5 dark:text-[#38BDF8] font-bold"
-                        : "border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] text-slate-500 dark:text-slate-400"
-                    }`}
+                    type="submit"
+                    disabled={submitting}
+                    className="flex-1 bg-gradient-to-r from-[#7C3AED] to-[#312E81] hover:opacity-90 active:scale-[0.99] text-white py-3.5 rounded-2xl text-xs font-bold shadow-md shadow-[#7C3AED]/15 transition-all cursor-pointer disabled:opacity-50"
                   >
-                    <span className="text-xl">🎓</span>
-                    <span className="text-xs font-black">Student</span>
+                    {submitting ? "Sending..." : "Submit Request"}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setRequestedRole("teacher")}
-                    className={`p-4 rounded-2xl border text-center flex flex-col items-center gap-2 transition cursor-pointer ${
-                      requestedRole === "teacher"
-                        ? "border-[#7C3AED] bg-[#7C3AED]/5 text-[#7C3AED] dark:border-[#38BDF8] dark:bg-[#38BDF8]/5 dark:text-[#38BDF8] font-bold"
-                        : "border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] text-slate-500 dark:text-slate-400"
-                    }`}
+                    onClick={() => setShowJoinModal(false)}
+                    className="bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 px-5 py-3.5 rounded-2xl text-xs font-bold border border-slate-200/60 dark:border-white/10 transition cursor-pointer"
                   >
-                    <span className="text-xl">💼</span>
-                    <span className="text-xs font-black">Teacher</span>
+                    Cancel
                   </button>
                 </div>
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex-1 bg-gradient-to-r from-[#7C3AED] to-[#312E81] hover:opacity-90 active:scale-[0.99] text-white py-3.5 rounded-2xl text-xs font-bold shadow-md shadow-[#7C3AED]/15 transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {submitting ? "Sending..." : "Submit Request"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowJoinModal(false)}
-                  className="bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 px-5 py-3.5 rounded-2xl text-xs font-bold border border-slate-200/60 dark:border-white/10 transition cursor-pointer"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
