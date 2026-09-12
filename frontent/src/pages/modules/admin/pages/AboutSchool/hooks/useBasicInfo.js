@@ -15,7 +15,7 @@ export function useBasicInfo(options = {}) {
   const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
-    name: localStorage.getItem("schoolName") || "",
+    name: localStorage.getItem("schoolName") || localStorage.getItem("requestedSchool") || "",
     principalName: "",
     email: "",
     phoneNumber: "",
@@ -45,7 +45,7 @@ export function useBasicInfo(options = {}) {
       if (res.data && res.data.basicInfo) {
         const b = res.data.basicInfo;
         setFormData({
-          name: b.name || b.schoolName || localStorage.getItem("schoolName") || "",
+          name: b.name || b.schoolName || localStorage.getItem("schoolName") || localStorage.getItem("requestedSchool") || "",
           principalName: b.principalName || "",
           email: b.email || b.schoolEmail || "",
           phoneNumber: b.phoneNumber || "",

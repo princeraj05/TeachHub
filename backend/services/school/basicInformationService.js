@@ -8,7 +8,11 @@ const BASIC_INFO_PROJECTION = "name code affiliation academicYear email phoneNum
 
 const getBasicInformation = async ({ adminUserId, targetSchoolName, adminEmail, reqId }) => {
   let school = await resolveSchoolForAdmin({ adminUserId, targetSchoolName, adminEmail, reqId });
-  if (!school) return null;
+  if (!school) {
+    return {
+      name: targetSchoolName || ""
+    };
+  }
 
   const basicData = await measureDatabaseOperation("School.findBasicInfo", reqId, async () => {
     return await School.findById(school._id)
@@ -16,19 +20,28 @@ const getBasicInformation = async ({ adminUserId, targetSchoolName, adminEmail, 
       .lean();
   });
 
+  if (basicData && !basicData.name && targetSchoolName) {
+    basicData.name = targetSchoolName;
+  }
+
   return basicData;
 };
 
 const updateBasicInformation = async ({ adminUserId, targetSchoolName, adminEmail, reqId, updateData }) => {
   let school = await resolveSchoolForAdmin({ adminUserId, targetSchoolName, adminEmail, reqId });
 
+  const rawUpdateName = updateData.name || (updateData.basicInfo && updateData.basicInfo.name);
+  const resolvedName = (rawUpdateName && typeof rawUpdateName === "string" && rawUpdateName.trim()) || targetSchoolName || "";
+
   if (!school) {
+    if (!resolvedName) {
+      throw new Error("Validation failed: name: Path `name` is required.");
+    }
     const { normalizeName } = require("./schoolResolverService");
-    const name = updateData.name || targetSchoolName || "My School";
     school = await School.create({
       adminId: adminUserId,
-      name: name,
-      normalizedName: normalizeName(name),
+      name: resolvedName,
+      normalizedName: normalizeName(resolvedName),
       status: "Active"
     });
   }
@@ -42,7 +55,20 @@ const updateBasicInformation = async ({ adminUserId, targetSchoolName, adminEmai
   const updateFields = {};
   for (const field of allowedFields) {
     if (updateData[field] !== undefined) {
-      updateFields[field] = updateData[field];
+      if (field === "name") {
+        const val = updateData.name && typeof updateData.name === "string" && updateData.name.trim();
+        if (val) {
+          updateFields.name = val;
+          const { normalizeName } = require("./schoolResolverService");
+          updateFields.normalizedName = normalizeName(val);
+        } else if (resolvedName) {
+          updateFields.name = resolvedName;
+          const { normalizeName } = require("./schoolResolverService");
+          updateFields.normalizedName = normalizeName(resolvedName);
+        }
+      } else {
+        updateFields[field] = updateData[field];
+      }
     }
   }
 
@@ -59,6 +85,12 @@ const updateBasicInformation = async ({ adminUserId, targetSchoolName, adminEmai
     if (b.medium !== undefined && updateFields.medium === undefined) updateFields.medium = b.medium;
     if (b.website !== undefined && updateFields.website === undefined) updateFields.website = b.website;
     if (b.logo !== undefined && updateFields.photo === undefined) updateFields.photo = b.logo;
+  }
+
+  if (!updateFields.name && resolvedName) {
+    updateFields.name = resolvedName;
+    const { normalizeName } = require("./schoolResolverService");
+    updateFields.normalizedName = normalizeName(resolvedName);
   }
 
   const updatedSchool = await measureDatabaseOperation("School.updateBasicInfo", reqId, async () => {

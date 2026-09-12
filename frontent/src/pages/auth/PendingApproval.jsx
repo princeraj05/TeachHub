@@ -329,7 +329,11 @@ function PendingApproval() {
           setRequestedSchoolData(res.data);
           if (res.data?.adminUser) setSchoolAdmin(res.data.adminUser);
         })
-        .catch((err) => console.error("Error fetching requested school data:", err));
+        .catch((err) => {
+          if (err.response?.status !== 404) {
+            console.error("Error fetching requested school data:", err);
+          }
+        });
 
       axios
         .get(`${API}/api/support/users`, {

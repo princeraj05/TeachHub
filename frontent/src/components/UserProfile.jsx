@@ -163,6 +163,8 @@ function UserProfile() {
           if (res.data.name) localStorage.setItem("name", res.data.name);
           if (res.data.email) localStorage.setItem("email", res.data.email);
           if (res.data.phoneNumber) localStorage.setItem("phoneNumber", res.data.phoneNumber);
+          if (res.data.schoolName) localStorage.setItem("schoolName", res.data.schoolName);
+          if (res.data.requestedSchool) localStorage.setItem("requestedSchool", res.data.requestedSchool);
           if (userAvatar) localStorage.setItem("avatar", userAvatar);
         } catch (e) {}
       }
@@ -231,8 +233,13 @@ function UserProfile() {
       const updatedAvatar = updatedUser.avatar || formData.avatar || "";
       const updatedName = updatedUser.name || formData.name || "";
 
+      const updatedSchoolName = updatedUser.schoolName || formData.requestedSchool || formData.schoolName || "";
+      const updatedRequestedSchool = updatedUser.requestedSchool || formData.requestedSchool || "";
+
       try { localStorage.setItem("name", updatedName); } catch(e) {}
       try { localStorage.setItem("avatar", updatedAvatar); } catch(e) {}
+      if (updatedSchoolName) { try { localStorage.setItem("schoolName", updatedSchoolName); } catch(e) {} }
+      if (updatedRequestedSchool) { try { localStorage.setItem("requestedSchool", updatedRequestedSchool); } catch(e) {} }
       window.dispatchEvent(new Event("profileUpdate"));
     } catch (err) {
       alert(err.response?.data?.message || "Failed to update profile");
