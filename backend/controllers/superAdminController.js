@@ -218,7 +218,7 @@ exports.assignRole = async (req, res) => {
         });
       } else {
         school.adminId = user._id;
-        if (!school.name) school.name = assignedSchoolName;
+        school.name = assignedSchoolName;
         school.normalizedName = normalized;
         await school.save();
       }
