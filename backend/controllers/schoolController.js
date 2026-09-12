@@ -184,52 +184,42 @@ const normalizeSchoolData = (s) => {
 
 // Helper to robustly find a school by adminId or email first (highest completion), then by name identity
 const findTargetSchool = async (adminUserId, targetSchoolName, adminEmail) => {
+  const mongoose = require("mongoose");
   let school = null;
 
-  // 1. First priority: Match by adminId (fastest indexed query)
+  // 1. Direct indexed match by adminId (fastest)
   if (adminUserId) {
-    const adminSchools = await School.find({
-      $or: [
-        { adminId: adminUserId },
-        { adminId: adminUserId.toString() }
-      ]
-    }).sort({ profileCompletion: -1, updatedAt: -1 });
-    if (adminSchools && adminSchools.length > 0) {
-      return adminSchools[0];
+    let objId = adminUserId;
+    if (typeof adminUserId === "string" && mongoose.Types.ObjectId.isValid(adminUserId)) {
+      objId = new mongoose.Types.ObjectId(adminUserId);
     }
+    school = await School.findOne({ adminId: objId }).sort({ profileCompletion: -1, updatedAt: -1 });
+    if (school) return school;
   }
 
-  // 2. Second priority: Match by admin Email
-  if (adminEmail) {
-    const emailSchools = await School.find({
-      $or: [
-        { email: adminEmail },
-        { principalEmail: adminEmail },
-        { "basicInfo.schoolEmail": adminEmail }
-      ]
-    }).sort({ profileCompletion: -1, updatedAt: -1 });
-    if (emailSchools && emailSchools.length > 0) {
-      return emailSchools[0];
-    }
-  }
-
-  // 3. Third priority: Match by normalizedName or exact name
+  // 2. Direct indexed match by normalizedName or exact name
   const normalized = targetSchoolName ? normalizeName(targetSchoolName) : "";
   if (normalized) {
-    school = await School.findOne({
-      $or: [
-        { normalizedName: normalized },
-        { name: targetSchoolName }
-      ]
-    }).sort({ profileCompletion: -1, updatedAt: -1 });
+    school = await School.findOne({ normalizedName: normalized }).sort({ profileCompletion: -1, updatedAt: -1 });
+    if (school) return school;
 
-    if (!school) {
-      const escName = escapeRegex(targetSchoolName);
-      school = await School.findOne({ name: new RegExp("^" + escName + "$", "i") }).sort({ profileCompletion: -1, updatedAt: -1 });
-    }
+    school = await School.findOne({ name: targetSchoolName }).sort({ profileCompletion: -1, updatedAt: -1 });
+    if (school) return school;
   }
 
-  return school;
+  // 3. Direct match by admin Email
+  if (adminEmail) {
+    school = await School.findOne({ principalEmail: adminEmail }).sort({ profileCompletion: -1, updatedAt: -1 });
+    if (school) return school;
+
+    school = await School.findOne({ email: adminEmail }).sort({ profileCompletion: -1, updatedAt: -1 });
+    if (school) return school;
+
+    school = await School.findOne({ "basicInfo.schoolEmail": adminEmail }).sort({ profileCompletion: -1, updatedAt: -1 });
+    if (school) return school;
+  }
+
+  return null;
 };
 
 // GET /api/schools/my-school

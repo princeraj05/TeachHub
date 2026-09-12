@@ -57,7 +57,7 @@ const schoolSchema = new mongoose.Schema({
   },
   
   // Extended fields for About Your School profile
-  email: { type: String, default: null },
+  email: { type: String, default: null, index: true },
   phoneNumber: { type: String, default: null },
   address: { type: String, default: null },
   latitude: { type: String, default: null },
@@ -90,7 +90,7 @@ const schoolSchema = new mongoose.Schema({
   schoolPhotos: { type: [String], default: [] },
   principalPhoto: { type: String, default: null },
   principalDesignation: { type: String, default: null },
-  principalEmail: { type: String, default: null },
+  principalEmail: { type: String, default: null, index: true },
   principalPhone: { type: String, default: null },
   principalLeadershipSince: { type: String, default: null },
   principalIntroduction: { type: String, default: null },
