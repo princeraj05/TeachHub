@@ -43,6 +43,9 @@ export default function CreateTimetable() {
     lunchBreakDuration: 60
   });
 
+  // Selected Class state synchronized across tabs
+  const [selectedClassId, setSelectedClassId] = useState("");
+
   // Form states
   const [form, setForm] = useState({
     classId: "",
@@ -126,7 +129,12 @@ export default function CreateTimetable() {
       ]);
 
       if (classRes.status === "fulfilled" && Array.isArray(classRes.value.data)) {
-        setClasses(classRes.value.data);
+        const loadedClasses = classRes.value.data;
+        setClasses(loadedClasses);
+        if (loadedClasses.length > 0) {
+          setSelectedClassId(prev => prev || loadedClasses[0]._id);
+          setForm(prev => ({ ...prev, classId: prev.classId || loadedClasses[0]._id }));
+        }
       } else {
         setClasses([]);
       }
@@ -341,10 +349,19 @@ export default function CreateTimetable() {
               entries={entries}
               loading={loading}
               form={form}
-              setForm={setForm}
+              setForm={(newForm) => {
+                setForm(newForm);
+                if (typeof newForm === "function") {
+                  // If function update, handle in state effect if needed
+                } else if (newForm && newForm.classId) {
+                  setSelectedClassId(newForm.classId);
+                }
+              }}
               submit={submit}
               resetForm={resetForm}
               belongsToClass={belongsToClass}
+              selectedClassId={selectedClassId}
+              setSelectedClassId={setSelectedClassId}
             />
           )}
 
@@ -356,6 +373,8 @@ export default function CreateTimetable() {
               entries={entries}
               remove={remove}
               setActiveTab={setActiveTab}
+              selectedClassId={selectedClassId}
+              setSelectedClassId={setSelectedClassId}
             />
           )}
         </div>

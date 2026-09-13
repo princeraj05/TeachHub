@@ -161,11 +161,16 @@ function TimetableManagementTab({
   subjects,
   entries,
   remove,
-  setActiveTab
+  setActiveTab,
+  selectedClassId,
+  setSelectedClassId
 }) {
 
+  // Initial default class ID selection
+  const initialClassId = selectedClassId || classes[0]?._id || "";
+
   // Filters state
-  const [filterClass, setFilterClass] = useState(classes[0]?._id || "");
+  const [filterClass, setFilterClass] = useState(initialClassId);
   const [filterTeacher, setFilterTeacher] = useState("All");
   const [filterSubject, setFilterSubject] = useState("All");
   const [showBreaks, setShowBreaks] = useState(true);
@@ -178,6 +183,25 @@ function TimetableManagementTab({
   const [lunchBreakDuration, setLunchBreakDuration] = useState(60);
   const [showBreakModal, setShowBreakModal] = useState(false);
   const [savingBreaks, setSavingBreaks] = useState(false);
+
+  // Filter active state
+  const [activeFilters, setActiveFilters] = useState({
+    classId: initialClassId,
+    teacherId: "All",
+    subjectId: "All"
+  });
+
+  // Synchronize class selection across tabs and props
+  React.useEffect(() => {
+    const targetClassId = selectedClassId || (classes.length > 0 ? classes[0]._id : "");
+    if (targetClassId) {
+      setFilterClass(targetClassId);
+      setActiveFilters(prev => ({ ...prev, classId: targetClassId }));
+      if (!selectedClassId && setSelectedClassId && classes.length > 0) {
+        setSelectedClassId(targetClassId);
+      }
+    }
+  }, [selectedClassId, classes]);
 
   // Load school break settings on mount
   React.useEffect(() => {
@@ -217,13 +241,6 @@ function TimetableManagementTab({
     }
   };
 
-  // Filter local state
-  const [activeFilters, setActiveFilters] = useState({
-    classId: classes[0]?._id || "",
-    teacherId: "All",
-    subjectId: "All"
-  });
-
   const handleApplyFilters = () => {
     setActiveFilters({
       classId: filterClass,
@@ -233,30 +250,41 @@ function TimetableManagementTab({
   };
 
   const handleResetFilters = () => {
-    setFilterClass(classes[0]?._id || "");
+    const defaultClassId = classes[0]?._id || "";
+    setFilterClass(defaultClassId);
     setFilterTeacher("All");
     setFilterSubject("All");
     setActiveFilters({
-      classId: classes[0]?._id || "",
+      classId: defaultClassId,
       teacherId: "All",
       subjectId: "All"
     });
+    if (setSelectedClassId) setSelectedClassId(defaultClassId);
   };
 
   // Filtered timetable entries based on active filters
   const filteredEntries = useMemo(() => {
     return entries.filter(e => {
       // 1. Class filter
-      if (activeFilters.classId && e.class?._id !== activeFilters.classId && e.class !== activeFilters.classId) {
-        return false;
+      if (activeFilters.classId) {
+        const entryClassId = String(e.class?._id || e.class || "");
+        if (entryClassId !== String(activeFilters.classId)) {
+          return false;
+        }
       }
       // 2. Teacher filter
-      if (activeFilters.teacherId !== "All" && e.teacher?._id !== activeFilters.teacherId && e.teacher !== activeFilters.teacherId) {
-        return false;
+      if (activeFilters.teacherId && activeFilters.teacherId !== "All") {
+        const entryTeacherId = String(e.teacher?._id || e.teacher || "");
+        if (entryTeacherId !== String(activeFilters.teacherId)) {
+          return false;
+        }
       }
       // 3. Subject filter
-      if (activeFilters.subjectId !== "All" && e.subject?._id !== activeFilters.subjectId && e.subject !== activeFilters.subjectId) {
-        return false;
+      if (activeFilters.subjectId && activeFilters.subjectId !== "All") {
+        const entrySubjectId = String(e.subject?._id || e.subject || "");
+        if (entrySubjectId !== String(activeFilters.subjectId)) {
+          return false;
+        }
       }
       return true;
     });
@@ -357,7 +385,7 @@ function TimetableManagementTab({
     };
   }, [filteredEntries, showBreaks]);
 
-  const selectedClass = classes.find(c => c._id === activeFilters.classId);
+  const selectedClass = classes.find(c => String(c._id) === String(activeFilters.classId));
 
   return (
     <div className="space-y-6 animate-fadeIn text-left">
@@ -371,7 +399,12 @@ function TimetableManagementTab({
             <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Class</label>
             <select
               value={filterClass}
-              onChange={(e) => setFilterClass(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setFilterClass(val);
+                setActiveFilters(prev => ({ ...prev, classId: val }));
+                if (setSelectedClassId) setSelectedClassId(val);
+              }}
               className="w-full px-3 py-2 bg-[#0F172A] border border-slate-850 rounded-xl text-xs text-white focus:outline-none font-bold cursor-pointer"
             >
               {classes.map(c => (
@@ -385,7 +418,11 @@ function TimetableManagementTab({
             <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Teacher</label>
             <select
               value={filterTeacher}
-              onChange={(e) => setFilterTeacher(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setFilterTeacher(val);
+                setActiveFilters(prev => ({ ...prev, teacherId: val }));
+              }}
               className="w-full px-3 py-2 bg-[#0F172A] border border-slate-850 rounded-xl text-xs text-white focus:outline-none font-bold cursor-pointer"
             >
               <option value="All">All Teachers</option>
@@ -416,7 +453,11 @@ function TimetableManagementTab({
             <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Subject</label>
             <select
               value={filterSubject}
-              onChange={(e) => setFilterSubject(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setFilterSubject(val);
+                setActiveFilters(prev => ({ ...prev, subjectId: val }));
+              }}
               className="w-full px-3 py-2 bg-[#0F172A] border border-slate-850 rounded-xl text-xs text-white focus:outline-none font-bold cursor-pointer"
             >
               <option value="All">All Subjects</option>

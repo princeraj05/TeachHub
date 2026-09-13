@@ -153,7 +153,10 @@ function CreateTimetableTab({
     const match = clean.match(/^(\d+):(\d+)\s*(AM|PM)?$/);
     if (!match) {
       const parts = clean.split(":");
-      return (Number(parts[0]) || 0) * 60 + (Number(parts[1]) || 0);
+      let h = Number(parts[0]) || 0;
+      const m = Number(parts[1]) || 0;
+      if (h >= 1 && h <= 6) h += 12; // 01:00 -> 13:00 (1 PM) in school context
+      return h * 60 + m;
     }
     let hours = parseInt(match[1], 10);
     const minutes = parseInt(match[2], 10);
@@ -161,6 +164,8 @@ function CreateTimetableTab({
     if (ampm) {
       if (ampm === "PM" && hours < 12) hours += 12;
       if (ampm === "AM" && hours === 12) hours = 0;
+    } else {
+      if (hours >= 1 && hours <= 6) hours += 12; // 01:00 -> 13:00 (1 PM) in school context
     }
     return hours * 60 + minutes;
   };
@@ -171,9 +176,10 @@ function CreateTimetableTab({
     const clean = String(timeStr).trim().toUpperCase();
     if (clean.includes("AM") || clean.includes("PM")) return clean;
     const [hStr, mStr] = clean.split(":");
-    const h = Number(hStr);
+    let h = Number(hStr);
     const m = Number(mStr);
     if (isNaN(h) || isNaN(m)) return timeStr;
+    if (h >= 1 && h <= 6) h += 12; // school context 01:00 -> 13:00 (1 PM)
     const ampm = h >= 12 ? "PM" : "AM";
     const hours = h % 12 || 12;
     const minutes = String(m).padStart(2, "0");
@@ -198,8 +204,8 @@ function CreateTimetableTab({
     ? form.repeatDays.map(d => d.slice(0, 3)).join(", ") 
     : form.day;
 
-  // Grid Preview slots (from 08:00 AM to 12:00 PM)
-  const PREVIEW_HOURS = ["08:00", "09:00", "10:00", "11:00", "12:00"];
+  // Grid Preview slots (from 08:00 AM to 04:00 PM)
+  const PREVIEW_HOURS = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"];
   const PREVIEW_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
   // Helper to find entry matching a day and hour range
