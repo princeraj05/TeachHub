@@ -391,7 +391,7 @@ function TimetableManagementTab({
     <div className="space-y-6 animate-fadeIn text-left">
       
       {/* ── FILTER HEADER ── */}
-      <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl select-none">
+      <div className="bg-white dark:bg-[#0D1326] border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 shadow-xl select-none">
         <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end">
           
           {/* Class Filter */}
@@ -405,7 +405,7 @@ function TimetableManagementTab({
                 setActiveFilters(prev => ({ ...prev, classId: val }));
                 if (setSelectedClassId) setSelectedClassId(val);
               }}
-              className="w-full px-3 py-2 bg-[#0F172A] border border-slate-850 rounded-xl text-xs text-white focus:outline-none font-bold cursor-pointer"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-850 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none font-bold cursor-pointer"
             >
               {classes.map(c => (
                 <option key={c._id} value={c._id}>Class {c.name} - Section {c.section}</option>
@@ -423,7 +423,7 @@ function TimetableManagementTab({
                 setFilterTeacher(val);
                 setActiveFilters(prev => ({ ...prev, teacherId: val }));
               }}
-              className="w-full px-3 py-2 bg-[#0F172A] border border-slate-850 rounded-xl text-xs text-white focus:outline-none font-bold cursor-pointer"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-850 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none font-bold cursor-pointer"
             >
               <option value="All">All Teachers</option>
               {teachers.map(t => (
@@ -436,7 +436,7 @@ function TimetableManagementTab({
           <div>
             <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Day View</label>
             <select
-              className="w-full px-3 py-2 bg-[#0F172A] border border-slate-850 rounded-xl text-xs text-white focus:outline-none font-bold cursor-pointer"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-850 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none font-bold cursor-pointer"
             >
               <option>Weekly View</option>
               <option>Monday</option>
@@ -458,7 +458,7 @@ function TimetableManagementTab({
                 setFilterSubject(val);
                 setActiveFilters(prev => ({ ...prev, subjectId: val }));
               }}
-              className="w-full px-3 py-2 bg-[#0F172A] border border-slate-850 rounded-xl text-xs text-white focus:outline-none font-bold cursor-pointer"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-850 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none font-bold cursor-pointer"
             >
               <option value="All">All Subjects</option>
               {subjects.map(s => (
@@ -477,7 +477,7 @@ function TimetableManagementTab({
             </button>
             <button
               onClick={handleResetFilters}
-              className="px-3.5 py-2 rounded-xl border border-slate-800 bg-[#0F172A] text-slate-400 hover:text-white transition cursor-pointer"
+              className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-[#0F172A] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
               title="Reset"
             >
               <FaSyncAlt className="text-xs" />
@@ -491,24 +491,24 @@ function TimetableManagementTab({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Main Grid Board (9 Cols) */}
-        <div className="lg:col-span-9 bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
+        <div className="lg:col-span-9 bg-white dark:bg-[#0D1326] border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 shadow-xl">
           
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-850 pb-3 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-850 pb-3 mb-4">
             <div className="flex items-center gap-2">
               <FaCalendarAlt className="text-purple-500 text-sm" />
-              <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">
+              <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">
                 Weekly Timetable - {selectedClass ? `Class ${selectedClass.name} - Section ${selectedClass.section}` : "Timetable Grid"}
               </h3>
             </div>
             
-            <div className="flex items-center gap-4 text-xs font-bold text-slate-400 select-none">
+            <div className="flex items-center gap-4 text-xs font-bold text-slate-600 dark:text-slate-400 select-none">
               <label className="flex items-center gap-2 cursor-pointer" title="Toggle full day hours vs fit to scheduled periods">
                 <span>Full Day Grid</span>
                 <input
                   type="checkbox"
                   checked={showFullDay}
                   onChange={(e) => setShowFullDay(e.target.checked)}
-                  className="rounded border-slate-700 bg-slate-900 text-purple-600 focus:ring-purple-500/20"
+                  className="rounded border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-purple-600 focus:ring-purple-500/20"
                 />
               </label>
 
@@ -518,7 +518,7 @@ function TimetableManagementTab({
                   type="checkbox"
                   checked={showBreaks}
                   onChange={(e) => setShowBreaks(e.target.checked)}
-                  className="rounded border-slate-700 bg-slate-900 text-purple-600 focus:ring-purple-500/20"
+                  className="rounded border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-purple-600 focus:ring-purple-500/20"
                 />
               </label>
 
@@ -540,10 +540,10 @@ function TimetableManagementTab({
           </div>
 
           {/* Timetable Table Grid */}
-          <div className="overflow-x-auto rounded-xl border border-slate-850 bg-slate-900/40 p-2">
+          <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 p-2">
             <table className="w-full text-center border-collapse table-fixed">
               <thead>
-                <tr className="border-b border-slate-850">
+                <tr className="border-b border-slate-200 dark:border-slate-850">
                   <th className="text-[9px] font-black text-slate-500 uppercase tracking-widest py-2 w-28">Time / Day</th>
                   {DAYS_LIST.map(day => (
                     <th key={day} className="text-[9px] font-black text-slate-500 uppercase tracking-widest py-2 w-36">
@@ -560,14 +560,14 @@ function TimetableManagementTab({
 
                   // Render breaks spanned horizontally
                   if (slot.isBreak) {
-                    let breakColor = "bg-[#1E293B]/40 text-slate-400";
-                    if (slot.type === "lunch") breakColor = "bg-amber-600/5 border-amber-500/10 text-amber-500";
+                    let breakColor = "bg-slate-200/60 dark:bg-[#1E293B]/40 text-slate-700 dark:text-slate-400";
+                    if (slot.type === "lunch") breakColor = "bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-500";
                     return (
-                      <tr key={sIdx} className="border-b border-slate-850/60 last:border-b-0">
-                        <td className="text-[9px] font-bold text-slate-450 py-3 border-r border-slate-850">
+                      <tr key={sIdx} className="border-b border-slate-200 dark:border-slate-850/60 last:border-b-0">
+                        <td className="text-[9px] font-bold text-slate-600 dark:text-slate-450 py-3 border-r border-slate-200 dark:border-slate-850">
                           {slot.label}
                         </td>
-                        <td colSpan={6} className={`py-3 font-extrabold text-[10px] tracking-widest uppercase border-b border-slate-850/30 ${breakColor}`}>
+                        <td colSpan={6} className={`py-3 font-extrabold text-[10px] tracking-widest uppercase border-b border-slate-200 dark:border-slate-850/30 ${breakColor}`}>
                           🍴 &nbsp; {slot.name} &nbsp; 🍴
                         </td>
                       </tr>
@@ -575,8 +575,8 @@ function TimetableManagementTab({
                   }
 
                   return (
-                    <tr key={sIdx} className="border-b border-slate-850/60 last:border-b-0">
-                      <td className="text-[9.5px] font-black text-purple-300/90 py-4 px-2 border-r border-slate-850/80 leading-snug whitespace-nowrap">
+                    <tr key={sIdx} className="border-b border-slate-200 dark:border-slate-850/60 last:border-b-0">
+                      <td className="text-[9.5px] font-black text-purple-700 dark:text-purple-300/90 py-4 px-2 border-r border-slate-200 dark:border-slate-850/80 leading-snug whitespace-nowrap">
                         {slot.label}
                       </td>
                       {DAYS_LIST.map(day => {
@@ -584,7 +584,7 @@ function TimetableManagementTab({
                         const hasConflict = period && cellConflicts.has(period._id);
                         
                         return (
-                          <td key={day} className="py-2 px-1 border-r border-slate-850/30 last:border-r-0 relative group">
+                          <td key={day} className="py-2 px-1 border-r border-slate-200 dark:border-slate-850/30 last:border-r-0 relative group">
                             {period ? (
                               <div className={`border rounded-xl p-2.5 flex flex-col justify-between min-h-[96px] transition hover:scale-[1.01] hover:shadow-md ${
                                 hasConflict 
@@ -624,7 +624,7 @@ function TimetableManagementTab({
                                 </div>
                               </div>
                             ) : (
-                              <span className="text-slate-800 text-[9px] font-bold">—</span>
+                              <span className="text-slate-400 dark:text-slate-800 text-[9px] font-bold">—</span>
                             )}
                           </td>
                         );
@@ -642,14 +642,14 @@ function TimetableManagementTab({
         <div className="lg:col-span-3 space-y-6">
           
           {/* Legend Panel */}
-          <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
-            <div className="flex items-center gap-2 border-b border-slate-800/60 pb-3 mb-4">
-              <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">Legend</h3>
+          <div className="bg-white dark:bg-[#0D1326] border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 shadow-xl">
+            <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800/60 pb-3 mb-4">
+              <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">Legend</h3>
             </div>
 
             <div className="grid grid-cols-2 gap-3 select-none">
               {LEGEND_COLORS.map(item => (
-                <div key={item.name} className="flex items-center gap-2 text-[10px] font-bold text-slate-300">
+                <div key={item.name} className="flex items-center gap-2 text-[10px] font-bold text-slate-700 dark:text-slate-300">
                   <span className={`w-2 h-2 rounded-full ${item.color} shrink-0`} />
                   <span className="truncate">{item.name}</span>
                 </div>
@@ -658,45 +658,45 @@ function TimetableManagementTab({
           </div>
 
           {/* Timetable Summary Panel */}
-          <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
-            <div className="flex items-center gap-2 border-b border-slate-800/60 pb-3 mb-4">
-              <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">Timetable Summary</h3>
+          <div className="bg-white dark:bg-[#0D1326] border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 shadow-xl">
+            <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800/60 pb-3 mb-4">
+              <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">Timetable Summary</h3>
             </div>
 
             <div className="space-y-3.5">
               <div className="flex justify-between items-center text-xs py-0.5">
-                <span className="text-slate-450 font-bold">Total Periods / Week</span>
-                <span className="bg-[#0F172A] border border-slate-850 px-2.5 py-1 rounded-lg text-white font-extrabold">
+                <span className="text-slate-500 dark:text-slate-450 font-bold">Total Periods / Week</span>
+                <span className="bg-slate-100 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-850 px-2.5 py-1 rounded-lg text-slate-800 dark:text-white font-extrabold">
                   {statsSummary.totalPeriods}
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs py-0.5">
-                <span className="text-slate-450 font-bold">Teaching Periods</span>
-                <span className="bg-[#0F172A] border border-slate-850 px-2.5 py-1 rounded-lg text-white font-extrabold">
+                <span className="text-slate-500 dark:text-slate-450 font-bold">Teaching Periods</span>
+                <span className="bg-slate-100 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-850 px-2.5 py-1 rounded-lg text-slate-800 dark:text-white font-extrabold">
                   {statsSummary.teachingPeriods}
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs py-0.5">
-                <span className="text-slate-450 font-bold">Breaks</span>
-                <span className="bg-[#0F172A] border border-slate-850 px-2.5 py-1 rounded-lg text-white font-extrabold">
+                <span className="text-slate-500 dark:text-slate-450 font-bold">Breaks</span>
+                <span className="bg-slate-100 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-850 px-2.5 py-1 rounded-lg text-slate-800 dark:text-white font-extrabold">
                   {statsSummary.breaks}
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs py-0.5">
-                <span className="text-slate-450 font-bold">Lunch</span>
-                <span className="bg-[#0F172A] border border-slate-850 px-2.5 py-1 rounded-lg text-white font-extrabold">
+                <span className="text-slate-500 dark:text-slate-450 font-bold">Lunch</span>
+                <span className="bg-slate-100 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-850 px-2.5 py-1 rounded-lg text-slate-800 dark:text-white font-extrabold">
                   {statsSummary.lunch}
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs py-0.5">
-                <span className="text-slate-450 font-bold">Subjects</span>
-                <span className="bg-[#0F172A] border border-slate-850 px-2.5 py-1 rounded-lg text-white font-extrabold">
+                <span className="text-slate-500 dark:text-slate-450 font-bold">Subjects</span>
+                <span className="bg-slate-100 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-850 px-2.5 py-1 rounded-lg text-slate-800 dark:text-white font-extrabold">
                   {statsSummary.subjects}
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs py-0.5">
-                <span className="text-slate-450 font-bold">Teachers</span>
-                <span className="bg-[#0F172A] border border-slate-850 px-2.5 py-1 rounded-lg text-white font-extrabold">
+                <span className="text-slate-500 dark:text-slate-450 font-bold">Teachers</span>
+                <span className="bg-slate-100 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-850 px-2.5 py-1 rounded-lg text-slate-800 dark:text-white font-extrabold">
                   {statsSummary.teachers}
                 </span>
               </div>
@@ -708,7 +708,7 @@ function TimetableManagementTab({
       </div>
 
       {/* Footer hint */}
-      <div className="bg-[#0F172A] border border-slate-850 rounded-xl px-4 py-3 text-xs text-slate-350 mt-4 flex items-center gap-2.5 select-none shadow-md">
+      <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-850 rounded-xl px-4 py-3 text-xs text-slate-600 dark:text-slate-350 mt-4 flex items-center gap-2.5 select-none shadow-md">
         <FaInfoCircle className="text-purple-500 text-base" />
         <span>Note: Click on any period to edit or delete. Break duration and timings can be configured using Break Settings.</span>
       </div>
@@ -717,18 +717,18 @@ function TimetableManagementTab({
       {showBreakModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowBreakModal(false)} />
-          <div className="bg-[#0D1326] rounded-3xl border border-slate-800 w-full max-w-md p-6 relative z-10 shadow-2xl text-left animate-fadeIn">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-5">
+          <div className="bg-white dark:bg-[#0D1326] rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-md p-6 relative z-10 shadow-2xl text-left animate-fadeIn">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-5">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-purple-600/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-purple-600/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center">
                   <FaClock className="text-base" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black text-white">Configure School Breaks</h3>
-                  <p className="text-[10px] text-slate-400 font-bold">Set break duration & start timings for timetable</p>
+                  <h3 className="text-sm font-black text-slate-800 dark:text-white">Configure School Breaks</h3>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">Set break duration & start timings for timetable</p>
                 </div>
               </div>
-              <button onClick={() => setShowBreakModal(false)} className="text-slate-400 hover:text-white font-black text-sm cursor-pointer p-1">
+              <button onClick={() => setShowBreakModal(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white font-black text-sm cursor-pointer p-1">
                 ✕
               </button>
             </div>
@@ -736,20 +736,20 @@ function TimetableManagementTab({
             <form onSubmit={handleSaveBreakSettings} className="space-y-4">
               
               {/* Lunch Break Settings */}
-              <div className="p-4 rounded-2xl bg-[#0F172A] border border-slate-800 space-y-3">
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-amber-400 uppercase tracking-wider">🍱 Lunch Break</span>
-                  <span className="text-[10px] text-slate-400 font-bold">Default: 60 Mins</span>
+                  <span className="text-xs font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">🍱 Lunch Break</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">Default: 60 Mins</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Start Time</label>
+                    <label className="block text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase mb-1">Start Time</label>
                     <div className="relative flex items-center">
                       <input
                         type="text"
                         value={lunchBreakStartTime}
                         onChange={(e) => setLunchBreakStartTime(e.target.value)}
-                        className="w-full pl-3 pr-9 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none font-bold"
+                        className="w-full pl-3 pr-9 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none font-bold"
                         placeholder="12:30 PM"
                       />
                       <input
@@ -779,7 +779,7 @@ function TimetableManagementTab({
                             }
                           }
                         }}
-                        className="absolute right-2 text-slate-400 hover:text-purple-400 text-xs p-1 cursor-pointer transition"
+                        className="absolute right-2 text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 text-xs p-1 cursor-pointer transition"
                         title="Click to select time"
                       >
                         <FaClock />
@@ -787,11 +787,11 @@ function TimetableManagementTab({
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Lunch Duration</label>
+                    <label className="block text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase mb-1">Lunch Duration</label>
                     <select
                       value={lunchBreakDuration}
                       onChange={(e) => setLunchBreakDuration(Number(e.target.value))}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none font-bold cursor-pointer"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none font-bold cursor-pointer"
                     >
                       <option value={30}>30 Minutes</option>
                       <option value={45}>45 Minutes</option>
@@ -812,7 +812,7 @@ function TimetableManagementTab({
                 <button
                   type="button"
                   onClick={() => setShowBreakModal(false)}
-                  className="px-5 py-3 rounded-xl border border-slate-800 bg-slate-900 text-slate-400 text-xs font-bold hover:text-white cursor-pointer"
+                  className="px-5 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-xs font-bold hover:text-slate-900 dark:hover:text-white cursor-pointer"
                 >
                   Cancel
                 </button>

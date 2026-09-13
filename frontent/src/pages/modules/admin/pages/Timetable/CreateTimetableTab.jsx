@@ -227,10 +227,10 @@ function CreateTimetableTab({
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fadeIn text-left">
       
       {/* LEFT: TIMETABLE ENTRY FORM (7 Cols) */}
-      <div className="lg:col-span-7 bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl space-y-5">
-        <div className="flex items-center gap-2 border-b border-slate-800/60 pb-3">
+      <div className="lg:col-span-7 bg-white dark:bg-[#0D1326] border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 shadow-xl space-y-5">
+        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800/60 pb-3">
           <FaCalendarAlt className="text-purple-500 text-sm" />
-          <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">Timetable Entry Details</h3>
+          <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Timetable Entry Details</h3>
         </div>
 
         <form onSubmit={submit} className="space-y-4">
@@ -246,7 +246,7 @@ function CreateTimetableTab({
                 required
                 value={form.classId}
                 onChange={(e) => setForm({ ...form, classId: e.target.value, subjectId: "" })}
-                className="w-full px-3 py-2.5 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
+                className="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
               >
                 <option value="">Select Class</option>
                 {classes.map(c => (
@@ -264,7 +264,7 @@ function CreateTimetableTab({
                 disabled={!form.classId && !form.teacherId}
                 value={form.subjectId}
                 onChange={(e) => setForm({ ...form, subjectId: e.target.value })}
-                className="w-full px-3 py-2.5 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-bold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 <option value="">
                   {!form.classId && !form.teacherId
@@ -289,7 +289,7 @@ function CreateTimetableTab({
                 required
                 value={form.teacherId}
                 onChange={(e) => setForm({ ...form, teacherId: e.target.value })}
-                className="w-full px-3 py-2.5 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
+                className="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
               >
                 <option value="">
                   {form.subjectId && availableTeachers.length < teachers.length
@@ -321,7 +321,7 @@ function CreateTimetableTab({
                     repeatDays: [selectedDay]
                   });
                 }}
-                className="w-full px-3 py-2.5 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
+                className="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
               >
                 {DAYS_OF_WEEK.map(d => (
                   <option key={d} value={d}>{d}</option>
@@ -338,7 +338,7 @@ function CreateTimetableTab({
                 required
                 value={form.startTime}
                 onChange={(e) => setForm({ ...form, startTime: e.target.value })}
-                className="w-full px-3 py-2 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
               />
             </div>
 
@@ -349,7 +349,7 @@ function CreateTimetableTab({
                 type="text"
                 disabled
                 value={calculatedEndTime}
-                className="w-full px-3 py-2.5 bg-[#0F172A]/40 border border-slate-850 rounded-xl text-xs text-slate-400 font-bold cursor-not-allowed"
+                className="w-full px-3 py-2.5 bg-slate-100 dark:bg-[#0F172A]/40 border border-slate-200 dark:border-slate-850 rounded-xl text-xs text-slate-500 dark:text-slate-400 font-bold cursor-not-allowed"
               />
             </div>
 
@@ -365,7 +365,7 @@ function CreateTimetableTab({
                 name="durationMinutes"
                 value={form.durationMinutes}
                 onChange={(e) => setForm({ ...form, durationMinutes: Number(e.target.value) })}
-                className="w-full px-3 py-2.5 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
+                className="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
               >
                 <option value={30}>30 Minutes</option>
                 <option value={45}>45 Minutes</option>
@@ -384,7 +384,7 @@ function CreateTimetableTab({
                 placeholder="e.g. Room 101"
                 value={form.room}
                 onChange={(e) => setForm({ ...form, room: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-semibold"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-semibold"
               />
             </div>
 
@@ -395,7 +395,7 @@ function CreateTimetableTab({
                 name="classType"
                 value={form.classType}
                 onChange={(e) => setForm({ ...form, classType: e.target.value })}
-                className="w-full px-3 py-2.5 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
+                className="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-bold cursor-pointer"
               >
                 <option>Regular Class</option>
                 <option>Practical / Lab</option>
@@ -419,8 +419,8 @@ function CreateTimetableTab({
                     onClick={() => handleDayCheckbox(d)}
                     className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition select-none cursor-pointer ${
                       isChecked
-                        ? "border-purple-600 bg-purple-600/10 text-white"
-                        : "border-slate-800 bg-[#0F172A] text-slate-400 hover:text-white"
+                        ? "border-purple-600 bg-purple-600/10 text-purple-700 dark:text-white font-black"
+                        : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0F172A] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
                     {DAYS_ABBR[d]}
@@ -440,7 +440,7 @@ function CreateTimetableTab({
               placeholder="Add any notes for this class..."
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-[#0F172A] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-medium"
+              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-medium"
             />
             <div className="flex justify-between text-[8px] text-slate-500 mt-1 select-none">
               <span>Maximum 200 characters</span>
@@ -453,7 +453,7 @@ function CreateTimetableTab({
             <button
               type="button"
               onClick={resetForm}
-              className="px-6 py-2.5 rounded-xl border border-slate-800 bg-[#0F172A] hover:bg-slate-850 text-slate-300 text-xs font-bold transition cursor-pointer select-none"
+              className="px-6 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-[#0F172A] hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition cursor-pointer select-none"
             >
               Reset
             </button>
@@ -473,62 +473,62 @@ function CreateTimetableTab({
       <div className="lg:col-span-5 space-y-6 flex flex-col justify-between">
         
         {/* Entry Summary */}
-        <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
-          <div className="flex items-center gap-2 border-b border-slate-800/60 pb-3 mb-4">
+        <div className="bg-white dark:bg-[#0D1326] border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 shadow-xl">
+          <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800/60 pb-3 mb-4">
             <FaRegListAlt className="text-purple-500 text-sm" />
-            <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">Entry Summary</h3>
+            <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Entry Summary</h3>
           </div>
 
           <div className="space-y-3">
-            <div className="flex justify-between text-xs py-1 border-b border-slate-900">
-              <span className="text-slate-450 font-bold">Class</span>
-              <span className="text-white font-extrabold">{selectedClass ? `Class ${selectedClass.name} - Section ${selectedClass.section}` : "—"}</span>
+            <div className="flex justify-between text-xs py-1 border-b border-slate-100 dark:border-slate-900">
+              <span className="text-slate-500 dark:text-slate-400 font-bold">Class</span>
+              <span className="text-slate-800 dark:text-white font-extrabold">{selectedClass ? `Class ${selectedClass.name} - Section ${selectedClass.section}` : "—"}</span>
             </div>
-            <div className="flex justify-between text-xs py-1 border-b border-slate-900">
-              <span className="text-slate-450 font-bold">Subject</span>
-              <span className="text-white font-extrabold">{selectedSubject ? selectedSubject.name : "—"}</span>
+            <div className="flex justify-between text-xs py-1 border-b border-slate-100 dark:border-slate-900">
+              <span className="text-slate-500 dark:text-slate-400 font-bold">Subject</span>
+              <span className="text-slate-800 dark:text-white font-extrabold">{selectedSubject ? selectedSubject.name : "—"}</span>
             </div>
-            <div className="flex justify-between text-xs py-1 border-b border-slate-900">
-              <span className="text-slate-450 font-bold">Teacher</span>
-              <span className="text-white font-extrabold">{selectedTeacher ? selectedTeacher.name : "—"}</span>
+            <div className="flex justify-between text-xs py-1 border-b border-slate-100 dark:border-slate-900">
+              <span className="text-slate-500 dark:text-slate-400 font-bold">Teacher</span>
+              <span className="text-slate-800 dark:text-white font-extrabold">{selectedTeacher ? selectedTeacher.name : "—"}</span>
             </div>
-            <div className="flex justify-between text-xs py-1 border-b border-slate-900">
-              <span className="text-slate-450 font-bold">Day</span>
-              <span className="text-white font-extrabold">{repeatDaysText || "—"}</span>
+            <div className="flex justify-between text-xs py-1 border-b border-slate-100 dark:border-slate-900">
+              <span className="text-slate-500 dark:text-slate-400 font-bold">Day</span>
+              <span className="text-slate-800 dark:text-white font-extrabold">{repeatDaysText || "—"}</span>
             </div>
-            <div className="flex justify-between text-xs py-1 border-b border-slate-900">
-              <span className="text-slate-450 font-bold">Time</span>
-              <span className="text-white font-extrabold">
+            <div className="flex justify-between text-xs py-1 border-b border-slate-100 dark:border-slate-900">
+              <span className="text-slate-500 dark:text-slate-400 font-bold">Time</span>
+              <span className="text-slate-800 dark:text-white font-extrabold">
                 {form.startTime ? `${formatTime12h(form.startTime)} - ${calculatedEndTime}` : "—"}
               </span>
             </div>
-            <div className="flex justify-between text-xs py-1 border-b border-slate-900">
-              <span className="text-slate-450 font-bold">Duration</span>
-              <span className="text-white font-extrabold">{form.durationMinutes} Minutes</span>
+            <div className="flex justify-between text-xs py-1 border-b border-slate-100 dark:border-slate-900">
+              <span className="text-slate-500 dark:text-slate-400 font-bold">Duration</span>
+              <span className="text-slate-800 dark:text-white font-extrabold">{form.durationMinutes} Minutes</span>
             </div>
-            <div className="flex justify-between text-xs py-1 border-b border-slate-900">
-              <span className="text-slate-450 font-bold">Room</span>
-              <span className="text-white font-extrabold">{form.room || "—"}</span>
+            <div className="flex justify-between text-xs py-1 border-b border-slate-100 dark:border-slate-900">
+              <span className="text-slate-500 dark:text-slate-400 font-bold">Room</span>
+              <span className="text-slate-800 dark:text-white font-extrabold">{form.room || "—"}</span>
             </div>
             <div className="flex justify-between text-xs py-1">
-              <span className="text-slate-450 font-bold">Type</span>
-              <span className="text-white font-extrabold">{form.classType}</span>
+              <span className="text-slate-500 dark:text-slate-400 font-bold">Type</span>
+              <span className="text-slate-800 dark:text-white font-extrabold">{form.classType}</span>
             </div>
           </div>
         </div>
 
         {/* Weekly Preview */}
-        <div className="bg-[#0D1326] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
-          <div className="flex items-center gap-2 border-b border-slate-800/60 pb-3 mb-4">
+        <div className="bg-white dark:bg-[#0D1326] border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 shadow-xl">
+          <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800/60 pb-3 mb-4">
             <FaCalendarAlt className="text-purple-500 text-sm" />
-            <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">Weekly Preview</h3>
+            <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Weekly Preview</h3>
           </div>
 
           {/* Grid Preview Table */}
-          <div className="overflow-x-auto rounded-xl border border-slate-850 bg-slate-900/40 p-2">
+          <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 p-2">
             <table className="w-full text-center border-collapse">
               <thead>
-                <tr className="border-b border-slate-850">
+                <tr className="border-b border-slate-200 dark:border-slate-850">
                   <th className="text-[8px] font-black text-slate-500 uppercase tracking-widest py-1">Time</th>
                   {PREVIEW_DAYS.map(d => (
                     <th key={d} className="text-[8px] font-black text-slate-500 uppercase tracking-widest py-1 px-1">
@@ -539,8 +539,8 @@ function CreateTimetableTab({
               </thead>
               <tbody>
                 {PREVIEW_HOURS.map(hourStr => (
-                  <tr key={hourStr} className="border-b border-slate-850/60 last:border-b-0">
-                    <td className="text-[8px] font-bold text-slate-400 py-2.5">
+                  <tr key={hourStr} className="border-b border-slate-200 dark:border-slate-850/60 last:border-b-0">
+                    <td className="text-[8px] font-bold text-slate-600 dark:text-slate-400 py-2.5">
                       {hourStr}
                     </td>
                     {PREVIEW_DAYS.map(day => {
@@ -549,15 +549,15 @@ function CreateTimetableTab({
                         <td key={day} className="py-2.5 px-0.5 min-w-[40px]">
                           {period ? (
                             <div className="bg-[#6366F1]/10 border border-[#6366F1]/30 rounded p-1 text-center flex flex-col items-center">
-                              <span className="text-[7px] font-black text-[#818CF8] truncate max-w-[35px] leading-tight">
+                              <span className="text-[7px] font-black text-[#6366F1] dark:text-[#818CF8] truncate max-w-[35px] leading-tight">
                                 {period.subject?.name?.slice(0, 5) || "Maths"}
                               </span>
-                              <span className="text-[5px] font-bold text-slate-400 mt-0.5 truncate max-w-[35px]">
+                              <span className="text-[5px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 truncate max-w-[35px]">
                                 {period.room || "101"}
                               </span>
                             </div>
                           ) : (
-                            <span className="text-slate-700 text-[8px] font-bold">—</span>
+                            <span className="text-slate-400 dark:text-slate-700 text-[8px] font-bold">—</span>
                           )}
                         </td>
                       );
@@ -569,7 +569,7 @@ function CreateTimetableTab({
           </div>
 
           {/* Preview Legend */}
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-4 text-[7px] font-black uppercase tracking-wider text-slate-450 select-none">
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-4 text-[7px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 select-none">
             <div className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-[#6366F1]" />
               <span>Confirmed</span>
@@ -579,7 +579,7 @@ function CreateTimetableTab({
               <span>Pending</span>
             </div>
             <div className="flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-600" />
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-600" />
               <span>Break</span>
             </div>
             <div className="flex items-center gap-1">
@@ -592,11 +592,11 @@ function CreateTimetableTab({
       </div>
 
       {/* Footer information warning banner */}
-      <div className="lg:col-span-12 bg-[#0D1326] border border-slate-800/80 rounded-2xl p-4 flex items-center gap-3 text-blue-400 shadow-xl select-none mt-2">
+      <div className="lg:col-span-12 bg-white dark:bg-[#0D1326] border border-slate-200 dark:border-slate-800/80 rounded-2xl p-4 flex items-center gap-3 text-purple-600 dark:text-blue-400 shadow-xl select-none mt-2">
         <FaInfoCircle className="text-lg shrink-0" />
-        <div className="text-xs text-slate-350 space-y-0.5">
+        <div className="text-xs text-slate-700 dark:text-slate-350 space-y-0.5">
           <p className="font-bold">Important Notes</p>
-          <ul className="list-disc list-inside text-[10px] text-slate-400 font-medium space-y-0.5 mt-1">
+          <ul className="list-disc list-inside text-[10px] text-slate-600 dark:text-slate-400 font-medium space-y-0.5 mt-1">
             <li>Timetable entries will be visible to students and parents.</li>
             <li>You can edit or delete entries from the Timetable page.</li>
             <li>Ensure there are no time conflicts before creating.</li>
