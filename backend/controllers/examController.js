@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Class = require("../models/Class");
 const Subject = require("../models/Subject");
 const TeacherNotification = require("../models/TeacherNotification");
+const { notifyStudentsInClass, notifySchoolRole } = require("../utils/notificationHelper");
 
 
 // ================= CREATE EXAM =================
@@ -56,6 +57,31 @@ try {
         category: "Exam Updates"
       });
     }
+  }
+
+  // Dispatch AppNotification to Students for this class/school
+  if (classId) {
+    const targetClass = await Class.findById(classId).lean();
+    if (targetClass) {
+      notifyStudentsInClass({
+        schoolName: req.user.schoolName,
+        className: targetClass.name,
+        section: targetClass.section,
+        title: "New Exam Scheduled",
+        message: `An exam "${title || "Exam"}" has been scheduled on ${date} at ${time || "09:00 AM"}.`,
+        category: "Exams",
+        link: "/student/exams"
+      }).catch(err => console.error("Error notifying students of new exam:", err.message));
+    }
+  } else {
+    notifySchoolRole({
+      schoolName: req.user.schoolName,
+      role: "student",
+      title: "New Exam Scheduled",
+      message: `An exam "${title || "Exam"}" has been scheduled on ${date}.`,
+      category: "Exams",
+      link: "/student/exams"
+    }).catch(err => console.error("Error notifying all students of new exam:", err.message));
   }
 } catch (notifErr) {
   console.error("TeacherNotification error during exam creation:", notifErr);

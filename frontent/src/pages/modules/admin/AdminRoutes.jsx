@@ -27,6 +27,7 @@ const TeacherLeaves = lazy(() => import("./pages/TeacherLeaves"));
 const TeacherManagement = lazy(() => import("./pages/TeacherManagement"));
 const PaymentCenter = lazy(() => import("../../../components/PaymentCenter"));
 const AboutAppPage = lazy(() => import("../student/pages/AboutAppPage"));
+const AdminNotifications = lazy(() => import("./AdminNotifications"));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[400px] w-full">
@@ -86,6 +87,7 @@ function AdminRoutes() {
         <Route path="appointments" element={<Suspense fallback={<PageLoader />}><Appointments /></Suspense>} />
         <Route path="teacher-leaves" element={<Suspense fallback={<PageLoader />}><TeacherLeaves /></Suspense>} />
         <Route path="teacher-management" element={<Suspense fallback={<PageLoader />}><TeacherManagement /></Suspense>} />
+        <Route path="notifications" element={<Suspense fallback={<PageLoader />}><AdminNotifications /></Suspense>} />
         <Route path="payments" element={<Suspense fallback={<PageLoader />}><PaymentCenter role="admin" /></Suspense>} />
       </Route>
     </Routes>

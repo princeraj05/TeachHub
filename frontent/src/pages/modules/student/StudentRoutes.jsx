@@ -21,6 +21,7 @@ const TeacherOnLeave = lazy(() => import("./pages/TeacherOnLeave"));
 const StudentPayments = lazy(() => import("./pages/StudentPayments"));
 const TimetableView = lazy(() => import("../../../components/TimetableView"));
 const GroupChat = lazy(() => import("../teacher/pages/GroupChat"));
+const StudentNotifications = lazy(() => import("./StudentNotifications"));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[400px] w-full">
@@ -53,6 +54,7 @@ function StudentRoutes() {
         <Route path="teacher-on-leave" element={<Suspense fallback={<PageLoader />}><TeacherOnLeave /></Suspense>} />
         <Route path="showtimetable" element={<Suspense fallback={<PageLoader />}><TimetableView /></Suspense>} />
         <Route path="payments" element={<Suspense fallback={<PageLoader />}><StudentPayments /></Suspense>} />
+        <Route path="notifications" element={<Suspense fallback={<PageLoader />}><StudentNotifications /></Suspense>} />
       </Route>
     </Routes>
   );

@@ -6,6 +6,7 @@ const Otp = require("../models/Otp");
 const { sendOtpEmail } = require("../utils/emailService");
 const UserSession = require("../models/UserSession");
 const { createSession } = require("../utils/sessionHelper");
+const { notifySchoolAdmins } = require("../utils/notificationHelper");
 
 
 // ================= REGISTER =================
@@ -781,6 +782,16 @@ exports.submitJoinRequest = async (req, res) => {
     user.schoolName = canonicalSchoolName;
 
     await user.save();
+
+    // Send notification to School Admin
+    notifySchoolAdmins({
+      schoolName: canonicalSchoolName,
+      title: "New Join Request",
+      message: `${user.name} has requested to join as ${targetRole}.`,
+      category: "Join Request",
+      link: "/admin/requests",
+      metadata: { userId: user._id, role: targetRole }
+    }).catch(err => console.error("Error notifying admins of join request:", err.message));
 
     res.json({
       message: "Join request submitted successfully",

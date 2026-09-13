@@ -4,6 +4,7 @@ import { useTheme } from "../../../context/ThemeContext";
 import { usePlatform } from "../../../context/PlatformContext";
 import axios from "axios";
 import { performLogout } from "../../../utils/logout";
+import NotificationBell from "../../../components/NotificationBell";
 import {
   FaTachometerAlt,
   FaUsers,
@@ -660,6 +661,9 @@ function AdminLayout() {
 
           {/* User profile avatar section */}
           <div className="relative flex items-center gap-2.5 sm:gap-3 shrink-0">
+            {/* Notification Bell */}
+            <NotificationBell fullViewPath="/admin/notifications" />
+
             {/* Quick theme switch in header */}
             <button
               type="button"

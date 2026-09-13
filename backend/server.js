@@ -36,6 +36,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const paymentController = require("./controllers/paymentController");
 const syllabusRoutes = require("./routes/syllabusRoutes");
 const noteRoutes = require("./routes/noteRoutes");
+const appNotificationRoutes = require("./routes/appNotificationRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -205,6 +206,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/schools", schoolRoutes);
 app.use("/api/about-app", aboutAppRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/app-notifications", appNotificationRoutes);
 app.use("/api/syllabus", syllabusRoutes);
 app.use("/api/notes", noteRoutes);
 app.use("/api", featureRoutes);

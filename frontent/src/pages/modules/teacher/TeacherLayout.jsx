@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useTheme } from "../../../context/ThemeContext";
 import { performLogout } from "../../../utils/logout";
+import NotificationBell from "../../../components/NotificationBell";
 import {
   FaTachometerAlt,
   FaUserGraduate,
@@ -382,6 +383,9 @@ function TeacherLayout() {
 
           {/* Profile Dropdown */}
           <div className="relative flex items-center gap-2.5 sm:gap-3 shrink-0">
+            {/* Notification Bell */}
+            <NotificationBell fullViewPath="/teacher/notifications" />
+
             {/* Quick theme switch in header */}
             <button
               type="button"

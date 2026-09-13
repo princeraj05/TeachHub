@@ -3,6 +3,7 @@ const User = require("../models/User");
 const fs = require("fs");
 const path = require("path");
 const cloudinary = require("../config/cloudinary");
+const { notifySchoolRole } = require("../utils/notificationHelper");
 
 // Helper to get user's authoritative school name
 const getAuthoritativeSchool = async (userId) => {
@@ -72,6 +73,25 @@ exports.createEvent = async (req, res) => {
       status,
       createdBy: req.user.id
     });
+
+    // Notify Teachers and Students of the new school event
+    notifySchoolRole({
+      schoolName: authUser.schoolName,
+      role: "teacher",
+      title: "New School Event",
+      message: `Event "${title}" has been announced for ${eventDate}.`,
+      category: "Events",
+      link: "/teacher/events"
+    }).catch(err => console.error("Error notifying teachers of event:", err.message));
+
+    notifySchoolRole({
+      schoolName: authUser.schoolName,
+      role: "student",
+      title: "New School Event",
+      message: `Event "${title}" has been announced for ${eventDate}.`,
+      category: "Events",
+      link: "/student/events"
+    }).catch(err => console.error("Error notifying students of event:", err.message));
 
     res.status(201).json(event);
   } catch (err) {

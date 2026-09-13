@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useTheme } from "../../../context/ThemeContext";
 import { performLogout } from "../../../utils/logout";
+import NotificationBell from "../../../components/NotificationBell";
+import { FaBell } from "react-icons/fa";
 import {
   FaTachometerAlt,
   FaBook,
@@ -115,6 +117,7 @@ function StudentLayout() {
     { to: "/student/teacher-on-leave", icon: <FaUserCircle className="text-orange-500" />, label: t("teacher_on_leave", "Teacher On Leave") },
     { to: "/student/schools", icon: <FaSchool className="text-purple-500" />, label: t("school_directory", "School Directory") },
     { to: "/student/support", icon: <FaComments className="text-[#38BDF8]" />, label: t("help_support", "Support Chat") },
+    { to: "/student/notifications", icon: <FaBell className="text-[#7C3AED]" />, label: t("notifications", "Notifications") },
     { to: "/student/about", icon: <FaInfoCircle className="text-slate-400" />, label: t("about_app", "About App") }
   ];
 
@@ -375,6 +378,9 @@ function StudentLayout() {
 
           {/* User profile avatar section */}
           <div className="relative flex items-center gap-2.5 sm:gap-3 shrink-0">
+            {/* Notification Bell */}
+            <NotificationBell fullViewPath="/student/notifications" />
+
             {/* Quick theme switch in header */}
             <button
               type="button"

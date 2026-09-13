@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Class = require("../models/Class");
 const Subject = require("../models/Subject");
 const Timetable = require("../models/Timetable");
+const { createAppNotification } = require("../utils/notificationHelper");
 
 
 // ================= MARK ATTENDANCE =================
@@ -78,6 +79,16 @@ exports.markAttendance = async (req, res) => {
     });
 
     await attendance.save();
+
+    createAppNotification({
+      recipient: student,
+      schoolName: req.user.schoolName,
+      role: "student",
+      title: "Attendance Updated",
+      message: `Your attendance status for today has been marked as ${status}.`,
+      category: "Attendance",
+      link: "/student/attendance"
+    }).catch(err => console.error("Error creating attendance notification:", err.message));
 
     res.json({
       message: "Attendance marked successfully"
@@ -415,6 +426,16 @@ exports.bulkSaveAttendance = async (req, res) => {
         });
         await newRecord.save();
       }
+
+      createAppNotification({
+        recipient: studentId,
+        schoolName: schoolName,
+        role: "student",
+        title: "Attendance Recorded",
+        message: `Attendance status for ${searchDate.toLocaleDateString()} has been marked as ${status}.`,
+        category: "Attendance",
+        link: "/student/attendance"
+      }).catch(err => console.error("Error creating bulk attendance notification:", err.message));
     }
 
     res.json({ message: "Attendance saved successfully" });
