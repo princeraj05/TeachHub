@@ -309,18 +309,15 @@ export default function TeacherManagement() {
   const photos = teacherData?.galleryPhotos || [];
 
   return (
-    <div
-      style={{ background: C.bg, color: C.text, fontFamily: "Inter, system-ui, sans-serif" }}
-      className="flex-1 overflow-y-auto px-6 py-6 text-[13px]"
-    >
+    <div className="flex-1 overflow-y-auto px-6 py-6 text-[13px] bg-slate-50 dark:bg-[#080B16] text-slate-800 dark:text-[#F3F5F9] font-sans transition-colors duration-200">
       {/* Search Header Row */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/60 pb-4">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800/60 pb-4">
         <div className="flex items-center gap-3">
-          <label className="text-xs font-black uppercase text-slate-400 tracking-wider">Select Teacher:</label>
+          <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">Select Teacher:</label>
           <select
             value={selectedTeacherId}
             onChange={(e) => setSelectedTeacherId(e.target.value)}
-            className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+            className="px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
           >
             {teachers.map((t) => (
               <option key={t._id} value={t._id}>
@@ -330,24 +327,23 @@ export default function TeacherManagement() {
           </select>
         </div>
 
-        <div className="text-[11px] font-semibold text-slate-500">
-          Teachers <span className="text-slate-700">›</span> Teacher Management <span className="text-slate-700">›</span>{" "}
-          <span style={{ color: C.purple }}>{teacherData?.name}</span> <span className="text-slate-700">›</span> Photo Gallery
+        <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+          Teachers <span className="text-slate-400 dark:text-slate-700">›</span> Teacher Management <span className="text-slate-400 dark:text-slate-700">›</span>{" "}
+          <span className="text-purple-600 dark:text-[#7C5CFC] font-bold">{teacherData?.name}</span> <span className="text-slate-400 dark:text-slate-700">›</span> Photo Gallery
         </div>
       </div>
 
       {/* Main Header */}
       <div className="flex flex-wrap items-end justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-[26px] font-extrabold leading-tight">Teacher Management & Profile</h1>
-          <p style={{ color: C.sub }} className="mt-0.5 text-[12.5px]">
+          <h1 className="text-[26px] font-extrabold leading-tight text-slate-900 dark:text-white">Teacher Management & Profile</h1>
+          <p className="mt-0.5 text-[12.5px] text-slate-500 dark:text-[#8993A8]">
             Manage teacher information, assigned subjects, and photo gallery for {teacherData?.name}.
           </p>
         </div>
         <button
           onClick={() => window.history.back()}
-          style={{ borderColor: C.border }}
-          className="flex items-center gap-2 border bg-slate-900 hover:bg-slate-850 px-4 py-2 rounded-xl text-xs font-bold text-white transition cursor-pointer"
+          className="flex items-center gap-2 border border-slate-200 dark:border-[#1C2333] bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-850 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-white transition cursor-pointer shadow-sm"
         >
           <FaArrowLeft size={12} /> Back to Dashboard
         </button>
@@ -356,10 +352,10 @@ export default function TeacherManagement() {
       <div className="flex flex-col gap-6 lg:flex-row">
         {/* Left Panel: Profile Summary Card */}
         <div className="w-full lg:w-[340px] shrink-0 space-y-4">
-          <div style={{ background: C.card, borderColor: C.border }} className="rounded-2xl border p-5 shadow-xl">
+          <div className="bg-white dark:bg-[#0F1526] border border-slate-200/80 dark:border-[#1C2333] rounded-2xl p-5 shadow-sm dark:shadow-xl">
             <div className="flex flex-col items-center text-center">
               {/* Circular Avatar */}
-              <div className="relative w-28 h-28 rounded-full overflow-hidden border border-slate-800 bg-slate-900 mb-4 flex items-center justify-center">
+              <div className="relative w-28 h-28 rounded-full overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 mb-4 flex items-center justify-center">
                 {teacherData?.avatar ? (
                   <img
                     src={resolveImageUrl(teacherData.avatar)}
@@ -370,17 +366,17 @@ export default function TeacherManagement() {
                     }}
                   />
                 ) : (
-                  <span className="text-3xl font-black text-white">{nameInitials(teacherData?.name)}</span>
+                  <span className="text-3xl font-black text-slate-700 dark:text-white">{nameInitials(teacherData?.name)}</span>
                 )}
               </div>
 
-              <h2 className="text-lg font-black flex items-center gap-1.5 justify-center leading-tight">
+              <h2 className="text-lg font-black flex items-center gap-1.5 justify-center leading-tight text-slate-900 dark:text-white">
                 {teacherData?.name}
-                <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-450 px-2 py-0.5 rounded-full text-[9px] font-extrabold">
+                <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-450 px-2 py-0.5 rounded-full text-[9px] font-extrabold">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
                 </span>
               </h2>
-              <p style={{ color: C.sub }} className="text-xs font-bold mt-1">
+              <p className="text-xs font-bold mt-1 text-slate-500 dark:text-[#8993A8]">
                 {subjects.length > 0 ? `${subjects.map(s => s.name).join(", ")} Teacher` : "Faculty Teacher"}
               </p>
 
@@ -388,19 +384,18 @@ export default function TeacherManagement() {
                 <FaStar />
                 <span>
                   {teacherData?.rating || "4.8"}{" "}
-                  <span style={{ color: C.faint }}>({teacherData?.reviewsCount || "32"} Reviews)</span>
+                  <span className="text-slate-400 dark:text-[#5B6478]">({teacherData?.reviewsCount || "32"} Reviews)</span>
                 </span>
               </div>
             </div>
 
             {/* Profile Fields */}
-            <div style={{ borderColor: C.borderSoft }} className="mt-5 border-t pt-4 space-y-3">
+            <div className="mt-5 border-t border-slate-100 dark:border-[#161D2E] pt-4 space-y-3">
               <div className="flex items-center justify-between pb-1">
-                <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Teacher Information</span>
+                <span className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider">Teacher Information</span>
                 <button
                   onClick={() => setShowEditModal(true)}
-                  style={{ color: C.purple, background: C.purpleDim }}
-                  className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold transition hover:bg-purple-600/20 cursor-pointer"
+                  className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold text-purple-600 dark:text-[#7C5CFC] bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/40 transition hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer"
                 >
                   <FaEdit size={10} /> Edit
                 </button>
@@ -418,16 +413,15 @@ export default function TeacherManagement() {
             </div>
 
             {/* Subjects badge list with Admin Assign trigger */}
-            <div style={{ borderColor: C.borderSoft }} className="mt-4 border-t pt-4">
+            <div className="mt-4 border-t border-slate-100 dark:border-[#161D2E] pt-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="block text-[10px] font-black uppercase text-slate-500 tracking-wider">Assigned Subjects</span>
+                <span className="block text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider">Assigned Subjects</span>
                 <button
                   onClick={() => {
                     loadSchoolSubjects();
                     setShowAssignSubjectModal(true);
                   }}
-                  style={{ color: C.purple, background: C.purpleDim }}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9.5px] font-bold hover:bg-purple-600/20 cursor-pointer transition"
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9.5px] font-bold text-purple-600 dark:text-[#7C5CFC] bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/40 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer transition"
                 >
                   <FaPlus size={8} /> Assign Subject
                 </button>
@@ -436,29 +430,28 @@ export default function TeacherManagement() {
                 {subjects.map((sub, idx) => (
                   <span
                     key={idx}
-                    style={{ background: C.purpleDim, color: C.purple }}
-                    className="px-2.5 py-1 rounded-lg text-[11px] font-bold border border-purple-500/20"
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50"
                   >
                     {sub.name}
                   </span>
                 ))}
-                {subjects.length === 0 && <span style={{ color: C.faint }} className="text-xs">No subjects assigned yet</span>}
+                {subjects.length === 0 && <span className="text-xs text-slate-400 dark:text-[#5B6478]">No subjects assigned yet</span>}
               </div>
             </div>
 
             {/* Assigned Classes badge list */}
-            <div style={{ borderColor: C.borderSoft }} className="mt-4 border-t pt-4">
-              <span className="block text-[10px] font-black uppercase text-slate-500 tracking-wider mb-2">Assigned Classes</span>
+            <div className="mt-4 border-t border-slate-100 dark:border-[#161D2E] pt-4">
+              <span className="block text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider mb-2">Assigned Classes</span>
               <div className="flex flex-wrap gap-1.5">
                 {classes.map((cls, idx) => (
                   <span
                     key={idx}
-                    className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-900 border border-slate-800 text-slate-300"
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300"
                   >
                     {cls.name} - {cls.section || "A"}
                   </span>
                 ))}
-                {classes.length === 0 && <span style={{ color: C.faint }} className="text-xs">No classes assigned</span>}
+                {classes.length === 0 && <span className="text-xs text-slate-400 dark:text-[#5B6478]">No classes assigned</span>}
               </div>
             </div>
           </div>
@@ -466,11 +459,11 @@ export default function TeacherManagement() {
 
         {/* Right Panel: Photo Gallery Grid */}
         <div className="flex-1 space-y-4">
-          <div style={{ background: C.card, borderColor: C.border }} className="rounded-2xl border p-5 shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-800/60 pb-3 mb-4">
+          <div className="bg-white dark:bg-[#0F1526] border border-slate-200/80 dark:border-[#1C2333] rounded-2xl p-5 shadow-sm dark:shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-3 mb-4">
               <div>
-                <h3 className="text-xs font-black uppercase text-slate-350 tracking-wider">Teacher Photos ({photos.length} / 5)</h3>
-                <p style={{ color: C.faint }} className="text-[10px] mt-0.5">Upload up to 5 photos. Reorder using arrow controls.</p>
+                <h3 className="text-xs font-black uppercase text-slate-600 dark:text-slate-350 tracking-wider">Teacher Photos ({photos.length} / 5)</h3>
+                <p className="text-[10px] mt-0.5 text-slate-400 dark:text-[#5B6478]">Upload up to 5 photos. Reorder using arrow controls.</p>
               </div>
 
               {photos.length < 5 && (
@@ -486,7 +479,7 @@ export default function TeacherManagement() {
                     type="button"
                     disabled={uploading}
                     onClick={() => document.getElementById("teacher-photo-gallery-input").click()}
-                    className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900 text-white text-xs font-extrabold px-4 py-2 rounded-xl transition cursor-pointer select-none"
+                    className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900 text-white text-xs font-extrabold px-4 py-2 rounded-xl transition cursor-pointer select-none shadow-sm"
                   >
                     <FaPlus /> {uploading ? "Uploading..." : "Upload Photo"}
                   </button>
@@ -497,8 +490,8 @@ export default function TeacherManagement() {
             {/* Photos Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {photos.map((photo, idx) => (
-                <div key={photo._id || idx} className="flex flex-col gap-2 bg-slate-900/40 border border-slate-800 rounded-2xl p-2.5 relative group">
-                  <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-800 bg-[#0F172A]">
+                <div key={photo._id || idx} className="flex flex-col gap-2 bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-2.5 relative group">
+                  <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-[#0F172A]">
                     <img
                       src={resolveImageUrl(photo.url)}
                       alt={`Gallery ${idx + 1}`}
@@ -518,7 +511,7 @@ export default function TeacherManagement() {
                       <button
                         type="button"
                         onClick={() => handleDeletePhoto(photo._id)}
-                        className="p-1.5 rounded-lg bg-rose-600/90 hover:bg-rose-500 text-white text-[10px] transition cursor-pointer"
+                        className="p-1.5 rounded-lg bg-rose-600/90 hover:bg-rose-500 text-white text-[10px] transition cursor-pointer shadow-sm"
                         title="Delete Photo"
                       >
                         <FaTrashAlt />
@@ -528,32 +521,32 @@ export default function TeacherManagement() {
 
                   {/* Meta details */}
                   <div className="px-1 py-1">
-                    <p className="text-[11px] font-bold text-slate-300 truncate" title={photo.filename}>
+                    <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 truncate" title={photo.filename}>
                       {photo.filename || `IMG_${idx + 1}.jpg`}
                     </p>
-                    <p style={{ color: C.faint }} className="text-[9px] mt-0.5">
+                    <p className="text-[9px] mt-0.5 text-slate-400 dark:text-[#5B6478]">
                       Uploaded on {new Date(photo.uploadedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                     </p>
                   </div>
 
                   {/* Reordering bar at footer */}
-                  <div style={{ borderColor: C.borderSoft }} className="mt-1 border-t pt-2 flex items-center justify-between">
+                  <div className="mt-1 border-t border-slate-100 dark:border-[#161D2E] pt-2 flex items-center justify-between">
                     <button
                       type="button"
                       disabled={idx === 0}
                       onClick={() => handleReorder(idx, -1)}
-                      className="p-1 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white text-[9px] transition cursor-pointer flex items-center gap-1 font-bold"
+                      className="p-1 rounded bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-30 text-slate-700 dark:text-white text-[9px] transition cursor-pointer flex items-center gap-1 font-bold"
                     >
                       ◀ Move Left
                     </button>
                     
-                    <FaExchangeAlt size={10} style={{ color: C.faint }} />
+                    <FaExchangeAlt size={10} className="text-slate-400 dark:text-[#5B6478]" />
 
                     <button
                       type="button"
                       disabled={idx === photos.length - 1}
                       onClick={() => handleReorder(idx, 1)}
-                      className="p-1 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white text-[9px] transition cursor-pointer flex items-center gap-1 font-bold"
+                      className="p-1 rounded bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-30 text-slate-700 dark:text-white text-[9px] transition cursor-pointer flex items-center gap-1 font-bold"
                     >
                       Move Right ▶
                     </button>
@@ -562,14 +555,14 @@ export default function TeacherManagement() {
               ))}
 
               {photos.length === 0 && (
-                <div className="col-span-full py-16 text-center border border-dashed border-slate-800 rounded-2xl text-slate-500 text-xs">
+                <div className="col-span-full py-16 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-slate-400 dark:text-slate-500 text-xs">
                   No photos uploaded for this teacher yet. Click "+ Upload Photo" to add.
                 </div>
               )}
             </div>
 
             {/* Note banner at bottom */}
-            <div className="bg-[#0F172A] border border-slate-850 rounded-xl px-4 py-3 text-[10px] text-purple-400 mt-6 flex items-center gap-2">
+            <div className="bg-purple-50 dark:bg-[#0F172A] border border-purple-100 dark:border-slate-850 rounded-xl px-4 py-3 text-[10px] text-purple-700 dark:text-purple-400 mt-6 flex items-center gap-2">
               <FaInfoCircle className="text-[12px] shrink-0" />
               <span>Note: First photo will be displayed as the profile photo in the teacher directory.</span>
             </div>
@@ -580,10 +573,10 @@ export default function TeacherManagement() {
       {/* 1. Edit Details Dialog Modal */}
       {showEditModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div style={{ background: C.card, borderColor: C.border }} className="w-full max-w-lg rounded-2xl border p-6 shadow-2xl animate-scaleIn text-white">
-            <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-4">
-              <h3 className="text-sm font-black uppercase text-slate-350 tracking-wider">Edit Teacher Information</h3>
-              <button onClick={() => setShowEditModal(false)} className="text-slate-450 hover:text-white transition">
+          <div className="w-full max-w-lg rounded-2xl border border-slate-200 dark:border-[#1C2333] bg-white dark:bg-[#0F1526] p-6 shadow-2xl animate-scaleIn text-slate-800 dark:text-white">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3 mb-4">
+              <h3 className="text-sm font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">Edit Teacher Information</h3>
+              <button onClick={() => setShowEditModal(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition">
                 <FaTimes size={16} />
               </button>
             </div>
@@ -596,7 +589,7 @@ export default function TeacherManagement() {
                     type="text"
                     value={editForm.employeeId}
                     onChange={(e) => setEditForm((prev) => ({ ...prev, employeeId: e.target.value }))}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 </div>
                 <div>
@@ -605,7 +598,7 @@ export default function TeacherManagement() {
                     type="text"
                     value={editForm.name}
                     onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                     required
                   />
                 </div>
@@ -615,7 +608,7 @@ export default function TeacherManagement() {
                     type="email"
                     value={editForm.email}
                     onChange={(e) => setEditForm((prev) => ({ ...prev, email: e.target.value }))}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                     required
                   />
                 </div>
@@ -625,7 +618,7 @@ export default function TeacherManagement() {
                     type="text"
                     value={editForm.phoneNumber}
                     onChange={(e) => setEditForm((prev) => ({ ...prev, phoneNumber: e.target.value }))}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 </div>
                 <div>
@@ -635,7 +628,7 @@ export default function TeacherManagement() {
                     value={editForm.dob}
                     onChange={(e) => setEditForm((prev) => ({ ...prev, dob: e.target.value }))}
                     placeholder="e.g. 12 May 1990"
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 </div>
                 <div>
@@ -643,7 +636,7 @@ export default function TeacherManagement() {
                   <select
                     value={editForm.gender}
                     onChange={(e) => setEditForm((prev) => ({ ...prev, gender: e.target.value }))}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   >
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -656,7 +649,7 @@ export default function TeacherManagement() {
                     type="text"
                     value={editForm.qualification}
                     onChange={(e) => setEditForm((prev) => ({ ...prev, qualification: e.target.value }))}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 </div>
                 <div>
@@ -665,7 +658,7 @@ export default function TeacherManagement() {
                     type="text"
                     value={editForm.experience}
                     onChange={(e) => setEditForm((prev) => ({ ...prev, experience: e.target.value }))}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 </div>
                 <div>
@@ -674,22 +667,22 @@ export default function TeacherManagement() {
                     type="text"
                     value={editForm.joiningDate}
                     onChange={(e) => setEditForm((prev) => ({ ...prev, joiningDate: e.target.value }))}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-800/80 mt-4">
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 mt-4">
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-xl text-xs font-bold transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-xl text-xs font-bold transition cursor-pointer"
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-sm"
                 >
                   Save Changes
                 </button>
@@ -702,10 +695,10 @@ export default function TeacherManagement() {
       {/* 2. Assign Subject Modal for Admin */}
       {showAssignSubjectModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div style={{ background: C.card, borderColor: C.border }} className="w-full max-w-md rounded-2xl border p-6 shadow-2xl animate-scaleIn text-white">
-            <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-4">
-              <h3 className="text-sm font-black uppercase text-slate-350 tracking-wider">Assign Subject to {teacherData?.name}</h3>
-              <button onClick={() => setShowAssignSubjectModal(false)} className="text-slate-450 hover:text-white transition">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 dark:border-[#1C2333] bg-white dark:bg-[#0F1526] p-6 shadow-2xl animate-scaleIn text-slate-800 dark:text-white">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3 mb-4">
+              <h3 className="text-sm font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">Assign Subject to {teacherData?.name}</h3>
+              <button onClick={() => setShowAssignSubjectModal(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition">
                 <FaTimes size={16} />
               </button>
             </div>
@@ -717,7 +710,7 @@ export default function TeacherManagement() {
                   value={assignSubjectId}
                   onChange={(e) => setAssignSubjectId(e.target.value)}
                   required
-                  className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 font-bold"
                 >
                   <option value="">Choose Course Subject...</option>
                   {allSchoolSubjects.map((s) => (
@@ -728,15 +721,15 @@ export default function TeacherManagement() {
                 </select>
               </div>
 
-              <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
                 Note: Admin can assign multiple subjects to a single teacher (e.g. Teacher Prince can be assigned Math, Science, Hindi, English). Assigned subjects will appear in the teacher's profile as read-only.
               </p>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-800/80 mt-4">
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 mt-4">
                 <button
                   type="button"
                   onClick={() => setShowAssignSubjectModal(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-xl text-xs font-bold transition cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -759,8 +752,8 @@ export default function TeacherManagement() {
 function Row({ label, value }) {
   return (
     <div className="flex items-center justify-between py-1 text-xs">
-      <span style={{ color: C.sub }} className="font-semibold">{label}</span>
-      <span className="font-bold text-slate-200 text-right truncate max-w-[180px]">{value || "—"}</span>
+      <span className="font-semibold text-slate-500 dark:text-[#8993A8]">{label}</span>
+      <span className="font-bold text-slate-800 dark:text-slate-200 text-right truncate max-w-[180px]">{value || "—"}</span>
     </div>
   );
 }
