@@ -23,6 +23,7 @@ import {
   FaArrowRight,
   FaFileAlt,
   FaRegClock,
+  FaRegCalendarAlt,
   FaCloudUploadAlt,
   FaChartBar,
   FaCheckCircle,
