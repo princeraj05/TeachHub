@@ -152,7 +152,10 @@ exports.getJoinRequests = async (req, res) => {
     }
 
     const requests = await User.find({
-      requestedSchool: school,
+      $or: [
+        { requestedSchool: schoolRegex },
+        { schoolName: schoolRegex }
+      ],
       requestStatus: { $in: ["pending", "scheduled", "exam_completed"] }
     })
     .populate("admissionExamProctor", "name email role")
@@ -182,22 +185,31 @@ exports.processJoinRequest = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (candidate.requestedSchool !== req.user.schoolName) {
+    const schoolRegex = new RegExp("^" + escapeRegex(req.user.schoolName) + "$", "i");
+    const matchesSchool = (candidate.requestedSchool && schoolRegex.test(candidate.requestedSchool)) || (candidate.schoolName && schoolRegex.test(candidate.schoolName));
+
+    if (!matchesSchool) {
       return res.status(403).json({ message: "Forbidden: You can only process requests for your own school" });
     }
 
     if (action === "approved" || action === "schedule_interview") {
       if (candidate.requestedRole === "student") {
-        if (!examDate || !examMode) {
+        if (action === "schedule_interview" && (!examDate || !examMode)) {
           return res.status(400).json({ message: "Exam date and mode are required for student scheduling" });
         }
-        candidate.schoolName = candidate.requestedSchool;
-        candidate.requestStatus = "scheduled";
-        candidate.admissionExamDate = new Date(examDate);
-        candidate.admissionExamMode = examMode;
-        candidate.admissionExamProctor = proctorId || req.user.id;
+        candidate.schoolName = candidate.requestedSchool || req.user.schoolName;
+        if (action === "approved") {
+          candidate.role = "student";
+          candidate.requestStatus = "approved";
+          candidate.approvedAt = new Date();
+        } else {
+          candidate.requestStatus = "scheduled";
+          candidate.admissionExamDate = new Date(examDate);
+          candidate.admissionExamMode = examMode;
+          candidate.admissionExamProctor = proctorId || req.user.id;
+        }
       } else if (action === "schedule_interview" || (interviewMode && interviewMode !== "")) {
-        candidate.schoolName = candidate.requestedSchool;
+        candidate.schoolName = candidate.requestedSchool || req.user.schoolName;
         candidate.requestStatus = "scheduled";
         candidate.interviewDate = interviewDate ? new Date(interviewDate) : new Date();
         candidate.interviewTime = interviewTime || "";
@@ -208,8 +220,9 @@ exports.processJoinRequest = async (req, res) => {
         candidate.admissionExamMode = candidate.interviewMode;
       } else {
         candidate.role = candidate.requestedRole || "teacher";
-        candidate.schoolName = candidate.requestedSchool;
+        candidate.schoolName = candidate.requestedSchool || req.user.schoolName;
         candidate.requestStatus = "approved";
+        candidate.approvedAt = new Date();
       }
     } else {
       candidate.requestStatus = "rejected";

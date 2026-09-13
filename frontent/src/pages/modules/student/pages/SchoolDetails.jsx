@@ -130,6 +130,9 @@ function SchoolDetails() {
       setTeachers(teachersRes.data || []);
       if (profileRes && profileRes.data) {
         setUser(profileRes.data);
+        if (profileRes.data.requestedRole && ["student", "teacher"].includes(profileRes.data.requestedRole)) {
+          setRequestedRole(profileRes.data.requestedRole);
+        }
       }
 
     } catch (err) {
@@ -249,23 +252,29 @@ function SchoolDetails() {
     }
 
     const loginSource = localStorage.getItem("loginSource");
-    const roleToSubmit = loginSource === "teacher" ? "teacher" : (loginSource === "student" ? "student" : requestedRole);
+    const roleToSubmit = loginSource === "teacher" 
+      ? "teacher" 
+      : (loginSource === "student" 
+          ? "student" 
+          : (requestedRole || "student"));
 
     setSubmitting(true);
     axios.put(
       `${API}/api/auth/join-request`,
-      { schoolName: school.name, role: roleToSubmit },
+      { schoolName: school.name, role: roleToSubmit, requestedRole: roleToSubmit },
       { headers: { Authorization: `Bearer ${token}` } }
     )
       .then((res) => {
+        const returnedSchool = res.data?.user?.requestedSchool || school.name;
+        const returnedRole = res.data?.user?.requestedRole || roleToSubmit;
         setUser((prev) => ({
           ...prev,
-          requestedSchool: school.name,
-          requestedRole: roleToSubmit,
+          requestedSchool: returnedSchool,
+          requestedRole: returnedRole,
           requestStatus: "pending"
         }));
         setShowJoinModal(false);
-        alert(`Request to join ${school.name} submitted successfully!`);
+        alert(`Request to join ${returnedSchool} as ${returnedRole === "teacher" ? "Teacher" : "Student"} submitted successfully!`);
         const basePath = location.pathname.startsWith("/pending") ? "/pending" : "/student";
         navigate(`${basePath}`);
       })

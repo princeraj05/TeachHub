@@ -718,13 +718,14 @@ exports.getSchools = async (req, res) => {
 // ================= SUBMIT JOIN REQUEST =================
 exports.submitJoinRequest = async (req, res) => {
   try {
-    const { schoolName, role } = req.body;
+    const targetRole = req.body.role || req.body.requestedRole;
+    const targetSchoolName = req.body.schoolName || req.body.requestedSchool;
 
-    if (!schoolName || !role) {
+    if (!targetSchoolName || !targetRole) {
       return res.status(400).json({ message: "School name and role are required" });
     }
 
-    if (!["student", "teacher"].includes(role)) {
+    if (!["student", "teacher"].includes(targetRole)) {
       return res.status(400).json({ message: "Invalid role requested. Must be student or teacher." });
     }
 
@@ -733,13 +734,51 @@ exports.submitJoinRequest = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    if (user.role && ["student", "teacher", "admin", "superadmin"].includes(user.role)) {
+      return res.status(400).json({ message: "You are already an assigned active member of a school." });
+    }
+
     if (user.requestStatus && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus)) {
       return res.status(400).json({ message: "You already have an active or pending join request. Please wait for the administrator to approve or reject your request." });
     }
 
-    user.requestedSchool = schoolName;
-    user.requestedRole = role;
+    // School Resolution
+    const School = require("../models/School");
+    const { resolveSchoolForAdmin, normalizeName } = require("../services/school/schoolResolverService");
+
+    let canonicalSchoolName = targetSchoolName.trim();
+    let foundSchool = null;
+
+    try {
+      foundSchool = await resolveSchoolForAdmin({ targetSchoolName: canonicalSchoolName });
+    } catch (rErr) {
+      console.warn("schoolResolverService lookup warning:", rErr.message);
+    }
+
+    if (!foundSchool) {
+      const normalized = normalizeName(canonicalSchoolName);
+      if (normalized) {
+        foundSchool = await School.findOne({ normalizedName: normalized }).lean();
+      }
+    }
+
+    if (!foundSchool) {
+      const escapeRegex = (str) => (str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const schoolRegex = new RegExp("^" + escapeRegex(canonicalSchoolName) + "$", "i");
+      const userWithSchool = await User.findOne({
+        $or: [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }]
+      }).lean();
+      if (userWithSchool) {
+        canonicalSchoolName = userWithSchool.schoolName || userWithSchool.requestedSchool || canonicalSchoolName;
+      }
+    } else {
+      canonicalSchoolName = foundSchool.name || canonicalSchoolName;
+    }
+
+    user.requestedSchool = canonicalSchoolName;
+    user.requestedRole = targetRole;
     user.requestStatus = "pending";
+    user.schoolName = canonicalSchoolName;
 
     await user.save();
 
@@ -752,7 +791,8 @@ exports.submitJoinRequest = async (req, res) => {
         role: user.role,
         requestedSchool: user.requestedSchool,
         requestedRole: user.requestedRole,
-        requestStatus: user.requestStatus
+        requestStatus: user.requestStatus,
+        schoolName: user.schoolName
       }
     });
   } catch (error) {
