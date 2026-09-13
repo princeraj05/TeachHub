@@ -46,9 +46,10 @@ const formatTime12h = (timeStr) => {
   const clean = String(timeStr).trim().toUpperCase();
   if (clean.includes("AM") || clean.includes("PM")) return clean;
   const [hStr, mStr] = clean.split(":");
-  const h = Number(hStr);
+  let h = Number(hStr);
   const m = Number(mStr);
   if (isNaN(h) || isNaN(m)) return timeStr;
+  if (h >= 1 && h <= 6) h += 12; // 01:00 -> 13:00 (1 PM) in school context
   const ampm = h >= 12 ? "PM" : "AM";
   const displayH = h % 12 || 12;
   const displayM = String(m).padStart(2, "0");
@@ -66,11 +67,11 @@ const formatMinutesTo12h = (mins) => {
   return `${String(displayH).padStart(2, "0")}:${displayM} ${ampm}`;
 };
 
-const buildTimeSlots = (lunchStartStr = "12:30 PM", lunchMins = 60) => {
+const buildTimeSlots = (lunchStartStr = "12:00 PM", lunchMins = 60) => {
   let lunchStart = parseMins(lunchStartStr);
   // Ensure lunch start is in a valid school daytime range (11:00 AM to 02:30 PM = 660 to 870 mins)
   if (lunchStart < 660 || lunchStart > 870) {
-    lunchStart = 12 * 60 + 30; // default 12:30 PM (750 mins)
+    lunchStart = 12 * 60; // default 12:00 PM (720 mins)
   }
   const lunchDuration = Number(lunchMins) || 60;
   const lunchEnd = lunchStart + lunchDuration;
@@ -163,7 +164,8 @@ function TimetableManagementTab({
   remove,
   setActiveTab,
   selectedClassId,
-  setSelectedClassId
+  setSelectedClassId,
+  breakSettings
 }) {
 
   // Initial default class ID selection
@@ -177,12 +179,22 @@ function TimetableManagementTab({
   const [showFullDay, setShowFullDay] = useState(false);
 
   // Break duration and timing states (configurable by Admin)
-  const [shortBreakStartTime, setShortBreakStartTime] = useState("11:00 AM");
-  const [shortBreakDuration, setShortBreakDuration] = useState(30);
-  const [lunchBreakStartTime, setLunchBreakStartTime] = useState("12:30 PM");
-  const [lunchBreakDuration, setLunchBreakDuration] = useState(60);
+  const [shortBreakStartTime, setShortBreakStartTime] = useState(breakSettings?.shortBreakStartTime || "11:00 AM");
+  const [shortBreakDuration, setShortBreakDuration] = useState(breakSettings?.shortBreakDuration !== undefined ? breakSettings.shortBreakDuration : 30);
+  const [lunchBreakStartTime, setLunchBreakStartTime] = useState(breakSettings?.lunchBreakStartTime || "12:00 PM");
+  const [lunchBreakDuration, setLunchBreakDuration] = useState(breakSettings?.lunchBreakDuration !== undefined ? breakSettings.lunchBreakDuration : 60);
   const [showBreakModal, setShowBreakModal] = useState(false);
   const [savingBreaks, setSavingBreaks] = useState(false);
+
+  // Sync breakSettings prop whenever parent finishes loading
+  React.useEffect(() => {
+    if (breakSettings) {
+      if (breakSettings.shortBreakStartTime) setShortBreakStartTime(breakSettings.shortBreakStartTime);
+      if (breakSettings.shortBreakDuration !== undefined) setShortBreakDuration(breakSettings.shortBreakDuration);
+      if (breakSettings.lunchBreakStartTime) setLunchBreakStartTime(breakSettings.lunchBreakStartTime);
+      if (breakSettings.lunchBreakDuration !== undefined) setLunchBreakDuration(breakSettings.lunchBreakDuration);
+    }
+  }, [breakSettings]);
 
   // Filter active state
   const [activeFilters, setActiveFilters] = useState({
@@ -205,16 +217,16 @@ function TimetableManagementTab({
 
   // Load school break settings on mount
   React.useEffect(() => {
-    const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
     const token = localStorage.getItem("token");
     if (token) {
       axios.get(`${API}/api/schools/my-school`, { headers: { Authorization: `Bearer ${token}` } })
         .then(res => {
           if (res.data) {
             if (res.data.shortBreakStartTime) setShortBreakStartTime(res.data.shortBreakStartTime);
-            if (res.data.shortBreakDuration) setShortBreakDuration(res.data.shortBreakDuration);
+            if (res.data.shortBreakDuration !== undefined) setShortBreakDuration(res.data.shortBreakDuration);
             if (res.data.lunchBreakStartTime) setLunchBreakStartTime(res.data.lunchBreakStartTime);
-            if (res.data.lunchBreakDuration) setLunchBreakDuration(res.data.lunchBreakDuration);
+            if (res.data.lunchBreakDuration !== undefined) setLunchBreakDuration(res.data.lunchBreakDuration);
           }
         })
         .catch(() => {});

@@ -75,15 +75,16 @@ function ShowTimetable() {
     const match = clean.match(/^(\d+):(\d+)\s*(AM|PM)?$/);
     if (!match) {
       const parts = clean.split(":");
-      return (Number(parts[0]) || 0) * 60 + (Number(parts[1]) || 0);
+      let h = Number(parts[0]) || 0;
+      if (h >= 1 && h <= 6) h += 12;
+      return h * 60 + (Number(parts[1]) || 0);
     }
     let hrs = parseInt(match[1], 10);
     const mins = parseInt(match[2], 10);
     const ampm = match[3];
-    if (ampm) {
-      if (ampm === "PM" && hrs < 12) hrs += 12;
-      if (ampm === "AM" && hrs === 12) hrs = 0;
-    }
+    if (ampm === "PM" && hrs < 12) hrs += 12;
+    else if (ampm === "AM" && hrs === 12) hrs = 0;
+    else if (!ampm && hrs >= 1 && hrs <= 6) hrs += 12;
     return hrs * 60 + mins;
   };
 

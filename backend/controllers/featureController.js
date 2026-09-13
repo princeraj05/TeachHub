@@ -12,7 +12,28 @@ const Timetable = require("../models/Timetable");
 const TeacherAttendance = require("../models/TeacherAttendance");
 
 const validId = (id) => mongoose.isValidObjectId(id);
-const minutes = (time) => { const [h, m] = String(time).split(":").map(Number); return Number.isInteger(h) && Number.isInteger(m) && h >= 0 && h < 24 && m >= 0 && m < 60 ? h * 60 + m : null; };
+const minutes = (time) => {
+  if (!time) return null;
+  const clean = String(time).trim().toUpperCase();
+  const match = clean.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/);
+  if (!match) {
+    const parts = clean.split(":");
+    let h = Number(parts[0]);
+    const m = Number(parts[1]);
+    if (Number.isInteger(h) && Number.isInteger(m) && h >= 0 && h < 24 && m >= 0 && m < 60) {
+      if (h >= 1 && h <= 6) h += 12;
+      return h * 60 + m;
+    }
+    return null;
+  }
+  let h = parseInt(match[1], 10);
+  const m = parseInt(match[2], 10);
+  const ampm = match[3];
+  if (ampm === "PM" && h < 12) h += 12;
+  else if (ampm === "AM" && h === 12) h = 0;
+  else if (!ampm && h >= 1 && h <= 6) h += 12;
+  return (h >= 0 && h < 24 && m >= 0 && m < 60) ? h * 60 + m : null;
+};
 const timeOf = (n) => `${String(Math.floor(n / 60)).padStart(2, "0")}:${String(n % 60).padStart(2, "0")}`;
 const schoolUser = async (id) => User.findById(id).select("role schoolName requestedSchool name classId");
 

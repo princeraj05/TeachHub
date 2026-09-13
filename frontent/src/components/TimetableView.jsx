@@ -98,9 +98,10 @@ const formatTimeRange = (startTime, endTime) => {
       return clean;
     }
     const parts = clean.split(":");
-    const h = Number(parts[0]);
+    let h = Number(parts[0]);
     const m = Number(parts[1]);
     if (isNaN(h) || isNaN(m)) return tStr;
+    if (h >= 1 && h <= 6) h += 12;
     const ampm = h >= 12 ? "PM" : "AM";
     const displayH = h % 12 || 12;
     const displayM = String(m).padStart(2, "0");

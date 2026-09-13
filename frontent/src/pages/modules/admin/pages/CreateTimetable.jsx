@@ -73,10 +73,9 @@ export default function CreateTimetable() {
     let hours = parseInt(match[1], 10);
     const minutes = parseInt(match[2], 10);
     const ampm = match[3];
-    if (ampm) {
-      if (ampm === "PM" && hours < 12) hours += 12;
-      if (ampm === "AM" && hours === 12) hours = 0;
-    }
+    if (ampm === "PM" && hours < 12) hours += 12;
+    else if (ampm === "AM" && hours === 12) hours = 0;
+    else if (!ampm && hours >= 1 && hours <= 6) hours += 12;
     return hours * 60 + minutes;
   };
 
@@ -375,6 +374,7 @@ export default function CreateTimetable() {
               setActiveTab={setActiveTab}
               selectedClassId={selectedClassId}
               setSelectedClassId={setSelectedClassId}
+              breakSettings={breakSettings}
             />
           )}
         </div>
