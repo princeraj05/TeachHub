@@ -23,6 +23,7 @@ const GroupChat = lazy(() => import("./pages/GroupChat"));
 const NotificationsAndActivity = lazy(() => import("./pages/Notifications/NotificationsAndActivity"));
 const PaymentCenter = lazy(() => import("../../../components/PaymentCenter"));
 const TeacherMyDiary = lazy(() => import("./pages/TeacherMyDiary"));
+const TeacherAcademicResults = lazy(() => import("./pages/Results/TeacherAcademicResults"));
 const AboutAppPage = lazy(() => import("../student/pages/AboutAppPage"));
 
 const PageLoader = () => (
@@ -58,6 +59,7 @@ function TeacherRoutes() {
         <Route path="payments" element={<Suspense fallback={<PageLoader />}><PaymentCenter role="teacher" /></Suspense>} />
         <Route path="notifications" element={<Suspense fallback={<PageLoader />}><NotificationsAndActivity /></Suspense>} />
         <Route path="mydiary" element={<Suspense fallback={<PageLoader />}><TeacherMyDiary /></Suspense>} />
+        <Route path="results" element={<Suspense fallback={<PageLoader />}><TeacherAcademicResults /></Suspense>} />
         <Route path="about" element={<Suspense fallback={<PageLoader />}><AboutAppPage /></Suspense>} />
       </Route>
     </Routes>

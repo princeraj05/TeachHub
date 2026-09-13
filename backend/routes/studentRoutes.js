@@ -80,6 +80,17 @@ router.get(
   studentController.getStudentExamResult
 );
 
+// ================= STUDENT ACADEMIC RESULTS =================
+const resultController = require("../controllers/resultController");
+
+router.get(
+  "/results",
+  protect,
+  authorize("student"),
+  resultController.getStudentPublishedResults
+);
+
+
 
 // ================= MY DIARY (STUDENT HOMEWORK) =================
 router.get(

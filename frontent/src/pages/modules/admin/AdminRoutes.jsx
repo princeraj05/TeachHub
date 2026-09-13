@@ -13,7 +13,8 @@ const AssignTeacherClass = lazy(() => import("./pages/Assignments/AssignTeacherC
 const AssignStudentClass = lazy(() => import("./pages/Assignments/AssignStudentClass"));
 const AssignSubjectTeacher = lazy(() => import("./pages/Assignments/AssignSubjectTeacher"));
 const AttendanceReport = lazy(() => import("./pages/Reports/AttendanceReport"));
-const ExamResults = lazy(() => import("./pages/Reports/ExamResults"));
+const ExamResults = lazy(() => import("./pages/Reports/AcademicResults"));
+const AcademicResults = lazy(() => import("./pages/Reports/AcademicResults"));
 const ExamSchedule = lazy(() => import("./pages/Exams/ExamSchedule"));
 const AdminProfile = lazy(() => import("./pages/Profile/AdminProfile"));
 const AdminSupport = lazy(() => import("./pages/AdminSupport"));
@@ -66,7 +67,8 @@ function AdminRoutes() {
 
         {/* Reports */}
         <Route path="attendance-report" element={<Suspense fallback={<PageLoader />}><AttendanceReport /></Suspense>} />
-        <Route path="exam-results" element={<Suspense fallback={<PageLoader />}><ExamResults /></Suspense>} />
+        <Route path="results" element={<Suspense fallback={<PageLoader />}><AcademicResults /></Suspense>} />
+        <Route path="exam-results" element={<Suspense fallback={<PageLoader />}><AcademicResults /></Suspense>} />
 
         {/* Exams */}
         <Route path="exam-schedule" element={<Suspense fallback={<PageLoader />}><ExamSchedule /></Suspense>} />

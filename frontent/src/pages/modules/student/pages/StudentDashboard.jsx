@@ -5,6 +5,7 @@ import {
   FaBookOpen,
   FaClipboardCheck,
   FaFileAlt,
+  FaGraduationCap,
   FaTrophy,
   FaChevronRight,
   FaCalendarAlt,
@@ -56,9 +57,16 @@ const STUDENT_NAV_ITEMS = [
     color: "from-rose-500/15 to-pink-500/15 text-rose-600 dark:text-rose-400 border-rose-500/20"
   },
   {
+    to: "/student/results",
+    label: "Academic Results",
+    desc: "Report Cards & Grades",
+    icon: <FaGraduationCap />,
+    color: "from-purple-500/15 to-indigo-500/15 text-[#7C3AED] dark:text-[#38BDF8] border-purple-500/20"
+  },
+  {
     to: "/student/exams",
-    label: "Marks / Exams",
-    desc: "Scores & Exams",
+    label: "Online Exams",
+    desc: "MCQ Tests & Exams",
     icon: <FaFileAlt />,
     color: "from-amber-500/15 to-orange-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20"
   },

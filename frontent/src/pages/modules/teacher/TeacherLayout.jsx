@@ -112,6 +112,7 @@ function TeacherLayout() {
     { to: "/teacher/mark-attendance", icon: <FaClipboardCheck className="text-emerald-500" />, label: t("mark_attendance", "Mark Attendance") },
     { to: "/teacher/attendance-history", icon: <FaCalendarAlt className="text-[#38BDF8]" />, label: t("attendance", "Attendance History") },
     { to: "/teacher/my-subjects", icon: <FaBook className="text-indigo-500" />, label: t("my_subjects", "My Subjects") },
+    { to: "/teacher/results", icon: <FaGraduationCap className="text-[#7C3AED] dark:text-[#38BDF8]" />, label: t("marks_entry", "Marks Entry") },
     { to: "/teacher/exam-schedule", icon: <FaCalendarAlt className="text-amber-500" />, label: t("exams", "Exams") },
     { to: "/teacher/proctoring", icon: <FaTv className="text-rose-500" />, label: t("conduct_exam", "Conduct Exam") },
     { to: "/teacher/support", icon: <FaComments className="text-[#38BDF8]" />, label: t("support", "Support") },

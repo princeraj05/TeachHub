@@ -305,7 +305,7 @@ function AdminLayout() {
               <button
                 onClick={() => togglePopover("academics")}
                 className={`flex items-center gap-4 px-3.5 py-3 rounded-xl transition-all duration-200 cursor-pointer text-left w-full ${
-                  activePopover === "academics" || isActive("/admin/classes") || isActive("/admin/subjects")
+                  activePopover === "academics" || isActive("/admin/classes") || isActive("/admin/subjects") || isActive("/admin/results")
                     ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] dark:bg-[#38BDF8]/10 font-bold"
                     : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
                 }`}
@@ -317,6 +317,7 @@ function AdminLayout() {
                 <div className="pl-4 lg:pl-10 space-y-1 animate-fadeIn w-full">
                   <Link to="/admin/classes" className={popoverLinkClass("/admin/classes")}>Classes</Link>
                   <Link to="/admin/subjects" className={popoverLinkClass("/admin/subjects")}>Subjects</Link>
+                  <Link to="/admin/results" className={popoverLinkClass("/admin/results")}>Academic Results</Link>
                 </div>
               )}
             </div>
@@ -347,7 +348,7 @@ function AdminLayout() {
               <button
                 onClick={() => togglePopover("reports")}
                 className={`flex items-center gap-4 px-3.5 py-3 rounded-xl transition-all duration-200 cursor-pointer text-left w-full ${
-                  activePopover === "reports" || isActive("/admin/attendance-report") || isActive("/admin/exam-results")
+                  activePopover === "reports" || isActive("/admin/attendance-report") || isActive("/admin/results") || isActive("/admin/exam-results")
                     ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] dark:bg-[#38BDF8]/10 font-bold"
                     : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
                 }`}
@@ -358,7 +359,7 @@ function AdminLayout() {
               {activePopover === "reports" && (
                 <div className="pl-4 lg:pl-10 space-y-1 animate-fadeIn w-full">
                   <Link to="/admin/attendance-report" className={popoverLinkClass("/admin/attendance-report")}>Attendance Report</Link>
-                  <Link to="/admin/exam-results" className={popoverLinkClass("/admin/exam-results")}>Exam Results</Link>
+                  <Link to="/admin/results" className={popoverLinkClass("/admin/results")}>Academic Results</Link>
                 </div>
               )}
             </div>
