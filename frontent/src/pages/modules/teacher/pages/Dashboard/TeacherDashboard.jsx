@@ -19,13 +19,10 @@ import {
   FaSchool,
   FaClipboardCheck,
   FaCalendarAlt,
-  FaSearch,
-  FaBell,
+  FaUsers,
   FaArrowRight,
-  FaVideo,
   FaFileAlt,
   FaRegClock,
-  FaRegCalendarAlt,
   FaCloudUploadAlt,
   FaChartBar,
   FaCheckCircle,
@@ -40,7 +37,6 @@ function TeacherDashboard() {
   const API = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
   const teacherName = localStorage.getItem("name") || "Teacher";
-  const teacherAvatar = localStorage.getItem("avatar") || "";
 
   const defaultTeacherData = {
     studentsCount: 0,
@@ -60,7 +56,6 @@ function TeacherDashboard() {
   const cacheKey = `teachhub_cache_teacher_dashboard_${teacherId}`;
 
   const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [dashboardData, setDashboardData] = useState(() => {
     try {
       const cached = localStorage.getItem(cacheKey);
@@ -159,8 +154,8 @@ function TeacherDashboard() {
       onClick: () => navigate("/teacher/mark-attendance"),
     },
     {
-      label: "Take Online Class",
-      icon: <FaVideo className="text-xl" />,
+      label: "Create Student Group",
+      icon: <FaUsers className="text-xl" />,
       bgColor: "bg-purple-500/10 text-purple-500 border border-purple-500/20",
       onClick: () => navigate("/teacher/support/groups"),
     },
@@ -184,15 +179,6 @@ function TeacherDashboard() {
     },
   ];
 
-  const initials = teacherName
-    ? teacherName
-        .split(" ")
-        .map((w) => w[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
-    : "T";
-
   if (loading) {
     return (
       <div className="h-[70vh] flex flex-col items-center justify-center">
@@ -205,65 +191,14 @@ function TeacherDashboard() {
   return (
     <div style={{ fontFamily: SORA }} className="space-y-6 pb-20 select-none text-slate-805 dark:text-slate-100">
       
-      {/* Top Navbar Header */}
-      <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-        {/* Welcome Section */}
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-            {greeting}, <span className="text-[#7C3AED] dark:text-[#A78BFA]">{teacherName}</span> 👋
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-450 dark:text-slate-400 font-medium mt-1">
-            Here's what's happening in your classes today.
-          </p>
-        </div>
-
-        {/* Action Widgets */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Search bar */}
-          <div className="relative min-w-[220px] sm:min-w-[280px]">
-            <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-450 text-sm" />
-            <input
-              type="text"
-              placeholder="Search students, classes, exams..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/[0.08] rounded-2xl pl-10 pr-4 py-2.5 text-xs font-bold outline-none focus:border-[#7C3AED] dark:focus:border-[#7C3AED] transition-all"
-            />
-          </div>
-
-          {/* Calendar Picker Button */}
-          <button className="w-10 h-10 rounded-2xl bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/[0.08] flex items-center justify-center hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-slate-500 dark:text-slate-400 cursor-pointer">
-            <FaRegCalendarAlt className="text-sm" />
-          </button>
-
-          {/* Notification bell */}
-          <div className="relative">
-            <button className="w-10 h-10 rounded-2xl bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/[0.08] flex items-center justify-center hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-slate-500 dark:text-slate-400 cursor-pointer">
-              <FaBell className="text-sm" />
-              <span className="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-              <span className="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-rose-500" />
-            </button>
-          </div>
-
-          {/* Teacher Profile Info Bubble */}
-          <div className="flex items-center gap-2.5 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/[0.08] rounded-2xl p-1.5 pr-4 select-none">
-            {teacherAvatar ? (
-              <img
-                src={teacherAvatar}
-                alt="Teacher Profile"
-                className="w-8 h-8 rounded-xl object-cover"
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-xl bg-[#7C3AED] flex items-center justify-center text-xs font-bold text-white uppercase">
-                {initials}
-              </div>
-            )}
-            <div className="hidden sm:block text-left">
-              <p className="text-[10px] font-black text-slate-800 dark:text-white leading-tight">{teacherName}</p>
-              <p className="text-[8px] font-extrabold uppercase text-[#7C3AED] dark:text-[#38BDF8] tracking-wider leading-none mt-0.5">Course Instructor</p>
-            </div>
-          </div>
-        </div>
+      {/* Welcome Section Header */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+          {greeting}, <span className="text-[#7C3AED] dark:text-[#A78BFA]">{teacherName}</span> 👋
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-450 dark:text-slate-400 font-medium mt-1">
+          Here's what's happening in your classes today.
+        </p>
       </div>
 
       {/* Top Cards grid (2 COLUMNS ON MOBILE) */}
