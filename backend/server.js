@@ -37,6 +37,8 @@ const paymentController = require("./controllers/paymentController");
 const syllabusRoutes = require("./routes/syllabusRoutes");
 const noteRoutes = require("./routes/noteRoutes");
 const appNotificationRoutes = require("./routes/appNotificationRoutes");
+const accountDeletionRoutes = require("./routes/accountDeletionRoutes");
+const publicLegalRoutes = require("./routes/publicLegalRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -211,6 +213,8 @@ app.use("/api/syllabus", syllabusRoutes);
 app.use("/api/notes", noteRoutes);
 app.use("/api", featureRoutes);
 app.use("/api", paymentRoutes);
+app.use("/api/account-deletion-request", accountDeletionRoutes);
+app.use("/", publicLegalRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({ status: "OK", message: "TeachHub Backend Server is Running", timestamp: new Date() });

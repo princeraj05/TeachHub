@@ -51,12 +51,13 @@ function SuperAdminAboutApp() {
   const [supportHours, setSupportHours] = useState("Monday - Saturday: 9:00 AM to 6:00 PM (IST)");
 
   // Legal Links
-  const [privacyPolicyUrl, setPrivacyPolicyUrl] = useState("https://teachhub.app/privacy-policy");
-  const [cookiePolicyUrl, setCookiePolicyUrl] = useState("https://teachhub.app/cookie-policy");
-  const [termsOfServiceUrl, setTermsOfServiceUrl] = useState("https://teachhub.app/terms-of-service");
-  const [disclaimerUrl, setDisclaimerUrl] = useState("https://teachhub.app/disclaimer");
-  const [refundPolicyUrl, setRefundPolicyUrl] = useState("https://teachhub.app/refund-policy");
-  const [aboutUsUrl, setAboutUsUrl] = useState("https://teachhub.app/about-us");
+  const [privacyPolicyUrl, setPrivacyPolicyUrl] = useState("https://skyblue-yak-430824.hostingersite.com/privacy-policy");
+  const [cookiePolicyUrl, setCookiePolicyUrl] = useState("https://skyblue-yak-430824.hostingersite.com/cookie-policy");
+  const [termsOfServiceUrl, setTermsOfServiceUrl] = useState("https://skyblue-yak-430824.hostingersite.com/terms-of-service");
+  const [disclaimerUrl, setDisclaimerUrl] = useState("https://skyblue-yak-430824.hostingersite.com/disclaimer");
+  const [refundPolicyUrl, setRefundPolicyUrl] = useState("https://skyblue-yak-430824.hostingersite.com/refund-policy");
+  const [aboutUsUrl, setAboutUsUrl] = useState("https://skyblue-yak-430824.hostingersite.com/about-us");
+  const [accountDeletionUrl, setAccountDeletionUrl] = useState("https://skyblue-yak-430824.hostingersite.com/delete-account");
 
   // App Stores & Social Links
   const [playStoreLink, setPlayStoreLink] = useState("https://play.google.com/store/apps/details?id=com.teachhub.app");
@@ -110,12 +111,13 @@ function SuperAdminAboutApp() {
         setSupportWhatsapp(d.supportWhatsapp || "+91 98765 43210");
         setSupportHours(d.supportHours || "Monday - Saturday: 9:00 AM to 6:00 PM (IST)");
 
-        setPrivacyPolicyUrl(d.privacyPolicyUrl || "https://teachhub.app/privacy-policy");
-        setCookiePolicyUrl(d.cookiePolicyUrl || "https://teachhub.app/cookie-policy");
-        setTermsOfServiceUrl(d.termsOfServiceUrl || "https://teachhub.app/terms-of-service");
-        setDisclaimerUrl(d.disclaimerUrl || "https://teachhub.app/disclaimer");
-        setRefundPolicyUrl(d.refundPolicyUrl || "https://teachhub.app/refund-policy");
-        setAboutUsUrl(d.aboutUsUrl || "https://teachhub.app/about-us");
+        setPrivacyPolicyUrl(d.privacyPolicyUrl || "https://skyblue-yak-430824.hostingersite.com/privacy-policy");
+        setCookiePolicyUrl(d.cookiePolicyUrl || "https://skyblue-yak-430824.hostingersite.com/cookie-policy");
+        setTermsOfServiceUrl(d.termsOfServiceUrl || "https://skyblue-yak-430824.hostingersite.com/terms-of-service");
+        setDisclaimerUrl(d.disclaimerUrl || "https://skyblue-yak-430824.hostingersite.com/disclaimer");
+        setRefundPolicyUrl(d.refundPolicyUrl || "https://skyblue-yak-430824.hostingersite.com/refund-policy");
+        setAboutUsUrl(d.aboutUsUrl || "https://skyblue-yak-430824.hostingersite.com/about-us");
+        setAccountDeletionUrl(d.accountDeletionUrl || "https://skyblue-yak-430824.hostingersite.com/delete-account");
 
         setPlayStoreLink(d.playStoreLink || "https://play.google.com/store/apps/details?id=com.teachhub.app");
         setAppStoreLink(d.appStoreLink || "https://apps.apple.com/app/teachhub");
@@ -153,12 +155,13 @@ function SuperAdminAboutApp() {
     setSupportWhatsapp(d.supportWhatsapp || "+91 98765 43210");
     setSupportHours(d.supportHours || "Monday - Saturday: 9:00 AM to 6:00 PM (IST)");
 
-    setPrivacyPolicyUrl(d.privacyPolicyUrl || "https://teachhub.app/privacy-policy");
-    setCookiePolicyUrl(d.cookiePolicyUrl || "https://teachhub.app/cookie-policy");
-    setTermsOfServiceUrl(d.termsOfServiceUrl || "https://teachhub.app/terms-of-service");
-    setDisclaimerUrl(d.disclaimerUrl || "https://teachhub.app/disclaimer");
-    setRefundPolicyUrl(d.refundPolicyUrl || "https://teachhub.app/refund-policy");
-    setAboutUsUrl(d.aboutUsUrl || "https://teachhub.app/about-us");
+    setPrivacyPolicyUrl(d.privacyPolicyUrl || "https://skyblue-yak-430824.hostingersite.com/privacy-policy");
+    setCookiePolicyUrl(d.cookiePolicyUrl || "https://skyblue-yak-430824.hostingersite.com/cookie-policy");
+    setTermsOfServiceUrl(d.termsOfServiceUrl || "https://skyblue-yak-430824.hostingersite.com/terms-of-service");
+    setDisclaimerUrl(d.disclaimerUrl || "https://skyblue-yak-430824.hostingersite.com/disclaimer");
+    setRefundPolicyUrl(d.refundPolicyUrl || "https://skyblue-yak-430824.hostingersite.com/refund-policy");
+    setAboutUsUrl(d.aboutUsUrl || "https://skyblue-yak-430824.hostingersite.com/about-us");
+    setAccountDeletionUrl(d.accountDeletionUrl || "https://skyblue-yak-430824.hostingersite.com/delete-account");
 
     setPlayStoreLink(d.playStoreLink || "https://play.google.com/store/apps/details?id=com.teachhub.app");
     setAppStoreLink(d.appStoreLink || "https://apps.apple.com/app/teachhub");
@@ -235,6 +238,7 @@ function SuperAdminAboutApp() {
         disclaimerUrl,
         refundPolicyUrl,
         aboutUsUrl,
+        accountDeletionUrl,
         playStoreLink,
         appStoreLink,
         socialFacebook,
@@ -609,6 +613,19 @@ function SuperAdminAboutApp() {
                   value={aboutUsUrl}
                   onChange={(e) => setAboutUsUrl(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#1E293B] text-xs font-semibold focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5 md:col-span-2">
+              <label className="block text-[10px] font-black text-rose-500 uppercase tracking-widest">Account Deletion Request URL (Google Play Compliance)</label>
+              <div className="relative">
+                <FaExclamationCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-rose-500 text-xs" />
+                <input
+                  type="text"
+                  value={accountDeletionUrl}
+                  onChange={(e) => setAccountDeletionUrl(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-rose-200 dark:border-rose-900/30 bg-rose-50/30 dark:bg-[#1E293B] text-xs font-semibold focus:outline-none"
                 />
               </div>
             </div>

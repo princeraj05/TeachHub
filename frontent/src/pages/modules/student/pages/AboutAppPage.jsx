@@ -197,12 +197,13 @@ function AboutAppPage() {
   ];
 
   const legalLinks = [
-    { title: "Privacy Policy", url: info?.privacyPolicyUrl, icon: <FaLock /> },
-    { title: "Cookie Policy", url: info?.cookiePolicyUrl, icon: <FaCookieBite /> },
-    { title: "Terms of Service", url: info?.termsOfServiceUrl, icon: <FaFileAlt /> },
-    { title: "Disclaimer", url: info?.disclaimerUrl, icon: <FaExclamationCircle /> },
-    { title: "Refund Policy", url: info?.refundPolicyUrl, icon: <FaUndo /> },
-    { title: "About Us", url: info?.aboutUsUrl, icon: <FaGlobe /> }
+    { title: "Privacy Policy", url: info?.privacyPolicyUrl || "https://skyblue-yak-430824.hostingersite.com/privacy-policy", icon: <FaLock /> },
+    { title: "Cookie Policy", url: info?.cookiePolicyUrl || "https://skyblue-yak-430824.hostingersite.com/cookie-policy", icon: <FaCookieBite /> },
+    { title: "Terms of Service", url: info?.termsOfServiceUrl || "https://skyblue-yak-430824.hostingersite.com/terms-of-service", icon: <FaFileAlt /> },
+    { title: "Disclaimer", url: info?.disclaimerUrl || "https://skyblue-yak-430824.hostingersite.com/disclaimer", icon: <FaExclamationCircle /> },
+    { title: "Refund Policy", url: info?.refundPolicyUrl || "https://skyblue-yak-430824.hostingersite.com/refund-policy", icon: <FaUndo /> },
+    { title: "About Us", url: info?.aboutUsUrl || "https://skyblue-yak-430824.hostingersite.com/about-us", icon: <FaGlobe /> },
+    { title: "Account Deletion Request", url: info?.accountDeletionUrl || "https://skyblue-yak-430824.hostingersite.com/delete-account", icon: <FaShieldAlt /> }
   ];
 
   return (

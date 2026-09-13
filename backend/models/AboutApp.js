@@ -21,12 +21,13 @@ const aboutAppSchema = new mongoose.Schema({
   supportHours: { type: String, default: "Monday - Saturday: 9:00 AM to 6:00 PM (IST)" },
 
   // Legal Links
-  privacyPolicyUrl: { type: String, default: "https://teachhub.app/privacy-policy" },
-  cookiePolicyUrl: { type: String, default: "https://teachhub.app/cookie-policy" },
-  termsOfServiceUrl: { type: String, default: "https://teachhub.app/terms-of-service" },
-  disclaimerUrl: { type: String, default: "https://teachhub.app/disclaimer" },
-  refundPolicyUrl: { type: String, default: "https://teachhub.app/refund-policy" },
-  aboutUsUrl: { type: String, default: "https://teachhub.app/about-us" },
+  privacyPolicyUrl: { type: String, default: "https://skyblue-yak-430824.hostingersite.com/privacy-policy" },
+  cookiePolicyUrl: { type: String, default: "https://skyblue-yak-430824.hostingersite.com/cookie-policy" },
+  termsOfServiceUrl: { type: String, default: "https://skyblue-yak-430824.hostingersite.com/terms-of-service" },
+  disclaimerUrl: { type: String, default: "https://skyblue-yak-430824.hostingersite.com/disclaimer" },
+  refundPolicyUrl: { type: String, default: "https://skyblue-yak-430824.hostingersite.com/refund-policy" },
+  aboutUsUrl: { type: String, default: "https://skyblue-yak-430824.hostingersite.com/about-us" },
+  accountDeletionUrl: { type: String, default: "https://skyblue-yak-430824.hostingersite.com/delete-account" },
 
   // App Stores & Social Links
   playStoreLink: { type: String, default: "https://play.google.com/store/apps/details?id=com.teachhub.app" },
