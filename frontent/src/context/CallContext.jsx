@@ -387,7 +387,9 @@ export const CallProvider = ({ children }) => {
       peerConnectionRef.current = null;
     }
     iceCandidatesQueueRef.current = [];
-    remoteStreamRef.current = null;
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.srcObject = null;
+    }
     setLocalStream(null);
     setRemoteStream(null);
     setIsMuted(false);
@@ -650,10 +652,11 @@ export const CallProvider = ({ children }) => {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Video Ref mounts & Playback execution
+  // Video & Audio Ref mounts & Playback execution
   const localVideoMainRef = useRef(null);
   const localVideoPipRef = useRef(null);
   const remoteVideoRef = useRef(null);
+  const remoteAudioRef = useRef(null);
 
   const hasRemoteVideo = Boolean(
     remoteStream &&
@@ -675,22 +678,31 @@ export const CallProvider = ({ children }) => {
   }, [localStream, callState, hasRemoteVideo]);
 
   useEffect(() => {
-    if (remoteStream && remoteVideoRef.current) {
-      if (remoteVideoRef.current.srcObject !== remoteStream) {
+    if (remoteStream) {
+      // 1. Attach to remote video element if mounted (video call mode)
+      if (remoteVideoRef.current && remoteVideoRef.current.srcObject !== remoteStream) {
         remoteVideoRef.current.srcObject = remoteStream;
+        remoteVideoRef.current.play().catch(() => {});
       }
-      const playPromise = remoteVideoRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((err) => {
-          console.warn("Mobile autoplay failed, attaching interaction listeners:", err);
-          const handleTouch = () => {
-            if (remoteVideoRef.current) remoteVideoRef.current.play().catch(() => {});
-            window.removeEventListener("touchstart", handleTouch);
-            window.removeEventListener("click", handleTouch);
-          };
-          window.addEventListener("touchstart", handleTouch);
-          window.addEventListener("click", handleTouch);
-        });
+
+      // 2. Attach to dedicated remote audio element (works for voice call & video call backup)
+      if (remoteAudioRef.current && remoteAudioRef.current.srcObject !== remoteStream) {
+        remoteAudioRef.current.srcObject = remoteStream;
+      }
+      if (remoteAudioRef.current) {
+        const playPromise = remoteAudioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((err) => {
+            console.warn("Audio autoplay fallback, attaching interaction listeners:", err);
+            const handleTouch = () => {
+              if (remoteAudioRef.current) remoteAudioRef.current.play().catch(() => {});
+              window.removeEventListener("touchstart", handleTouch);
+              window.removeEventListener("click", handleTouch);
+            };
+            window.addEventListener("touchstart", handleTouch);
+            window.addEventListener("click", handleTouch);
+          });
+        }
       }
     }
   }, [remoteStream, callState, hasRemoteVideo]);
@@ -719,6 +731,9 @@ export const CallProvider = ({ children }) => {
       }}
     >
       {children}
+
+      {/* Hidden Dedicated Remote Audio Element (Guarantees Voice Call Audio Playback) */}
+      <audio ref={remoteAudioRef} autoPlay playsInline className="hidden" />
 
       {/* Global Toast Notifier */}
       {toastMessage && (

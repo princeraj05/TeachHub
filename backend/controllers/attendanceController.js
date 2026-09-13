@@ -248,7 +248,7 @@ exports.bulkSaveAttendance = async (req, res) => {
 
     const subId = (subjectId && subjectId !== "none" && subjectId !== "") ? subjectId : null;
 
-    // Strict Security Check: Only allow teacher to mark attendance for subjects assigned to them
+    // Strict Security Check: Only allow teacher to mark attendance for subjects assigned to them on scheduled timetable days
     if (subId && req.user.role !== "admin" && req.user.role !== "superadmin") {
       const isAssignedSubject = await Subject.exists({
         _id: subId,
@@ -266,6 +266,26 @@ exports.bulkSaveAttendance = async (req, res) => {
       if (!isAssignedSubject && !isTimetableTeacher) {
         return res.status(403).json({
           message: "Forbidden: You can only mark attendance for subjects assigned to you."
+        });
+      }
+    }
+
+    // Timetable Validation: Verify that a timetable period is scheduled for this class, subject & teacher on this weekday
+    if (subId && req.user.role === "teacher") {
+      const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const dayName = dayNames[searchDate.getDay()];
+
+      const isScheduledToday = await Timetable.exists({
+        schoolName,
+        class: classId,
+        subject: subId,
+        teacher: teacherId,
+        day: dayName
+      });
+
+      if (!isScheduledToday) {
+        return res.status(403).json({
+          message: `Forbidden: No timetable period is scheduled for this subject on ${dayName}. Attendance cannot be marked.`
         });
       }
     }

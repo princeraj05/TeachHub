@@ -403,23 +403,13 @@ function AttendanceHistory() {
           <div className="w-8 h-8 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-6">
           
-          {/* Avg Attendance */}
-          <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-3.5 sm:p-4 rounded-2.5xl sm:rounded-3xl shadow-sm">
-            <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Average Attendance</p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-black text-slate-900 dark:text-white">{summary.avgAttendance || 0}%</span>
-              <span className="text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/10">&#8599; 5%</span>
-            </div>
-            <p className="text-[8px] text-slate-400 mt-2 font-semibold">from Apr 2026</p>
-          </div>
-
           {/* Total Present */}
           <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm">
             <p className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Total Present</p>
             <span className="text-2xl font-black text-slate-900 dark:text-white mt-1 block">{summary.present || 0}</span>
-            <p className="text-[8px] text-slate-450 mt-2 font-semibold">{summary.avgAttendance || 0}% of total classes</p>
+            <p className="text-[8px] text-slate-450 mt-2 font-semibold">{Math.round((summary.present / ((summary.present + summary.absent + summary.late + summary.leave) || 1)) * 100)}% of total classes</p>
           </div>
 
           {/* Total Absent */}

@@ -143,29 +143,6 @@ function MarkAttendance() {
           }
         });
 
-        // Fallback: If no timetable entries exist for today, include teacher's assigned subjects for this class
-        if (orderedList.length === 0 && subjects.length > 0) {
-          const classSubjects = subjects.filter(subject => {
-            if (subject.classes && Array.isArray(subject.classes)) {
-              return subject.classes.some(c => getCleanId(c._id || c) === getCleanId(selectedClassId));
-            }
-            return true;
-          });
-
-          classSubjects.forEach(sub => {
-            const subId = getCleanId(sub._id);
-            if (!seenSubIds.has(subId)) {
-              seenSubIds.add(subId);
-              orderedList.push({
-                _id: subId,
-                name: sub.name || "Subject",
-                startTime: "",
-                endTime: ""
-              });
-            }
-          });
-        }
-
         setTimetableSubjects(orderedList);
 
         // 2. Check which subjects have already completed attendance on selectedDate
