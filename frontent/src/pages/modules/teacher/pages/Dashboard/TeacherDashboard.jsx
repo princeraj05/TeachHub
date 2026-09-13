@@ -56,11 +56,14 @@ function TeacherDashboard() {
     recentStudents: []
   };
 
+  const teacherId = localStorage.getItem("userId") || localStorage.getItem("id") || teacherName;
+  const cacheKey = `teachhub_cache_teacher_dashboard_${teacherId}`;
+
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [dashboardData, setDashboardData] = useState(() => {
     try {
-      const cached = localStorage.getItem("teachhub_cache_teacher_dashboard");
+      const cached = localStorage.getItem(cacheKey);
       if (cached) {
         const parsed = JSON.parse(cached);
         if (parsed?.data) return parsed.data;
@@ -90,7 +93,7 @@ function TeacherDashboard() {
       .then((res) => {
         if (res.data) {
           setDashboardData(res.data);
-          localStorage.setItem("teachhub_cache_teacher_dashboard", JSON.stringify({ timestamp: Date.now(), data: res.data }));
+          localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: res.data }));
         }
       })
       .catch((err) => {

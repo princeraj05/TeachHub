@@ -73,8 +73,10 @@ exports.getTeacherDashboard = async (req, res) => {
     endOfDay.setHours(23, 59, 59, 999);
 
     const todayAttendance = await Attendance.find({
+      teacher: teacherId,
       student: { $in: uniqueStudentIds },
-      date: { $gte: startOfDay, $lte: endOfDay }
+      date: { $gte: startOfDay, $lte: endOfDay },
+      schoolName: req.user.schoolName
     });
 
     let presentCount = 0;
@@ -84,7 +86,7 @@ exports.getTeacherDashboard = async (req, res) => {
     todayAttendance.forEach(a => {
       if (a.status === "Present") presentCount++;
       else if (a.status === "Absent") absentCount++;
-      else if (a.status === "On Leave") leaveCount++;
+      else if (a.status === "On Leave" || a.status === "Leave") leaveCount++;
     });
 
     const totalAttendanceCount = todayAttendance.length;
@@ -93,7 +95,7 @@ exports.getTeacherDashboard = async (req, res) => {
       absent: absentCount,
       late: 0,
       leave: leaveCount,
-      total: totalAttendanceCount > 0 ? totalAttendanceCount : uniqueStudentsCount
+      total: totalAttendanceCount
     };
     attendanceStats.percentage = attendanceStats.total > 0 ? Math.round((attendanceStats.present / attendanceStats.total) * 100) : 0;
 
@@ -530,8 +532,10 @@ exports.getClassDetails = async (req, res) => {
     startOfMonth.setHours(0,0,0,0);
     const studentIds = (cls.students || []).map(s => s._id);
     const monthlyAttendance = await Attendance.find({
+      teacher: teacherId,
       student: { $in: studentIds },
-      date: { $gte: startOfMonth }
+      date: { $gte: startOfMonth },
+      schoolName: req.user.schoolName
     });
 
     let present = 0;
@@ -647,16 +651,20 @@ exports.getMyStudents = async (req, res) => {
     for (const c of classes) {
       const studentIds = c.students.map(s => s._id);
       
-      // Fetch today's attendance for these students
+      // Fetch today's attendance for these students marked by this teacher
       const todayAtt = await Attendance.find({
+        teacher: teacherId,
         student: { $in: studentIds },
-        date: { $gte: startOfDay, $lte: endOfDay }
+        date: { $gte: startOfDay, $lte: endOfDay },
+        schoolName: req.user.schoolName
       });
 
-      // Fetch monthly attendance
+      // Fetch monthly attendance marked by this teacher
       const monthlyAtt = await Attendance.find({
+        teacher: teacherId,
         student: { $in: studentIds },
-        date: { $gte: startOfMonth }
+        date: { $gte: startOfMonth },
+        schoolName: req.user.schoolName
       });
 
       // Fetch exams for this class
@@ -681,27 +689,19 @@ exports.getMyStudents = async (req, res) => {
 
         // Monthly attendance percent
         const studentMonthly = monthlyAtt.filter(a => a.student.toString() === student._id.toString());
-        let attendancePercentage = 89; // fallback default
+        let attendancePercentage = 0;
         if (studentMonthly.length > 0) {
           const present = studentMonthly.filter(a => a.status === "Present").length;
           attendancePercentage = Math.round((present / studentMonthly.length) * 100);
-        } else {
-          // Mock realistic values
-          const mockAtts = [96, 93, 88, 78, 92, 85, 74, 91, 80, 87];
-          attendancePercentage = mockAtts[index % mockAtts.length];
         }
         sumAttendancePct += attendancePercentage;
 
         // Student performance score
         const studentSubmissions = submissions.filter(s => s.student.toString() === student._id.toString());
-        let performancePercentage = 76; // fallback default
+        let performancePercentage = 0;
         if (studentSubmissions.length > 0) {
           const totalPct = studentSubmissions.reduce((sum, s) => sum + (s.score / (s.total || 100)) * 100, 0);
           performancePercentage = Math.round(totalPct / studentSubmissions.length);
-        } else {
-          // Mock realistic values
-          const mockPerfs = [96, 90, 84, 78, 91, 83, 76, 89, 72, 82];
-          performancePercentage = mockPerfs[index % mockPerfs.length];
         }
         sumPerformancePct += performancePercentage;
 
@@ -711,7 +711,7 @@ exports.getMyStudents = async (req, res) => {
         }
 
         // Letter Grade mapping
-        let grade = "B";
+        let grade = "N/A";
         if (performancePercentage >= 95) grade = "A+";
         else if (performancePercentage >= 90) grade = "A";
         else if (performancePercentage >= 85) grade = "A-";
@@ -719,10 +719,10 @@ exports.getMyStudents = async (req, res) => {
         else if (performancePercentage >= 75) grade = "B";
         else if (performancePercentage >= 70) grade = "B-";
         else if (performancePercentage >= 60) grade = "C";
-        else grade = "D";
+        else if (performancePercentage > 0) grade = "D";
 
         // Status
-        const status = index % 8 === 6 || index % 8 === 7 ? "Inactive" : "Active";
+        const status = "Active";
 
         detailedStudents.push({
           _id: student._id,
@@ -740,19 +740,19 @@ exports.getMyStudents = async (req, res) => {
       });
     }
 
-    const totalStudents = detailedStudents.length || 128;
-    const avgAttendance = totalStudents > 0 ? Math.round(sumAttendancePct / totalStudents) : 89;
-    const avgPerformance = totalStudents > 0 ? Math.round(sumPerformancePct / totalStudents) : 76;
+    const totalStudents = detailedStudents.length;
+    const avgAttendance = totalStudents > 0 ? Math.round(sumAttendancePct / totalStudents) : 0;
+    const avgPerformance = totalStudents > 0 ? Math.round(sumPerformancePct / totalStudents) : 0;
 
     res.json({
       totalStudents,
-      presentToday: totalTodayAttendance > 0 ? presentTodayCount : 117,
-      presentTodayPercentage: totalTodayAttendance > 0 ? Math.round((presentTodayCount / totalTodayAttendance) * 100) : 92,
+      presentToday: presentTodayCount,
+      presentTodayPercentage: totalTodayAttendance > 0 ? Math.round((presentTodayCount / totalTodayAttendance) * 100) : 0,
       avgAttendance,
       avgPerformance,
       topPerformer: {
-        name: topPerformerName || "Aarav Sharma",
-        average: topPerformerPct || 96
+        name: topPerformerPct > 0 ? topPerformerName : "N/A",
+        average: topPerformerPct
       },
       students: detailedStudents
     });
@@ -791,8 +791,10 @@ exports.getStudentDetails = async (req, res) => {
     startOfMonth.setDate(1);
     startOfMonth.setHours(0,0,0,0);
     const monthlyAtt = await Attendance.find({
+      teacher: teacherId,
       student: studentId,
-      date: { $gte: startOfMonth }
+      date: { $gte: startOfMonth },
+      schoolName: req.user.schoolName
     });
 
     let present = 0;
@@ -803,17 +805,11 @@ exports.getStudentDetails = async (req, res) => {
     monthlyAtt.forEach(a => {
       if (a.status === "Present") present++;
       else if (a.status === "Absent") absent++;
-      else if (a.status === "On Leave") leave++;
+      else if (a.status === "On Leave" || a.status === "Leave") leave++;
     });
 
-    if (monthlyAtt.length === 0) {
-      present = 28;
-      absent = 2;
-      late = 0;
-      leave = 0;
-    }
     const totalAttendance = present + absent + late + leave;
-    const attendancePercentage = Math.round((present / totalAttendance) * 100) || 93;
+    const attendancePercentage = totalAttendance > 0 ? Math.round((present / totalAttendance) * 100) : 0;
 
     // Academic Performance calculations (Exams & Submissions)
     const exams = await Exam.find({ class: cls?._id }).populate("subject", "name");
@@ -1231,8 +1227,10 @@ exports.getTeacherDiary = async (req, res) => {
     const teacher = await User.findById(teacherId).lean();
     const schoolName = req.user.schoolName || teacher?.schoolName || "G.D Academy";
 
+    const schoolRegex = new RegExp(`^${schoolName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, "i");
     const query = {
-      $or: [{ teacher: teacherId }, { schoolName: schoolName }]
+      teacher: teacherId,
+      $or: [{ schoolName: schoolRegex }, { schoolName: schoolName }]
     };
 
     if (date) query.homeworkDate = date;

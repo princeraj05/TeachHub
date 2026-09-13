@@ -82,8 +82,14 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
           (msg.sender._id === activeContact._id && msg.receiver._id === currentUserId))
       ) {
         setMessages(prev => {
-          if (prev.some(m => m._id === msg._id || (msg.clientMessageId && m.clientMessageId === msg.clientMessageId))) {
-            return prev;
+          const matchIndex = prev.findIndex(m =>
+            m._id === msg._id ||
+            (msg.clientMessageId && (m.clientMessageId === msg.clientMessageId || m._id === msg.clientMessageId))
+          );
+          if (matchIndex !== -1) {
+            const updated = [...prev];
+            updated[matchIndex] = msg;
+            return updated;
           }
           return [...prev, msg];
         });
@@ -331,6 +337,7 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
 
     const optimisticMsg = {
       _id: tempMessageId,
+      clientMessageId: tempMessageId,
       sender: { _id: currentUserId, name: "Me", role: userRole },
       receiver: { _id: activeContact._id },
       content: contentToSend,
@@ -351,10 +358,22 @@ function SupportChatEngine({ activeContact, onBack, userRole }) {
       const res = await axios.post(`${API}/api/support/message`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setMessages(prev => prev.map(m => m._id === tempMessageId ? res.data : m));
+      setMessages(prev => {
+        const matchIndex = prev.findIndex(m =>
+          m._id === tempMessageId ||
+          (m.clientMessageId && m.clientMessageId === tempMessageId) ||
+          m._id === res.data._id
+        );
+        if (matchIndex !== -1) {
+          const updated = [...prev];
+          updated[matchIndex] = res.data;
+          return updated;
+        }
+        return [...prev, res.data];
+      });
     } catch (err) {
       console.error("HTTP fallback sending error:", err);
-      setMessages(prev => prev.map(m => m._id === tempMessageId ? { ...m, status: "failed" } : m));
+      setMessages(prev => prev.map(m => (m._id === tempMessageId || m.clientMessageId === tempMessageId) ? { ...m, status: "failed" } : m));
     }
   };
 

@@ -97,12 +97,15 @@ exports.getAttendanceReport = async (req, res) => {
       return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
     }
 
-    const data = await Attendance.find({ schoolName: req.user.schoolName })
+    const query = { schoolName: req.user.schoolName };
+    if (req.user.role === "teacher") {
+      query.teacher = req.user.id;
+    }
 
+    const data = await Attendance.find(query)
       .populate("student","name email")
       .populate("class","name section")
       .populate("teacher","name email")
-
       .sort({ date:-1 });
 
     res.json(data);
@@ -183,6 +186,10 @@ exports.getClassAttendanceForDate = async (req, res) => {
       date: { $gte: startOfDay, $lte: endOfDay },
       schoolName
     };
+
+    if (req.user.role === "teacher") {
+      attQuery.teacher = req.user.id;
+    }
     
     if (subjectId && subjectId !== "none" && subjectId !== "") {
       attQuery.subject = subjectId;
@@ -271,6 +278,7 @@ exports.bulkSaveAttendance = async (req, res) => {
       const existing = await Attendance.findOne({
         student: studentId,
         class: classId,
+        teacher: teacherId,
         date: { $gte: startOfDay, $lte: endOfDay },
         subject: subId,
         schoolName
@@ -339,6 +347,10 @@ exports.getAttendanceHistoryStats = async (req, res) => {
       schoolName
     };
 
+    if (req.user.role === "teacher") {
+      query.teacher = req.user.id;
+    }
+
     if (studentId && studentId !== "All") {
       query.student = studentId;
     }
@@ -353,7 +365,7 @@ exports.getAttendanceHistoryStats = async (req, res) => {
         distinctDays.add(dayStr);
       }
     });
-    const totalClasses = distinctDays.size || 1;
+    const totalClasses = distinctDays.size;
 
     let presentCount = 0;
     let absentCount = 0;
@@ -367,8 +379,7 @@ exports.getAttendanceHistoryStats = async (req, res) => {
       else if (r.status === "Leave" || r.status === "On Leave") leaveCount++;
     });
 
-    const totalRecords = records.length || 1;
-    const avgAttendance = Math.round((presentCount / totalRecords) * 100);
+    const avgAttendance = records.length > 0 ? Math.round((presentCount / records.length) * 100) : 0;
 
     // Compute Calendar Data
     const calendarData = {};
@@ -430,7 +441,7 @@ exports.getAttendanceHistoryStats = async (req, res) => {
       const late = studentRecords.filter(r => r.status === "Late").length;
       const leave = studentRecords.filter(r => r.status === "Leave" || r.status === "On Leave").length;
 
-      const pct = total > 0 ? Math.round((present / total) * 100) : 92;
+      const pct = total > 0 ? Math.round((present / total) * 100) : 0;
       const classNum = classData.name.match(/\d+/) ? classData.name.match(/\d+/)[0] : "10";
       const sectionLetter = classData.section ? classData.section.trim().toUpperCase().charAt(0) : "A";
       const rollNo = `${classNum}${sectionLetter}${String(index + 1).padStart(3, "0")}`;
@@ -441,7 +452,7 @@ exports.getAttendanceHistoryStats = async (req, res) => {
         if (r.status === "Late") return 0.5;
         return 0;
       });
-      const defaultTrend = [1, 1, 0.8, 1, 1, 0, 1, 1, 1, 0.9];
+      const defaultTrend = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
       const finalTrend = trend.length > 0 ? trend.slice(-10) : defaultTrend;
 
       return {
@@ -458,10 +469,10 @@ exports.getAttendanceHistoryStats = async (req, res) => {
       };
     });
 
-    let bestStudent = { name: "Aarav Sharma", attendancePct: 98 };
-    let worstStudent = { name: "Rohan Verma", attendancePct: 76 };
+    let bestStudent = { name: "N/A", attendancePct: 0 };
+    let worstStudent = { name: "N/A", attendancePct: 0 };
 
-    if (studentStats.length > 0) {
+    if (studentStats.length > 0 && records.length > 0) {
       const sorted = [...studentStats].sort((a, b) => b.attendancePct - a.attendancePct);
       bestStudent = { name: sorted[0].name, attendancePct: sorted[0].attendancePct };
       worstStudent = { name: sorted[sorted.length - 1].name, attendancePct: sorted[sorted.length - 1].attendancePct };
