@@ -98,34 +98,112 @@ exports.markAttendance = async (req, res) => {
 // ================= GET ATTENDANCE REPORT =================
 
 exports.getAttendanceReport = async (req, res) => {
-
   try {
-
     if (!req.user || !req.user.schoolName) {
       return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
     }
 
+    const { classId, date, month } = req.query;
+
     const query = { schoolName: req.user.schoolName };
+
     if (req.user.role === "teacher") {
       query.teacher = req.user.id;
     }
 
-    const data = await Attendance.find(query)
-      .populate("student","name email")
-      .populate("class","name section")
-      .populate("teacher","name email")
-      .sort({ date:-1 });
+    let classData = null;
+    if (classId) {
+      classData = await Class.findOne({ _id: classId, schoolName: req.user.schoolName }).populate("students", "name email rollNo avatar gender");
+      if (!classData) {
+        return res.status(404).json({ message: "Class not found in your school" });
+      }
+      query.class = classId;
+    }
 
-    res.json(data);
+    if (month) {
+      const [year, m] = month.split("-").map(Number);
+      if (!isNaN(year) && !isNaN(m)) {
+        const startRange = new Date(year, m - 1, 1, 0, 0, 0, 0);
+        const endRange = new Date(year, m, 0, 23, 59, 59, 999);
+        query.date = { $gte: startRange, $lte: endRange };
+      }
+    } else if (date) {
+      const d = new Date(date);
+      if (!isNaN(d.getTime())) {
+        const startRange = new Date(d);
+        startRange.setHours(0, 0, 0, 0);
+        const endRange = new Date(d);
+        endRange.setHours(23, 59, 59, 999);
+        query.date = { $gte: startRange, $lte: endRange };
+      }
+    }
+
+    const records = await Attendance.find(query)
+      .populate("student", "name email rollNo avatar gender")
+      .populate("class", "name section")
+      .populate("teacher", "name email")
+      .sort({ date: -1 });
+
+    // Format roll numbers for students in the class
+    const classNum = classData ? (classData.name.match(/\d+/) ? classData.name.match(/\d+/)[0] : "10") : "10";
+    const sectionLetter = classData ? (classData.section ? classData.section.trim().toUpperCase().charAt(0) : "A") : "A";
+
+    const formattedRecords = records.map((rec) => {
+      const recObj = rec.toObject();
+      if (recObj.student) {
+        recObj.student.rollNo = recObj.student.rollNo ? String(recObj.student.rollNo) : "Not Assigned";
+      }
+      return recObj;
+    });
+
+    if (classData) {
+      // Build full student roster with attendance status
+      const studentsRoster = classData.students.map((student) => {
+        const rollNo = student.rollNo ? String(student.rollNo) : "Not Assigned";
+        const studentRecord = records.find(r => r.student && r.student._id.toString() === student._id.toString());
+        return {
+          _id: student._id,
+          name: student.name,
+          email: student.email,
+          avatar: student.avatar,
+          gender: student.gender,
+          rollNo,
+          status: studentRecord ? studentRecord.status : "Not Marked",
+          teacher: studentRecord ? studentRecord.teacher : null,
+          date: studentRecord ? studentRecord.date : null,
+          remarks: studentRecord ? studentRecord.remarks : ""
+        };
+      });
+
+      const totalStudents = classData.students.length || studentsRoster.length;
+      const presentCount = studentsRoster.filter(s => s.status === "Present").length;
+      const absentCount = studentsRoster.filter(s => s.status === "Absent").length;
+      const attendanceRate = totalStudents > 0 ? Number(((presentCount / totalStudents) * 100).toFixed(2)) : 0;
+
+      return res.json({
+        classInfo: {
+          _id: classData._id,
+          name: classData.name,
+          section: classData.section
+        },
+        summary: {
+          totalStudents,
+          presentCount,
+          absentCount,
+          attendanceRate
+        },
+        students: studentsRoster,
+        logs: formattedRecords
+      });
+    }
+
+    res.json(formattedRecords);
 
   } catch (error) {
-
     res.status(500).json({
       message: error.message
     });
-
   }
-
 };
 
 

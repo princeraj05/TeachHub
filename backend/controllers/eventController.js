@@ -374,96 +374,98 @@ exports.uploadVideos = async (req, res) => {
   try {
     const authUser = await getAuthoritativeSchool(req.user.id);
     if (!authUser || (authUser.role !== "admin" && authUser.role !== "superadmin")) {
+      cleanupTemporaryUploads(req.files);
       return res.status(403).json({ message: "Unauthorized" });
     }
 
     const event = await Event.findById(req.params.id);
     if (!event) {
+      cleanupTemporaryUploads(req.files);
       return res.status(404).json({ message: "Event not found" });
     }
 
     if (authUser.role === "admin" && event.schoolName !== authUser.schoolName) {
+      cleanupTemporaryUploads(req.files);
       return res.status(403).json({ message: "Cross-school action unauthorized" });
     }
 
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: "No files uploaded" });
     }
+
     if (req.files.some((file) => {
       const cleanMime = (file.mimetype || "").split(";")[0].toLowerCase().trim();
       return !cleanMime.startsWith("video/") && !["video/mp4", "video/webm", "video/quicktime", "video/mov", "application/octet-stream"].includes(cleanMime);
     })) {
+      cleanupTemporaryUploads(req.files);
       return res.status(400).json({ message: "Videos must be MP4, WEBM, or MOV files" });
     }
-    if ((event.videos?.length || 0) + req.files.length > 5) return res.status(400).json({ message: "An event can contain a maximum of 5 videos" });
+
+    if ((event.videos?.length || 0) + req.files.length > 5) {
+      cleanupTemporaryUploads(req.files);
+      return res.status(400).json({ message: "An event can contain a maximum of 5 videos" });
+    }
 
     const hasCloudinary = process.env.CLOUDINARY_URL ||
       ( (process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_NAME) && 
         (process.env.CLOUDINARY_API_KEY || process.env.CLOUDINARY_KEY) && 
         (process.env.CLOUDINARY_API_SECRET || process.env.CLOUDINARY_SECRET) );
 
-    const uploadLargePromise = (filePath, options) => {
-      return new Promise((resolve, reject) => {
-        cloudinary.uploader.upload_large(filePath, options, (error, result) => {
-          if (error) return reject(error);
-          resolve(result);
-        });
-      });
-    };
-
     const newVideos = [];
     for (const file of req.files) {
       let videoUrl = "";
-      let filename = file.filename;
+      let publicId = "";
 
       if (hasCloudinary) {
-        // Try upload_large first with 6MB chunks and 10min (600,000ms) timeout
         try {
-          const result = await uploadLargePromise(file.path, {
+          const result = await cloudinary.uploader.upload(file.path, {
             folder: "teachhub/events/videos",
             resource_type: "video",
-            chunk_size: 6000000,
             timeout: 600000
           });
           if (result && result.secure_url) {
-            uploadedIds.push(result.public_id);
             videoUrl = result.secure_url;
-            filename = result.public_id;
-            deletePhysicalFile(file.filename);
+            publicId = result.public_id;
+            uploadedIds.push(result.public_id);
           }
         } catch (cErr) {
-          console.error("Cloudinary video upload_large error:", cErr.message);
-          // Fallback to standard upload with 10min timeout
+          console.error("Cloudinary standard video upload error, trying upload_stream/large fallback:", cErr.message);
           try {
-            const result = await cloudinary.uploader.upload(file.path, {
-              folder: "teachhub/events/videos",
-              resource_type: "video",
-              timeout: 600000
+            const result = await new Promise((resolve, reject) => {
+              cloudinary.uploader.upload_large(file.path, {
+                folder: "teachhub/events/videos",
+                resource_type: "video",
+                chunk_size: 6000000,
+                timeout: 600000
+              }, (err, res) => {
+                if (err) return reject(err);
+                resolve(res);
+              });
             });
             if (result && result.secure_url) {
-              uploadedIds.push(result.public_id);
               videoUrl = result.secure_url;
-              filename = result.public_id;
-              deletePhysicalFile(file.filename);
+              publicId = result.public_id;
+              uploadedIds.push(result.public_id);
             }
           } catch (cErr2) {
-            console.error("Cloudinary video upload error fallback failed:", cErr2.message);
+            console.error("Cloudinary upload_large fallback failed:", cErr2.message);
           }
         }
       }
 
-      // If Cloudinary failed or isn't configured, fallback to serving physical file path /uploads/filename
-      if (!videoUrl && fs.existsSync(file.path)) {
-        videoUrl = `/uploads/${file.filename}`;
-      }
-
+      // If Cloudinary succeeded, clean up temporary file from disk
       if (videoUrl) {
+        deletePhysicalFile(file.filename);
         newVideos.push({
           url: videoUrl,
-          filename: filename,
+          filename: publicId || file.filename,
           mimeType: file.mimetype,
           size: file.size
         });
+      } else {
+        // Cloudinary upload failed or not configured. Clean up temp file to avoid orphaned disk files.
+        deletePhysicalFile(file.filename);
+        throw new Error("Could not upload video to Cloudinary. Please verify Cloudinary credentials and network connection.");
       }
     }
 
@@ -472,6 +474,7 @@ exports.uploadVideos = async (req, res) => {
 
     res.json(event);
   } catch (err) {
+    cleanupTemporaryUploads(req.files);
     console.error("uploadVideos error:", err);
     res.status(500).json({ message: err.message || "Could not upload videos" });
   }
