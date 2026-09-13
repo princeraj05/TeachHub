@@ -3,6 +3,8 @@ import axios from "axios";
 import { compressImage } from "../../../../../utils/mediaCompression";
 import BannerCropModal from "../../../../../components/BannerCropModal";
 import { getMediaUrl } from "../../../../../config/api";
+import { pickProfilePhoto } from "../../../../../utils/mobileCapabilities";
+import { Capacitor } from "@capacitor/core";
 import {
   FaCamera,
   FaEye,

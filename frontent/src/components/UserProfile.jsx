@@ -33,6 +33,8 @@ import {
 } from "react-icons/fa";
 import { compressAvatar } from "../utils/mediaCompression";
 import ProfilePhotoCropModal from "./ProfilePhotoCropModal";
+import { pickProfilePhoto } from "../utils/mobileCapabilities";
+import { Capacitor } from "@capacitor/core";
 
 const SORA = "'Sora', sans-serif";
 
@@ -195,11 +197,18 @@ function UserProfile() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
+  const handleFileChange = async (e) => {
+    if (Capacitor.isNativePlatform()) {
+      const file = await pickProfilePhoto();
+      if (file) {
+        setCropModalImage(file);
+      }
+      return;
+    }
+    const file = e?.target?.files?.[0];
     if (file) {
       setCropModalImage(file);
-      e.target.value = "";
+      if (e.target) e.target.value = "";
     }
   };
 
@@ -711,7 +720,15 @@ function UserProfile() {
                       </div>
                     )}
                   </div>
-                  <label className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white flex items-center justify-center cursor-pointer border-2 border-white dark:border-[#0B132A] shadow-md">
+                  <label 
+                    className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white flex items-center justify-center cursor-pointer border-2 border-white dark:border-[#0B132A] shadow-md"
+                    onClick={(e) => {
+                      if (Capacitor.isNativePlatform()) {
+                        e.preventDefault();
+                        handleFileChange();
+                      }
+                    }}
+                  >
                     <FaCamera className="text-[10px]" />
                     <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
                   </label>

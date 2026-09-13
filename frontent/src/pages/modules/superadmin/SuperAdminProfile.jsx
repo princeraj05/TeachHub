@@ -22,6 +22,8 @@ import {
 } from "react-icons/fa";
 import { compressAvatar } from "../../../utils/mediaCompression";
 import ProfilePhotoCropModal from "../../../components/ProfilePhotoCropModal";
+import { pickProfilePhoto } from "../../../utils/mobileCapabilities";
+import { Capacitor } from "@capacitor/core";
 
 const SORA = "'Sora', sans-serif";
 
@@ -197,11 +199,18 @@ function SuperAdminProfile() {
     }
   };
 
-  const handleLogoUpload = (e) => {
-    const file = e.target.files?.[0];
+  const handleLogoUpload = async (e) => {
+    if (Capacitor.isNativePlatform()) {
+      const file = await pickProfilePhoto();
+      if (file) {
+        setCropModalImage(file);
+      }
+      return;
+    }
+    const file = e?.target?.files?.[0];
     if (file) {
       setCropModalImage(file);
-      e.target.value = "";
+      if (e.target) e.target.value = "";
     }
   };
 

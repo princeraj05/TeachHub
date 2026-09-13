@@ -4,6 +4,15 @@
  * Screen Share, and Notifications, plus robust mobile file downloads.
  */
 
+import { isNativePlatform } from "./mobileCapabilities";
+
+// Helper: Sanitize Filename against path traversal
+const sanitizeFileName = (fileName = "teachhub_document") => {
+  let safeName = fileName.replace(/[\/\?%*:|"<>]/g, "_");
+  safeName = safeName.replace(/(\.\.[\/\\])+/g, "_");
+  return safeName.trim() || "teachhub_document";
+};
+
 // 1. Just-In-Time Camera & Microphone Permission
 export const requestCameraAndMicPermission = async (callType = "video") => {
   try {
@@ -85,7 +94,7 @@ export const requestLocationPermission = () => {
   });
 };
 
-// 4. Just-In-Time Notification Permission (for WhatsApp-style Incoming Call notifications)
+// 4. Just-In-Time Notification Permission
 export const requestNotificationPermission = async () => {
   if (!("Notification" in window)) {
     return { success: false, error: "Notifications not supported in this browser." };
@@ -122,38 +131,19 @@ export const downloadFileMobile = async (fileUrl, fileName = "file") => {
       downloadUrl = downloadUrl.replace("/upload/", "/upload/fl_attachment/");
     }
 
-    // Determine extension
-    let finalFileName = fileName || "study_material";
+    // Determine safe extension and sanitized filename
+    let finalFileName = sanitizeFileName(fileName);
     if (!finalFileName.includes(".")) {
       if (fullUrl.toLowerCase().includes(".pdf")) finalFileName += ".pdf";
       else if (fullUrl.toLowerCase().includes(".png")) finalFileName += ".png";
       else if (fullUrl.toLowerCase().includes(".jpg") || fullUrl.toLowerCase().includes(".jpeg")) finalFileName += ".jpg";
+      else if (fullUrl.toLowerCase().includes(".csv")) finalFileName += ".csv";
       else finalFileName += ".pdf";
     }
 
-    // Capacitor Native Android WebView Detection
-    const isNative = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+    const isNative = isNativePlatform();
 
-    if (isNative) {
-      // In Capacitor WebView, opening the direct download URL in system browser triggers Android DownloadManager
-      try {
-        const link = document.createElement("a");
-        link.href = downloadUrl;
-        link.download = finalFileName;
-        link.target = "_system";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } catch (e) {
-        console.warn("Native link click error:", e);
-      }
-
-      // Fallback: open in external browser or window
-      window.open(downloadUrl, "_system") || window.open(downloadUrl, "_blank");
-      return;
-    }
-
-    // Data / Base64 URL
+    // Data / Base64 URL Download Trigger
     if (fullUrl.startsWith("data:")) {
       const link = document.createElement("a");
       link.href = fullUrl;
@@ -164,9 +154,58 @@ export const downloadFileMobile = async (fileUrl, fileName = "file") => {
       return;
     }
 
-    // Standard Browser Blob Download
+    // Capacitor Native Android WebView Download Route
+    if (isNative) {
+      const token = localStorage.getItem("token");
+      const isPublicResource = downloadUrl.includes("cloudinary.com") || downloadUrl.includes("/public/") || downloadUrl.endsWith(".png") || downloadUrl.endsWith(".jpg") || downloadUrl.endsWith(".jpeg");
+
+      if (isPublicResource || !token) {
+        // Public file: trigger WebView DownloadListener directly
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = finalFileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        // Authenticated file: fetch with JWT header, convert to base64 data URL, then trigger DownloadListener
+        try {
+          const response = await fetch(downloadUrl, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (!response.ok) throw new Error(`Authenticated download failed: ${response.status}`);
+          
+          const blob = await response.blob();
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const dataUrl = reader.result;
+            const link = document.createElement("a");
+            link.href = dataUrl;
+            link.download = finalFileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          };
+          reader.readAsDataURL(blob);
+        } catch (e) {
+          console.warn("Native authenticated blob fetch failed, falling back to direct URL click:", e);
+          const link = document.createElement("a");
+          link.href = downloadUrl;
+          link.download = finalFileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      }
+      return;
+    }
+
+    // Standard Browser Blob Download Route
     try {
-      const response = await fetch(downloadUrl, { mode: "cors" });
+      const token = localStorage.getItem("token");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
+      const response = await fetch(downloadUrl, { mode: "cors", headers });
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       
       const blob = await response.blob();

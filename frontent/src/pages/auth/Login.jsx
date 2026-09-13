@@ -181,7 +181,11 @@ function Login({ scope }) {
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
-      GoogleAuth.initialize();
+      try {
+        GoogleAuth.initialize();
+      } catch (err) {
+        console.warn("GoogleAuth initialize warning:", err);
+      }
     }
   }, []);
 
@@ -292,6 +296,8 @@ function Login({ scope }) {
         return;
       }
       const errStr = String(error?.message || error || "");
+      const errCode = error?.code || error?.status || "UNKNOWN_ERR";
+      const errMsg = error?.message || String(error || "Google Sign-In Failed");
       if (
         error.code === "auth/invalid-credential" || 
         errStr.includes("invalid-credential") || 
@@ -299,13 +305,13 @@ function Login({ scope }) {
         errStr.includes("UNAUTHENTICATED")
       ) {
         alert(
-          "Google Sign-In Authentication Error (401 / Invalid Credential):\n\n" +
-          "1. Please ensure 'myschool-admin-panel.vercel.app' is listed in Firebase Console -> Authentication -> Settings -> Authorized Domains.\n" +
-          "2. Make sure Google Provider is enabled with valid OAuth credentials in Firebase Console.\n\n" +
-          "Alternatively, you can sign in directly using Email OTP."
+          `Google Sign-In Error [${errCode}]:\n${errMsg}\n\n` +
+          "1. Verify 'myschool-admin-panel.vercel.app' in Firebase Console -> Authentication -> Authorized Domains.\n" +
+          "2. Ensure Google Provider is active in Firebase Console.\n\n" +
+          "Or sign in using Email OTP."
         );
       } else {
-        alert(error.message || "Google Sign-In Failed");
+        alert(`Google Sign-In Error [Code: ${errCode}]:\n${errMsg}`);
       }
     } finally {
       setLoading(false);

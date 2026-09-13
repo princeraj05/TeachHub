@@ -24,6 +24,8 @@ import {
 } from "react-icons/fa";
 import { compressAvatar } from "../../../../../utils/mediaCompression";
 import ProfilePhotoCropModal from "../../../../../components/ProfilePhotoCropModal";
+import { pickProfilePhoto } from "../../../../../utils/mobileCapabilities";
+import { Capacitor } from "@capacitor/core";
 
 const SORA = "'Sora', sans-serif";
 
@@ -185,7 +187,14 @@ function TeacherProfile() {
     }
   };
 
-  const handleAvatarUpload = () => {
+  const handleAvatarUpload = async () => {
+    if (Capacitor.isNativePlatform()) {
+      const file = await pickProfilePhoto();
+      if (file) {
+        setCropModalImage(file);
+      }
+      return;
+    }
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }

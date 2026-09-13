@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Admin App</string>
-    <string name="title_activity_main">Admin App</string>
-    <string name="package_name">com.yourschool.adminapp</string>
-    <string name="custom_url_scheme">com.yourschool.adminapp</string>
+    <string name="app_name">Your School</string>
+    <string name="title_activity_main">Your School</string>
+    <string name="package_name">com.yourschool.app</string>
+    <string name="custom_url_scheme">com.yourschool.app</string>
     <string name="server_client_id">50641468952-mhouc9io3shkvc2df0dr15lt4ndc77ml.apps.googleusercontent.com</string>
 </resources>

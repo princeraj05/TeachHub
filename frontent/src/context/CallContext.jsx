@@ -18,7 +18,7 @@ const CallContext = createContext(null);
 export const useCall = () => useContext(CallContext);
 
 export const CallProvider = ({ children }) => {
-  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
+  const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
   const currentUserId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
 
@@ -489,13 +489,21 @@ export const CallProvider = ({ children }) => {
             });
           }
         };
+
+        pc.onconnectionstatechange = () => {
+          console.log("RTCPeerConnection connectionState:", pc.connectionState);
+        };
+
+        pc.oniceconnectionstatechange = () => {
+          console.log("RTCPeerConnection iceConnectionState:", pc.iceConnectionState);
+        };
       }
 
-      const pc = peerConnectionRef.current;
+      const activePc = peerConnectionRef.current;
 
       if (isCaller) {
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
+        const offer = await activePc.createOffer();
+        await activePc.setLocalDescription(offer);
         if (targetId) {
           socket.emit("call:offer", {
             receiverId: targetId,
@@ -503,24 +511,26 @@ export const CallProvider = ({ children }) => {
           });
         }
       } else if (remoteOffer) {
-        await pc.setRemoteDescription(new RTCSessionDescription(remoteOffer));
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        if (targetId) {
-          socket.emit("call:answer", {
-            receiverId: targetId,
-            answer
-          });
+        if (activePc && activePc.signalingState !== "closed") {
+          await activePc.setRemoteDescription(new RTCSessionDescription(remoteOffer));
+          const answer = await activePc.createAnswer();
+          await activePc.setLocalDescription(answer);
+          if (targetId) {
+            socket.emit("call:answer", {
+              receiverId: targetId,
+              answer
+            });
+          }
         }
       }
     } catch (e) {
-      console.error("WebRTC Setup failed:", e);
+      console.error("WebRTC Setup warning:", e);
       if (e.name === "NotAllowedError" || e.name === "PermissionDeniedError") {
         showToast("Mic/Camera permission denied");
+        rejectCall();
       } else {
-        showToast("Failed to initialize calling media");
+        showToast("WebRTC media signaling info updated");
       }
-      rejectCall();
     }
   };
 
