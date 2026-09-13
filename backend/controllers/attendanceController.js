@@ -42,6 +42,14 @@ exports.markAttendance = async (req, res) => {
 
     const classId = classData._id;
 
+    const reqDate = new Date(req.body.date || Date.now());
+    const now = new Date();
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+    if (reqDate > todayEnd) {
+      return res.status(400).json({ message: "Attendance cannot be marked for a future date." });
+    }
+
     // today date
     const today = new Date();
     today.setHours(0,0,0,0);
@@ -241,6 +249,13 @@ exports.bulkSaveAttendance = async (req, res) => {
     const teacherId = req.user.id;
 
     const searchDate = new Date(date);
+    const now = new Date();
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+    if (searchDate > todayEnd) {
+      return res.status(400).json({ message: "Attendance cannot be marked for a future date." });
+    }
+
     const startOfDay = new Date(searchDate);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(searchDate);

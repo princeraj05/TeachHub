@@ -17,6 +17,7 @@ const SORA = "'Sora', sans-serif";
 function StudentSupport() {
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const token = localStorage.getItem("token");
+  const currentUserId = localStorage.getItem("userId");
 
   const location = useLocation();
   const isPendingPortal = location.pathname.startsWith("/pending");
@@ -431,16 +432,18 @@ function StudentSupport() {
 
               {subTab === "calls" && (
                 <div className="flex-1 overflow-y-auto divide-y divide-slate-100/50 dark:divide-white/[0.03] bg-white dark:bg-[#111827]">
-                  {callsHistory.length === 0 ? (
+                  {!Array.isArray(callsHistory) || callsHistory.length === 0 ? (
                     <div className="p-6 text-center text-slate-400 text-xs font-semibold select-none">
                       {loading ? "Loading calls..." : "No call history found."}
                     </div>
                   ) : (
                     callsHistory.map((call) => {
-                      const isOutgoing = call.caller?._id === currentUserId;
+                      if (!call) return null;
+                      const isOutgoing = (call.caller?._id || call.caller)?.toString() === currentUserId?.toString();
                       const partner = isOutgoing ? call.receiver : call.caller;
                       if (!partner) return null;
                       
+                      const partnerName = typeof partner === "object" ? partner.name : "User";
                       const isMissed = call.status === "missed";
                       const isRejected = call.status === "rejected";
                       const isCompleted = call.status === "completed";
@@ -452,10 +455,10 @@ function StudentSupport() {
                         >
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black flex-shrink-0">
-                              {partner.name ? partner.name.charAt(0).toUpperCase() : "U"}
+                              {partnerName ? partnerName.charAt(0).toUpperCase() : "U"}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-xs font-bold text-slate-700 dark:text-white truncate">{partner.name}</p>
+                              <p className="text-xs font-bold text-slate-700 dark:text-white truncate">{partnerName}</p>
                               <div className="flex items-center gap-1 mt-0.5 select-none">
                                 <span className={`text-[9px] font-bold uppercase tracking-wider ${
                                   isMissed || isRejected ? "text-rose-500" : isCompleted ? "text-green-500" : "text-amber-500"

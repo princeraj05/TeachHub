@@ -56,6 +56,16 @@ function MarkAttendance() {
     return String(id);
   };
 
+  const getTodayCalendarDate = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const isFutureDate = Boolean(selectedDate && selectedDate > getTodayCalendarDate());
+
   const getSubName = (subObj) => {
     if (!subObj) return "Subject";
     if (typeof subObj === "object") return subObj.name || subObj.subjectName || "Subject";
@@ -103,6 +113,13 @@ function MarkAttendance() {
   // Load Timetable Schedule and Subject Sequencing for selected Class & Date
   useEffect(() => {
     if (!selectedClassId || !selectedDate) return;
+
+    if (isFutureDate) {
+      setTimetableSubjects([]);
+      setSelectedSubjectId("");
+      setCompletedSubjectIds(new Set());
+      return;
+    }
 
     const loadTimetableAndCompletions = async () => {
       try {
@@ -175,7 +192,7 @@ function MarkAttendance() {
     };
 
     loadTimetableAndCompletions();
-  }, [selectedClassId, selectedDate, subjects, API, token]);
+  }, [selectedClassId, selectedDate, subjects, API, token, isFutureDate]);
 
   // Check if selectedSubjectId is already marked for today
   useEffect(() => {
@@ -189,6 +206,13 @@ function MarkAttendance() {
   // Fetch students when selected class, date, or subject changes
   useEffect(() => {
     if (!selectedClassId) return;
+
+    if (isFutureDate) {
+      setStudents([]);
+      setAttendance({});
+      setLoading(false);
+      return;
+    }
 
     const fetchStudentsAndAttendance = async () => {
       setLoading(true);
@@ -455,8 +479,16 @@ function MarkAttendance() {
         </div>
       </div>
 
+      {/* Future Date Warning Banner */}
+      {isFutureDate && (
+        <div className="mb-6 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+          <span>🚫 Future attendance cannot be marked. Please select today or a past date.</span>
+          <span className="px-3 py-1 rounded-xl bg-rose-500/20 text-[10px] font-black uppercase tracking-wider shrink-0">Future Date</span>
+        </div>
+      )}
+
       {/* Completed Attendance Today Info Banner */}
-      {isCurrentSubjectCompleted && (
+      {isCurrentSubjectCompleted && !isFutureDate && (
         <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
           <span>✔ Attendance for this subject has already been recorded for today ({selectedDate}). Next attendance will be available tomorrow!</span>
           <span className="px-3 py-1 rounded-xl bg-amber-500/20 text-[10px] font-black uppercase tracking-wider shrink-0">Completed Today</span>
@@ -732,7 +764,7 @@ function MarkAttendance() {
             {/* Save Ledger button */}
             <button
               onClick={handleSaveAttendance}
-              disabled={submitting || totalRoster === 0 || !selectedSubjectId || isCurrentSubjectCompleted}
+              disabled={submitting || totalRoster === 0 || !selectedSubjectId || isCurrentSubjectCompleted || isFutureDate}
               className="w-full py-3 mt-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-md shadow-purple-600/10 active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
             >
               {submitting ? (
