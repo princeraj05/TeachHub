@@ -124,18 +124,42 @@ message:error.message
 // ================= GET JOIN REQUESTS =================
 exports.getJoinRequests = async (req, res) => {
   try {
-    if (!req.user || !req.user.schoolName) {
+    if (!req.user || (!req.user.schoolName && !req.user.requestedSchool)) {
       return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
     }
 
-    const school = req.user.schoolName;
-    const schoolRegex = new RegExp("^" + escapeRegex(school) + "$", "i");
+    const { resolveSchoolForAdmin, normalizeName } = require("../services/school/schoolResolverService");
+    let schoolObj = null;
+    try {
+      schoolObj = await resolveSchoolForAdmin({
+        adminUserId: req.user.id || req.user._id,
+        targetSchoolName: req.user.schoolName || req.user.requestedSchool,
+        adminEmail: req.user.email
+      });
+    } catch (rErr) {
+      console.warn("schoolResolverService lookup in getJoinRequests warning:", rErr.message);
+    }
 
-    // Run the auto-heal/migrate here too to keep both endpoints in sync
+    const canonicalSchoolName = schoolObj ? schoolObj.name : (req.user.schoolName || req.user.requestedSchool || "");
+
+    // Auto-heal admin user's schoolName if it was mismatched
+    if (schoolObj && schoolObj.name && req.user.schoolName !== schoolObj.name) {
+      User.updateOne({ _id: req.user.id || req.user._id }, { schoolName: schoolObj.name, requestedSchool: schoolObj.name })
+        .catch(hErr => console.warn("Error auto-healing admin schoolName:", hErr.message));
+    }
+
+    const matchNames = new Set();
+    if (canonicalSchoolName) matchNames.add(canonicalSchoolName);
+    if (req.user.schoolName) matchNames.add(req.user.schoolName);
+    if (req.user.requestedSchool) matchNames.add(req.user.requestedSchool);
+
+    const schoolRegexes = Array.from(matchNames).map(n => new RegExp("^" + escapeRegex(n) + "$", "i"));
+
+    // Auto-heal unassigned candidates
     const candidatesToHeal = await User.find({
       $or: [
-        { schoolName: schoolRegex },
-        { requestedSchool: schoolRegex }
+        { requestedSchool: { $in: schoolRegexes } },
+        { schoolName: { $in: schoolRegexes } }
       ],
       role: "unassigned",
       requestedRole: "student",
@@ -146,15 +170,15 @@ exports.getJoinRequests = async (req, res) => {
     for (let c of candidatesToHeal) {
       c.role = "unassigned";
       c.requestedRole = "student";
-      c.requestedSchool = school;
+      c.requestedSchool = canonicalSchoolName || c.requestedSchool;
       c.requestStatus = c.admissionExamDate ? "scheduled" : "pending";
       await c.save();
     }
 
     const requests = await User.find({
       $or: [
-        { requestedSchool: schoolRegex },
-        { schoolName: schoolRegex }
+        { requestedSchool: { $in: schoolRegexes } },
+        { schoolName: { $in: schoolRegexes } }
       ],
       requestStatus: { $in: ["pending", "scheduled", "exam_completed"] }
     })
@@ -172,7 +196,7 @@ exports.processJoinRequest = async (req, res) => {
   try {
     const { userId, action, examDate, examMode, proctorId, interviewDate, interviewTime, interviewMode, interviewVenue, interviewNotes } = req.body;
 
-    if (!req.user || !req.user.schoolName) {
+    if (!req.user || (!req.user.schoolName && !req.user.requestedSchool)) {
       return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
     }
 
@@ -185,8 +209,29 @@ exports.processJoinRequest = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const schoolRegex = new RegExp("^" + escapeRegex(req.user.schoolName) + "$", "i");
-    const matchesSchool = (candidate.requestedSchool && schoolRegex.test(candidate.requestedSchool)) || (candidate.schoolName && schoolRegex.test(candidate.schoolName));
+    const { resolveSchoolForAdmin } = require("../services/school/schoolResolverService");
+    let schoolObj = null;
+    try {
+      schoolObj = await resolveSchoolForAdmin({
+        adminUserId: req.user.id || req.user._id,
+        targetSchoolName: req.user.schoolName || req.user.requestedSchool,
+        adminEmail: req.user.email
+      });
+    } catch (rErr) {
+      console.warn("schoolResolverService lookup in processJoinRequest warning:", rErr.message);
+    }
+
+    const canonicalSchoolName = schoolObj ? schoolObj.name : (req.user.schoolName || req.user.requestedSchool || "");
+
+    const matchNames = new Set();
+    if (canonicalSchoolName) matchNames.add(canonicalSchoolName);
+    if (req.user.schoolName) matchNames.add(req.user.schoolName);
+    if (req.user.requestedSchool) matchNames.add(req.user.requestedSchool);
+
+    const schoolRegexes = Array.from(matchNames).map(n => new RegExp("^" + escapeRegex(n) + "$", "i"));
+
+    const matchesSchool = (candidate.requestedSchool && schoolRegexes.some(r => r.test(candidate.requestedSchool))) ||
+                          (candidate.schoolName && schoolRegexes.some(r => r.test(candidate.schoolName)));
 
     if (!matchesSchool) {
       return res.status(403).json({ message: "Forbidden: You can only process requests for your own school" });
@@ -197,7 +242,8 @@ exports.processJoinRequest = async (req, res) => {
         if (action === "schedule_interview" && (!examDate || !examMode)) {
           return res.status(400).json({ message: "Exam date and mode are required for student scheduling" });
         }
-        candidate.schoolName = candidate.requestedSchool || req.user.schoolName;
+        candidate.schoolName = canonicalSchoolName || candidate.requestedSchool || req.user.schoolName;
+        candidate.requestedSchool = canonicalSchoolName || candidate.requestedSchool;
         if (action === "approved") {
           candidate.role = "student";
           candidate.requestStatus = "approved";
@@ -209,7 +255,8 @@ exports.processJoinRequest = async (req, res) => {
           candidate.admissionExamProctor = proctorId || req.user.id;
         }
       } else if (action === "schedule_interview" || (interviewMode && interviewMode !== "")) {
-        candidate.schoolName = candidate.requestedSchool || req.user.schoolName;
+        candidate.schoolName = canonicalSchoolName || candidate.requestedSchool || req.user.schoolName;
+        candidate.requestedSchool = canonicalSchoolName || candidate.requestedSchool;
         candidate.requestStatus = "scheduled";
         candidate.interviewDate = interviewDate ? new Date(interviewDate) : new Date();
         candidate.interviewTime = interviewTime || "";
@@ -220,7 +267,8 @@ exports.processJoinRequest = async (req, res) => {
         candidate.admissionExamMode = candidate.interviewMode;
       } else {
         candidate.role = candidate.requestedRole || "teacher";
-        candidate.schoolName = candidate.requestedSchool || req.user.schoolName;
+        candidate.schoolName = canonicalSchoolName || candidate.requestedSchool || req.user.schoolName;
+        candidate.requestedSchool = canonicalSchoolName || candidate.requestedSchool;
         candidate.requestStatus = "approved";
         candidate.approvedAt = new Date();
       }

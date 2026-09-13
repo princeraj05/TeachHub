@@ -478,12 +478,12 @@ exports.getProfile = async (req, res) => {
       }
     }
 
-    // Sync admin user's schoolName from School collection if missing or empty
-    if (user.role === "admin" && (!user.schoolName || user.schoolName === "Not Assigned")) {
+    // Sync admin user's schoolName from School collection if missing, empty, or mismatched
+    if (user.role === "admin") {
       try {
         const School = require("../models/School");
         const foundSchool = await School.findOne({ adminId: user._id }).lean();
-        if (foundSchool && foundSchool.name) {
+        if (foundSchool && foundSchool.name && user.schoolName !== foundSchool.name) {
           user.schoolName = foundSchool.name;
           user.requestedSchool = foundSchool.name;
           await User.updateOne({ _id: user._id }, { schoolName: foundSchool.name, requestedSchool: foundSchool.name });
