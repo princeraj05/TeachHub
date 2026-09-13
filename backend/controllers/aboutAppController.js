@@ -81,7 +81,7 @@ exports.updateAboutInfo = async (req, res) => {
       "developerName", "developerAddress", "developerEmail", "developerPhone",
       "supportEmail", "supportPhone", "supportWhatsapp", "supportHours",
       "privacyPolicyUrl", "cookiePolicyUrl", "termsOfServiceUrl", "disclaimerUrl",
-      "refundPolicyUrl", "aboutUsUrl", "playStoreLink", "appStoreLink",
+      "refundPolicyUrl", "aboutUsUrl", "accountDeletionUrl", "playStoreLink", "appStoreLink",
       "socialFacebook", "socialTwitter", "socialInstagram", "socialYoutube", "socialLinkedin"
     ];
 
