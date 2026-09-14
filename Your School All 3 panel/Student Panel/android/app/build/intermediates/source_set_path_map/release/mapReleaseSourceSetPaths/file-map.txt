@@ -1,0 +1,63 @@
+com.yourschool.student.app-jetified-core-ktx-1.17.0-0 C:\Users\DELL\.gradle\caches\8.14.3\transforms\00618c0cf76a85fd346633ad03ea2089\transformed\jetified-core-ktx-1.17.0\res
+com.yourschool.student.app-jetified-core-splashscreen-1.2.0-1 C:\Users\DELL\.gradle\caches\8.14.3\transforms\02046e6c78bd17c8784f6e0ed3ae2153\transformed\jetified-core-splashscreen-1.2.0\res
+com.yourschool.student.app-jetified-lifecycle-viewmodel-savedstate-2.6.2-2 C:\Users\DELL\.gradle\caches\8.14.3\transforms\09e887a0db10fe7d6c6037fd44442cc0\transformed\jetified-lifecycle-viewmodel-savedstate-2.6.2\res
+com.yourschool.student.app-jetified-emoji2-views-helper-1.3.0-3 C:\Users\DELL\.gradle\caches\8.14.3\transforms\0c1816fac24624fc8f2d2983c87da6ca\transformed\jetified-emoji2-views-helper-1.3.0\res
+com.yourschool.student.app-jetified-lifecycle-process-2.6.2-4 C:\Users\DELL\.gradle\caches\8.14.3\transforms\0d13729518a9a2959122ec4d4ba911c3\transformed\jetified-lifecycle-process-2.6.2\res
+com.yourschool.student.app-jetified-firebase-common-22.2.0-5 C:\Users\DELL\.gradle\caches\8.14.3\transforms\0f928ab65142e31d373a47402f2f4b3f\transformed\jetified-firebase-common-22.2.0\res
+com.yourschool.student.app-core-1.17.0-6 C:\Users\DELL\.gradle\caches\8.14.3\transforms\11094a199bb7945826b161d8a9c17beb\transformed\core-1.17.0\res
+com.yourschool.student.app-jetified-savedstate-1.2.1-7 C:\Users\DELL\.gradle\caches\8.14.3\transforms\122be9d74e603f0dbc5f999b476b734a\transformed\jetified-savedstate-1.2.1\res
+com.yourschool.student.app-jetified-play-services-base-18.5.0-8 C:\Users\DELL\.gradle\caches\8.14.3\transforms\27c08959637e3a32a1de54b1df8badbb\transformed\jetified-play-services-base-18.5.0\res
+com.yourschool.student.app-jetified-ioncamera-android-1.0.2-9 C:\Users\DELL\.gradle\caches\8.14.3\transforms\2c75bdeab17ed9f025eaf81ddc8bd29b\transformed\jetified-ioncamera-android-1.0.2\res
+com.yourschool.student.app-constraintlayout-2.2.0-10 C:\Users\DELL\.gradle\caches\8.14.3\transforms\2dedc20bd782c3bbee938583d5f01158\transformed\constraintlayout-2.2.0\res
+com.yourschool.student.app-jetified-lifecycle-viewmodel-ktx-2.6.2-11 C:\Users\DELL\.gradle\caches\8.14.3\transforms\390e0ea0e5a8855e39f9c54f8c53da96\transformed\jetified-lifecycle-viewmodel-ktx-2.6.2\res
+com.yourschool.student.app-drawerlayout-1.1.1-12 C:\Users\DELL\.gradle\caches\8.14.3\transforms\3af1cae255639fa50a43e4b1644f292a\transformed\drawerlayout-1.1.1\res
+com.yourschool.student.app-jetified-ads-adservices-java-1.1.0-beta11-13 C:\Users\DELL\.gradle\caches\8.14.3\transforms\3bb0d682cb60b0ac7af5485f50cd3b98\transformed\jetified-ads-adservices-java-1.1.0-beta11\res
+com.yourschool.student.app-jetified-core-viewtree-1.0.0-14 C:\Users\DELL\.gradle\caches\8.14.3\transforms\44d39dcdf3099cedde5cacdab7d0a26b\transformed\jetified-core-viewtree-1.0.0\res
+com.yourschool.student.app-jetified-viewpager2-1.0.0-15 C:\Users\DELL\.gradle\caches\8.14.3\transforms\46248b3190bd9c1fb7ea48c36768d1e9\transformed\jetified-viewpager2-1.0.0\res
+com.yourschool.student.app-jetified-tracing-1.2.0-16 C:\Users\DELL\.gradle\caches\8.14.3\transforms\48d3a4646888acfceb219ee9423185ce\transformed\jetified-tracing-1.2.0\res
+com.yourschool.student.app-cardview-1.0.0-17 C:\Users\DELL\.gradle\caches\8.14.3\transforms\4ff321495b888f15e10721315cd0c628\transformed\cardview-1.0.0\res
+com.yourschool.student.app-core-runtime-2.2.0-18 C:\Users\DELL\.gradle\caches\8.14.3\transforms\56c299ca5cc1351fb9b11d94695125dc\transformed\core-runtime-2.2.0\res
+com.yourschool.student.app-jetified-datastore-preferences-core-release-19 C:\Users\DELL\.gradle\caches\8.14.3\transforms\58e08dd6020dc18194d30625cf711532\transformed\jetified-datastore-preferences-core-release\res
+com.yourschool.student.app-jetified-activity-1.11.0-20 C:\Users\DELL\.gradle\caches\8.14.3\transforms\5b09bd54025adb1b046032104364fa6b\transformed\jetified-activity-1.11.0\res
+com.yourschool.student.app-jetified-datastore-core-release-21 C:\Users\DELL\.gradle\caches\8.14.3\transforms\5da0f5d47f86f3e88d8cc2733b8a3f1b\transformed\jetified-datastore-core-release\res
+com.yourschool.student.app-jetified-lifecycle-runtime-ktx-2.6.2-22 C:\Users\DELL\.gradle\caches\8.14.3\transforms\74afadeff35641277cb3f01c2f5e0fe1\transformed\jetified-lifecycle-runtime-ktx-2.6.2\res
+com.yourschool.student.app-fragment-1.8.9-23 C:\Users\DELL\.gradle\caches\8.14.3\transforms\754c4f1b691d2a1223e4f8f413992fee\transformed\fragment-1.8.9\res
+com.yourschool.student.app-jetified-emoji2-1.3.0-24 C:\Users\DELL\.gradle\caches\8.14.3\transforms\7b8ffc12a79427f8c495ac988a8277e4\transformed\jetified-emoji2-1.3.0\res
+com.yourschool.student.app-jetified-annotation-experimental-1.4.1-25 C:\Users\DELL\.gradle\caches\8.14.3\transforms\7e3787f4764632af3f2da7d8fc23b009\transformed\jetified-annotation-experimental-1.4.1\res
+com.yourschool.student.app-jetified-ads-adservices-1.1.0-beta11-26 C:\Users\DELL\.gradle\caches\8.14.3\transforms\8a08a932879304deb0a688e9101fa544\transformed\jetified-ads-adservices-1.1.0-beta11\res
+com.yourschool.student.app-lifecycle-livedata-2.6.2-27 C:\Users\DELL\.gradle\caches\8.14.3\transforms\8d83e436f29a9ad9858ae8c630f3448b\transformed\lifecycle-livedata-2.6.2\res
+com.yourschool.student.app-jetified-play-services-basement-18.9.0-28 C:\Users\DELL\.gradle\caches\8.14.3\transforms\9d6a20ed68bd0fa193a3e1d248668748\transformed\jetified-play-services-basement-18.9.0\res
+com.yourschool.student.app-jetified-datastore-preferences-release-29 C:\Users\DELL\.gradle\caches\8.14.3\transforms\9ef8b6a12023532255c2fd3a040f1246\transformed\jetified-datastore-preferences-release\res
+com.yourschool.student.app-jetified-play-services-auth-18.1.0-30 C:\Users\DELL\.gradle\caches\8.14.3\transforms\a0cc60c957bb559b9cebd39080598eb8\transformed\jetified-play-services-auth-18.1.0\res
+com.yourschool.student.app-dynamicanimation-1.1.0-31 C:\Users\DELL\.gradle\caches\8.14.3\transforms\a2073ef8c71e8642c7cd2ebfc09d21c6\transformed\dynamicanimation-1.1.0\res
+com.yourschool.student.app-lifecycle-viewmodel-2.6.2-32 C:\Users\DELL\.gradle\caches\8.14.3\transforms\ab32e4c3e2bf096654fd9e14504854dc\transformed\lifecycle-viewmodel-2.6.2\res
+com.yourschool.student.app-lifecycle-livedata-core-2.6.2-33 C:\Users\DELL\.gradle\caches\8.14.3\transforms\b5655c5df44c26433ffde34d45e6b2a4\transformed\lifecycle-livedata-core-2.6.2\res
+com.yourschool.student.app-jetified-savedstate-ktx-1.2.1-34 C:\Users\DELL\.gradle\caches\8.14.3\transforms\bf878ca6faf1e17e3d56201c9eb4a99c\transformed\jetified-savedstate-ktx-1.2.1\res
+com.yourschool.student.app-webkit-1.14.0-35 C:\Users\DELL\.gradle\caches\8.14.3\transforms\c2f70b51baa62bcee94ea5c7e05791a1\transformed\webkit-1.14.0\res
+com.yourschool.student.app-appcompat-1.7.1-36 C:\Users\DELL\.gradle\caches\8.14.3\transforms\c3f09e8abd8bb01c9314454bd06bb337\transformed\appcompat-1.7.1\res
+com.yourschool.student.app-material-1.13.0-37 C:\Users\DELL\.gradle\caches\8.14.3\transforms\d30d5b44a30cca3e7686b77f30f8a3cf\transformed\material-1.13.0\res
+com.yourschool.student.app-jetified-graphics-shapes-release-38 C:\Users\DELL\.gradle\caches\8.14.3\transforms\d3c98f04ac8784c68203ebf05a024004\transformed\jetified-graphics-shapes-release\res
+com.yourschool.student.app-jetified-startup-runtime-1.1.1-39 C:\Users\DELL\.gradle\caches\8.14.3\transforms\e3ae934cef1b9f17401102f7b9d1ccb4\transformed\jetified-startup-runtime-1.1.1\res
+com.yourschool.student.app-lifecycle-runtime-2.6.2-40 C:\Users\DELL\.gradle\caches\8.14.3\transforms\ebf9360ba611f1d20f2bddac6f1045ca\transformed\lifecycle-runtime-2.6.2\res
+com.yourschool.student.app-jetified-profileinstaller-1.4.0-41 C:\Users\DELL\.gradle\caches\8.14.3\transforms\eeac048c29facbd46998f66f1c547a47\transformed\jetified-profileinstaller-1.4.0\res
+com.yourschool.student.app-coordinatorlayout-1.3.0-42 C:\Users\DELL\.gradle\caches\8.14.3\transforms\ef97883a45eaa5cc79115d450cce1dbe\transformed\coordinatorlayout-1.3.0\res
+com.yourschool.student.app-jetified-activity-ktx-1.11.0-43 C:\Users\DELL\.gradle\caches\8.14.3\transforms\f0726eeb2533e21de0c749d912bc2dc9\transformed\jetified-activity-ktx-1.11.0\res
+com.yourschool.student.app-recyclerview-1.2.1-44 C:\Users\DELL\.gradle\caches\8.14.3\transforms\f1bac9250343b6cb2a9c1fb9d686203c\transformed\recyclerview-1.2.1\res
+com.yourschool.student.app-jetified-datastore-release-45 C:\Users\DELL\.gradle\caches\8.14.3\transforms\f242a7959b6022aa5878c70e4c50f352\transformed\jetified-datastore-release\res
+com.yourschool.student.app-jetified-appcompat-resources-1.7.1-46 C:\Users\DELL\.gradle\caches\8.14.3\transforms\f5e179a7d686d030bdd0855542d17082\transformed\jetified-appcompat-resources-1.7.1\res
+com.yourschool.student.app-exifinterface-1.4.1-47 C:\Users\DELL\.gradle\caches\8.14.3\transforms\f65261db25ed36e4711a5e3efc04a79c\transformed\exifinterface-1.4.1\res
+com.yourschool.student.app-jetified-camera-core-1.4.2-48 C:\Users\DELL\.gradle\caches\8.14.3\transforms\f8c0c7b4229b5520ebe975e9ca35ca0f\transformed\jetified-camera-core-1.4.2\res
+com.yourschool.student.app-transition-1.5.0-49 C:\Users\DELL\.gradle\caches\8.14.3\transforms\ffc4710ae3de602c2cf7a337da6c8898\transformed\transition-1.5.0\res
+com.yourschool.student.app-pngs-50 D:\SEMESTER 6\TeachHub\Your School All 3 panel\Student Panel\android\app\build\generated\res\pngs\release
+com.yourschool.student.app-res-51 D:\SEMESTER 6\TeachHub\Your School All 3 panel\Student Panel\android\app\build\generated\res\processReleaseGoogleServices
+com.yourschool.student.app-resValues-52 D:\SEMESTER 6\TeachHub\Your School All 3 panel\Student Panel\android\app\build\generated\res\resValues\release
+com.yourschool.student.app-updated_navigation_xml-53 D:\SEMESTER 6\TeachHub\Your School All 3 panel\Student Panel\android\app\build\generated\updated_navigation_xml\release
+com.yourschool.student.app-packageReleaseResources-54 D:\SEMESTER 6\TeachHub\Your School All 3 panel\Student Panel\android\app\build\intermediates\incremental\release\packageReleaseResources\merged.dir
+com.yourschool.student.app-packageReleaseResources-55 D:\SEMESTER 6\TeachHub\Your School All 3 panel\Student Panel\android\app\build\intermediates\incremental\release\packageReleaseResources\stripped.dir
+com.yourschool.student.app-release-56 D:\SEMESTER 6\TeachHub\Your School All 3 panel\Student Panel\android\app\build\intermediates\merged_res\release\mergeReleaseResources
+com.yourschool.student.app-main-57 D:\SEMESTER 6\TeachHub\Your School All 3 panel\Student Panel\android\app\src\main\res
+com.yourschool.student.app-release-58 D:\SEMESTER 6\TeachHub\Your School All 3 panel\Student Panel\android\app\src\release\res
+com.yourschool.student.app-release-59 D:\SEMESTER 6\TeachHub\frontent\node_modules\@capacitor\android\capacitor\build\intermediates\packaged_res\release\packageReleaseResources
+com.yourschool.student.app-release-60 D:\SEMESTER 6\TeachHub\frontent\node_modules\@capacitor\app\android\build\intermediates\packaged_res\release\packageReleaseResources
+com.yourschool.student.app-release-61 D:\SEMESTER 6\TeachHub\frontent\node_modules\@capacitor\camera\android\build\intermediates\packaged_res\release\packageReleaseResources
+com.yourschool.student.app-release-62 D:\SEMESTER 6\TeachHub\frontent\node_modules\@codetrix-studio\capacitor-google-auth\android\build\intermediates\packaged_res\release\packageReleaseResources

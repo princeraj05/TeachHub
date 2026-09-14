@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_web_client_id" translatable="false">50641468952-mhouc9io3shkvc2df0dr15lt4ndc77ml.apps.googleusercontent.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">50641468952</string>
+    <string name="google_api_key" translatable="false">AIzaSyCTzTXromN6LcZSrIuF9whtl_KsDAHWTbs</string>
+    <string name="google_app_id" translatable="false">1:50641468952:android:0fbbc27371abedd01f4d6d</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyCTzTXromN6LcZSrIuF9whtl_KsDAHWTbs</string>
+    <string name="google_storage_bucket" translatable="false">teachhub-da45a.firebasestorage.app</string>
+    <string name="project_id" translatable="false">teachhub-da45a</string>
+</resources>

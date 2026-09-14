@@ -30,7 +30,11 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   const role = localStorage.getItem("role");
 
   if (!token) {
-    return <Navigate to="/" replace />;
+    const isStudentBuild = import.meta.env.MODE === "student" || import.meta.env.VITE_APP_SCOPE === "student";
+    const isTeacherBuild = import.meta.env.MODE === "teacher" || import.meta.env.VITE_APP_SCOPE === "teacher";
+    const isAdminBuild = import.meta.env.MODE === "admin" || import.meta.env.VITE_APP_SCOPE === "admin";
+    const unauthRedirect = isStudentBuild ? "/student/login" : (isTeacherBuild ? "/teacher/login" : (isAdminBuild ? "/admin/login" : "/"));
+    return <Navigate to={unauthRedirect} replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(role)) {
@@ -46,11 +50,23 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 };
 
 function MainRoutes() {
+  const isStudentBuild = import.meta.env.MODE === "student" || import.meta.env.VITE_APP_SCOPE === "student";
+  const isTeacherBuild = import.meta.env.MODE === "teacher" || import.meta.env.VITE_APP_SCOPE === "teacher";
+  const isAdminBuild = import.meta.env.MODE === "admin" || import.meta.env.VITE_APP_SCOPE === "admin";
+
+  const rootElement = isStudentBuild
+    ? <Navigate to="/student/login" replace />
+    : (isTeacherBuild
+      ? <Navigate to="/teacher/login" replace />
+      : (isAdminBuild
+        ? <Navigate to="/admin/login" replace />
+        : <Login scope="universal" />));
+
   return (
     <Suspense fallback={<ModuleLoader />}>
       <Routes>
         {/* Auth */}
-        <Route path="/" element={<Login scope="universal" />} />
+        <Route path="/" element={rootElement} />
         <Route path="/student/login" element={<Login scope="student" />} />
         <Route path="/teacher/login" element={<Login scope="teacher" />} />
         <Route path="/admin/login" element={<Login scope="admin" />} />

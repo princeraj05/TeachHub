@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:admin": "vite build --mode admin",
+    "build:teacher": "vite build --mode teacher",
+    "build:student": "vite build --mode student",
     "lint": "eslint .",
     "preview": "vite preview"
   },

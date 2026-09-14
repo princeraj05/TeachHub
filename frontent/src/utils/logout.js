@@ -42,10 +42,27 @@ export const performLogout = async (navigate) => {
     console.error("Error during explicit logout process:", error);
   } finally {
     // 4. Redirect to login landing page
+    const isStudentBuild =
+      import.meta.env.MODE === "student" ||
+      import.meta.env.VITE_APP_SCOPE === "student";
+    const isTeacherBuild =
+      import.meta.env.MODE === "teacher" ||
+      import.meta.env.VITE_APP_SCOPE === "teacher";
+    const isAdminBuild =
+      import.meta.env.MODE === "admin" ||
+      import.meta.env.VITE_APP_SCOPE === "admin";
+    const redirectPath = isStudentBuild
+      ? "/student/login"
+      : isTeacherBuild
+      ? "/teacher/login"
+      : isAdminBuild
+      ? "/admin/login"
+      : "/";
+
     if (navigate) {
-      navigate("/");
+      navigate(redirectPath);
     } else {
-      window.location.href = "/";
+      window.location.href = redirectPath;
     }
   }
 };
