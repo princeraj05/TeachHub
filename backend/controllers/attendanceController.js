@@ -288,7 +288,10 @@ exports.getClassAttendanceForDate = async (req, res) => {
       attQuery.teacher = req.user.id;
     }
     
-    if (subjectId && subjectId !== "none" && subjectId !== "") {
+    const mongoose = require("mongoose");
+    const isValidSubjectId = Boolean(subjectId && subjectId !== "none" && subjectId !== "undefined" && subjectId !== "null" && mongoose.Types.ObjectId.isValid(subjectId));
+
+    if (isValidSubjectId) {
       attQuery.subject = subjectId;
     } else {
       attQuery.subject = null;
@@ -315,9 +318,13 @@ exports.getClassAttendanceForDate = async (req, res) => {
       };
     });
 
+    const alreadyMarked = isValidSubjectId
+      ? records.length > 0 && records.some(r => r.subject && r.subject.toString() === String(subjectId))
+      : records.length > 0;
+
     res.json({
       students: studentsWithStatus,
-      alreadyMarked: records.length > 0
+      alreadyMarked
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

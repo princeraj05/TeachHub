@@ -11,11 +11,59 @@ import {
   FaHistory, 
   FaSearch, 
   FaRedoAlt, 
-  FaGraduationCap 
+  FaGraduationCap,
+  FaCheckCircle,
+  FaExclamationTriangle,
+  FaTimesCircle
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 const SORA = "'Sora', sans-serif";
+
+const getCleanId = (id) => {
+  if (!id) return "";
+  if (typeof id === "string") {
+    if (id === "[object Object]" || id === "undefined" || id === "null") return "";
+    return id;
+  }
+  if (typeof id === "object") {
+    if (id._id) return getCleanId(id._id);
+    if (typeof id.toString === "function") {
+      const str = id.toString();
+      if (str !== "[object Object]" && str !== "undefined" && str !== "null") return str;
+    }
+  }
+  return "";
+};
+
+const getTodayCalendarDate = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getSubName = (subObj) => {
+  if (!subObj) return "Subject";
+  if (typeof subObj === "object") return subObj.name || subObj.subjectName || "Subject";
+  return "Subject";
+};
+
+const parseTimeToMinutes = (timeStr) => {
+  if (!timeStr) return 0;
+  const clean = String(timeStr).trim().toUpperCase();
+  const match = clean.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/);
+  if (!match) return 0;
+  let hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const ampm = match[3];
+  if (ampm) {
+    if (ampm === "PM" && hours < 12) hours += 12;
+    if (ampm === "AM" && hours === 12) hours = 0;
+  }
+  return hours * 60 + minutes;
+};
 
 function MarkAttendance() {
   const API = import.meta.env.VITE_API_URL;
@@ -43,49 +91,30 @@ function MarkAttendance() {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const getCleanId = (id) => {
-    if (!id) return "";
-    if (typeof id === "string") return id;
-    if (typeof id === "object") {
-      if (id._id) return getCleanId(id._id);
-      if (typeof id.toString === "function") {
-        const str = id.toString();
-        if (str !== "[object Object]") return str;
-      }
-    }
-    return String(id);
-  };
+  // Modern Modal/Dialog state
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    type: "success", // "success" | "warning" | "error"
+    title: "",
+    message: "",
+    subMessage: "",
+    buttonText: "OK"
+  });
 
-  const getTodayCalendarDate = () => {
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  const closeModal = () => setModalConfig(prev => ({ ...prev, isOpen: false }));
+
+  const showModal = ({ type = "success", title = "", message = "", subMessage = "", buttonText = "OK" }) => {
+    setModalConfig({
+      isOpen: true,
+      type,
+      title,
+      message,
+      subMessage,
+      buttonText
+    });
   };
 
   const isFutureDate = Boolean(selectedDate && selectedDate > getTodayCalendarDate());
-
-  const getSubName = (subObj) => {
-    if (!subObj) return "Subject";
-    if (typeof subObj === "object") return subObj.name || subObj.subjectName || "Subject";
-    return "Subject";
-  };
-
-  const parseTimeToMinutes = (timeStr) => {
-    if (!timeStr) return 0;
-    const clean = String(timeStr).trim().toUpperCase();
-    const match = clean.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/);
-    if (!match) return 0;
-    let hours = parseInt(match[1], 10);
-    const minutes = parseInt(match[2], 10);
-    const ampm = match[3];
-    if (ampm) {
-      if (ampm === "PM" && hours < 12) hours += 12;
-      if (ampm === "AM" && hours === 12) hours = 0;
-    }
-    return hours * 60 + minutes;
-  };
 
   // Fetch classes and subjects on load
   useEffect(() => {
@@ -118,6 +147,9 @@ function MarkAttendance() {
       setTimetableSubjects([]);
       setSelectedSubjectId("");
       setCompletedSubjectIds(new Set());
+      setIsCurrentSubjectCompleted(false);
+      setStudents([]);
+      setAttendance({});
       return;
     }
 
@@ -125,6 +157,9 @@ function MarkAttendance() {
       try {
         const dateObj = new Date(selectedDate);
         const dayName = dateObj.toLocaleDateString("en-US", { weekday: "long" });
+
+        // Reset completion set prior to loading new class/date timetable
+        setCompletedSubjectIds(new Set());
 
         // 1. Fetch timetable entries for class & day
         const ttRes = await axios.get(`${API}/api/timetable?day=${dayName}&classId=${selectedClassId}`, {
@@ -136,7 +171,7 @@ function MarkAttendance() {
         rawEntries.sort((a, b) => parseTimeToMinutes(a.startTime) - parseTimeToMinutes(b.startTime));
 
         // Get Set of IDs of subjects assigned to this teacher
-        const myTeacherSubjectIds = new Set(subjects.map(s => getCleanId(s._id)));
+        const myTeacherSubjectIds = new Set(subjects.map(s => getCleanId(s._id)).filter(Boolean));
 
         const orderedList = [];
         const seenSubIds = new Set();
@@ -146,8 +181,8 @@ function MarkAttendance() {
           const subIdStr = getCleanId(subObj);
           const subName = getSubName(subObj);
           
-          // Only include if scheduled today AND assigned to this teacher
-          if (subIdStr && myTeacherSubjectIds.has(subIdStr)) {
+          // Only include if scheduled today AND assigned to this teacher (or if teacher subjects list is empty fallback)
+          if (subIdStr && (myTeacherSubjectIds.size === 0 || myTeacherSubjectIds.has(subIdStr))) {
             if (!seenSubIds.has(subIdStr)) {
               seenSubIds.add(subIdStr);
               orderedList.push({
@@ -165,15 +200,19 @@ function MarkAttendance() {
         // 2. Check which subjects have already completed attendance on selectedDate
         const completedSet = new Set();
         for (const sub of orderedList) {
+          const cleanSubId = getCleanId(sub._id);
+          if (!cleanSubId) continue;
           try {
             const checkRes = await axios.get(
-              `${API}/api/attendance/by-class?classId=${selectedClassId}&date=${selectedDate}&subjectId=${sub._id}`,
+              `${API}/api/attendance/by-class?classId=${selectedClassId}&date=${selectedDate}&subjectId=${cleanSubId}`,
               { headers: { Authorization: `Bearer ${token}` } }
             );
             if (checkRes.data && checkRes.data.alreadyMarked) {
-              completedSet.add(getCleanId(sub._id));
+              completedSet.add(cleanSubId);
             }
-          } catch (e) {}
+          } catch (err) {
+            console.error("Error checking subject completion status:", err);
+          }
         }
         setCompletedSubjectIds(completedSet);
 
@@ -196,49 +235,54 @@ function MarkAttendance() {
 
   // Check if selectedSubjectId is already marked for today
   useEffect(() => {
-    if (selectedSubjectId && completedSubjectIds.has(String(selectedSubjectId))) {
+    const cleanSubId = getCleanId(selectedSubjectId);
+    if (cleanSubId && completedSubjectIds.has(cleanSubId)) {
       setIsCurrentSubjectCompleted(true);
     } else {
       setIsCurrentSubjectCompleted(false);
     }
   }, [selectedSubjectId, completedSubjectIds]);
 
-  // Fetch students when selected class, date, or subject changes
+  // Fetch students when selected class, date, or subject changes (Guarded against empty subjectId)
   useEffect(() => {
-    if (!selectedClassId) return;
-
-    if (isFutureDate) {
-      setStudents([]);
-      setAttendance({});
-      setLoading(false);
+    if (!selectedClassId || !selectedSubjectId || isFutureDate) {
+      if (isFutureDate) {
+        setStudents([]);
+        setAttendance({});
+        setLoading(false);
+      }
       return;
     }
 
     const fetchStudentsAndAttendance = async () => {
       setLoading(true);
       try {
+        const cleanSubId = getCleanId(selectedSubjectId);
+        if (!cleanSubId) {
+          setLoading(false);
+          return;
+        }
+
         const res = await axios.get(
-          `${API}/api/attendance/by-class?classId=${selectedClassId}&date=${selectedDate}&subjectId=${selectedSubjectId}`,
+          `${API}/api/attendance/by-class?classId=${selectedClassId}&date=${selectedDate}&subjectId=${cleanSubId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        setStudents(res.data.students || []);
+        const fetchedStudents = res.data.students || [];
+        setStudents(fetchedStudents);
         
-        // Populate attendance and remarks state from retrieved records
+        // Populate attendance state from retrieved records
         const initialAttendance = {};
-        const initialRemarks = {};
-        res.data.students.forEach(student => {
+        fetchedStudents.forEach(student => {
           if (student.status) {
             initialAttendance[student._id] = student.status;
           } else {
             // Default to Present if not marked
             initialAttendance[student._id] = "Present";
           }
-          initialRemarks[student._id] = student.remarks || "";
         });
 
         setAttendance(initialAttendance);
-        setRemarks(initialRemarks);
         setSelectedStudentIds(new Set());
       } catch (err) {
         console.error("Error fetching students attendance:", err);
@@ -248,15 +292,7 @@ function MarkAttendance() {
     };
 
     fetchStudentsAndAttendance();
-  }, [selectedClassId, selectedDate, selectedSubjectId, API, token]);
-
-  // Filter subjects based on selected class
-  const filteredSubjects = subjects.filter(subject => {
-    if (subject.classes && Array.isArray(subject.classes)) {
-      return subject.classes.some(c => c._id === selectedClassId);
-    }
-    return false;
-  });
+  }, [selectedClassId, selectedDate, selectedSubjectId, API, token, isFutureDate]);
 
   // Handle individual status change
   const handleStatusChange = (studentId, status) => {
@@ -318,12 +354,22 @@ function MarkAttendance() {
 
   // Save/Submit attendance
   const handleSaveAttendance = async () => {
-    if (!selectedSubjectId) {
-      alert("Please select a subject to mark attendance!");
+    const cleanSubId = getCleanId(selectedSubjectId);
+    if (!cleanSubId) {
+      showModal({
+        type: "warning",
+        title: "Select Subject",
+        message: "Please select a subject to mark attendance!"
+      });
       return;
     }
+
     if (isCurrentSubjectCompleted) {
-      alert("Attendance for this subject has already been recorded for today!");
+      showModal({
+        type: "warning",
+        title: "Attendance Already Recorded",
+        message: "Attendance for this subject has already been recorded for today!"
+      });
       return;
     }
 
@@ -340,38 +386,54 @@ function MarkAttendance() {
         {
           classId: selectedClassId,
           date: selectedDate,
-          subjectId: selectedSubjectId,
+          subjectId: cleanSubId,
           records: recordsToSave
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const currentSubIdStr = getCleanId(selectedSubjectId);
-      const currentSubObj = timetableSubjects.find(s => getCleanId(s._id) === currentSubIdStr)
-        || subjects.find(s => getCleanId(s._id) === currentSubIdStr);
+      const currentSubObj = timetableSubjects.find(s => getCleanId(s._id) === cleanSubId)
+        || subjects.find(s => getCleanId(s._id) === cleanSubId);
       const currentSubName = currentSubObj ? (currentSubObj.name || getSubName(currentSubObj)) : "Subject";
 
       // Update completed set with normalized string ID
       const nextCompleted = new Set(completedSubjectIds);
-      nextCompleted.add(currentSubIdStr);
+      nextCompleted.add(cleanSubId);
       setCompletedSubjectIds(nextCompleted);
 
       // Find next pending subject in timetable sequence
-      const currentIdx = timetableSubjects.findIndex(s => getCleanId(s._id) === currentSubIdStr);
+      const currentIdx = timetableSubjects.findIndex(s => getCleanId(s._id) === cleanSubId);
       const nextPending = timetableSubjects.find((s, idx) => idx > currentIdx && !nextCompleted.has(getCleanId(s._id)))
         || timetableSubjects.find(s => !nextCompleted.has(getCleanId(s._id)));
 
-      if (nextPending && getCleanId(nextPending._id) !== currentSubIdStr) {
-        setSelectedSubjectId(getCleanId(nextPending._id));
-        alert(`Attendance saved for ${currentSubName}! Next pending subject (${nextPending.name}) selected.`);
+      if (nextPending && getCleanId(nextPending._id) !== cleanSubId) {
+        const nextSubId = getCleanId(nextPending._id);
+        setSelectedSubjectId(nextSubId);
+        showModal({
+          type: "success",
+          title: "Attendance Saved Successfully",
+          message: `Attendance recorded for ${currentSubName}.`,
+          subMessage: `Next pending subject (${nextPending.name}) selected.`,
+          buttonText: "Continue"
+        });
       } else {
         setIsCurrentSubjectCompleted(true);
-        alert(`Attendance saved for ${currentSubName}! All subjects completed for today.`);
+        showModal({
+          type: "success",
+          title: "All Subjects Completed!",
+          message: `Attendance saved for ${currentSubName}.`,
+          subMessage: "All scheduled subjects for today have been completed!",
+          buttonText: "Awesome"
+        });
       }
 
     } catch (err) {
       console.error("Error saving attendance:", err);
-      alert("Failed to save attendance.");
+      showModal({
+        type: "error",
+        title: "Save Failed",
+        message: err.response?.data?.message || "Failed to save attendance. Please try again."
+      });
     } finally {
       setSubmitting(false);
     }
@@ -464,7 +526,8 @@ function MarkAttendance() {
                 <option value="">No subjects found</option>
               ) : (
                 timetableSubjects.map(sub => {
-                  const isDone = completedSubjectIds.has(sub._id);
+                  const cleanId = getCleanId(sub._id);
+                  const isDone = cleanId && completedSubjectIds.has(cleanId);
                   const timeLabel = sub.startTime ? `${sub.startTime} - ${sub.endTime} | ` : "";
                   return (
                     <option key={sub._id} value={sub._id}>
@@ -585,7 +648,7 @@ function MarkAttendance() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-white/[0.03]">
-                  {filteredStudents.map((s, idx) => {
+                  {filteredStudents.map((s) => {
                     const initials = s.name
                       ? s.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)
                       : "S";
@@ -784,6 +847,56 @@ function MarkAttendance() {
         </div>
 
       </div>
+
+      {/* Modern Custom UI Modal / Dialog */}
+      {modalConfig.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-white/10 rounded-3xl p-6 max-w-sm w-full shadow-2xl flex flex-col items-center text-center transform transition-all scale-100">
+            {modalConfig.type === "success" && (
+              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center text-2xl mb-4 shadow-inner">
+                <FaCheckCircle />
+              </div>
+            )}
+            {modalConfig.type === "warning" && (
+              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center text-2xl mb-4 shadow-inner">
+                <FaExclamationTriangle />
+              </div>
+            )}
+            {modalConfig.type === "error" && (
+              <div className="w-14 h-14 rounded-2xl bg-rose-500/10 text-rose-500 border border-rose-500/20 flex items-center justify-center text-2xl mb-4 shadow-inner">
+                <FaTimesCircle />
+              </div>
+            )}
+
+            <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight">
+              {modalConfig.title}
+            </h3>
+
+            <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold mt-2 leading-relaxed">
+              {modalConfig.message}
+            </p>
+
+            {modalConfig.subMessage && (
+              <p className="text-[11px] text-purple-600 dark:text-purple-400 font-bold mt-2 px-3 py-1 bg-purple-500/10 rounded-lg border border-purple-500/15">
+                {modalConfig.subMessage}
+              </p>
+            )}
+
+            <button
+              onClick={closeModal}
+              className={`w-full py-2.5 mt-5 rounded-xl font-extrabold text-xs shadow-sm transition-all cursor-pointer ${
+                modalConfig.type === "success"
+                  ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20"
+                  : modalConfig.type === "warning"
+                  ? "bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20"
+                  : "bg-rose-600 hover:bg-rose-700 text-white shadow-rose-600/20"
+              }`}
+            >
+              {modalConfig.buttonText}
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );
