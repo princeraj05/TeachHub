@@ -15,10 +15,20 @@ function ExamSchedule() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  const currY = new Date().getFullYear();
+  const academicYearOptions = [
+    `${currY - 1}-${currY}`,
+    `${currY}-${currY + 1}`,
+    `${currY + 1}-${currY + 2}`
+  ];
+
   const [form, setForm] = useState({
     title: "",
     classId: "",
     subjectId: "",
+    examTerm: "Half-Yearly",
+    academicYear: academicYearOptions[1] || `${currY}-${currY + 1}`,
+    maxMarks: 100,
     date: "",
     time: "09:00 AM",
     duration: "1h 30m",
@@ -77,6 +87,7 @@ function ExamSchedule() {
   };
 
   const [activeTab, setActiveTab] = useState("class");
+  const [selectedAdmissionClassId, setSelectedAdmissionClassId] = useState("");
   const [admissionExam, setAdmissionExam] = useState({
     negativeMarking: false,
     negativeMarkValue: 0.25,
@@ -89,7 +100,6 @@ function ExamSchedule() {
     fetchExams();
     fetchClasses();
     fetchSubjects();
-    fetchAdmissionExam();
     fetchTeachers();
   }, []);
 
@@ -104,10 +114,14 @@ function ExamSchedule() {
     }
   };
 
-  const fetchAdmissionExam = async () => {
+  const fetchAdmissionExam = async (cId) => {
     setLoadingAdmission(true);
     try {
-      const res = await axios.get(`${API}/api/admin/users/admission-exam`, {
+      const targetId = cId !== undefined ? cId : selectedAdmissionClassId;
+      const url = targetId 
+        ? `${API}/api/admin/users/admission-exam?classId=${targetId}`
+        : `${API}/api/admin/users/admission-exam`;
+      const res = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAdmissionExam(res.data || { negativeMarking: false, negativeMarkValue: 0.25, questions: [] });
@@ -116,6 +130,12 @@ function ExamSchedule() {
     } finally {
       setLoadingAdmission(false);
     }
+  };
+
+  const handleAdmissionClassChange = (e) => {
+    const newClassId = e.target.value;
+    setSelectedAdmissionClassId(newClassId);
+    fetchAdmissionExam(newClassId);
   };
 
   const handleAdmissionChange = (field, val) => {
@@ -153,12 +173,19 @@ function ExamSchedule() {
 
   const saveAdmissionExam = async (e) => {
     e.preventDefault();
+    if (!selectedAdmissionClassId) {
+      alert("Please select a Target Class for the admission exam.");
+      return;
+    }
     setSavingAdmission(true);
     try {
-      await axios.post(`${API}/api/admin/users/admission-exam`, admissionExam, {
+      await axios.post(`${API}/api/admin/users/admission-exam`, {
+        ...admissionExam,
+        classId: selectedAdmissionClassId
+      }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert("Admission exam saved successfully!");
+      alert("Admission exam saved successfully for the selected class!");
     } catch (err) {
       alert(err.response?.data?.message || "Failed to save exam");
     } finally {
@@ -180,10 +207,23 @@ function ExamSchedule() {
   };
 
   const fetchClasses = async () => {
-    const res = await axios.get(`${API}/api/admin/classes`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setClasses(res.data);
+    try {
+      const res = await axios.get(`${API}/api/admin/classes`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const classList = res.data || [];
+      setClasses(classList);
+      const uniqueList = getUniqueClasses(classList);
+      if (uniqueList.length > 0 && !selectedAdmissionClassId) {
+        const firstClassId = uniqueList[0]._id;
+        setSelectedAdmissionClassId(firstClassId);
+        fetchAdmissionExam(firstClassId);
+      } else {
+        fetchAdmissionExam();
+      }
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const fetchSubjects = async () => {
@@ -204,6 +244,9 @@ function ExamSchedule() {
       title: exam.title || "",
       classId: exam.class?._id || exam.class || "",
       subjectId: exam.subject?._id || exam.subject || "",
+      examTerm: exam.examTerm || "Half-Yearly",
+      academicYear: exam.academicYear || academicYearOptions[1] || `${currY}-${currY + 1}`,
+      maxMarks: exam.maxMarks || 100,
       date: exam.date ? new Date(exam.date).toISOString().split("T")[0] : "",
       time: exam.time || "09:00 AM",
       duration: exam.duration || "1h 30m",
@@ -223,6 +266,9 @@ function ExamSchedule() {
       title: "",
       classId: "",
       subjectId: "",
+      examTerm: "Half-Yearly",
+      academicYear: academicYearOptions[1] || `${currY}-${currY + 1}`,
+      maxMarks: 100,
       date: "",
       time: "09:00 AM",
       duration: "1h 30m",
@@ -399,15 +445,46 @@ function ExamSchedule() {
                   <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Exam Title / Name */}
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Exam Title / Name</label>
+                      <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Exam Title / Description (Optional)</label>
                       <input
                         type="text"
                         name="title"
-                        placeholder="e.g. Unit Test - 1, Half Yearly Exam"
+                        placeholder="e.g. Mid-Term Assessment, Final Examination"
                         value={form.title}
                         onChange={handleChange}
                         className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                       />
+                    </div>
+
+                    {/* Examination Term & Academic Year */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Examination Term</label>
+                        <select
+                          name="examTerm"
+                          value={form.examTerm}
+                          onChange={handleChange}
+                          required
+                          className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                        >
+                          <option value="Half-Yearly">Half-Yearly Examination</option>
+                          <option value="Annual">Annual Examination</option>
+                        </select>
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Academic Year</label>
+                        <select
+                          name="academicYear"
+                          value={form.academicYear}
+                          onChange={handleChange}
+                          required
+                          className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                        >
+                          {academicYearOptions.map(y => (
+                            <option key={y} value={y}>{y}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
                     {/* Class select */}
@@ -432,25 +509,40 @@ function ExamSchedule() {
                       </div>
                     </div>
 
-                    {/* Subject select */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Subject</label>
-                      <div className="relative">
-                        <FaBook className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
-                        <select
-                          name="subjectId"
-                          value={form.subjectId}
-                          onChange={handleChange}
+                    {/* Subject select & Max Marks */}
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="col-span-2 flex flex-col gap-1.5">
+                        <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Subject</label>
+                        <div className="relative">
+                          <FaBook className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                          <select
+                            name="subjectId"
+                            value={form.subjectId}
+                            onChange={handleChange}
+                            required
+                            className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                          >
+                            <option value="" disabled>Select Subject</option>
+                            {subjects.map((sub) => (
+                              <option key={sub._id} value={sub._id}>
+                                {sub.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Max Marks</label>
+                        <input
+                          type="number"
+                          name="maxMarks"
+                          min="1"
                           required
-                          className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
-                        >
-                          <option value="" disabled>Select Subject</option>
-                          {subjects.map((sub) => (
-                            <option key={sub._id} value={sub._id}>
-                              {sub.name}
-                            </option>
-                          ))}
-                        </select>
+                          placeholder="e.g. 100"
+                          value={form.maxMarks}
+                          onChange={handleChange}
+                          className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                        />
                       </div>
                     </div>
 
@@ -816,38 +908,62 @@ function ExamSchedule() {
               Entrance Exam Settings
             </h2>
 
-            <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-              {/* Negative marking checkbox */}
-              <label className="flex items-center gap-3 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={admissionExam.negativeMarking}
-                  onChange={(e) => handleAdmissionChange("negativeMarking", e.target.checked)}
-                  className="w-4.5 h-4.5 rounded border-slate-300 text-[#7C3AED] focus:ring-[#7C3AED] cursor-pointer"
-                />
-                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Enable Negative Marking
-                </span>
-              </label>
-
-              {/* Negative mark value */}
-              {admissionExam.negativeMarking && (
-                <div className="flex items-center gap-2">
-                  <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                    Deduction per incorrect answer:
-                  </label>
-                  <input
-                    type="number"
-                    step="0.05"
-                    min="0"
-                    max="5"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+              {/* Target Class Selector */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                  Target Admission Class
+                </label>
+                <div className="relative">
+                  <FaSchool className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                  <select
+                    value={selectedAdmissionClassId}
+                    onChange={handleAdmissionClassChange}
                     required
-                    value={admissionExam.negativeMarkValue}
-                    onChange={(e) => handleAdmissionChange("negativeMarkValue", parseFloat(e.target.value))}
-                    className="w-20 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25"
-                  />
+                    className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                  >
+                    <option value="" disabled>Select Target Class</option>
+                    {getUniqueClasses(classes).map((cls) => (
+                      <option key={cls._id} value={cls._id}>
+                        Class {cls.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              )}
+              </div>
+
+              {/* Negative marking options */}
+              <div className="flex flex-wrap items-center gap-6">
+                <label className="flex items-center gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={admissionExam.negativeMarking}
+                    onChange={(e) => handleAdmissionChange("negativeMarking", e.target.checked)}
+                    className="w-4.5 h-4.5 rounded border-slate-300 text-[#7C3AED] focus:ring-[#7C3AED] cursor-pointer"
+                  />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Enable Negative Marking
+                  </span>
+                </label>
+
+                {admissionExam.negativeMarking && (
+                  <div className="flex items-center gap-2">
+                    <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                      Deduction:
+                    </label>
+                    <input
+                      type="number"
+                      step="0.05"
+                      min="0"
+                      max="5"
+                      required
+                      value={admissionExam.negativeMarkValue}
+                      onChange={(e) => handleAdmissionChange("negativeMarkValue", parseFloat(e.target.value))}
+                      className="w-20 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/25"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

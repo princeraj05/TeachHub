@@ -14,6 +14,26 @@ ref:"Subject",
 required:true
 },
 
+examTerm: {
+  type: String,
+  enum: ["Half-Yearly", "Annual"],
+  required: true,
+  default: "Half-Yearly"
+},
+
+academicYear: {
+  type: String,
+  required: true,
+  default: "2026-2027"
+},
+
+maxMarks: {
+  type: Number,
+  required: true,
+  default: 100,
+  min: 1
+},
+
 date:{
 type:Date,
 required:true
@@ -77,5 +97,14 @@ required:true
     default: null
   }
 }, { timestamps: true });
+
+// Query index for exam lookup
+examSchema.index({
+  schoolName: 1,
+  class: 1,
+  subject: 1,
+  examTerm: 1,
+  academicYear: 1
+});
 
 module.exports = mongoose.model("Exam",examSchema);

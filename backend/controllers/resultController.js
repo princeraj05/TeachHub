@@ -3,6 +3,7 @@ const StudentResult = require("../models/StudentResult");
 const User = require("../models/User");
 const Class = require("../models/Class");
 const Subject = require("../models/Subject");
+const Exam = require("../models/Exam");
 const {
   calculateSubjectGrade,
   calculateStudentResultSummary
@@ -95,6 +96,30 @@ exports.getRoster = async (req, res) => {
       }
     }
 
+    // MANDATORY CHECK: Verify Admin-created Class Exam exists
+    const sameLevelClassIds = await Class.find({
+      schoolName: classDoc.schoolName || schoolName,
+      name: classDoc.name
+    }).distinct("_id");
+
+    const matchingExam = await Exam.findOne({
+      schoolName: classDoc.schoolName || schoolName,
+      class: { $in: sameLevelClassIds },
+      subject: subjectDoc._id,
+      examTerm,
+      academicYear
+    }).lean();
+
+    if (!matchingExam) {
+      return res.status(404).json({
+        success: false,
+        examExists: false,
+        message: `No exam has been scheduled by the Admin for Class ${classDoc.name}, ${subjectDoc.name} — ${examTerm} (${academicYear}).`
+      });
+    }
+
+    const authoritativeMaxMarks = Number(matchingExam.maxMarks) || 100;
+
     // Fetch students enrolled in this class
     const studentQuery = {
       role: "student",
@@ -146,7 +171,7 @@ exports.getRoster = async (req, res) => {
         classId: classDoc._id,
         className: `Class ${classDoc.name}`,
         marksObtained: existing ? existing.marksObtained : 0,
-        maxMarks: existing ? existing.maxMarks : 100,
+        maxMarks: authoritativeMaxMarks,
         isAbsent: existing ? existing.isAbsent : false,
         grade: existing ? existing.grade : "",
         remarks: existing ? existing.remarks : "",
@@ -155,6 +180,8 @@ exports.getRoster = async (req, res) => {
     });
 
     res.json({
+      success: true,
+      examExists: true,
       schoolName: classDoc.schoolName,
       classId: classDoc._id,
       className: `Class ${classDoc.name}`,
@@ -163,6 +190,7 @@ exports.getRoster = async (req, res) => {
       subjectName: subjectDoc.name,
       examTerm,
       academicYear,
+      maxMarks: authoritativeMaxMarks,
       studentsCount: roster.length,
       roster
     });
@@ -204,7 +232,6 @@ exports.saveMarks = async (req, res) => {
         examTerm,
         academicYear,
         marksObtained,
-        maxMarks,
         isAbsent,
         remarks
       } = item;
@@ -219,12 +246,49 @@ exports.saveMarks = async (req, res) => {
         return res.status(400).json({ message: "examTerm must be either 'Half-Yearly' or 'Annual'" });
       }
 
+      const classDoc = await Class.findById(classId).lean();
+      if (!classDoc) {
+        return res.status(404).json({ message: `Class ${classId} not found` });
+      }
+
+      const subjectDoc = await Subject.findById(subjectId).lean();
+      if (!subjectDoc) {
+        return res.status(404).json({ message: `Subject ${subjectId} not found` });
+      }
+
+      // MANDATORY CHECK: Authoritative Exam check & maxMarks retrieval
+      const sameLevelClassIds = await Class.find({
+        schoolName: classDoc.schoolName || schoolName,
+        name: classDoc.name
+      }).distinct("_id");
+
+      const matchingExam = await Exam.findOne({
+        schoolName: classDoc.schoolName || schoolName,
+        class: { $in: sameLevelClassIds },
+        subject: subjectDoc._id,
+        examTerm,
+        academicYear
+      }).lean();
+
+      if (!matchingExam) {
+        return res.status(400).json({
+          message: `Cannot save marks: No Class Exam has been scheduled by the Admin for Class ${classDoc.name}, ${subjectDoc.name} — ${examTerm} (${academicYear}).`
+        });
+      }
+
+      const numMax = Number(matchingExam.maxMarks) || 100;
+
       const flagAbsent = !!isAbsent;
       const numObtained = flagAbsent ? 0 : Number(marksObtained);
-      const numMax = Number(maxMarks) || 100;
 
       if (isNaN(numObtained) || numObtained < 0) {
         return res.status(400).json({ message: `Invalid marksObtained (${marksObtained}) for student ${studentId}` });
+      }
+
+      if (numObtained > numMax) {
+        return res.status(400).json({
+          message: `marksObtained (${numObtained}) cannot exceed maxMarks (${numMax}) set by Admin for student ${studentId}`
+        });
       }
 
       if (isNaN(numMax) || numMax <= 0) {

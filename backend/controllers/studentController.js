@@ -212,6 +212,28 @@ exports.getStudentAttendance = async (req,res)=>{
 
 };
 
+// Helper: Normalize target class name
+const normalizeStudentTargetClass = (rawName) => {
+  if (!rawName) return "Class 1";
+  const str = String(rawName).trim();
+  if (/^class\s+/i.test(str)) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+  return `Class ${str}`;
+};
+
+// Helper: Authoritatively determine student applicable class name
+const getStudentApplicableClass = async (student) => {
+  if (student.classId) {
+    const cDoc = await Class.findById(student.classId).lean();
+    if (cDoc && cDoc.name) return normalizeStudentTargetClass(cDoc.name);
+  }
+  if (student.targetClass) {
+    return normalizeStudentTargetClass(student.targetClass);
+  }
+  return "Class 1";
+};
+
 // ================= GET ADMISSION EXAM =================
 exports.getStudentAdmissionExam = async (req, res) => {
   try {
@@ -225,11 +247,20 @@ exports.getStudentAdmissionExam = async (req, res) => {
       return res.status(400).json({ message: "No school associated with student" });
     }
 
-    let exam = await AdmissionExam.findOne({ schoolName: school });
+    const targetClassName = await getStudentApplicableClass(student);
+
+    let exam = await AdmissionExam.findOne({ schoolName: school, targetClass: targetClassName });
+    
+    // Fallback: If no class-specific exam found, check if a global or fallback exam exists
+    if (!exam) {
+      exam = await AdmissionExam.findOne({ schoolName: school });
+    }
+
     if (!exam) {
       const defaultQuestions = require("../utils/defaultQuestions");
       exam = new AdmissionExam({
         schoolName: school,
+        targetClass: targetClassName,
         negativeMarking: false,
         negativeMarkValue: 0.25,
         questions: defaultQuestions
@@ -248,6 +279,7 @@ exports.getStudentAdmissionExam = async (req, res) => {
     res.json({
       _id: exam._id,
       schoolName: exam.schoolName,
+      targetClass: exam.targetClass || targetClassName,
       negativeMarking: exam.negativeMarking,
       negativeMarkValue: exam.negativeMarkValue,
       questions: secureQuestions
@@ -271,9 +303,15 @@ exports.submitStudentAdmissionExam = async (req, res) => {
     }
 
     const school = student.schoolName || student.requestedSchool;
-    const exam = await AdmissionExam.findOne({ schoolName: school });
+    const targetClassName = await getStudentApplicableClass(student);
+
+    let exam = await AdmissionExam.findOne({ schoolName: school, targetClass: targetClassName });
     if (!exam) {
-      return res.status(404).json({ message: "Admission exam not found for this school" });
+      exam = await AdmissionExam.findOne({ schoolName: school });
+    }
+
+    if (!exam) {
+      return res.status(404).json({ message: "Admission exam not found for your class" });
     }
 
     let correctCount = 0;

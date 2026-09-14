@@ -56,6 +56,7 @@ export default function TeacherAcademicResults() {
 
   // Form State
   const [editableMarks, setEditableMarks] = useState({});
+  const [examExists, setExamExists] = useState(true);
 
   // Status & Notifications
   const [loading, setLoading] = useState(false);
@@ -181,11 +182,13 @@ export default function TeacherAcademicResults() {
     if (!selectedClassId || !selectedSubjectId || !examTerm || !academicYear) {
       setRosterData([]);
       setIsPublished(false);
+      setExamExists(true);
       return;
     }
 
     setLoading(true);
     setErrorNotice("");
+    setNotice("");
 
     try {
       // Check class summary publication status
@@ -202,15 +205,25 @@ export default function TeacherAcademicResults() {
       // Fetch Subject Roster
       const rosterUrl = `${API}/api/results/roster?classId=${selectedClassId}&section=${encodeURIComponent(selectedSection)}&subjectId=${selectedSubjectId}&examTerm=${encodeURIComponent(examTerm)}&academicYear=${encodeURIComponent(academicYear)}`;
       const rosterRes = await axios.get(rosterUrl, getHeaders());
+
+      if (rosterRes.data && rosterRes.data.examExists === false) {
+        setExamExists(false);
+        setRosterData([]);
+        setErrorNotice(rosterRes.data.message || "No Class Exam has been scheduled by the Admin for this class, subject, examination term and academic year.");
+        return;
+      }
+
+      setExamExists(true);
       const studentRoster = rosterRes.data.roster || [];
+      const authoritativeMaxMarks = rosterRes.data.maxMarks || 100;
       setRosterData(studentRoster);
 
-      // Pre-fill editable marks map
+      // Pre-fill editable marks map with Authoritative Max Marks
       const initialMap = {};
       studentRoster.forEach(s => {
         initialMap[s.studentId] = {
           marksObtained: s.marksObtained ?? 0,
-          maxMarks: s.maxMarks ?? 100,
+          maxMarks: authoritativeMaxMarks,
           isAbsent: !!s.isAbsent,
           remarks: s.remarks || ""
         };
@@ -219,7 +232,9 @@ export default function TeacherAcademicResults() {
 
     } catch (err) {
       console.error("Error loading roster:", err);
-      setErrorNotice(err.response?.data?.message || "Failed to load student roster for marks entry.");
+      setExamExists(false);
+      setRosterData([]);
+      setErrorNotice(err.response?.data?.message || "No Class Exam has been scheduled by the Admin for this selection. Marks entry is unavailable.");
     } finally {
       setLoading(false);
     }
@@ -241,8 +256,6 @@ export default function TeacherAcademicResults() {
         if (flag) updated.marksObtained = 0;
       } else if (field === "marksObtained") {
         updated.marksObtained = value;
-      } else if (field === "maxMarks") {
-        updated.maxMarks = value;
       } else if (field === "remarks") {
         updated.remarks = value;
       }
@@ -253,7 +266,7 @@ export default function TeacherAcademicResults() {
 
   // Bulk Save Subject Marks
   const saveMarks = async () => {
-    if (!selectedClassId || !selectedSubjectId) return;
+    if (!selectedClassId || !selectedSubjectId || !examExists) return;
     setSaving(true);
     setErrorNotice("");
     setNotice("");
@@ -531,10 +544,10 @@ export default function TeacherAcademicResults() {
 
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
             <button
-              disabled={saving || isPublished || !selectedSubjectId}
+              disabled={saving || isPublished || !selectedSubjectId || !examExists}
               onClick={saveMarks}
               className={`px-5 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all shadow-sm ${
-                isPublished || !selectedSubjectId
+                isPublished || !selectedSubjectId || !examExists
                   ? "bg-slate-100 dark:bg-white/5 text-slate-400 border border-slate-200 dark:border-white/10 cursor-not-allowed"
                   : "bg-[#7C3AED] hover:bg-[#6D28D9] text-white shadow-[#7C3AED]/20"
               }`}
@@ -550,6 +563,16 @@ export default function TeacherAcademicResults() {
           <div className="py-20 flex flex-col items-center justify-center gap-3 text-center">
             <FaSpinner className="text-3xl text-[#7C3AED] animate-spin" />
             <span className="text-xs font-bold text-slate-400 animate-pulse">Loading student roster & marks...</span>
+          </div>
+        ) : !examExists ? (
+          <div className="py-16 px-6 flex flex-col items-center justify-center text-center">
+            <div className="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 flex items-center justify-center text-amber-500 mb-3 text-2xl">
+              <FaExclamationCircle />
+            </div>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">No Class Exam Scheduled</h3>
+            <p className="text-xs text-slate-400 mt-1 max-w-md font-medium">
+              No exam has been created by the Admin for this class, subject, examination term and academic year. Marks entry is unavailable until the Admin schedules this examination.
+            </p>
           </div>
         ) : filteredRoster.length === 0 ? (
           <div className="py-16 px-6 flex flex-col items-center justify-center text-center">
@@ -572,7 +595,7 @@ export default function TeacherAcademicResults() {
                   <th className="py-3.5 px-4">Student Details</th>
                   <th className="py-3.5 px-4">Roll No</th>
                   <th className="py-3.5 px-4">Marks Obtained</th>
-                  <th className="py-3.5 px-4">Max Marks</th>
+                  <th className="py-3.5 px-4">Max Marks (Admin Set)</th>
                   <th className="py-3.5 px-4">Absent</th>
                   <th className="py-3.5 px-4">Server Calculated Grade</th>
                   <th className="py-3.5 px-4">Remarks</th>
@@ -610,14 +633,9 @@ export default function TeacherAcademicResults() {
                         />
                       </td>
                       <td className="py-3.5 px-4">
-                        <input
-                          type="number"
-                          min="1"
-                          disabled={isPublished}
-                          value={markEntry.maxMarks}
-                          onChange={e => handleMarkChange(sId, "maxMarks", e.target.value)}
-                          className="w-20 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-2.5 py-1.5 font-semibold text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#7C3AED] disabled:opacity-50"
-                        />
+                        <span className="inline-block bg-slate-100 dark:bg-white/10 border border-slate-200/80 dark:border-white/10 rounded-xl px-3 py-1.5 font-extrabold text-xs text-slate-700 dark:text-slate-200">
+                          {markEntry.maxMarks || 100}
+                        </span>
                       </td>
                       <td className="py-3.5 px-4">
                         <label className="inline-flex items-center gap-1.5 cursor-pointer">

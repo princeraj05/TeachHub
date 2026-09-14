@@ -12,16 +12,36 @@ exports.createExam = async (req,res)=>{
 
 try{
 
-const { title, classId, subjectId, date, time, duration, roomNumber, mode, negativeMarking, negativeMarkValue, questions, proctorId } = req.body;
+const { title, classId, subjectId, examTerm, academicYear, maxMarks, date, time, duration, roomNumber, mode, negativeMarking, negativeMarkValue, questions, proctorId } = req.body;
 
 if (!req.user || (req.user.role !== "superadmin" && !req.user.schoolName)) {
   return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
 }
 
+if (!classId || !subjectId) {
+  return res.status(400).json({ message: "classId and subjectId are required" });
+}
+
+const termVal = examTerm || "Half-Yearly";
+if (!["Half-Yearly", "Annual"].includes(termVal)) {
+  return res.status(400).json({ message: "examTerm must be either 'Half-Yearly' or 'Annual'" });
+}
+
+const numMaxMarks = Number(maxMarks) || 100;
+if (isNaN(numMaxMarks) || numMaxMarks <= 0) {
+  return res.status(400).json({ message: "maxMarks must be a positive number" });
+}
+
+const currYear = new Date().getFullYear();
+const yearVal = academicYear || `${currYear}-${currYear + 1}`;
+
 const exam = new Exam({
-  title: title || "",
+  title: title || `${termVal} Examination`,
   class: classId,
   subject: subjectId,
+  examTerm: termVal,
+  academicYear: yearVal,
+  maxMarks: numMaxMarks,
   date,
   time: time || "09:00 AM",
   duration: duration || "1h 30m",
@@ -111,11 +131,26 @@ exports.updateExam = async (req, res) => {
       return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
     }
 
-    const { title, classId, subjectId, date, time, duration, roomNumber, mode, negativeMarking, negativeMarkValue, questions, proctorId } = req.body;
+    const { title, classId, subjectId, examTerm, academicYear, maxMarks, date, time, duration, roomNumber, mode, negativeMarking, negativeMarkValue, questions, proctorId } = req.body;
 
     const exam = await Exam.findOne({ _id: req.params.id, schoolName: req.user.schoolName });
     if (!exam) {
       return res.status(404).json({ message: "Exam not found" });
+    }
+
+    if (examTerm) {
+      if (!["Half-Yearly", "Annual"].includes(examTerm)) {
+        return res.status(400).json({ message: "examTerm must be either 'Half-Yearly' or 'Annual'" });
+      }
+      exam.examTerm = examTerm;
+    }
+    if (academicYear) exam.academicYear = academicYear;
+    if (maxMarks !== undefined) {
+      const numMax = Number(maxMarks);
+      if (isNaN(numMax) || numMax <= 0) {
+        return res.status(400).json({ message: "maxMarks must be a positive number" });
+      }
+      exam.maxMarks = numMax;
     }
 
     if (title !== undefined) exam.title = title;
@@ -138,6 +173,10 @@ exports.updateExam = async (req, res) => {
       .populate("proctor", "name email role");
 
     res.json({ message: "Exam updated successfully", data: updatedExam });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

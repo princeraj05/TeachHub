@@ -306,17 +306,77 @@ exports.processJoinRequest = async (req, res) => {
   }
 };
 
+// Helper: Drop legacy unique index on schoolName if present
+let hasDroppedLegacyAdmissionExamIndex = false;
+const safeDropLegacyAdmissionIndex = async () => {
+  if (hasDroppedLegacyAdmissionExamIndex) return;
+  try {
+    const indexes = await AdmissionExam.collection.indexes();
+    const legacyIdx = indexes.find(idx => idx.name === "schoolName_1");
+    if (legacyIdx && legacyIdx.unique) {
+      await AdmissionExam.collection.dropIndex("schoolName_1");
+    }
+  } catch (err) {
+    // Ignore index drop errors if index doesn't exist
+  }
+  hasDroppedLegacyAdmissionExamIndex = true;
+};
+
+// Helper: Normalize target class string (e.g., "5" -> "Class 5")
+const normalizeTargetClassName = (rawName) => {
+  if (!rawName) return "Class 1";
+  const str = String(rawName).trim();
+  if (/^class\s+/i.test(str)) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+  return `Class ${str}`;
+};
+
 // ================= GET ADMISSION EXAM =================
 exports.getAdmissionExam = async (req, res) => {
   try {
     if (!req.user || !req.user.schoolName) {
       return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
     }
-    let exam = await AdmissionExam.findOne({ schoolName: req.user.schoolName });
+    await safeDropLegacyAdmissionIndex();
+
+    const { classId, targetClass: rawTargetClass } = req.query;
+    let resolvedClassId = null;
+    let targetClassName = "";
+
+    if (classId) {
+      const classDoc = await Class.findById(classId).lean();
+      if (classDoc) {
+        resolvedClassId = classDoc._id;
+        targetClassName = normalizeTargetClassName(classDoc.name);
+      }
+    }
+
+    if (!targetClassName && rawTargetClass) {
+      targetClassName = normalizeTargetClassName(rawTargetClass);
+    }
+
+    if (!targetClassName) {
+      const firstClass = await Class.findOne({ schoolName: req.user.schoolName }).sort({ name: 1 }).lean();
+      if (firstClass) {
+        resolvedClassId = firstClass._id;
+        targetClassName = normalizeTargetClassName(firstClass.name);
+      } else {
+        targetClassName = "Class 1";
+      }
+    }
+
+    let exam = await AdmissionExam.findOne({
+      schoolName: req.user.schoolName,
+      targetClass: targetClassName
+    });
+
     if (!exam) {
       const defaultQuestions = require("../utils/defaultQuestions");
       exam = new AdmissionExam({
         schoolName: req.user.schoolName,
+        class: resolvedClassId,
+        targetClass: targetClassName,
         negativeMarking: false,
         negativeMarkValue: 0.25,
         questions: defaultQuestions
@@ -332,22 +392,49 @@ exports.getAdmissionExam = async (req, res) => {
 // ================= SAVE ADMISSION EXAM =================
 exports.saveAdmissionExam = async (req, res) => {
   try {
-    const { negativeMarking, negativeMarkValue, questions } = req.body;
+    const { classId, targetClass: rawTargetClass, negativeMarking, negativeMarkValue, questions } = req.body;
     if (!req.user || !req.user.schoolName) {
       return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
     }
-    
-    let exam = await AdmissionExam.findOne({ schoolName: req.user.schoolName });
+    await safeDropLegacyAdmissionIndex();
+
+    let resolvedClassId = null;
+    let targetClassName = "";
+
+    if (classId) {
+      const classDoc = await Class.findById(classId).lean();
+      if (classDoc) {
+        resolvedClassId = classDoc._id;
+        targetClassName = normalizeTargetClassName(classDoc.name);
+      }
+    }
+
+    if (!targetClassName && rawTargetClass) {
+      targetClassName = normalizeTargetClassName(rawTargetClass);
+    }
+
+    if (!targetClassName) {
+      return res.status(400).json({ message: "Target class is required to save an admission exam" });
+    }
+
+    let exam = await AdmissionExam.findOne({
+      schoolName: req.user.schoolName,
+      targetClass: targetClassName
+    });
+
     if (!exam) {
       exam = new AdmissionExam({
         schoolName: req.user.schoolName,
+        class: resolvedClassId,
+        targetClass: targetClassName,
         negativeMarking: !!negativeMarking,
-        negativeMarkValue: negativeMarkValue || 0.25,
+        negativeMarkValue: negativeMarkValue !== undefined ? negativeMarkValue : 0.25,
         questions: questions || []
       });
     } else {
+      if (resolvedClassId) exam.class = resolvedClassId;
       exam.negativeMarking = !!negativeMarking;
-      exam.negativeMarkValue = negativeMarkValue || 0.25;
+      exam.negativeMarkValue = negativeMarkValue !== undefined ? negativeMarkValue : 0.25;
       exam.questions = questions || [];
     }
     await exam.save();
