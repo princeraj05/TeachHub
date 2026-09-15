@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaBook, FaChalkboardTeacher, FaCheckCircle } from "react-icons/fa";
+import API_URL from "../../../../../config/api";
 
 function AssignSubjectTeacher() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   const [subjects, setSubjects] = useState([]);

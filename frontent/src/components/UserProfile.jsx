@@ -4,7 +4,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { usePlatform } from "../context/PlatformContext";
 import { useLanguage } from "../context/LanguageContext";
-import API_URL from "../config/api";
 import {
   FaUserCircle,
   FaEnvelope,
@@ -35,6 +34,7 @@ import { compressAvatar } from "../utils/mediaCompression";
 import ProfilePhotoCropModal from "./ProfilePhotoCropModal";
 import { pickProfilePhoto } from "../utils/mobileCapabilities";
 import { Capacitor } from "@capacitor/core";
+import API_URL from "../config/api";
 
 const SORA = "'Sora', sans-serif";
 

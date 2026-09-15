@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaBook, FaCheckSquare, FaPlus, FaSchool, FaSearch, FaTrash, FaEdit, FaTimes, FaListUl, FaLayerGroup } from "react-icons/fa";
+import API_URL from "../../../../../config/api";
 
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
 const classLabel = item => `Class ${item.name}`;
 
 export default function Subjects() {
-  const api = import.meta.env.VITE_API_URL;
+  const api = API_URL;
   const [subjects, setSubjects] = useState([]);
   const [classes, setClasses] = useState([]);
   const [name, setName] = useState("");

@@ -12,9 +12,10 @@ import {
   FaExclamationTriangle,
   FaSync
 } from "react-icons/fa";
+import API_URL from "../../config/api";
 
 export default function SyllabusTab({ subjectId, subjectName, assignedClasses = [], initialClass = "", onSyllabusUpdate }) {
-  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   // Format classes options: e.g. Class 1, Class 2... Class 10

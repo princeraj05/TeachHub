@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useCall } from "../../../../context/CallContext";
+import API_URL from "../../../../config/api";
 
 export default function GroupChat() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const isTeacher = localStorage.getItem("role") === "teacher";
   const headers = { Authorization: `Bearer ${localStorage.getItem("token")}` };
   const { socket } = useCall();

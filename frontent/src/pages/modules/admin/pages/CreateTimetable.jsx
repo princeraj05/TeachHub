@@ -5,6 +5,7 @@ import { FaCheckCircle, FaInfoCircle, FaCalendarAlt } from "react-icons/fa";
 // Import sub-navigation tab components
 import CreateTimetableTab from "./Timetable/CreateTimetableTab";
 import TimetableManagementTab from "./Timetable/TimetableManagementTab";
+import API_URL from "../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
@@ -19,7 +20,7 @@ const belongsToClass = (subject, classId) => {
 };
 
 export default function CreateTimetable() {
-  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
+  const API = API_URL;
 
   // Navigation tab state
   const [activeTab, setActiveTab] = useState("basic");

@@ -28,6 +28,7 @@ import {
   FaPenNib
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
+import API_URL from "../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
@@ -100,7 +101,7 @@ const formatDateLabel = (dateStr) => {
 
 export default function StudentMyDiary() {
   const { theme } = useTheme();
-  const API = import.meta.env.VITE_API_URL || "";
+  const API = API_URL;
 
   // State
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);

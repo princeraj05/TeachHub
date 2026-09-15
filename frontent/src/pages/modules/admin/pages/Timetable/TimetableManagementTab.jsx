@@ -13,6 +13,7 @@ import {
   FaSyncAlt,
   FaExclamationTriangle
 } from "react-icons/fa";
+import API_URL from "../../../../../config/api";
 
 const DAYS_LIST = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -217,7 +218,7 @@ function TimetableManagementTab({
 
   // Load school break settings on mount
   React.useEffect(() => {
-    const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
+    const API = API_URL;
     const token = localStorage.getItem("token");
     if (token) {
       axios.get(`${API}/api/schools/my-school`, { headers: { Authorization: `Bearer ${token}` } })
@@ -237,7 +238,7 @@ function TimetableManagementTab({
     e.preventDefault();
     setSavingBreaks(true);
     try {
-      const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const API = API_URL;
       const token = localStorage.getItem("token");
       await axios.put(`${API}/api/schools/my-school`, {
         shortBreakStartTime,

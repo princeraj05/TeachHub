@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaCalendarAlt, FaBook, FaSchool, FaTrash, FaPlus, FaCalendarCheck, FaEdit } from "react-icons/fa";
+import API_URL from "../../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
 function ExamSchedule() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   const [exams, setExams] = useState([]);

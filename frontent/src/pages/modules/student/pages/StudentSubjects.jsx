@@ -24,6 +24,7 @@ import {
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
 import { downloadFileMobile } from "../../../../utils/permissionAndDownloadUtils";
+import API_URL from "../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
@@ -34,7 +35,7 @@ const downloadFile = (fileUrl, fileName = "note") => {
 };
 
 function StudentSubjects() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const { theme, toggleTheme } = useTheme();
 
   const [dbSubjects, setDbSubjects] = useState([]);

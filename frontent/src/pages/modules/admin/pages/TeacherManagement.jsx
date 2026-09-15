@@ -14,6 +14,7 @@ import {
   FaExchangeAlt,
   FaBook,
 } from "react-icons/fa";
+import API_URL from "../../../../config/api";
 
 const C = {
   bg: "#080B16",
@@ -52,7 +53,7 @@ const defaultTeacherData = {
 };
 
 export default function TeacherManagement() {
-  const api = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const api = API_URL;
   const headers = { Authorization: "Bearer " + localStorage.getItem("token") };
 
   const [teachers, setTeachers] = useState(() => {
@@ -292,7 +293,7 @@ export default function TeacherManagement() {
     if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
       return url;
     }
-    const api = import.meta.env.VITE_API_URL || "";
+    const api = API_URL;
     return `${api.replace(/\/$/, "")}/${url.replace(/^\//, "")}`;
   };
 

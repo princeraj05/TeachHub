@@ -19,11 +19,12 @@ import {
   FaBriefcase
 } from "react-icons/fa";
 import { useCall } from "../../../../../context/CallContext";
+import API_URL from "../../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
 function AdminRequests() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
   const schoolName = localStorage.getItem("schoolName") || "Our School";
   const { startCall } = useCall() || {};

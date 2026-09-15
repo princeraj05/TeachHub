@@ -15,11 +15,12 @@ import {
   FaSchool,
   FaExclamationCircle
 } from "react-icons/fa";
+import API_URL from "../../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
 export default function TeacherAcademicResults() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   // Dynamic Academic Year Choices (Current Year +/- 1)

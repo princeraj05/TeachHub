@@ -31,6 +31,7 @@ import {
   FaSearch,
   FaSchool
 } from "react-icons/fa";
+import API_URL from "../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
@@ -60,7 +61,7 @@ function AdminLayout() {
   }, []);
 
   const fetchRequestCount = () => {
-    const API = import.meta.env.VITE_API_URL;
+    const API = API_URL;
     const token = localStorage.getItem("token");
     if (!token) return;
     axios
@@ -83,7 +84,7 @@ function AdminLayout() {
   }, []);
 
   useEffect(() => {
-    const API = import.meta.env.VITE_API_URL;
+    const API = API_URL;
     const token = localStorage.getItem("token");
     if (!token) return;
 

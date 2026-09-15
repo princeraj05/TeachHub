@@ -14,8 +14,8 @@ import { useBasicInfo } from "./AboutSchool/hooks/useBasicInfo";
 import { useMediaPrincipal } from "./AboutSchool/hooks/useMediaPrincipal";
 import { useAdmissionSettings } from "./AboutSchool/hooks/useAdmissionSettings";
 import { useSchoolDescription } from "./AboutSchool/hooks/useSchoolDescription";
-
 import API_URL from "../../../../config/api";
+
 
 const SORA = "'Sora', sans-serif";
 

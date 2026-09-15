@@ -3,11 +3,12 @@ import axios from "axios";
 import { FaCreditCard, FaHistory } from "react-icons/fa";
 import { startBackendPayment } from "../../../../utils/razorpayCheckout";
 import socket from "../../../../socket";
+import API_URL from "../../../../config/api";
 
 const money = value => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format((value || 0) / 100);
 
 export default function StudentPayments() {
-  const api = import.meta.env.VITE_API_URL;
+  const api = API_URL;
   const token = localStorage.getItem("token");
   const [payments, setPayments] = useState([]);
   const [plan, setPlan] = useState(null);

@@ -24,6 +24,7 @@ import { compressAvatar } from "../../../utils/mediaCompression";
 import ProfilePhotoCropModal from "../../../components/ProfilePhotoCropModal";
 import { pickProfilePhoto } from "../../../utils/mobileCapabilities";
 import { Capacitor } from "@capacitor/core";
+import API_URL from "../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
@@ -81,7 +82,7 @@ const defaultProfile = {
 };
 
 function SuperAdminProfile() {
-  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   // Profile data state - INSTANT LOAD

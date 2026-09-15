@@ -26,6 +26,7 @@ import { compressAvatar } from "../../../../../utils/mediaCompression";
 import ProfilePhotoCropModal from "../../../../../components/ProfilePhotoCropModal";
 import { pickProfilePhoto } from "../../../../../utils/mobileCapabilities";
 import { Capacitor } from "@capacitor/core";
+import API_URL from "../../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
@@ -41,7 +42,7 @@ const formatDateForInput = (dateStr) => {
 };
 
 function TeacherProfile() {
-  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API = API_URL;
   const token = localStorage.getItem("token");
   const headers = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaBell, FaCheckDouble, FaTrashAlt, FaExternalLinkAlt, FaTimes } from "react-icons/fa";
+import API_URL from "../config/api";
 
 export default function NotificationBell({ fullViewPath = "" }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,7 +14,7 @@ export default function NotificationBell({ fullViewPath = "" }) {
   const navigate = useNavigate();
 
   const fetchNotifications = async () => {
-    const API = import.meta.env.VITE_API_URL;
+    const API = API_URL;
     const token = localStorage.getItem("token");
     if (!token) return;
 
@@ -53,7 +54,7 @@ export default function NotificationBell({ fullViewPath = "" }) {
   }, [isOpen]);
 
   const handleMarkAllRead = async () => {
-    const API = import.meta.env.VITE_API_URL;
+    const API = API_URL;
     const token = localStorage.getItem("token");
     if (!token) return;
 
@@ -70,7 +71,7 @@ export default function NotificationBell({ fullViewPath = "" }) {
 
   const handleNotificationClick = async (notif) => {
     if (!notif.isRead) {
-      const API = import.meta.env.VITE_API_URL;
+      const API = API_URL;
       const token = localStorage.getItem("token");
       if (token) {
         axios.put(`${API}/api/app-notifications/${notif._id}/read`, {}, {

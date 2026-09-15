@@ -6,10 +6,10 @@ import { auth } from "../../config/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 
 import { usePlatform } from "../../context/PlatformContext";
+import API_URL from "../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
-import API_URL from "../../config/api";
 
 function Register() {
   const API = API_URL;

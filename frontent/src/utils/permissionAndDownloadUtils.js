@@ -1,3 +1,4 @@
+import API_URL from "../config/api";
 /**
  * TeachHub Permission & Mobile Download Utility
  * Provides Just-In-Time permission requests for Camera, Microphone, Location,
@@ -119,7 +120,7 @@ export const downloadFileMobile = async (fileUrl, fileName = "file") => {
   if (!fileUrl) return;
 
   try {
-    const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const API = API_URL;
     let fullUrl = fileUrl;
     if (!fileUrl.startsWith("http") && !fileUrl.startsWith("data:")) {
       fullUrl = `${API.replace(/\/$/, "")}/${fileUrl.replace(/^\//, "")}`;

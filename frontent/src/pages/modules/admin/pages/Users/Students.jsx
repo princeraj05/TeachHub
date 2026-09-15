@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "axios";
 import { FaUserGraduate, FaEnvelope, FaSearch, FaUsers, FaTrash, FaUserPlus, FaHashtag } from "react-icons/fa";
+import API_URL from "../../../../../config/api";
 
 function Students() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
   const [search, setSearch] = useState("");

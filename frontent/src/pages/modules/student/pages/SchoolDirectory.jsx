@@ -15,13 +15,14 @@ import {
   FaCalendarAlt,
   FaArrowRight
 } from "react-icons/fa";
+import API_URL from "../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
 function SchoolDirectory() {
   const navigate = useNavigate();
   const location = useLocation();
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   const [schools, setSchools] = useState([]);

@@ -17,6 +17,7 @@ import {
   FaEye, 
   FaEllipsisV 
 } from "react-icons/fa";
+import API_URL from "../../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
@@ -128,7 +129,7 @@ function DoughnutChart({ present, absent, late, leave }) {
 }
 
 function AttendanceHistory() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   // Selection states

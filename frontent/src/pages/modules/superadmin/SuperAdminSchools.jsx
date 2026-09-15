@@ -20,11 +20,12 @@ import {
   FaSpinner,
   FaSync
 } from "react-icons/fa";
+import API_URL from "../../../config/api";
 
 const defaultSchools = [];
 
 function SuperAdminSchools() {
-  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   // Instant load state from local cache or pre-loaded defaults

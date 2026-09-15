@@ -84,7 +84,7 @@ export default function SupportLogin() {
   const getMediaUrl = (url) => {
     if (!url) return "";
     if (url.startsWith("data:") || url.startsWith("blob:")) return url;
-    const base = API || "http://localhost:5000";
+    const base = API || API_URL;
     const cleanBase = base.replace(/\/+$/, "");
 
     if (url.includes("/uploads/")) {

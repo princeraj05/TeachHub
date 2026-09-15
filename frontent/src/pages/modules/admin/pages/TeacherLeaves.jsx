@@ -7,6 +7,7 @@ import {
   Download, Eye, X, Check, SlidersHorizontal, Paperclip, ChevronLeft,
   ChevronRight, Menu, GraduationCap, Heart, Briefcase, PlusCircle, Plane,
 } from "lucide-react";
+import API_URL from "../../../../config/api";
 
 /* ---------------------------------------------------------------- */
 /* Design tokens                                                     */
@@ -89,7 +90,7 @@ function fmt(d) {
 /* ---------------------------------------------------------------- */
 
 export default function TeacherLeaves() {
-  const api = import.meta.env.VITE_API_URL;
+  const api = API_URL;
   const headers = { Authorization: "Bearer " + localStorage.getItem("token") };
 
   const [leaves, setLeaves] = useState([]);

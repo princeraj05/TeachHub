@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import API_URL from "../config/api";
 
 const LanguageContext = createContext(null);
 
@@ -277,7 +278,7 @@ export const LanguageProvider = ({ children }) => {
     localStorage.setItem("teachhub_language", newLang);
     window.dispatchEvent(new Event("languageChange"));
 
-    const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const API = API_URL;
     const token = localStorage.getItem("token");
     if (token) {
       try {

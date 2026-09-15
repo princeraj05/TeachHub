@@ -6,11 +6,12 @@ import {
 } from "react-icons/fa";
 import { compressImage, compressVideo, videoDuration } from "../../../../utils/mediaCompression";
 import EventGallery from "../../../../components/EventGallery";
+import API_URL from "../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
 function AdminEvents() {
-  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   const getMediaUrl = (url) => {

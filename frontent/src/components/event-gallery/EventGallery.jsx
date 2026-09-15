@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { FaImage, FaVideo } from "react-icons/fa";
 import PhotoGallery from "./PhotoGallery";
 import VideoGallery from "./VideoGallery";
+import API_URL from "../../config/api";
 
 export default function EventGallery({ event, api = "", onDeletePhoto, onDeleteVideo }) {
   const photos = event?.photos || [];
@@ -20,7 +21,7 @@ export default function EventGallery({ event, api = "", onDeletePhoto, onDeleteV
     prevVideosLength.current = videos.length;
   }, [photos.length, videos.length, activeTab]);
 
-  const defaultApi = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
+  const defaultApi = API_URL;
   const effectiveApi = api || defaultApi;
   const getMediaUrl = (url) => {
     if (!url) return "";

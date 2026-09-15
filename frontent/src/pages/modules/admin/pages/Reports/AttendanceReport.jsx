@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaSchool, FaCalendarAlt, FaCheckCircle, FaTimesCircle, FaChartLine, FaFilter, FaLayerGroup } from "react-icons/fa";
+import API_URL from "../../../../../config/api";
 
 function AttendanceReport() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   const [classesList, setClassesList] = useState([]);

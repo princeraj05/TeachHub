@@ -1,9 +1,9 @@
 export const getApiUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL;
   if (envUrl && envUrl.trim() !== "") {
-    return envUrl.replace(/\/$/, "");
+    return envUrl.replace(/\/+$/, "");
   }
-  return "http://localhost:5000";
+  return import.meta.env.DEV ? "http://localhost:5000" : "https://teachhub-tp9j.onrender.com";
 };
 
 export const API_URL = getApiUrl();

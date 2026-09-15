@@ -15,11 +15,12 @@ import {
   FaCalendarCheck 
 } from "react-icons/fa";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import API_URL from "../../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
 function MySubjects() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();

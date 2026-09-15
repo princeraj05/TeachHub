@@ -4,9 +4,10 @@ import { FaBroadcastTower, FaComments, FaPhone } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useCall } from "../../../../context/CallContext";
 import SupportChatEngine from "../../../../components/SupportChatEngine";
+import API_URL from "../../../../config/api";
 
 function TeacherSupport() {
-  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API = API_URL;
   const token = localStorage.getItem("token");
   const currentUserId = localStorage.getItem("userId");
 

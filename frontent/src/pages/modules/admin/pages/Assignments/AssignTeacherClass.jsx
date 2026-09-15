@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { FaSchool, FaChalkboardTeacher, FaBook, FaCheckCircle, FaEdit, FaTrashAlt, FaSearch, FaUserTie } from "react-icons/fa";
+import API_URL from "../../../../../config/api";
 
 function AssignTeacherClass() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   const formRef = useRef(null);

@@ -29,6 +29,7 @@ import {
 } from "react-icons/fa";
 import SyllabusTab from "../../../../../components/syllabus/SyllabusTab";
 import { downloadFileMobile } from "../../../../../utils/permissionAndDownloadUtils";
+import API_URL from "../../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
@@ -71,7 +72,7 @@ function SVGProgressRing({ value }) {
 function SubjectDetails() {
   const { subjectId } = useParams();
   const [searchParams] = useSearchParams();
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   const [loading, setLoading] = useState(true);

@@ -13,9 +13,10 @@ import {
 } from "react-icons/fa";
 import { useCall } from "../../../context/CallContext";
 import SupportChatEngine from "../../../components/SupportChatEngine";
+import API_URL from "../../../config/api";
 
 function SuperAdminSupport() {
-  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
+  const API = API_URL;
   const token = localStorage.getItem("token");
   const currentUserId = localStorage.getItem("userId");
 

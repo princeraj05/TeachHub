@@ -47,10 +47,10 @@ import { useTheme } from "../../context/ThemeContext";
 import { FaVideo } from "react-icons/fa";
 import { useCall } from "../../context/CallContext";
 import { useLanguage } from "../../context/LanguageContext";
+import API_URL from "../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
-import API_URL from "../../config/api";
 
 function PendingApproval() {
   const navigate = useNavigate();

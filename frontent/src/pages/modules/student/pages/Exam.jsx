@@ -22,6 +22,7 @@ import {
   FaFlask,
   FaGlobe
 } from "react-icons/fa";
+import API_URL from "../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
@@ -99,7 +100,7 @@ const VideoPreview = ({ stream }) => {
 };
 
 function Exam() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
@@ -146,7 +147,7 @@ function Exam() {
 
       if (proctorId) {
         const token = localStorage.getItem("token");
-        const API = import.meta.env.VITE_API_URL;
+        const API = API_URL;
         socketRef.current = io(API, {
           auth: { token }
         });

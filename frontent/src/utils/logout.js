@@ -3,12 +3,13 @@ import { signOut } from "firebase/auth";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Capacitor } from "@capacitor/core";
 import axios from "axios";
+import API_URL from "../config/api";
 
 export const performLogout = async (navigate) => {
   try {
     // 1. Invalidate backend session if token exists
     const token = localStorage.getItem("token");
-    const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const API = API_URL;
     if (token) {
       try {
         await axios.post(

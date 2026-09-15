@@ -10,6 +10,7 @@ import {
   FaSchool
 } from "react-icons/fa";
 import axios from "axios";
+import API_URL from "../config/api";
 
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -118,7 +119,7 @@ const formatTimeRange = (startTime, endTime) => {
 };
 
 export default function TimetableView() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const navigate = useNavigate();
   
   const currentDayName = useMemo(() => {

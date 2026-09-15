@@ -17,6 +17,7 @@ import {
   FaTimesCircle
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import API_URL from "../../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
@@ -66,7 +67,7 @@ const parseTimeToMinutes = (timeStr) => {
 };
 
 function MarkAttendance() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   // Selection states

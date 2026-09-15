@@ -23,9 +23,10 @@ import {
   FaPhoneAlt,
   FaBuilding
 } from "react-icons/fa";
+import API_URL from "../../../config/api";
 
 function SuperAdminSupportTeam() {
-  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   // Local & Cached State

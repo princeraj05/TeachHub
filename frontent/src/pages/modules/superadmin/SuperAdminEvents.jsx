@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { FaCalendarAlt, FaClock, FaImage, FaVideo, FaEye, FaTimes, FaSchool, FaExpand } from "react-icons/fa";
 import EventGallery from "../../../components/EventGallery";
+import API_URL from "../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
 const defaultEvents = [];
 
 function SuperAdminEvents() {
-  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   const getMediaUrl = (url) => {

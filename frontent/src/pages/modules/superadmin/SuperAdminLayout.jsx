@@ -25,6 +25,7 @@ import {
   FaSearch
 } from "react-icons/fa";
 import { usePlatform } from "../../../context/PlatformContext";
+import API_URL from "../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
@@ -46,7 +47,7 @@ function SuperAdminLayout() {
 
   const fetchUnreadCount = async () => {
     try {
-      const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const API = API_URL;
       const token = localStorage.getItem("token");
       if (!token) return;
       const res = await axios.get(`${API}/api/notifications`, {
@@ -72,7 +73,7 @@ function SuperAdminLayout() {
   }, []);
 
   useEffect(() => {
-    const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const API = API_URL;
     const token = localStorage.getItem("token");
     if (!token) return;
 

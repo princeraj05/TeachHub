@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaBell, FaCheckDouble, FaTrashAlt, FaSearch, FaExternalLinkAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import API_URL from "../../../config/api";
 
 export default function StudentNotifications() {
   const [notifications, setNotifications] = useState([]);
@@ -11,7 +12,7 @@ export default function StudentNotifications() {
   const navigate = useNavigate();
 
   const fetchNotifications = async () => {
-    const API = import.meta.env.VITE_API_URL;
+    const API = API_URL;
     const token = localStorage.getItem("token");
     if (!token) return;
 
@@ -35,7 +36,7 @@ export default function StudentNotifications() {
   }, []);
 
   const handleMarkAllRead = async () => {
-    const API = import.meta.env.VITE_API_URL;
+    const API = API_URL;
     const token = localStorage.getItem("token");
     if (!token) return;
 
@@ -50,7 +51,7 @@ export default function StudentNotifications() {
   };
 
   const handleMarkSingleRead = async (id) => {
-    const API = import.meta.env.VITE_API_URL;
+    const API = API_URL;
     const token = localStorage.getItem("token");
     if (!token) return;
 
@@ -65,7 +66,7 @@ export default function StudentNotifications() {
   };
 
   const handleDelete = async (id) => {
-    const API = import.meta.env.VITE_API_URL;
+    const API = API_URL;
     const token = localStorage.getItem("token");
     if (!token) return;
 

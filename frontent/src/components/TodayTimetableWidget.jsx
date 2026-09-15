@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { FaClock } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import API_URL from "../config/api";
 
 // Helper to format time range e.g. "12:00-12:50 PM"
 const formatTimeRange = (startTime, endTime) => {
@@ -29,7 +30,7 @@ const formatTimeRange = (startTime, endTime) => {
 };
 
 export default function TodayTimetableWidget() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
   const [entries, setEntries] = useState([]);

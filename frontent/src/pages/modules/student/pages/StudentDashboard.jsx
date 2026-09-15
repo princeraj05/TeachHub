@@ -24,6 +24,7 @@ import {
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
 import TodayTimetableWidget from "../../../../components/TodayTimetableWidget";
+import API_URL from "../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
@@ -122,7 +123,7 @@ const STUDENT_NAV_ITEMS = [
 ];
 
 function StudentDashboard() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 

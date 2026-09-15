@@ -33,12 +33,13 @@ import {
   FaChartBar,
   FaChevronLeft,
 } from "react-icons/fa";
+import API_URL from "../../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
 function MyClasses() {
   const navigate = useNavigate();
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
   const teacherName = localStorage.getItem("name") || "Teacher";
   const teacherAvatar = localStorage.getItem("avatar") || "";

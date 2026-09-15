@@ -12,6 +12,7 @@ import {
   FaComments,
   FaSync
 } from "react-icons/fa";
+import API_URL from "../../../config/api";
 
 const defaultStats = {
   totalUsers: 0,
@@ -31,7 +32,7 @@ const defaultStats = {
 const defaultActivity = [];
 
 function SuperAdminDashboard() {
-  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
+  const API = API_URL;
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 

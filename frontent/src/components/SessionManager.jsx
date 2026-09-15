@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import axios from "axios";
 import { performLogout } from "../utils/logout";
+import API_URL from "../config/api";
 
 // Keep a valid session alive across refreshes without clearing it on transient
 // network failures. The server remains the source of truth for token validity.
@@ -34,7 +35,7 @@ export default function SessionManager({ children }) {
       };
     }
 
-    const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const API = API_URL;
     axios
       .get(`${API}/api/auth/profile`, {
         headers: { Authorization: `Bearer ${token}` },

@@ -4,12 +4,13 @@ import { FaCheck, FaCog, FaHistory, FaMoneyBillWave, FaReceipt } from "react-ico
 import { startBackendPayment } from "../utils/razorpayCheckout";
 import PaymentManagement from "./PaymentManagement";
 import socket from "../socket";
+import API_URL from "../config/api";
 
 const rupees = value => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format((value || 0) / 100);
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
 
 export default function PaymentCenter({ role }) {
-  const api = import.meta.env.VITE_API_URL;
+  const api = API_URL;
   const [data, setData] = useState({ recentPayments: [] });
   const [payments, setPayments] = useState([]);
   const [subscription, setSubscription] = useState(null);

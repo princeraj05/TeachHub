@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import API_URL from "../../../../config/api";
 
 const STATUSES = ["Pending", "Approved", "Rejected", "Completed", "Cancelled"];
 
 export default function Appointments() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const headers = { Authorization: `Bearer ${localStorage.getItem("token")}` };
   const [appointments, setAppointments] = useState([]);
   const [message, setMessage] = useState("");

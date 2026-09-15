@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaChalkboardTeacher, FaEnvelope, FaSearch, FaUsers, FaSchool, FaBook, FaTrash } from "react-icons/fa";
+import API_URL from "../../../../../config/api";
 
 function Teachers() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const [teachers, setTeachers] = useState([]);
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);

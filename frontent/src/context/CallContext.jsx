@@ -12,8 +12,8 @@ import {
   FaSync
 } from "react-icons/fa";
 import { requestCameraAndMicPermission, requestNotificationPermission } from "../utils/permissionAndDownloadUtils";
-
 import API_URL from "../config/api";
+
 
 const CallContext = createContext(null);
 

@@ -31,6 +31,7 @@ import {
 
 import { usePlatform } from "../../../context/PlatformContext";
 import { useLanguage } from "../../../context/LanguageContext";
+import API_URL from "../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
@@ -58,7 +59,7 @@ function TeacherLayout() {
   }, []);
 
   useEffect(() => {
-    const API = import.meta.env.VITE_API_URL;
+    const API = API_URL;
     const token = localStorage.getItem("token");
     if (!token) return;
 

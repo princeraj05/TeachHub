@@ -18,13 +18,14 @@ import {
   FaChalkboardTeacher
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
+import API_URL from "../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
 const DEFAULT_SUBJECTS = ["Hindi", "English", "Mathematics", "Social Science", "Science"];
 
 function StudentAttendance() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const { theme } = useTheme();
 
   const [dbAttendance, setDbAttendance] = useState([]);

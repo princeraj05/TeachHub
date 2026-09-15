@@ -11,13 +11,14 @@ import {
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
 import { performLogout } from "../../../../utils/logout";
+import API_URL from "../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
 function StudentLogout() {
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API = API_URL;
   const token = localStorage.getItem("token");
   const [loading, setLoading] = useState(false);
 

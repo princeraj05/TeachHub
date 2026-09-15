@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaUserGraduate, FaSchool, FaLayerGroup, FaCheckCircle } from "react-icons/fa";
+import API_URL from "../../../../../config/api";
 
 function AssignStudentClass() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   const [classes, setClasses] = useState([]);

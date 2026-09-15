@@ -28,6 +28,7 @@ import {
   FaUserGraduate
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
+import API_URL from "../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
@@ -87,7 +88,7 @@ const HOMEWORK_TYPE_OPTIONS = [
 
 export default function TeacherMyDiary() {
   const { theme } = useTheme();
-  const API = import.meta.env.VITE_API_URL || "";
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   // Tab mode: 'homework' or 'signature-check'

@@ -19,6 +19,7 @@ import {
   FaClock, 
   FaRegCalendarAlt 
 } from "react-icons/fa";
+import API_URL from "../../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
@@ -111,7 +112,7 @@ function BarChart({ items }) {
 
 function ExamDetailsAndResults() {
   const { examId } = useParams();
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   const [loading, setLoading] = useState(true);

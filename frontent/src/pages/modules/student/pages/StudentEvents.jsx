@@ -13,6 +13,7 @@ import {
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
 import EventGallery from "../../../../components/EventGallery";
+import API_URL from "../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
@@ -20,7 +21,7 @@ const MOCK_UPCOMING = [];
 const MOCK_COMPLETED = [];
 
 function StudentEvents() {
-  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
+  const API = API_URL;
   const token = localStorage.getItem("token");
   const name = localStorage.getItem("name") || "Student";
   const { theme, toggleTheme } = useTheme();

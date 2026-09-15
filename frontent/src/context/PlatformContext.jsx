@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import axios from "axios";
 import { FaSignOutAlt } from "react-icons/fa";
 import { performLogout } from "../utils/logout";
+import API_URL from "../config/api";
 
 const PlatformContext = createContext(null);
 
@@ -19,7 +20,6 @@ export const usePlatform = () => {
   return context;
 };
 
-import API_URL from "../config/api";
 
 export const PlatformProvider = ({ children }) => {
   const [platformName, setPlatformName] = useState(localStorage.getItem("platformName") || "Your School");

@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import { useCall } from "../context/CallContext";
 import { downloadFileMobile } from "../utils/permissionAndDownloadUtils";
+import API_URL from "../config/api";
 
 const EMOJI_CATEGORIES = {
   "Smileys": ["😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🤩", "🥳", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🤭", "🤫", "🤥", "😶", "😐", "😑", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😵", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕"],
@@ -17,7 +18,7 @@ const EMOJI_CATEGORIES = {
 };
 
 function SupportChatEngine({ activeContact, onBack, userRole }) {
-  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API = API_URL;
   const token = localStorage.getItem("token");
   const currentUserId = localStorage.getItem("userId");
 

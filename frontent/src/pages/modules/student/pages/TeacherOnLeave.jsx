@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaUserTimes, FaCalendarAlt, FaBookOpen } from "react-icons/fa";
+import API_URL from "../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
 export default function TeacherOnLeave() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

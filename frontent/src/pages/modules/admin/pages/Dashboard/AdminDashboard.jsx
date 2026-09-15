@@ -34,11 +34,12 @@ import {
   FaChevronDown,
   FaClock,
 } from "react-icons/fa";
+import API_URL from "../../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
 function AdminDashboard() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
 
   // Local state for live time
   const [currentTime, setCurrentTime] = useState(new Date());

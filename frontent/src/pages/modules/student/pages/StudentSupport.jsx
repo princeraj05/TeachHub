@@ -11,11 +11,12 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { useCall } from "../../../../context/CallContext";
 import SupportChatEngine from "../../../../components/SupportChatEngine";
+import API_URL from "../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
 function StudentSupport() {
-  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API = API_URL;
   const token = localStorage.getItem("token");
   const currentUserId = localStorage.getItem("userId");
 

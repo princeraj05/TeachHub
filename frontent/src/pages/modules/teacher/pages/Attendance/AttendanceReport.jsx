@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaCalendarAlt, FaClipboardList, FaCheck, FaTimes, FaCalendarCheck } from "react-icons/fa";
+import API_URL from "../../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
 function AttendanceReport() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
