@@ -250,10 +250,16 @@ exports.saveMarks = async (req, res) => {
       if (!classDoc) {
         return res.status(404).json({ message: `Class ${classId} not found` });
       }
+      if (schoolName && classDoc.schoolName !== schoolName) {
+        return res.status(403).json({ message: `Access Denied: Class ${classId} belongs to another school` });
+      }
 
       const subjectDoc = await Subject.findById(subjectId).lean();
       if (!subjectDoc) {
         return res.status(404).json({ message: `Subject ${subjectId} not found` });
+      }
+      if (schoolName && subjectDoc.schoolName && subjectDoc.schoolName !== schoolName) {
+        return res.status(403).json({ message: `Access Denied: Subject ${subjectId} belongs to another school` });
       }
 
       // MANDATORY CHECK: Authoritative Exam check & maxMarks retrieval
@@ -310,27 +316,11 @@ exports.saveMarks = async (req, res) => {
         return res.status(403).json({ message: `Access Denied: Student ${studentId} belongs to another school` });
       }
 
-      const classDoc = await Class.findById(classId).lean();
-      if (!classDoc) {
-        return res.status(404).json({ message: `Class ${classId} not found` });
-      }
-      if (schoolName && classDoc.schoolName !== schoolName) {
-        return res.status(403).json({ message: `Access Denied: Class ${classId} belongs to another school` });
-      }
-
       // Verify student belongs to class
       const isStudentInClass = studentDoc.classId?.toString() === classId.toString() ||
         (Array.isArray(classDoc.students) && classDoc.students.some(s => s.toString() === studentId.toString()));
       if (!isStudentInClass) {
         return res.status(400).json({ message: `Student ${studentId} does not belong to Class ${classDoc.name}` });
-      }
-
-      const subjectDoc = await Subject.findById(subjectId).lean();
-      if (!subjectDoc) {
-        return res.status(404).json({ message: `Subject ${subjectId} not found` });
-      }
-      if (schoolName && subjectDoc.schoolName && subjectDoc.schoolName !== schoolName) {
-        return res.status(403).json({ message: `Access Denied: Subject ${subjectId} belongs to another school` });
       }
 
       // Verify subject is associated with class
