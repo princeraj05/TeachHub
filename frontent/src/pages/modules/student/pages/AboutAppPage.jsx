@@ -37,11 +37,12 @@ import {
   FaShieldAlt
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
+import API_URL from "../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
 function AboutAppPage() {
-  const API = import.meta.env.VITE_API_URL;
+  const API = API_URL;
   const token = localStorage.getItem("token");
   const { theme } = useTheme();
 
@@ -196,14 +197,15 @@ function AboutAppPage() {
     }
   ];
 
+  const baseLegalUrl = API_URL.replace(/\/$/, "");
   const legalLinks = [
-    { title: "Privacy Policy", url: info?.privacyPolicyUrl || "https://skyblue-yak-430824.hostingersite.com/privacy-policy", icon: <FaLock /> },
-    { title: "Cookie Policy", url: info?.cookiePolicyUrl || "https://skyblue-yak-430824.hostingersite.com/cookie-policy", icon: <FaCookieBite /> },
-    { title: "Terms of Service", url: info?.termsOfServiceUrl || "https://skyblue-yak-430824.hostingersite.com/terms-of-service", icon: <FaFileAlt /> },
-    { title: "Disclaimer", url: info?.disclaimerUrl || "https://skyblue-yak-430824.hostingersite.com/disclaimer", icon: <FaExclamationCircle /> },
-    { title: "Refund Policy", url: info?.refundPolicyUrl || "https://skyblue-yak-430824.hostingersite.com/refund-policy", icon: <FaUndo /> },
-    { title: "About Us", url: info?.aboutUsUrl || "https://skyblue-yak-430824.hostingersite.com/about-us", icon: <FaGlobe /> },
-    { title: "Account Deletion Request", url: info?.accountDeletionUrl || "https://skyblue-yak-430824.hostingersite.com/delete-account", icon: <FaShieldAlt /> }
+    { title: "Privacy Policy", url: info?.privacyPolicyUrl || `${baseLegalUrl}/privacy-policy`, icon: <FaLock /> },
+    { title: "Cookie Policy", url: info?.cookiePolicyUrl || `${baseLegalUrl}/cookie-policy`, icon: <FaCookieBite /> },
+    { title: "Terms of Service", url: info?.termsOfServiceUrl || `${baseLegalUrl}/terms-of-service`, icon: <FaFileAlt /> },
+    { title: "Disclaimer", url: info?.disclaimerUrl || `${baseLegalUrl}/disclaimer`, icon: <FaExclamationCircle /> },
+    { title: "Refund Policy", url: info?.refundPolicyUrl || `${baseLegalUrl}/refund-policy`, icon: <FaUndo /> },
+    { title: "About Us", url: info?.aboutUsUrl || `${baseLegalUrl}/about-us`, icon: <FaGlobe /> },
+    { title: "Account Deletion Request", url: info?.accountDeletionUrl || `${baseLegalUrl}/delete-account`, icon: <FaShieldAlt /> }
   ];
 
   return (

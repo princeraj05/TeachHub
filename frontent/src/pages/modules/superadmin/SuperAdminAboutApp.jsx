@@ -24,11 +24,13 @@ import {
   FaCheckCircle,
   FaTimesCircle
 } from "react-icons/fa";
+import API_URL from "../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
 function SuperAdminAboutApp() {
-  const API = import.meta.env.VITE_API_URL || "https://myschool-admin-panel.onrender.com";
+  const baseLegalUrl = API_URL.replace(/\/$/, "");
+  const API = API_URL;
   const token = localStorage.getItem("token");
 
   // Platform Information
@@ -51,13 +53,13 @@ function SuperAdminAboutApp() {
   const [supportHours, setSupportHours] = useState("Monday - Saturday: 9:00 AM to 6:00 PM (IST)");
 
   // Legal Links
-  const [privacyPolicyUrl, setPrivacyPolicyUrl] = useState("https://skyblue-yak-430824.hostingersite.com/privacy-policy");
-  const [cookiePolicyUrl, setCookiePolicyUrl] = useState("https://skyblue-yak-430824.hostingersite.com/cookie-policy");
-  const [termsOfServiceUrl, setTermsOfServiceUrl] = useState("https://skyblue-yak-430824.hostingersite.com/terms-of-service");
-  const [disclaimerUrl, setDisclaimerUrl] = useState("https://skyblue-yak-430824.hostingersite.com/disclaimer");
-  const [refundPolicyUrl, setRefundPolicyUrl] = useState("https://skyblue-yak-430824.hostingersite.com/refund-policy");
-  const [aboutUsUrl, setAboutUsUrl] = useState("https://skyblue-yak-430824.hostingersite.com/about-us");
-  const [accountDeletionUrl, setAccountDeletionUrl] = useState("https://skyblue-yak-430824.hostingersite.com/delete-account");
+  const [privacyPolicyUrl, setPrivacyPolicyUrl] = useState(`${baseLegalUrl}/privacy-policy`);
+  const [cookiePolicyUrl, setCookiePolicyUrl] = useState(`${baseLegalUrl}/cookie-policy`);
+  const [termsOfServiceUrl, setTermsOfServiceUrl] = useState(`${baseLegalUrl}/terms-of-service`);
+  const [disclaimerUrl, setDisclaimerUrl] = useState(`${baseLegalUrl}/disclaimer`);
+  const [refundPolicyUrl, setRefundPolicyUrl] = useState(`${baseLegalUrl}/refund-policy`);
+  const [aboutUsUrl, setAboutUsUrl] = useState(`${baseLegalUrl}/about-us`);
+  const [accountDeletionUrl, setAccountDeletionUrl] = useState(`${baseLegalUrl}/delete-account`);
 
   // App Stores & Social Links
   const [playStoreLink, setPlayStoreLink] = useState("https://play.google.com/store/apps/details?id=com.teachhub.app");
@@ -111,13 +113,13 @@ function SuperAdminAboutApp() {
         setSupportWhatsapp(d.supportWhatsapp || "+91 98765 43210");
         setSupportHours(d.supportHours || "Monday - Saturday: 9:00 AM to 6:00 PM (IST)");
 
-        setPrivacyPolicyUrl(d.privacyPolicyUrl || "https://skyblue-yak-430824.hostingersite.com/privacy-policy");
-        setCookiePolicyUrl(d.cookiePolicyUrl || "https://skyblue-yak-430824.hostingersite.com/cookie-policy");
-        setTermsOfServiceUrl(d.termsOfServiceUrl || "https://skyblue-yak-430824.hostingersite.com/terms-of-service");
-        setDisclaimerUrl(d.disclaimerUrl || "https://skyblue-yak-430824.hostingersite.com/disclaimer");
-        setRefundPolicyUrl(d.refundPolicyUrl || "https://skyblue-yak-430824.hostingersite.com/refund-policy");
-        setAboutUsUrl(d.aboutUsUrl || "https://skyblue-yak-430824.hostingersite.com/about-us");
-        setAccountDeletionUrl(d.accountDeletionUrl || "https://skyblue-yak-430824.hostingersite.com/delete-account");
+        setPrivacyPolicyUrl(d.privacyPolicyUrl || `${baseLegalUrl}/privacy-policy`);
+        setCookiePolicyUrl(d.cookiePolicyUrl || `${baseLegalUrl}/cookie-policy`);
+        setTermsOfServiceUrl(d.termsOfServiceUrl || `${baseLegalUrl}/terms-of-service`);
+        setDisclaimerUrl(d.disclaimerUrl || `${baseLegalUrl}/disclaimer`);
+        setRefundPolicyUrl(d.refundPolicyUrl || `${baseLegalUrl}/refund-policy`);
+        setAboutUsUrl(d.aboutUsUrl || `${baseLegalUrl}/about-us`);
+        setAccountDeletionUrl(d.accountDeletionUrl || `${baseLegalUrl}/delete-account`);
 
         setPlayStoreLink(d.playStoreLink || "https://play.google.com/store/apps/details?id=com.teachhub.app");
         setAppStoreLink(d.appStoreLink || "https://apps.apple.com/app/teachhub");
@@ -155,13 +157,13 @@ function SuperAdminAboutApp() {
     setSupportWhatsapp(d.supportWhatsapp || "+91 98765 43210");
     setSupportHours(d.supportHours || "Monday - Saturday: 9:00 AM to 6:00 PM (IST)");
 
-    setPrivacyPolicyUrl(d.privacyPolicyUrl || "https://skyblue-yak-430824.hostingersite.com/privacy-policy");
-    setCookiePolicyUrl(d.cookiePolicyUrl || "https://skyblue-yak-430824.hostingersite.com/cookie-policy");
-    setTermsOfServiceUrl(d.termsOfServiceUrl || "https://skyblue-yak-430824.hostingersite.com/terms-of-service");
-    setDisclaimerUrl(d.disclaimerUrl || "https://skyblue-yak-430824.hostingersite.com/disclaimer");
-    setRefundPolicyUrl(d.refundPolicyUrl || "https://skyblue-yak-430824.hostingersite.com/refund-policy");
-    setAboutUsUrl(d.aboutUsUrl || "https://skyblue-yak-430824.hostingersite.com/about-us");
-    setAccountDeletionUrl(d.accountDeletionUrl || "https://skyblue-yak-430824.hostingersite.com/delete-account");
+    setPrivacyPolicyUrl(d.privacyPolicyUrl || `${baseLegalUrl}/privacy-policy`);
+    setCookiePolicyUrl(d.cookiePolicyUrl || `${baseLegalUrl}/cookie-policy`);
+    setTermsOfServiceUrl(d.termsOfServiceUrl || `${baseLegalUrl}/terms-of-service`);
+    setDisclaimerUrl(d.disclaimerUrl || `${baseLegalUrl}/disclaimer`);
+    setRefundPolicyUrl(d.refundPolicyUrl || `${baseLegalUrl}/refund-policy`);
+    setAboutUsUrl(d.aboutUsUrl || `${baseLegalUrl}/about-us`);
+    setAccountDeletionUrl(d.accountDeletionUrl || `${baseLegalUrl}/delete-account`);
 
     setPlayStoreLink(d.playStoreLink || "https://play.google.com/store/apps/details?id=com.teachhub.app");
     setAppStoreLink(d.appStoreLink || "https://apps.apple.com/app/teachhub");

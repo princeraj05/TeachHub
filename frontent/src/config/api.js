@@ -1,9 +1,9 @@
 export const getApiUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL;
-  if (envUrl && !envUrl.includes("localhost:5000") && envUrl.trim() !== "") {
+  if (envUrl && envUrl.trim() !== "") {
     return envUrl.replace(/\/$/, "");
   }
-  return "https://skyblue-yak-430824.hostingersite.com";
+  return "http://localhost:5000";
 };
 
 export const API_URL = getApiUrl();

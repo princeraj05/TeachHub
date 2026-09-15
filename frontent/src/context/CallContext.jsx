@@ -13,12 +13,14 @@ import {
 } from "react-icons/fa";
 import { requestCameraAndMicPermission, requestNotificationPermission } from "../utils/permissionAndDownloadUtils";
 
+import API_URL from "../config/api";
+
 const CallContext = createContext(null);
 
 export const useCall = () => useContext(CallContext);
 
 export const CallProvider = ({ children }) => {
-  const API = import.meta.env.VITE_API_URL || "https://skyblue-yak-430824.hostingersite.com";
+  const API = API_URL;
   const currentUserId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
 
