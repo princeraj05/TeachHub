@@ -337,16 +337,6 @@ function Exam() {
     return upcoming.sort((a, b) => new Date(a.date) - new Date(b.date))[0];
   }, [allExams]);
 
-  // Aggregate stats metrics
-  const examsMetrics = useMemo(() => {
-    const total = allExams.length;
-    const upcoming = allExams.filter(e => e.status === "Upcoming").length;
-    const ongoing = 0; // Standard layout ongoing counts
-    const completed = allExams.filter(e => e.status === "Completed").length;
-
-    return { total, upcoming, ongoing, completed };
-  }, [allExams]);
-
   const getSubjectVisuals = (subjectName) => {
     const clean = (subjectName || "").toLowerCase();
     if (clean.includes("admission")) {
@@ -536,51 +526,6 @@ function Exam() {
               <span>Academic Year 2026</span>
               <span className="text-[10px] text-slate-450">▼</span>
             </div>
-          </div>
-
-          {/* Statistics Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            
-            {/* Card 1: Total Exams */}
-            <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm overflow-hidden">
-              <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/25 flex items-center justify-center mb-4">
-                <FaBookOpen className="text-sm" />
-              </div>
-              <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{examsMetrics.total}</p>
-              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">Total Exams</p>
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-purple-600 dark:bg-purple-500" />
-            </div>
-
-            {/* Card 2: Upcoming */}
-            <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm overflow-hidden">
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/25 flex items-center justify-center mb-4">
-                <FaCalendarAlt className="text-sm" />
-              </div>
-              <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{examsMetrics.upcoming}</p>
-              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">Upcoming</p>
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-emerald-505" />
-            </div>
-
-            {/* Card 3: Ongoing */}
-            <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm overflow-hidden">
-              <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/25 flex items-center justify-center mb-4">
-                <FaClock className="text-sm" />
-              </div>
-              <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{examsMetrics.ongoing}</p>
-              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">Ongoing</p>
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-amber-500" />
-            </div>
-
-            {/* Card 4: Completed */}
-            <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm overflow-hidden">
-              <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/25 flex items-center justify-center mb-4">
-                <FaCheckCircle className="text-sm" />
-              </div>
-              <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{examsMetrics.completed}</p>
-              <p className="text-[10px] text-slate-400 dark:text-slate-505 font-extrabold uppercase tracking-wide">Completed</p>
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 dark:bg-blue-500" />
-            </div>
-
           </div>
 
           {/* Next Exam Card Highlights */}
