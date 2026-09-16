@@ -5,8 +5,36 @@ teachhub-da45a-firebase-adminsdk-fbsvc-97809f78a9.json
 
 # Ignore env files
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
+
+# Node Dependencies
+node_modules/
 **/node_modules/
+
+# Android Build Outputs & Packages
+*.apk
+*.aab
+
+# Gradle & Android Build Cache
+.gradle/
+**/.gradle/
+build/
+**/build/
+local.properties
+**/local.properties
+
+# Web Builds & Output
+dist/
+**/dist/
+dist-ssr/
+**/dist-ssr/
+
+# IDE & System Files
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.log
+.DS_Store
+Thumbs.db
+
