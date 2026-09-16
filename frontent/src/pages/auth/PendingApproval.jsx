@@ -382,9 +382,9 @@ function PendingApproval() {
   // Sidebar link highlight helper
   const isLinkActive = (tabName) => activeTab === tabName;
 
-  const isTeacher = user.requestedRole === "teacher" || user.role === "teacher";
   const loginSource = localStorage.getItem("loginSource");
-  const isAdminApplicant = loginSource === "admin" || user.requestedRole === "admin" || user.role === "admin";
+  const isTeacher = loginSource === "teacher" || import.meta.env.MODE === "teacher" || user.requestedRole === "teacher" || user.role === "teacher";
+  const isAdminApplicant = loginSource === "admin" || import.meta.env.MODE === "admin" || user.requestedRole === "admin" || user.role === "admin";
 
   const getNotificationsList = () => {
     const list = [];
