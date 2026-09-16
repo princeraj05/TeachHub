@@ -245,15 +245,27 @@ function RegisterExam() {
       .then((res) => setProfile(res.data))
       .catch((err) => console.log(err));
   }, [API, token]);
+  const [selectedOfflineExam, setSelectedOfflineExam] = useState(null);
+  const [showOfflineModal, setShowOfflineModal] = useState(false);
+
+  const formatDurationStr = (dur) => {
+    if (!dur) return "60 Min";
+    const str = String(dur).trim();
+    if (str.toLowerCase().includes("min") || str.toLowerCase().includes("h") || str.toLowerCase().includes("m")) {
+      return str;
+    }
+    return `${str} Min`;
+  };
+
   const allExams = useMemo(() => {
     const list = [];
     if (profile && profile.admissionExamDate) {
       list.push({
         _id: "admission-exam-test",
-        subject: `Admission Entrance Test (${profile.admissionExamMode})`,
+        subject: `Admission Entrance Test (${profile.admissionExamMode || "online"})`,
         date: profile.admissionExamDate,
         isAdmission: true,
-        duration: 60,
+        duration: "60 Min",
         mode: profile.admissionExamMode || "online",
         proctored: true,
         taken: profile.admissionExamTaken
@@ -282,7 +294,7 @@ function RegisterExam() {
 
       return {
         ...e,
-        duration: e.duration || 60,
+        duration: formatDurationStr(e.duration),
         mode: e.mode || "offline",
         room: e.room || "Room 101",
         status,
@@ -361,9 +373,14 @@ function RegisterExam() {
     }
   };
 
-  const formatExamTime = (dateStr) => {
+  const formatExamTime = (examOrDate) => {
+    if (typeof examOrDate === "object" && examOrDate !== null) {
+      if (examOrDate.time) return examOrDate.time;
+      examOrDate = examOrDate.date;
+    }
     try {
-      const d = new Date(dateStr);
+      const d = new Date(examOrDate);
+      if (isNaN(d.getTime())) return "";
       return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
     } catch {
       return "";
@@ -371,6 +388,12 @@ function RegisterExam() {
   };
 
   const handleLaunchExam = (exam) => {
+    if (exam.mode === "offline") {
+      setSelectedOfflineExam(exam);
+      setShowOfflineModal(true);
+      return;
+    }
+
     if (exam.isAdmission) {
       setActiveTest("admission");
       setTestStep("setup");
@@ -590,7 +613,7 @@ function RegisterExam() {
                       </span>
                       <span className="flex items-center gap-1">
                         <FaClock className="text-slate-400 text-[11px]" />
-                        {formatExamTime(currentNextExam.date)} · Duration: {currentNextExam.duration} Min
+                        {formatExamTime(currentNextExam)} · Duration: {currentNextExam.duration}
                       </span>
                       <span className="flex items-center gap-1">
                         <FaDesktop className="text-slate-400 text-[11px]" />
@@ -695,7 +718,7 @@ function RegisterExam() {
                             </span>
                             <span className="flex items-center gap-1">
                               <FaClock className="text-slate-400 text-[11px]" />
-                              {formatExamTime(exam.date)} · {exam.duration} Min
+                              {formatExamTime(exam)} · {exam.duration}
                             </span>
                             <span className="flex items-center gap-1">
                               <FaDesktop className="text-slate-400 text-[11px]" />
@@ -799,6 +822,126 @@ function RegisterExam() {
                   className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white py-3 rounded-xl text-xs font-bold transition cursor-pointer"
                 >
                   I Understand
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Offline Classroom Exam Details Overlay Modal */}
+          {showOfflineModal && selectedOfflineExam && (
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 sm:p-7 w-full max-w-lg shadow-2xl relative select-none">
+                <button
+                  onClick={() => {
+                    setShowOfflineModal(false);
+                    setSelectedOfflineExam(null);
+                  }}
+                  className="absolute top-4 right-4 text-slate-400 hover:text-slate-655 dark:hover:text-white cursor-pointer"
+                >
+                  <FaTimes className="text-sm" />
+                </button>
+
+                {/* Modal Header */}
+                <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-slate-100 dark:border-white/5">
+                  <div className="w-11 h-11 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
+                    <FaBookOpen className="text-base" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded border border-amber-500/20">
+                        Offline Exam (Classroom)
+                      </span>
+                      {selectedOfflineExam.isAdmission ? (
+                        <span className="text-[9px] font-black uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">
+                          Admission
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-black uppercase bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded border border-blue-500/20">
+                          Internal
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight mt-1">
+                      {selectedOfflineExam.subject}
+                    </h3>
+                    {selectedOfflineExam.title && selectedOfflineExam.title !== selectedOfflineExam.subject && (
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
+                        {selectedOfflineExam.title}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Exam Details Grid */}
+                <div className="grid grid-cols-2 gap-3.5 mb-5">
+                  <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.06] p-3.5 rounded-2xl">
+                    <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1 flex items-center gap-1">
+                      <FaCalendarAlt className="text-slate-400 text-[10px]" /> Exam Date
+                    </p>
+                    <p className="text-xs font-black text-slate-800 dark:text-white">
+                      {formatExamDate(selectedOfflineExam.date)}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-bold">
+                      {formatExamDay(selectedOfflineExam.date)}
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.06] p-3.5 rounded-2xl">
+                    <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1 flex items-center gap-1">
+                      <FaClock className="text-slate-400 text-[10px]" /> Timing & Duration
+                    </p>
+                    <p className="text-xs font-black text-slate-800 dark:text-white">
+                      {formatExamTime(selectedOfflineExam)}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-bold">
+                      Duration: {selectedOfflineExam.duration}
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.06] p-3.5 rounded-2xl">
+                    <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1 flex items-center gap-1">
+                      <FaDesktop className="text-slate-400 text-[10px]" /> Venue / Room
+                    </p>
+                    <p className="text-xs font-black text-slate-800 dark:text-white">
+                      {selectedOfflineExam.room}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-bold">In-Person Exam Hall</p>
+                  </div>
+
+                  <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.06] p-3.5 rounded-2xl">
+                    <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1 flex items-center gap-1">
+                      <FaInfoCircle className="text-slate-400 text-[10px]" /> Invigilator / Proctor
+                    </p>
+                    <p className="text-xs font-black text-slate-800 dark:text-white truncate">
+                      {selectedOfflineExam.proctor?.name || "Assigned Teacher"}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-bold">
+                      Max Marks: {selectedOfflineExam.maxMarks || 100}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Offline Exam Instructions Box */}
+                <div className="bg-amber-50/70 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20 p-4 rounded-2xl mb-6">
+                  <h4 className="text-[11px] font-black uppercase text-amber-700 dark:text-amber-400 mb-2 flex items-center gap-1.5">
+                    <FaExclamationTriangle /> Offline Classroom Examination Instructions
+                  </h4>
+                  <ul className="text-[11px] text-amber-900 dark:text-amber-300 space-y-1.5 font-semibold list-disc pl-4 leading-relaxed">
+                    <li>Please reach <strong>{selectedOfflineExam.room}</strong> at least 15 minutes prior to <strong>{formatExamTime(selectedOfflineExam)}</strong>.</li>
+                    <li>Carry your physical <strong>Student Admit Card / ID Card</strong>.</li>
+                    <li>Bring necessary stationery (Pens, Pencils, Eraser, Ruler).</li>
+                    <li>Mobile phones, smartwatches, and electronic gadgets are strictly prohibited inside the exam hall.</li>
+                  </ul>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setShowOfflineModal(false);
+                    setSelectedOfflineExam(null);
+                  }}
+                  className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-md cursor-pointer"
+                >
+                  Got It, I Will Be Prepared
                 </button>
               </div>
             </div>
