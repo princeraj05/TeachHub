@@ -229,7 +229,13 @@ function Login({ scope }) {
       const res = await axios.post(`${API}/api/auth/firebase-sync`, { idToken });
       saveAuthAndNavigate(res.data);
     } catch (error) {
-      alert(error.response?.data?.message || "Sync Failed");
+      console.error("Backend sync error:", error);
+      const errDetails = error.response?.data?.message 
+        || error.response?.data?.error 
+        || error.message 
+        || "Sync Failed";
+      const statusText = error.response?.status ? ` [HTTP ${error.response.status}]` : "";
+      alert(`Backend Sync Failed${statusText}:\n${errDetails}\n\nAPI: ${API}`);
     }
   };
 
@@ -249,7 +255,13 @@ function Login({ scope }) {
       }
       setCooldown(60);
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to send OTP");
+      console.error("Send OTP error:", error);
+      const errDetails = error.response?.data?.message 
+        || error.response?.data?.error 
+        || error.message 
+        || "Failed to send OTP";
+      const statusText = error.response?.status ? ` [HTTP ${error.response.status}]` : "";
+      alert(`Send OTP Failed${statusText}:\n${errDetails}\n\nAPI: ${API}`);
     } finally {
       setLoading(false);
     }
@@ -263,7 +275,13 @@ function Login({ scope }) {
       const res = await axios.post(`${API}/api/auth/verify-otp`, { email, otp });
       saveAuthAndNavigate(res.data);
     } catch (error) {
-      alert(error.response?.data?.message || "Invalid or expired OTP");
+      console.error("Verify OTP error:", error);
+      const errDetails = error.response?.data?.message 
+        || error.response?.data?.error 
+        || error.message 
+        || "Invalid or expired OTP";
+      const statusText = error.response?.status ? ` [HTTP ${error.response.status}]` : "";
+      alert(`Verify OTP Failed${statusText}:\n${errDetails}\n\nAPI: ${API}`);
     } finally {
       setLoading(false);
     }
@@ -278,10 +296,18 @@ function Login({ scope }) {
       let idToken;
       if (Capacitor.isNativePlatform()) {
         const user = await GoogleAuth.signIn();
-        const googleIdToken = user.authentication.idToken;
-        const credential = GoogleAuthProvider.credential(googleIdToken);
-        const userCredential = await signInWithCredential(auth, credential);
-        idToken = await userCredential.user.getIdToken();
+        const googleIdToken = user?.authentication?.idToken;
+        if (!googleIdToken) {
+          throw new Error("Google Sign-In completed but no ID Token was received.");
+        }
+        try {
+          const credential = GoogleAuthProvider.credential(googleIdToken);
+          const userCredential = await signInWithCredential(auth, credential);
+          idToken = await userCredential.user.getIdToken();
+        } catch (fbErr) {
+          console.warn("Firebase credential sign-in fallback to Google ID token:", fbErr);
+          idToken = googleIdToken;
+        }
       } else {
         const userCredential = await signInWithPopup(auth, googleProvider);
         idToken = await userCredential.user.getIdToken();
