@@ -575,13 +575,42 @@ function TimetableManagementTab({
                   if (slot.isBreak) {
                     let breakColor = "bg-slate-200/60 dark:bg-[#1E293B]/40 text-slate-700 dark:text-slate-400";
                     if (slot.type === "lunch") breakColor = "bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-500";
+
+                    // Find any entries accidentally created during this break slot
+                    const slotStartMins = parseMins(slot.start);
+                    const slotEndMins = parseMins(slot.end);
+                    const breakEntries = filteredEntries.filter(e => {
+                      const eStart = parseMins(e.startTime);
+                      return eStart >= slotStartMins && eStart < slotEndMins;
+                    });
+
                     return (
                       <tr key={sIdx} className="border-b border-slate-200 dark:border-slate-850/60 last:border-b-0">
                         <td className="text-[9px] font-bold text-slate-600 dark:text-slate-450 py-3 border-r border-slate-200 dark:border-slate-850">
                           {slot.label}
                         </td>
                         <td colSpan={6} className={`py-3 font-extrabold text-[10px] tracking-widest uppercase border-b border-slate-200 dark:border-slate-850/30 ${breakColor}`}>
-                          🍴 &nbsp; {slot.name} &nbsp; 🍴
+                          <div className="flex flex-col items-center justify-center gap-1.5">
+                            <span>🍴 &nbsp; {slot.name} &nbsp; 🍴</span>
+                            {breakEntries.length > 0 && (
+                              <div className="flex flex-wrap items-center justify-center gap-2 mt-1 lowercase font-normal">
+                                <span className="text-[10px] text-rose-500 font-bold uppercase tracking-wider">⚠️ Conflicting Class Entries during Break:</span>
+                                {breakEntries.map(e => (
+                                  <div key={e._id} className="bg-rose-500/20 text-rose-800 dark:text-rose-200 border border-rose-500/40 px-2 py-1 rounded-lg flex items-center gap-2 text-[10px] font-bold">
+                                    <span>{e.day}: {e.subject?.name || "Subject"} ({e.teacher?.name || "Teacher"})</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => remove(e._id)}
+                                      className="hover:bg-rose-600 hover:text-white p-1 rounded transition text-rose-600 dark:text-rose-400 cursor-pointer"
+                                      title="Delete entry during break"
+                                    >
+                                      <FaTrashAlt className="text-[10px]" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );

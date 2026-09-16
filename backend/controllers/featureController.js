@@ -249,6 +249,11 @@ exports.createTimetable = async (req, res) => {
     const end = start + duration;
     if (end > 1440) return res.status(400).json({ message: "Class cannot end after midnight" });
 
+    // Check if start time falls into Lunch Break (12:00 PM to 01:00 PM = 720 to 780 mins)
+    if (start >= 720 && start < 780) {
+      return res.status(400).json({ message: "12:00 PM to 01:00 PM is reserved for Lunch Break" });
+    }
+
     // Validate conflicts on all target days
     for (const d of targetDays) {
       const entries = await Timetable.find({ schoolName: req.user.schoolName, day: d, $or: [{ class: classId }, { teacher: teacherId }] });

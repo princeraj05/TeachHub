@@ -80,13 +80,18 @@ export default function CreateTimetable() {
     return hours * 60 + minutes;
   };
 
-  // Helper to calculate next start time after submitting a slot (continuous period calculation)
+  // Helper to calculate next start time after submitting a slot (continuous period calculation, skipping Lunch Break)
   const getNextStartTime = (currentStartTime, durationMins) => {
     if (!currentStartTime) return "10:00";
     let [h, m] = currentStartTime.split(":").map(Number);
     if (isNaN(h) || isNaN(m)) return "10:00";
 
     let totalMins = h * 60 + m + Number(durationMins || 60);
+
+    // If totalMins falls into Lunch Break (12:00 PM / 720 mins to 01:00 PM / 780 mins), auto-skip to 13:00 (01:00 PM)
+    if (totalMins >= 720 && totalMins < 780) {
+      totalMins = 780;
+    }
 
     let nextH = Math.floor(totalMins / 60) % 24;
     let nextM = totalMins % 60;

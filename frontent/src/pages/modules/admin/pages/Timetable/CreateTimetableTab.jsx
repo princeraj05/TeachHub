@@ -538,32 +538,46 @@ function CreateTimetableTab({
                 </tr>
               </thead>
               <tbody>
-                {PREVIEW_HOURS.map(hourStr => (
-                  <tr key={hourStr} className="border-b border-slate-200 dark:border-slate-850/60 last:border-b-0">
-                    <td className="text-[8px] font-bold text-slate-600 dark:text-slate-400 py-2.5">
-                      {hourStr}
-                    </td>
-                    {PREVIEW_DAYS.map(day => {
-                      const period = getCellPeriod(day, hourStr);
-                      return (
-                        <td key={day} className="py-2.5 px-0.5 min-w-[40px]">
-                          {period ? (
-                            <div className="bg-[#6366F1]/10 border border-[#6366F1]/30 rounded p-1 text-center flex flex-col items-center">
-                              <span className="text-[7px] font-black text-[#6366F1] dark:text-[#818CF8] truncate max-w-[35px] leading-tight">
-                                {period.subject?.name?.slice(0, 5) || "Maths"}
-                              </span>
-                              <span className="text-[5px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 truncate max-w-[35px]">
-                                {period.room || "101"}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-slate-400 dark:text-slate-700 text-[8px] font-bold">—</span>
-                          )}
+                {PREVIEW_HOURS.map(hourStr => {
+                  if (hourStr === "12:00") {
+                    return (
+                      <tr key={hourStr} className="border-b border-slate-200 dark:border-slate-850/60 bg-amber-500/10">
+                        <td className="text-[8px] font-bold text-amber-600 dark:text-amber-400 py-2">
+                          12:00
                         </td>
-                      );
-                    })}
-                  </tr>
-                ))}
+                        <td colSpan={7} className="py-2 text-[8px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest text-center">
+                          🍴 Lunch Break (12:00 PM - 01:00 PM) 🍴
+                        </td>
+                      </tr>
+                    );
+                  }
+                  return (
+                    <tr key={hourStr} className="border-b border-slate-200 dark:border-slate-850/60 last:border-b-0">
+                      <td className="text-[8px] font-bold text-slate-600 dark:text-slate-400 py-2.5">
+                        {hourStr}
+                      </td>
+                      {PREVIEW_DAYS.map(day => {
+                        const period = getCellPeriod(day, hourStr);
+                        return (
+                          <td key={day} className="py-2.5 px-0.5 min-w-[40px]">
+                            {period ? (
+                              <div className="bg-[#6366F1]/10 border border-[#6366F1]/30 rounded p-1 text-center flex flex-col items-center">
+                                <span className="text-[7px] font-black text-[#6366F1] dark:text-[#818CF8] truncate max-w-[35px] leading-tight">
+                                  {period.subject?.name?.slice(0, 5) || "Maths"}
+                                </span>
+                                <span className="text-[5px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 truncate max-w-[35px]">
+                                  {period.room || "101"}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 dark:text-slate-700 text-[8px] font-bold">—</span>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
