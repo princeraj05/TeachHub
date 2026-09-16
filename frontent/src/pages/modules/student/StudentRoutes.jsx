@@ -10,6 +10,7 @@ const StudentSubjects = lazy(() => import("./pages/StudentSubjects"));
 const StudentAttendance = lazy(() => import("./pages/StudentAttendance"));
 const Exam = lazy(() => import("./pages/Exam"));
 const StudentAcademicResults = lazy(() => import("./pages/StudentAcademicResults"));
+const ResultMarks = lazy(() => import("./pages/ResultMarks"));
 const StudentProfile = lazy(() => import("./pages/StudentProfile"));
 const StudentSupport = lazy(() => import("./pages/StudentSupport"));
 const StudentEvents = lazy(() => import("./pages/StudentEvents"));
@@ -44,6 +45,7 @@ function StudentRoutes() {
         <Route path="attendance" element={<Suspense fallback={<PageLoader />}><StudentAttendance /></Suspense>} />
         <Route path="exams" element={<Suspense fallback={<PageLoader />}><Exam /></Suspense>} />
         <Route path="results" element={<Suspense fallback={<PageLoader />}><StudentAcademicResults /></Suspense>} />
+        <Route path="results/:resultId" element={<Suspense fallback={<PageLoader />}><ResultMarks /></Suspense>} />
         <Route path="profile" element={<Suspense fallback={<PageLoader />}><StudentProfile /></Suspense>} />
         <Route path="support" element={<Suspense fallback={<PageLoader />}><StudentSupport /></Suspense>} />
         <Route path="support/groups" element={<Suspense fallback={<PageLoader />}><GroupChat /></Suspense>} />
