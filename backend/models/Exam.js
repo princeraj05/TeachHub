@@ -23,14 +23,12 @@ examTerm: {
 
 academicYear: {
   type: String,
-  required: true,
-  default: "2026-2027"
+  required: true
 },
 
 maxMarks: {
   type: Number,
   required: true,
-  default: 100,
   min: 1
 },
 

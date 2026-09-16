@@ -27,20 +27,24 @@ if (!["Half-Yearly", "Annual"].includes(termVal)) {
   return res.status(400).json({ message: "examTerm must be either 'Half-Yearly' or 'Annual'" });
 }
 
-const numMaxMarks = Number(maxMarks) || 100;
-if (isNaN(numMaxMarks) || numMaxMarks <= 0) {
-  return res.status(400).json({ message: "maxMarks must be a positive number" });
+if (!academicYear || typeof academicYear !== "string" || !academicYear.trim()) {
+  return res.status(400).json({ message: "academicYear is required" });
 }
 
-const currYear = new Date().getFullYear();
-const yearVal = academicYear || `${currYear}-${currYear + 1}`;
+if (maxMarks === undefined || maxMarks === null || maxMarks === "") {
+  return res.status(400).json({ message: "maxMarks is required" });
+}
+const numMaxMarks = Number(maxMarks);
+if (!Number.isFinite(numMaxMarks) || numMaxMarks <= 0) {
+  return res.status(400).json({ message: "maxMarks must be a positive number greater than 0" });
+}
 
 const exam = new Exam({
   title: title || `${termVal} Examination`,
   class: classId,
   subject: subjectId,
   examTerm: termVal,
-  academicYear: yearVal,
+  academicYear: academicYear.trim(),
   maxMarks: numMaxMarks,
   date,
   time: time || "09:00 AM",

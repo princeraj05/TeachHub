@@ -107,7 +107,8 @@ exports.getRoster = async (req, res) => {
       class: { $in: sameLevelClassIds },
       subject: subjectDoc._id,
       examTerm,
-      academicYear
+      academicYear,
+      mode: "offline"
     }).lean();
 
     if (!matchingExam) {
@@ -273,7 +274,8 @@ exports.saveMarks = async (req, res) => {
         class: { $in: sameLevelClassIds },
         subject: subjectDoc._id,
         examTerm,
-        academicYear
+        academicYear,
+        mode: "offline"
       }).lean();
 
       if (!matchingExam) {
