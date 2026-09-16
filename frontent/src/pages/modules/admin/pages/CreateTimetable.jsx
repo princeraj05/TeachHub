@@ -36,7 +36,7 @@ export default function CreateTimetable() {
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // School break settings for smart break-skipping
+  // School break settings
   const [breakSettings, setBreakSettings] = useState({
     shortBreakStartTime: "11:00 AM",
     shortBreakDuration: 30,
@@ -80,33 +80,13 @@ export default function CreateTimetable() {
     return hours * 60 + minutes;
   };
 
-  // Helper to calculate next start time after submitting a slot, automatically skipping configured school breaks
-  const getNextStartTime = (currentStartTime, durationMins, breaks) => {
+  // Helper to calculate next start time after submitting a slot (continuous period calculation)
+  const getNextStartTime = (currentStartTime, durationMins) => {
     if (!currentStartTime) return "10:00";
     let [h, m] = currentStartTime.split(":").map(Number);
     if (isNaN(h) || isNaN(m)) return "10:00";
 
     let totalMins = h * 60 + m + Number(durationMins || 60);
-
-    if (breaks) {
-      const lunchStart = parseTimeToMinutes(breaks.lunchBreakStartTime);
-      const lunchDuration = Number(breaks.lunchBreakDuration || 0);
-      const lunchEnd = lunchStart + lunchDuration;
-
-      const shortStart = parseTimeToMinutes(breaks.shortBreakStartTime);
-      const shortDuration = Number(breaks.shortBreakDuration || 0);
-      const shortEnd = shortStart + shortDuration;
-
-      // Repeat check up to 2 times in case breaks are consecutive
-      for (let i = 0; i < 2; i++) {
-        if (lunchDuration > 0 && totalMins >= lunchStart && totalMins < lunchEnd) {
-          totalMins = lunchEnd;
-        }
-        if (shortDuration > 0 && totalMins >= shortStart && totalMins < shortEnd) {
-          totalMins = shortEnd;
-        }
-      }
-    }
 
     let nextH = Math.floor(totalMins / 60) % 24;
     let nextM = totalMins % 60;
@@ -231,7 +211,7 @@ export default function CreateTimetable() {
         { headers: getHeaders() }
       );
       
-      const nextStartTime = getNextStartTime(form.startTime, form.durationMinutes, breakSettings);
+      const nextStartTime = getNextStartTime(form.startTime, form.durationMinutes);
       
       const [nh, nm] = nextStartTime.split(":").map(Number);
       const ampm = nh >= 12 ? "PM" : "AM";
@@ -332,7 +312,7 @@ export default function CreateTimetable() {
 
       {/* ── LOADING SPINNER ── */}
       {loading && (
-        <div className="flex flex-col items-center justify-center min-h-[50vh] text-slate-450 py-10">
+        <div className="flex flex-col items-center justify-center min-h-[50vh] text-slate-455 py-10">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500 mb-4"></div>
           <p className="text-sm font-semibold tracking-wide">Syncing Timetable Setup...</p>
         </div>
