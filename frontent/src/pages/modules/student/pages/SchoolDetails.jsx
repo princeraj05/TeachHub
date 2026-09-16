@@ -149,7 +149,7 @@ function SchoolDetails() {
   };
 
   const handleBack = () => {
-    const basePath = location.pathname.startsWith("/pending") ? "/pending" : "/student";
+    const basePath = location.pathname.startsWith("/pending") ? "/pending" : (location.pathname.startsWith("/teacher") ? "/teacher" : "/student");
     navigate(`${basePath}/schools`);
   };
 
@@ -163,9 +163,10 @@ function SchoolDetails() {
       alert("You already have an active or pending join request.");
       return;
     }
-    if (loginSource === "teacher") {
+    const isTeacherContext = location.pathname.startsWith("/teacher") || loginSource === "teacher" || user?.role === "teacher" || user?.requestedRole === "teacher";
+    if (isTeacherContext) {
       setRequestedRole("teacher");
-    } else if (loginSource === "student") {
+    } else {
       setRequestedRole("student");
     }
     setShowJoinModal(true);
@@ -253,11 +254,8 @@ function SchoolDetails() {
     }
 
     const loginSource = localStorage.getItem("loginSource");
-    const roleToSubmit = loginSource === "teacher" 
-      ? "teacher" 
-      : (loginSource === "student" 
-          ? "student" 
-          : (requestedRole || "student"));
+    const isTeacherContext = location.pathname.startsWith("/teacher") || loginSource === "teacher" || user?.role === "teacher" || user?.requestedRole === "teacher";
+    const roleToSubmit = isTeacherContext ? "teacher" : "student";
 
     setSubmitting(true);
     axios.put(
@@ -276,7 +274,7 @@ function SchoolDetails() {
         }));
         setShowJoinModal(false);
         alert(`Request to join ${returnedSchool} as ${returnedRole === "teacher" ? "Teacher" : "Student"} submitted successfully!`);
-        const basePath = location.pathname.startsWith("/pending") ? "/pending" : "/student";
+        const basePath = location.pathname.startsWith("/pending") ? "/pending" : (location.pathname.startsWith("/teacher") ? "/teacher" : "/student");
         navigate(`${basePath}`);
       })
       .catch((err) => {
@@ -1090,9 +1088,12 @@ function SchoolDetails() {
       {/* Join Request Modal */}
       {showJoinModal && (() => {
         const loginSource = localStorage.getItem("loginSource");
-        const effectiveRole = loginSource === "teacher" ? "teacher" : (loginSource === "student" ? "student" : requestedRole);
-        const showStudent = loginSource !== "teacher";
-        const showTeacher = loginSource !== "student";
+        const isTeacherContext = location.pathname.startsWith("/teacher") || loginSource === "teacher" || user?.role === "teacher" || user?.requestedRole === "teacher";
+        const isStudentContext = location.pathname.startsWith("/student") || loginSource === "student" || user?.role === "student" || user?.requestedRole === "student";
+
+        const effectiveRole = isTeacherContext ? "teacher" : "student";
+        const showStudent = !isTeacherContext;
+        const showTeacher = isTeacherContext || (!isStudentContext && loginSource !== "student");
         const gridColsClass = showStudent && showTeacher ? "grid-cols-2" : "grid-cols-1";
 
         return (

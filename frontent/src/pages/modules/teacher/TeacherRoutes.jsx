@@ -25,6 +25,8 @@ const PaymentCenter = lazy(() => import("../../../components/PaymentCenter"));
 const TeacherMyDiary = lazy(() => import("./pages/TeacherMyDiary"));
 const TeacherAcademicResults = lazy(() => import("./pages/Results/TeacherAcademicResults"));
 const AboutAppPage = lazy(() => import("../student/pages/AboutAppPage"));
+const SchoolDirectory = lazy(() => import("../student/pages/SchoolDirectory"));
+const SchoolDetails = lazy(() => import("../student/pages/SchoolDetails"));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[400px] w-full">
@@ -61,6 +63,8 @@ function TeacherRoutes() {
         <Route path="mydiary" element={<Suspense fallback={<PageLoader />}><TeacherMyDiary /></Suspense>} />
         <Route path="results" element={<Suspense fallback={<PageLoader />}><TeacherAcademicResults /></Suspense>} />
         <Route path="about" element={<Suspense fallback={<PageLoader />}><AboutAppPage /></Suspense>} />
+        <Route path="schools" element={<Suspense fallback={<PageLoader />}><SchoolDirectory /></Suspense>} />
+        <Route path="schools/:name" element={<Suspense fallback={<PageLoader />}><SchoolDetails /></Suspense>} />
       </Route>
     </Routes>
   );

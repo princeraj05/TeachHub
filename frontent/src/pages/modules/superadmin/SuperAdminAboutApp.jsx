@@ -274,6 +274,18 @@ function SuperAdminAboutApp() {
     }
   };
 
+  const handleSetDefaultLegalUrls = () => {
+    setPrivacyPolicyUrl(`${PUBLIC_SITE_URL}/privacy-policy`);
+    setCookiePolicyUrl(`${PUBLIC_SITE_URL}/cookie-policy`);
+    setTermsOfServiceUrl(`${PUBLIC_SITE_URL}/terms-of-service`);
+    setDisclaimerUrl(`${PUBLIC_SITE_URL}/disclaimer`);
+    setRefundPolicyUrl(`${PUBLIC_SITE_URL}/refund-policy`);
+    setAboutUsUrl(`${PUBLIC_SITE_URL}/about-us`);
+    setAccountDeletionUrl(`${PUBLIC_SITE_URL}/delete-account`);
+    setSuccessMsg("Updated all legal links to frontend public URLs. Click 'Save Changes' to persist.");
+    setTimeout(() => setSuccessMsg(""), 4000);
+  };
+
   if (loading) {
     return (
       <div className="py-20 text-center flex flex-col items-center justify-center">
@@ -545,7 +557,16 @@ function SuperAdminAboutApp() {
 
         {/* SECTION 4: Legal Links */}
         <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm space-y-4">
-          <h3 className="text-sm font-black tracking-tight border-b border-slate-100 dark:border-white/5 pb-2 text-slate-900 dark:text-white">Legal Links</h3>
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-2">
+            <h3 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">Legal Links</h3>
+            <button
+              type="button"
+              onClick={handleSetDefaultLegalUrls}
+              className="text-[10px] font-black text-[#7C3AED] hover:underline bg-[#7C3AED]/10 border border-[#7C3AED]/20 px-3 py-1.5 rounded-lg transition uppercase tracking-wider cursor-pointer"
+            >
+              Reset to Vercel Public URLs
+            </button>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">

@@ -73,7 +73,8 @@ function SchoolDirectory() {
     }
 
     const loginSource = localStorage.getItem("loginSource");
-    const roleToSubmit = loginSource === "teacher" ? "teacher" : (loginSource === "student" ? "student" : requestedRole);
+    const isTeacherContext = location.pathname.startsWith("/teacher") || loginSource === "teacher" || user?.role === "teacher" || user?.requestedRole === "teacher";
+    const roleToSubmit = isTeacherContext ? "teacher" : "student";
 
     setSubmitting(true);
     axios.put(
@@ -100,7 +101,7 @@ function SchoolDirectory() {
   };
 
   const handleViewDetails = (schoolName) => {
-    const basePath = location.pathname.startsWith("/pending") ? "/pending" : "/student";
+    const basePath = location.pathname.startsWith("/pending") ? "/pending" : (location.pathname.startsWith("/teacher") ? "/teacher" : "/student");
     navigate(`${basePath}/schools/${encodeURIComponent(schoolName)}`);
   };
 
@@ -414,9 +415,12 @@ function SchoolDirectory() {
       {/* Join Request Modal */}
       {showJoinModal && (() => {
         const loginSource = localStorage.getItem("loginSource");
-        const effectiveRole = loginSource === "teacher" ? "teacher" : (loginSource === "student" ? "student" : requestedRole);
-        const showStudent = loginSource !== "teacher";
-        const showTeacher = loginSource !== "student";
+        const isTeacherContext = location.pathname.startsWith("/teacher") || loginSource === "teacher" || user?.role === "teacher" || user?.requestedRole === "teacher";
+        const isStudentContext = location.pathname.startsWith("/student") || loginSource === "student" || user?.role === "student" || user?.requestedRole === "student";
+
+        const effectiveRole = isTeacherContext ? "teacher" : "student";
+        const showStudent = !isTeacherContext;
+        const showTeacher = isTeacherContext || (!isStudentContext && loginSource !== "student");
         const gridColsClass = showStudent && showTeacher ? "grid-cols-2" : "grid-cols-1";
 
         return (

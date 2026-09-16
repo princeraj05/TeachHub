@@ -159,9 +159,31 @@ async function startServer() {
       );
 
       const AboutApp = require("./models/AboutApp");
-      const appInfo = await AboutApp.findOne().lean();
+      const appInfo = await AboutApp.findOne();
       if (!appInfo) {
         await AboutApp.create({});
+      } else {
+        const publicFrontendUrl = "https://myschool-admin-panel.vercel.app";
+        let updated = false;
+        const legalMap = {
+          privacyPolicyUrl: "/privacy-policy",
+          cookiePolicyUrl: "/cookie-policy",
+          termsOfServiceUrl: "/terms-of-service",
+          disclaimerUrl: "/disclaimer",
+          refundPolicyUrl: "/refund-policy",
+          aboutUsUrl: "/about-us",
+          accountDeletionUrl: "/delete-account"
+        };
+        for (const [field, routePath] of Object.entries(legalMap)) {
+          if (!appInfo[field] || appInfo[field].includes("hostingersite.com") || appInfo[field].includes("onrender.com")) {
+            appInfo[field] = `${publicFrontendUrl}${routePath}`;
+            updated = true;
+          }
+        }
+        if (updated) {
+          await appInfo.save();
+          console.log(`[startup:${process.pid}] ✅ AboutApp legal URLs migrated to ${publicFrontendUrl}`);
+        }
       }
     } catch (migrationError) {
       console.error(`[startup:${process.pid}] Startup Initialization Notice:`, migrationError.message);
