@@ -1,5 +1,216 @@
 const express = require("express");
 const router = express.Router();
+const AboutApp = require("../models/AboutApp");
+
+// JSON API endpoint for public legal policy content
+router.get("/api/legal/:type", async (req, res) => {
+  try {
+    const { type } = req.params;
+    let aboutInfo = await AboutApp.findOne().lean();
+    if (!aboutInfo) {
+      aboutInfo = {};
+    }
+
+    const platformName = aboutInfo.platformName || "TeachHub";
+    const supportEmail = aboutInfo.supportEmail || "support@teachhub.app";
+    const developerName = aboutInfo.developerName || "TeachHub Technologies Pvt. Ltd.";
+    const developerAddress = aboutInfo.developerAddress || "Noida, Uttar Pradesh, India";
+
+    const legalData = {
+      "privacy-policy": {
+        title: "Privacy Policy",
+        badge: "Data Privacy & Compliance",
+        effectiveDate: "September 10, 2026",
+        intro: `This Privacy Policy describes how ${platformName} ("we", "our", or "us") collects, uses, and protects your information when you use our mobile application and platform services.`,
+        sections: [
+          {
+            heading: "1. Information We Collect",
+            content: `We collect information you provide directly to us when creating an account or using our features, including account credentials (name, email address, role, school name), educational data (classes, subjects, attendance, grades, announcements), and communication logs.`
+          },
+          {
+            heading: "2. How We Use Information",
+            content: `We use your information solely to deliver educational management services, maintain attendance records, deliver in-app notifications, process fee payments, and enable communication between administrators, teachers, students, and parents.`
+          },
+          {
+            heading: "3. Data Sharing & Security",
+            content: `Your data is restricted to your affiliated school administration and authorized platform personnel. We enforce robust security measures, token-based authentication, and encryption to protect your records.`
+          },
+          {
+            heading: "4. User Rights & Account Control",
+            content: `You have the right to inspect, update, or request the deletion of your personal account data at any time. Submit deletion requests via our dedicated Account Deletion page or email us directly.`
+          },
+          {
+            heading: "5. Contact Privacy Team",
+            content: `For privacy-related questions or data requests, contact our privacy team at: ${supportEmail} (${developerName}, ${developerAddress}).`
+          }
+        ]
+      },
+      "cookie-policy": {
+        title: "Cookie Policy",
+        badge: "Privacy Policy Annex",
+        effectiveDate: "September 10, 2026",
+        intro: `${platformName} uses essential session markers, cookies, and token storage to ensure seamless and secure access to your school account.`,
+        sections: [
+          {
+            heading: "1. What Are Cookies & Tokens?",
+            content: "Cookies and local storage tokens are small data items stored on your device to keep you signed in securely and personalize your app experience."
+          },
+          {
+            heading: "2. Essential Storage We Use",
+            content: "We use Authentication Tokens (JWT) maintained securely to keep your session active, and Preference Tokens for user settings like theme and language preferences."
+          },
+          {
+            heading: "3. Managing Preferences",
+            content: "Since essential authentication tokens are required to maintain access to attendance and grades, clearing your browser storage will log you out of active sessions."
+          },
+          {
+            heading: "4. Contact Us",
+            content: `For cookie inquiry details, email our support team at: ${supportEmail}`
+          }
+        ]
+      },
+      "terms-of-service": {
+        title: "Terms of Service",
+        badge: "Legal Document",
+        effectiveDate: "September 10, 2026",
+        intro: `Welcome to ${platformName}. By accessing or using our mobile application and web services, you agree to be bound by these Terms of Service.`,
+        sections: [
+          {
+            heading: "1. Acceptance of Terms",
+            content: `By using ${platformName}, you agree to comply with all rules and regulations established by your educational institution and platform services.`
+          },
+          {
+            heading: "2. User Accounts & Responsibilities",
+            content: "Users (Admins, Teachers, Students, Parents) must provide accurate information and maintain credential confidentiality. You are responsible for all activities occurring under your account."
+          },
+          {
+            heading: "3. Acceptable Use Policy",
+            content: "You agree not to upload harmful content, disrupt platform services, engage in unauthorized data access, or misuse educational materials."
+          },
+          {
+            heading: "4. Service Availability & Modifications",
+            content: "We strive for high platform availability but reserve the right to perform scheduled maintenance, infrastructure updates, or feature enhancements."
+          },
+          {
+            heading: "5. Termination",
+            content: "We reserve the right to suspend or terminate accounts that violate platform policies or academic guidelines established by partner institutions."
+          },
+          {
+            heading: "6. Contact Information",
+            content: `For questions regarding these terms, contact us at: ${supportEmail}`
+          }
+        ]
+      },
+      "disclaimer": {
+        title: "Disclaimer",
+        badge: "Legal Notice",
+        effectiveDate: "September 10, 2026",
+        intro: `The information provided by ${platformName} is for general educational and administrative support purposes. All academic records, grades, and attendance data are managed directly by affiliated school administrators.`,
+        sections: [
+          {
+            heading: "1. General Information",
+            content: `${platformName} serves as a software management platform. Individual academic records are entered and verified by authorized school staff.`
+          },
+          {
+            heading: "2. Limitation of Liability",
+            content: `${platformName} is not liable for errors or omissions in content posted by individual school staff or institution representatives using our software.`
+          },
+          {
+            heading: "3. External Services",
+            content: "Our platform may integrate with third-party tools (such as video communication or payment gateways). We are not responsible for third-party policies or external downtime."
+          },
+          {
+            heading: "4. Contact Us",
+            content: `Questions regarding legal disclaimers can be directed to: ${supportEmail}`
+          }
+        ]
+      },
+      "refund-policy": {
+        title: "Refund Policy",
+        badge: "Financial Policy",
+        effectiveDate: "September 10, 2026",
+        intro: `This Refund Policy governs fee payments and subscription transactions processed through ${platformName}.`,
+        sections: [
+          {
+            heading: "1. School Fee Payments",
+            content: `School fees, tuition charges, and academic deposits processed through ${platformName} are directly managed by your respective educational institution.`
+          },
+          {
+            heading: "2. Refund Eligibility",
+            content: "Requests for refunds regarding school fees or registration fees must be addressed directly to your school's administration or accounts department according to institutional policy."
+          },
+          {
+            heading: "3. Subscription Services",
+            content: `Institutional SaaS subscription plans for schools are governed by the specific Service Level Agreement (SLA) signed between ${platformName} and partner institutions.`
+          },
+          {
+            heading: "4. Assistance",
+            content: `For payment verification or receipt assistance, email: ${supportEmail}`
+          }
+        ]
+      },
+      "about-us": {
+        title: "About Us",
+        badge: "Our Vision",
+        effectiveDate: "September 10, 2026",
+        intro: `${platformName} is a unified school management and smart learning ecosystem built to bridge the gap between administrators, teachers, students, and parents.`,
+        sections: [
+          {
+            heading: "1. Our Mission",
+            content: "Our goal is to digitize institution management through real-time attendance, smooth communication, exam grading, instant notifications, and customized administrative control."
+          },
+          {
+            heading: "2. Key Capabilities",
+            content: "Complete Student & Staff Record Management, Instant Attendance Rosters & Class Reporting, In-App Notifications & Live Communication, Seamless Timetable & Exam Management, and Online Fee Payments."
+          },
+          {
+            heading: "3. Developer & Support Entity",
+            content: `Developed and maintained by ${developerName} (${developerAddress}). Contact us at ${supportEmail}.`
+          }
+        ]
+      },
+      "delete-account": {
+        title: "Account & Data Deletion Request",
+        badge: "Data Privacy & Compliance",
+        effectiveDate: "September 10, 2026",
+        intro: `In accordance with Google Play Developer Policies and data protection regulations, users of ${platformName} have the right to request the complete deletion of their user account and associated personal data.`,
+        sections: [
+          {
+            heading: "1. What Happens When You Request Deletion?",
+            content: "Your personal profile (name, email, credentials, phone number) will be permanently deleted or anonymized. Associated session tokens and app preferences will be wiped."
+          },
+          {
+            heading: "2. Academic Auditing Exemption",
+            content: "Academic records required for institutional auditing may be retained by your school administrator in accordance with legal and educational policy requirements."
+          },
+          {
+            heading: "3. How to Submit",
+            content: `Fill out the request form below or email your request directly to ${supportEmail} with your registered email and school details.`
+          }
+        ]
+      }
+    };
+
+    const policy = legalData[type];
+    if (!policy) {
+      return res.status(404).json({ message: "Legal policy document not found." });
+    }
+
+    res.json({
+      success: true,
+      type,
+      platformInfo: {
+        platformName: aboutInfo.platformName || "TeachHub",
+        supportEmail: aboutInfo.supportEmail || "support@teachhub.app",
+        developerName: aboutInfo.developerName || "TeachHub Technologies Pvt. Ltd.",
+        developerAddress: aboutInfo.developerAddress || "Noida, Uttar Pradesh, India"
+      },
+      data: policy
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 const commonStyle = `
   body {

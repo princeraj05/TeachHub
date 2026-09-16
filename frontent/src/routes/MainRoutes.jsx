@@ -13,6 +13,9 @@ const TeacherRoutes = lazy(() => import("../pages/modules/teacher/TeacherRoutes"
 const SuperAdminRoutes = lazy(() => import("../pages/modules/superadmin/SuperAdminRoutes"));
 const SupportRoutes = lazy(() => import("../pages/modules/support/SupportRoutes"));
 
+const PublicLegalPage = lazy(() => import("../pages/public/PublicLegalPage"));
+const PublicDeleteAccountPage = lazy(() => import("../pages/public/PublicDeleteAccountPage"));
+
 const ModuleLoader = () => (
   <div className="flex items-center justify-center h-screen w-screen bg-[#F8FAFC] dark:bg-[#090F1C]">
     <div className="flex flex-col items-center gap-3">
@@ -71,6 +74,15 @@ function MainRoutes() {
         <Route path="/teacher/login" element={<Login scope="teacher" />} />
         <Route path="/admin/login" element={<Login scope="admin" />} />
         <Route path="/support/login" element={<SupportLogin />} />
+
+        {/* Public Legal & Policy Pages */}
+        <Route path="/privacy-policy" element={<PublicLegalPage type="privacy-policy" />} />
+        <Route path="/cookie-policy" element={<PublicLegalPage type="cookie-policy" />} />
+        <Route path="/terms-of-service" element={<PublicLegalPage type="terms-of-service" />} />
+        <Route path="/disclaimer" element={<PublicLegalPage type="disclaimer" />} />
+        <Route path="/refund-policy" element={<PublicLegalPage type="refund-policy" />} />
+        <Route path="/about-us" element={<PublicLegalPage type="about-us" />} />
+        <Route path="/delete-account" element={<PublicDeleteAccountPage />} />
         
         {/* Pending Approval */}
         <Route

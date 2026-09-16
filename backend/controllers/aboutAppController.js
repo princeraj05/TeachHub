@@ -5,6 +5,29 @@ const School = require("../models/School");
 let cachedAboutApp = null;
 let lastCacheTime = 0;
 
+const PUBLIC_FRONTEND_URL = "https://myschool-admin-panel.vercel.app";
+
+const sanitizeLegalUrls = (info) => {
+  if (!info) return info;
+  const legalMap = {
+    privacyPolicyUrl: "/privacy-policy",
+    cookiePolicyUrl: "/cookie-policy",
+    termsOfServiceUrl: "/terms-of-service",
+    disclaimerUrl: "/disclaimer",
+    refundPolicyUrl: "/refund-policy",
+    aboutUsUrl: "/about-us",
+    accountDeletionUrl: "/delete-account"
+  };
+
+  for (const [field, routePath] of Object.entries(legalMap)) {
+    const val = info[field];
+    if (!val || val.includes("hostingersite.com") || val.includes("onrender.com") || val.includes("localhost")) {
+      info[field] = `${PUBLIC_FRONTEND_URL}${routePath}`;
+    }
+  }
+  return info;
+};
+
 // GET /api/about-app
 exports.getAboutInfo = async (req, res) => {
   try {
@@ -20,6 +43,8 @@ exports.getAboutInfo = async (req, res) => {
     if (!info) {
       info = { platformName: "TeachHub Portal", tagline: "Learn • Grow • Succeed" };
     }
+
+    info = sanitizeLegalUrls(info);
 
     try {
       const statsAndSchools = await Promise.race([

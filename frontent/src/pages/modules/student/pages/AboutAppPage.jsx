@@ -37,7 +37,7 @@ import {
   FaShieldAlt
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
-import API_URL from "../../../../config/api";
+import API_URL, { PUBLIC_SITE_URL } from "../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
@@ -197,7 +197,7 @@ function AboutAppPage() {
     }
   ];
 
-  const baseLegalUrl = API_URL.replace(/\/$/, "");
+  const baseLegalUrl = PUBLIC_SITE_URL;
   const legalLinks = [
     { title: "Privacy Policy", url: info?.privacyPolicyUrl || `${baseLegalUrl}/privacy-policy`, icon: <FaLock /> },
     { title: "Cookie Policy", url: info?.cookiePolicyUrl || `${baseLegalUrl}/cookie-policy`, icon: <FaCookieBite /> },

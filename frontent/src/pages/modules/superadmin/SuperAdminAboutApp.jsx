@@ -24,14 +24,21 @@ import {
   FaCheckCircle,
   FaTimesCircle
 } from "react-icons/fa";
-import API_URL from "../../../config/api";
+import API_URL, { PUBLIC_SITE_URL } from "../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
 function SuperAdminAboutApp() {
-  const baseLegalUrl = API_URL.replace(/\/$/, "");
+  const baseLegalUrl = PUBLIC_SITE_URL;
   const API = API_URL;
   const token = localStorage.getItem("token");
+
+  const formatLegalUrl = (url, routePath) => {
+    if (!url || typeof url !== "string" || url.includes("hostingersite.com") || url.includes("onrender.com")) {
+      return `${PUBLIC_SITE_URL}${routePath}`;
+    }
+    return url;
+  };
 
   // Platform Information
   const [platformName, setPlatformName] = useState("TeachHub");
@@ -113,13 +120,13 @@ function SuperAdminAboutApp() {
         setSupportWhatsapp(d.supportWhatsapp || "+91 98765 43210");
         setSupportHours(d.supportHours || "Monday - Saturday: 9:00 AM to 6:00 PM (IST)");
 
-        setPrivacyPolicyUrl(d.privacyPolicyUrl || `${baseLegalUrl}/privacy-policy`);
-        setCookiePolicyUrl(d.cookiePolicyUrl || `${baseLegalUrl}/cookie-policy`);
-        setTermsOfServiceUrl(d.termsOfServiceUrl || `${baseLegalUrl}/terms-of-service`);
-        setDisclaimerUrl(d.disclaimerUrl || `${baseLegalUrl}/disclaimer`);
-        setRefundPolicyUrl(d.refundPolicyUrl || `${baseLegalUrl}/refund-policy`);
-        setAboutUsUrl(d.aboutUsUrl || `${baseLegalUrl}/about-us`);
-        setAccountDeletionUrl(d.accountDeletionUrl || `${baseLegalUrl}/delete-account`);
+        setPrivacyPolicyUrl(formatLegalUrl(d.privacyPolicyUrl, "/privacy-policy"));
+        setCookiePolicyUrl(formatLegalUrl(d.cookiePolicyUrl, "/cookie-policy"));
+        setTermsOfServiceUrl(formatLegalUrl(d.termsOfServiceUrl, "/terms-of-service"));
+        setDisclaimerUrl(formatLegalUrl(d.disclaimerUrl, "/disclaimer"));
+        setRefundPolicyUrl(formatLegalUrl(d.refundPolicyUrl, "/refund-policy"));
+        setAboutUsUrl(formatLegalUrl(d.aboutUsUrl, "/about-us"));
+        setAccountDeletionUrl(formatLegalUrl(d.accountDeletionUrl, "/delete-account"));
 
         setPlayStoreLink(d.playStoreLink || "https://play.google.com/store/apps/details?id=com.teachhub.app");
         setAppStoreLink(d.appStoreLink || "https://apps.apple.com/app/teachhub");
@@ -157,13 +164,13 @@ function SuperAdminAboutApp() {
     setSupportWhatsapp(d.supportWhatsapp || "+91 98765 43210");
     setSupportHours(d.supportHours || "Monday - Saturday: 9:00 AM to 6:00 PM (IST)");
 
-    setPrivacyPolicyUrl(d.privacyPolicyUrl || `${baseLegalUrl}/privacy-policy`);
-    setCookiePolicyUrl(d.cookiePolicyUrl || `${baseLegalUrl}/cookie-policy`);
-    setTermsOfServiceUrl(d.termsOfServiceUrl || `${baseLegalUrl}/terms-of-service`);
-    setDisclaimerUrl(d.disclaimerUrl || `${baseLegalUrl}/disclaimer`);
-    setRefundPolicyUrl(d.refundPolicyUrl || `${baseLegalUrl}/refund-policy`);
-    setAboutUsUrl(d.aboutUsUrl || `${baseLegalUrl}/about-us`);
-    setAccountDeletionUrl(d.accountDeletionUrl || `${baseLegalUrl}/delete-account`);
+    setPrivacyPolicyUrl(formatLegalUrl(d.privacyPolicyUrl, "/privacy-policy"));
+    setCookiePolicyUrl(formatLegalUrl(d.cookiePolicyUrl, "/cookie-policy"));
+    setTermsOfServiceUrl(formatLegalUrl(d.termsOfServiceUrl, "/terms-of-service"));
+    setDisclaimerUrl(formatLegalUrl(d.disclaimerUrl, "/disclaimer"));
+    setRefundPolicyUrl(formatLegalUrl(d.refundPolicyUrl, "/refund-policy"));
+    setAboutUsUrl(formatLegalUrl(d.aboutUsUrl, "/about-us"));
+    setAccountDeletionUrl(formatLegalUrl(d.accountDeletionUrl, "/delete-account"));
 
     setPlayStoreLink(d.playStoreLink || "https://play.google.com/store/apps/details?id=com.teachhub.app");
     setAppStoreLink(d.appStoreLink || "https://apps.apple.com/app/teachhub");
