@@ -289,13 +289,9 @@ function Exam() {
         status = "Completed";
       }
 
-      // Add scores for completed ones
+      // Add scores for completed ones if submission exists
       let score = e.submission?.score;
       let total = e.submission?.total || 100;
-      if (status === "Completed" && score === undefined) {
-        const scores = [85, 78, 92, 64];
-        score = scores[salt % scores.length];
-      }
 
       const roomStr = e.roomNumber
         ? (String(e.roomNumber).trim().toLowerCase().startsWith("room") ? e.roomNumber : `Room ${e.roomNumber}`)
@@ -514,84 +510,88 @@ function Exam() {
         <div className="space-y-6">
           
           {/* Sub Header Title row */}
-          <div className="flex items-center justify-between gap-4 mt-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA] mb-1">EXAMS</p>
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Exam Dashboard</h2>
-              <p className="text-[11px] text-slate-450 dark:text-slate-500 font-semibold mt-1">Stay prepared and track all your upcoming & completed exams.</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">View your upcoming and completed examinations</p>
             </div>
             
             {/* Year Dropdown */}
-            <div className="shrink-0 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/[0.08] text-slate-555 dark:text-slate-400 px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-sm">
+            <div className="shrink-0 self-start sm:self-auto bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-2 shadow-sm">
               <span>Academic Year 2026</span>
-              <span className="text-[10px] text-slate-450">▼</span>
+              <span className="text-[10px] text-slate-400">▼</span>
             </div>
           </div>
 
           {/* Next Exam Card Highlights */}
           {currentNextExam ? (
-            <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm">
+            <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-sm">
               <div className="flex items-center justify-between gap-3 mb-4">
-                <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">Next Exam</h3>
-                <span className="text-[10px] font-black px-2.5 py-0.5 rounded bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20 uppercase">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+                  <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">Next Exam</h3>
+                </div>
+                <span className="text-[10px] font-black px-2.5 py-0.5 rounded-lg bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20 uppercase">
                   Upcoming
                 </span>
               </div>
               
               <div 
                 onClick={() => handleLaunchExam(currentNextExam)}
-                className="bg-slate-50 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.04] p-4.5 rounded-2.5xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#7C3AED]/30 transition-all cursor-pointer group"
+                className="bg-slate-50 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.04] p-5 rounded-2.5xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#7C3AED]/40 transition-all cursor-pointer group"
               >
-                <div className="flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/20 flex items-center justify-center shrink-0">
-                    <FaBookOpen className="text-sm" />
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/20 flex items-center justify-center shrink-0 text-base">
+                    <FaBookOpen />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="text-sm sm:text-base font-black text-slate-900 dark:text-white leading-tight group-hover:text-[#7C3AED] dark:group-hover:text-[#A78BFA] transition-colors">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="text-[8px] font-black uppercase tracking-wider bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] px-2 py-0.5 rounded border border-[#7C3AED]/20">
+                        {currentNextExam.isAdmission ? "ADMISSION" : "INTERNAL"}
+                      </span>
+                      <h4 className="text-base font-black text-slate-900 dark:text-white leading-tight group-hover:text-[#7C3AED] dark:group-hover:text-[#A78BFA] transition-colors">
                         {currentNextExam.subject}
                       </h4>
-                      {currentNextExam.isAdmission ? (
-                        <span className="text-[8px] font-black uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-450 px-1.5 py-0.5 rounded border border-emerald-500/20">
-                          Admission
-                        </span>
-                      ) : (
-                        <span className="text-[8px] font-black uppercase bg-blue-500/10 text-blue-600 dark:text-blue-455 px-1.5 py-0.5 rounded border border-blue-500/20">
-                          Internal
-                        </span>
-                      )}
                     </div>
                     
                     {/* Meta details list */}
-                    <div className="flex items-center gap-4 mt-2 text-[10px] text-slate-455 dark:text-slate-500 font-black flex-wrap">
-                      <span className="flex items-center gap-1">
-                        <FaCalendarAlt className="text-slate-400 text-[11px]" />
+                    <div className="flex items-center gap-4 mt-2 text-[11px] text-slate-500 dark:text-slate-400 font-bold flex-wrap">
+                      <span className="flex items-center gap-1.5">
+                        <FaCalendarAlt className="text-slate-400 text-xs" />
                         {formatExamDate(currentNextExam.date)} · {formatExamDay(currentNextExam.date)}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <FaClock className="text-slate-400 text-[11px]" />
+                      <span className="flex items-center gap-1.5">
+                        <FaClock className="text-slate-400 text-xs" />
                         {formatExamTime(currentNextExam)} · Duration: {currentNextExam.duration}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <FaDesktop className="text-slate-400 text-[11px]" />
-                        {currentNextExam.mode === "online" ? "Online Proctored" : `${currentNextExam.room} Offline`}
+                      <span className="flex items-center gap-1.5 font-black">
+                        <FaDesktop className="text-slate-400 text-xs" />
+                        {currentNextExam.mode === "online" ? (
+                          <span className="text-[#7C3AED] dark:text-[#A78BFA]">ONLINE PROCTORED</span>
+                        ) : (
+                          <span>{currentNextExam.room} • OFFLINE</span>
+                        )}
                       </span>
                     </div>
                   </div>
                 </div>
                 
-                <FaChevronRight className="text-slate-400 text-xs shrink-0 group-hover:text-slate-655 dark:group-hover:text-white transition-colors" />
+                <div className="flex items-center gap-2 text-xs font-black text-[#7C3AED] dark:text-[#A78BFA] shrink-0 self-end sm:self-center">
+                  <span>Start / Details</span>
+                  <FaChevronRight className="text-xs group-hover:translate-x-1 transition-transform" />
+                </div>
               </div>
             </div>
           ) : (
             <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 shadow-sm">
               <div className="flex items-center justify-between gap-3 mb-4">
                 <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">Next Exam</h3>
-                <span className="text-[10px] font-black px-2.5 py-0.5 rounded bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20 uppercase">
+                <span className="text-[10px] font-black px-2.5 py-0.5 rounded-lg bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20 uppercase">
                   Upcoming
                 </span>
               </div>
-              <div className="text-center py-6 text-slate-450 dark:text-slate-500 font-bold">
+              <div className="text-center py-6 text-slate-450 dark:text-slate-500 font-bold text-xs">
                 🏖️ No upcoming exams scheduled. Keep studying!
               </div>
             </div>
@@ -600,7 +600,10 @@ function Exam() {
           {/* Exam Schedule Overview Panel */}
           <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-4 border-b border-slate-100 dark:border-white/5">
-              <h3 className="text-sm font-black text-slate-900 dark:text-white tracking-tight">Exam Schedule Overview</h3>
+              <div>
+                <h3 className="text-sm font-black text-slate-900 dark:text-white tracking-tight">Exam Schedule Overview</h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Filter by status to view schedule details and scores</p>
+              </div>
               
               {/* Status toggle pills selector */}
               <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-[#0B132A] p-1 rounded-xl border border-slate-250/60 dark:border-white/[0.04] select-none self-start sm:self-auto">
@@ -610,10 +613,10 @@ function Exam() {
                     <button
                       key={filter}
                       onClick={() => setActiveFilter(filter)}
-                      className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
                         isActive
                           ? "bg-[#2563EB] text-white shadow-sm"
-                          : "text-slate-505 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                          : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                       }`}
                     >
                       {filter}
@@ -623,94 +626,116 @@ function Exam() {
               </div>
             </div>
 
-            {/* List items */}
-            <div className="space-y-4">
+            {/* 2-Column Desktop / 1-Column Mobile Grid Cards */}
+            <div>
               {filteredExamsList.length === 0 ? (
-                <div className="text-center py-14 text-slate-450 dark:text-slate-500 font-black flex flex-col items-center gap-2 select-none">
+                <div className="text-center py-14 text-slate-450 dark:text-slate-500 font-bold text-xs flex flex-col items-center gap-2 select-none">
                   <FaBookOpen className="text-2xl text-slate-300 dark:text-slate-700" />
-                  <span>No exams found matching this status filter.</span>
+                  <span>No exams found matching status "{activeFilter}".</span>
                 </div>
               ) : (
-                filteredExamsList.map((exam) => {
-                  const isCompleted = exam.status === "Completed";
-                  const visuals = getSubjectVisuals(exam.subject);
-                  
-                  return (
-                    <div
-                      key={exam._id}
-                      onClick={() => {
-                        if (exam.status === "Upcoming") {
-                          handleLaunchExam(exam);
-                        }
-                      }}
-                      className={`bg-slate-50 dark:bg-white/[0.01] border border-slate-100 dark:border-white/[0.04] p-4.5 rounded-2.5xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all relative ${
-                        exam.status === "Upcoming" ? "hover:border-[#7C3AED]/30 cursor-pointer group" : "opacity-80"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3.5">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${visuals.style}`}>
-                          {visuals.icon}
-                        </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredExamsList.map((exam) => {
+                    const isCompleted = exam.status === "Completed";
+                    const visuals = getSubjectVisuals(exam.subject);
+                    
+                    return (
+                      <div
+                        key={exam._id}
+                        onClick={() => {
+                          if (exam.status === "Upcoming") {
+                            handleLaunchExam(exam);
+                          }
+                        }}
+                        className={`group relative bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] hover:border-[#7C3AED]/40 dark:hover:border-[#7C3AED]/40 rounded-3xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between ${
+                          exam.status === "Upcoming" ? "cursor-pointer" : "opacity-90"
+                        }`}
+                      >
                         <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="text-sm font-black text-slate-900 dark:text-white leading-tight group-hover:text-[#7C3AED] dark:group-hover:text-[#A78BFA] transition-colors">
-                              {exam.subject}
-                            </h4>
-                            {exam.isAdmission ? (
-                              <span className="text-[8px] font-black uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-455 px-1.5 py-0.5 rounded border border-emerald-500/20">
-                                Admission
-                              </span>
-                            ) : (
-                              <span className="text-[8px] font-black uppercase bg-blue-500/10 text-blue-600 dark:text-blue-455 px-1.5 py-0.5 rounded border border-blue-500/20">
-                                Internal
-                              </span>
-                            )}
+                          {/* Top Header: Icon, Subject Title, Badge */}
+                          <div className="flex items-start justify-between gap-3 mb-3">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${visuals.style}`}>
+                                {visuals.icon}
+                              </div>
+                              <div>
+                                <span className="inline-block px-2 py-0.5 text-[8px] font-black uppercase tracking-wider rounded bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20">
+                                  {exam.isAdmission ? "ADMISSION" : "INTERNAL"}
+                                </span>
+                                <h4 className="text-base font-black text-slate-900 dark:text-white group-hover:text-[#7C3AED] dark:group-hover:text-[#A78BFA] transition-colors leading-tight line-clamp-1 mt-0.5">
+                                  {exam.subject}
+                                </h4>
+                              </div>
+                            </div>
                           </div>
-                          
-                          {/* Meta details list */}
-                          <div className="flex items-center gap-4 mt-2 text-[10px] text-slate-455 dark:text-slate-500 font-black flex-wrap">
-                            <span className="flex items-center gap-1">
-                              <FaCalendarAlt className="text-slate-400 text-[11px]" />
-                              {formatExamDate(exam.date)} · {formatExamDay(exam.date)}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <FaClock className="text-slate-400 text-[11px]" />
-                              {formatExamTime(exam)} · {exam.duration}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <FaDesktop className="text-slate-400 text-[11px]" />
-                              {exam.mode === "online" ? "Online Proctored" : `${exam.room} Offline`}
-                            </span>
+
+                          {/* Meta details grid box */}
+                          <div className="grid grid-cols-2 gap-2.5 bg-slate-50 dark:bg-white/[0.02] p-3.5 rounded-2xl border border-slate-100 dark:border-white/[0.04] text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-4">
+                            <div>
+                              <span className="text-[9px] text-slate-400 dark:text-slate-500 block uppercase font-black tracking-wider mb-0.5 flex items-center gap-1">
+                                <FaCalendarAlt className="text-slate-400 text-[10px]" /> DATE & DAY
+                              </span>
+                              <span className="font-black text-slate-900 dark:text-white text-xs block truncate">
+                                {formatExamDate(exam.date)}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-bold block">{formatExamDay(exam.date)}</span>
+                            </div>
+                            <div>
+                              <span className="text-[9px] text-slate-400 dark:text-slate-500 block uppercase font-black tracking-wider mb-0.5 flex items-center gap-1">
+                                <FaClock className="text-slate-400 text-[10px]" /> TIME & DURATION
+                              </span>
+                              <span className="font-black text-slate-900 dark:text-white text-xs block truncate">
+                                {formatExamTime(exam)}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-bold block">{exam.duration}</span>
+                            </div>
+                            <div className="col-span-2 pt-2 border-t border-slate-200/50 dark:border-white/5">
+                              <span className="text-[9px] text-slate-400 dark:text-slate-500 block uppercase font-black tracking-wider mb-0.5 flex items-center gap-1">
+                                <FaDesktop className="text-slate-400 text-[10px]" /> VENUE / MODE
+                              </span>
+                              <span className="font-black text-slate-900 dark:text-white text-xs flex items-center gap-1">
+                                {exam.mode === "online" ? (
+                                  <span className="text-[#7C3AED] dark:text-[#A78BFA] flex items-center gap-1">💻 ONLINE PROCTORED</span>
+                                ) : (
+                                  <span>🏫 {exam.room} • OFFLINE</span>
+                                )}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Status column on right */}
-                      <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
-                        {isCompleted ? (
-                          <div className="text-right select-none">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-black border bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 uppercase mb-1">
-                              Completed
-                            </span>
-                            {exam.score !== undefined && (
-                              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-black">
-                                Score: {exam.score}%
-                              </p>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-black border bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border-[#7C3AED]/20 uppercase">
-                            Upcoming
-                          </span>
-                        )}
-                        
-                        {exam.status === "Upcoming" && (
-                          <FaChevronRight className="text-slate-400 text-xs shrink-0 group-hover:text-slate-655 dark:group-hover:text-white transition-colors ml-1" />
-                        )}
+                        {/* Footer Status / Score Row */}
+                        <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-white/5">
+                          {isCompleted ? (
+                            <div className="flex items-center justify-between w-full select-none">
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black border bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 uppercase">
+                                Completed
+                              </span>
+                              {exam.score !== undefined && exam.score !== null ? (
+                                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-black font-mono bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+                                  Score: {exam.score}%
+                                </span>
+                              ) : (
+                                <span className="text-xs text-slate-400 dark:text-slate-500 font-bold bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-lg">
+                                  Not Taken
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between w-full select-none">
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black border bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border-[#7C3AED]/20 uppercase">
+                                Upcoming
+                              </span>
+                              <span className="text-[11px] font-black text-[#7C3AED] dark:text-[#A78BFA] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                                Start / Details <FaChevronRight className="text-[10px]" />
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })
+                    );
+                  })}
+                </div>
               )}
             </div>
           </div>
@@ -748,7 +773,7 @@ function Exam() {
 
             {/* Button 3: Study Materials */}
             <div 
-              onClick={() => navigate("/student/about")}
+              onClick={() => navigate("/student/subjects")}
               className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-amber-500/30 rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
             >
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center mb-2 sm:mb-4">
@@ -762,7 +787,7 @@ function Exam() {
 
             {/* Button 4: Performance */}
             <div 
-              onClick={() => navigate("/student/dashboard")}
+              onClick={() => navigate("/student/results")}
               className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-emerald-500/30 rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 flex flex-col justify-between shadow-sm cursor-pointer group transition-all"
             >
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center mb-2 sm:mb-4">

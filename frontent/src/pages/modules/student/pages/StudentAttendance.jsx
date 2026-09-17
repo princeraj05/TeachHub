@@ -15,14 +15,15 @@ import {
   FaArrowLeft,
   FaUserGraduate,
   FaGraduationCap,
-  FaChalkboardTeacher
+  FaChalkboardTeacher,
+  FaClock,
+  FaHistory,
+  FaExclamationTriangle
 } from "react-icons/fa";
 import { useTheme } from "../../../../context/ThemeContext";
 import API_URL from "../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
-
-const DEFAULT_SUBJECTS = ["Hindi", "English", "Mathematics", "Social Science", "Science"];
 
 function StudentAttendance() {
   const API = API_URL;
@@ -32,10 +33,10 @@ function StudentAttendance() {
   const [profile, setProfile] = useState(null);
   const [studentSubjects, setStudentSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Modal state for Subject Details
   const [selectedSubjectModal, setSelectedSubjectModal] = useState(null);
-  const [modalFilter, setModalFilter] = useState("All"); // "All", "Present", "Absent" inside modal
+  const [modalFilter, setModalFilter] = useState("All"); // "All", "Present", "Absent"
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -77,7 +78,7 @@ function StudentAttendance() {
     return "Faculty: Assigned Teacher";
   };
 
-  // Helper: Get weekday short name (e.g. "Mon", "Tue" etc.)
+  // Helper: Get weekday short name
   const getWeekdayShort = (dateStr) => {
     try {
       const d = new Date(dateStr);
@@ -88,7 +89,7 @@ function StudentAttendance() {
     }
   };
 
-  // Helper: Format Date string (e.g. "08 Sep 2026")
+  // Helper: Format Date string (e.g. "16 Sep 2026")
   const formatDateString = (dateStr) => {
     try {
       return new Date(dateStr).toLocaleDateString("en-IN", {
@@ -101,13 +102,13 @@ function StudentAttendance() {
     }
   };
 
-  // Helper: Decorate database records with subjects & real teachers
+  // Decorate database attendance records with subjects & real teachers
   const decoratedAttendance = useMemo(() => {
     if (!dbAttendance || dbAttendance.length === 0) {
       return [];
     }
 
-    return dbAttendance.map((item, idx) => {
+    return dbAttendance.map((item) => {
       const subjectName = item.subject?.name || item.subjectName || "General";
       const teacherName = getTeacherForSubject(subjectName, item.teacher);
 
@@ -121,25 +122,23 @@ function StudentAttendance() {
     });
   }, [dbAttendance, assignedTeacherMap]);
 
-  // Calculations for overall KPI Cards
+  // Calculations for overall KPI
   const stats = useMemo(() => {
     const total = decoratedAttendance.length;
     const present = decoratedAttendance.filter(a => a.status === "Present").length;
     const absent = decoratedAttendance.filter(a => a.status === "Absent").length;
-    
+
     const presentRate = total > 0 ? ((present / total) * 100).toFixed(1) : "0.0";
     const absentRate = total > 0 ? ((absent / total) * 100).toFixed(1) : "0.0";
-    const workingDays = Math.max(1, Math.ceil(total / Math.max(1, studentSubjects.length)));
 
     return {
       total,
       present,
       absent,
       presentRate,
-      absentRate,
-      workingDays
+      absentRate
     };
-  }, [decoratedAttendance, studentSubjects]);
+  }, [decoratedAttendance]);
 
   // Subject-wise Breakdown stats calculation
   const subjectBreakdown = useMemo(() => {
@@ -203,12 +202,7 @@ function StudentAttendance() {
     });
   }, [decoratedAttendance, studentSubjects, assignedTeacherMap]);
 
-  // Radial progress chart stroke offset for overall
-  const radius = 45;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (parseFloat(stats.presentRate) / 100) * circumference;
-
-  // Open Subject Detailed View
+  // Open Subject Detailed View Modal
   const handleOpenSubjectModal = (subjData) => {
     setSelectedSubjectModal(subjData);
     setModalFilter("All");
@@ -216,70 +210,117 @@ function StudentAttendance() {
 
   if (loading) {
     return (
-      <div className="py-20 text-center flex flex-col items-center justify-center">
+      <div style={{ fontFamily: SORA }} className="py-24 text-center flex flex-col items-center justify-center">
         <div className="w-10 h-10 border-4 border-[#7C3AED] border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-slate-500 dark:text-slate-400 font-bold text-sm">Syncing attendance records...</p>
+        <p className="text-slate-500 dark:text-slate-400 font-bold text-xs uppercase tracking-wider">Syncing attendance records...</p>
       </div>
     );
   }
 
+  const numericPresentRate = parseFloat(stats.presentRate);
+  const isOverallGood = numericPresentRate >= 75;
+  const isOverallZero = stats.total === 0;
+
   return (
-    <div style={{ fontFamily: SORA }} className="w-full max-w-5xl mx-auto space-y-6 text-left select-none pb-10 px-2 sm:px-4">
-      
-      {/* Attendance title & Academic Year Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+    <div style={{ fontFamily: SORA }} className="w-full max-w-5xl mx-auto space-y-6 text-left select-none pb-20 px-3 sm:px-4">
+
+      {/* Header Row */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
         <div>
-          <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">My Attendance</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Track and monitor your subject-wise attendance records</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA] mb-1">ATTENDANCE DASHBOARD</p>
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">My Attendance</h2>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">Track and monitor your aggregate & subject-wise attendance logs.</p>
         </div>
-        
-        {/* Year Dropdown */}
-        <div className="shrink-0 self-start sm:self-auto bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/[0.08] text-slate-600 dark:text-slate-300 px-3.5 py-2 rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-sm">
+
+        {/* Academic Year Dropdown Pill */}
+        <div className="shrink-0 self-start sm:self-auto bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-2 shadow-sm">
           <span>Academic Year 2026</span>
           <span className="text-[10px] text-slate-400">▼</span>
         </div>
       </div>
 
-      {/* Aggregate Attendance Header Ribbon */}
-      <div className="w-full bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#38BDF8] dark:from-[#0B132A] dark:via-[#111A3A] dark:to-[#172554] border border-purple-500/20 dark:border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-400 text-lg shrink-0">
-            <FaGraduationCap />
-          </div>
-          <div>
-            <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-300">AGGREGATE ATTENDANCE</h3>
-            <p className="text-xs text-slate-400 font-medium mt-0.5">Combined overall score across all subject sessions</p>
-          </div>
-        </div>
+      {/* ================= AGGREGATE ATTENDANCE HERO CARD ================= */}
+      <div className="w-full bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#38BDF8] dark:from-[#0B132A] dark:via-[#111A3A] dark:to-[#172554] border border-purple-500/20 dark:border-white/10 rounded-3xl p-5 sm:p-6 text-white shadow-xl relative overflow-hidden">
+        {/* Background decorative glow circle */}
+        <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="flex items-center gap-3 self-end sm:self-auto">
-          <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-black text-xl sm:text-2xl px-4 py-1.5 rounded-xl shadow-inner">
-            {stats.presentRate}%
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-5 relative z-10">
+
+          {/* Left info column */}
+          <div className="flex items-start sm:items-center gap-4">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-white text-xl sm:text-2xl shrink-0 shadow-inner">
+              <FaGraduationCap />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className="text-[9px] font-black uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-md border border-white/20 text-white">
+                  OVERALL METRIC
+                </span>
+                <span className="text-[10px] font-extrabold text-slate-200 dark:text-slate-300">
+                  Academic Session 2026–2027
+                </span>
+              </div>
+              <h3 className="text-base sm:text-lg font-black tracking-tight text-white">AGGREGATE ATTENDANCE</h3>
+              <p className="text-xs text-slate-200 dark:text-slate-300 font-medium mt-0.5 leading-relaxed">
+                Combined overall attendance score calculated across all enrolled subject sessions.
+              </p>
+            </div>
           </div>
-          <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 uppercase tracking-wide">
-            Good Standing
-          </span>
+
+          {/* Right score column */}
+          <div className="flex items-center justify-between md:justify-end gap-4 bg-black/20 backdrop-blur-md border border-white/15 p-4 rounded-2xl shrink-0">
+            <div className="text-left md:text-right">
+              <div className="text-3xl sm:text-4xl font-black tracking-tight text-white drop-shadow-sm font-mono">
+                {stats.presentRate}%
+              </div>
+              <p className="text-[10px] font-bold text-slate-200 dark:text-slate-300 mt-0.5 whitespace-nowrap">
+                {stats.present} / {stats.total} Sessions Attended
+              </p>
+            </div>
+
+            <div className="h-10 w-[1px] bg-white/20 shrink-0" />
+
+            <div className="flex flex-col items-center justify-center">
+              <span className={`text-[10px] font-black px-3 py-1 rounded-xl border uppercase tracking-wider whitespace-nowrap ${
+                isOverallZero
+                  ? "bg-slate-500/20 text-slate-200 border-slate-400/30"
+                  : isOverallGood
+                  ? "bg-emerald-500/30 text-emerald-300 border-emerald-400/40"
+                  : "bg-amber-500/30 text-amber-300 border-amber-400/40"
+              }`}>
+                {isOverallZero ? "No Sessions" : isOverallGood ? "Good Standing" : "Needs Attention"}
+              </span>
+              <span className="text-[9px] text-slate-300 font-extrabold mt-1">
+                Target: 75.0%
+              </span>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      {/* ================= SUBJECT-WISE ATTENDANCE BREAKDOWN CARDS SECTION ================= */}
+      {/* ================= SUBJECT-WISE BREAKDOWN CARDS ================= */}
       <div className="space-y-4 pt-2">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight">Subject-Wise Attendance</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Click any subject percentage card to inspect detailed session logs</p>
+            <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-tight">Subject-Wise Attendance</h3>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Select any subject card to inspect detailed session logs and history</p>
           </div>
-          <span className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-3 py-1 rounded-xl border border-indigo-200 dark:border-indigo-500/20">
-            {subjectBreakdown.length} Subjects Active
+          <span className="shrink-0 self-start sm:self-auto text-xs font-black text-[#7C3AED] dark:text-[#A78BFA] bg-purple-500/10 px-3 py-1 rounded-xl border border-[#7C3AED]/20">
+            {subjectBreakdown.length} Enrolled Subjects
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* 2-Column Desktop / 1-Column Mobile Grid for Optimal Readability */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4.5">
           {subjectBreakdown.map((subj) => {
+            const isZero = subj.total === 0;
             const isHigh = subj.rate >= 75;
             const isMedium = subj.rate >= 50 && subj.rate < 75;
 
-            const circleColorClass = isHigh
+            const ringColor = isZero
+              ? "text-slate-300 dark:text-slate-700"
+              : isHigh
               ? "text-emerald-500"
               : isMedium
               ? "text-amber-500"
@@ -293,25 +334,25 @@ function StudentAttendance() {
               <div
                 key={subj.subject}
                 onClick={() => handleOpenSubjectModal(subj)}
-                className="group relative bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] hover:border-indigo-500/50 dark:hover:border-indigo-500/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col justify-between"
+                className="group relative bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] hover:border-[#7C3AED]/50 dark:hover:border-[#7C3AED]/50 rounded-3xl p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col justify-between"
               >
                 <div>
-                  {/* Top Subject Title & Percentage Ring */}
+                  {/* Course Tag & Top Header */}
                   <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="space-y-1 pr-2">
-                      <span className="inline-block px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 mb-1">
-                        Course
+                    <div className="space-y-1.5 pr-2">
+                      <span className="inline-block px-2.5 py-0.5 text-[8px] font-black uppercase tracking-wider rounded bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20">
+                        COURSE
                       </span>
-                      <h4 className="text-sm font-black text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">
+                      <h4 className="text-base font-black text-slate-900 dark:text-white group-hover:text-[#7C3AED] dark:group-hover:text-[#A78BFA] transition-colors leading-tight line-clamp-1">
                         {subj.subject}
                       </h4>
-                      <p className="text-[11px] font-extrabold text-indigo-600 dark:text-indigo-400 truncate flex items-center gap-1.5">
-                        <FaChalkboardTeacher className="text-xs text-indigo-500" />
-                        <span>{subj.faculty}</span>
+                      <p className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                        <FaChalkboardTeacher className="text-xs text-[#7C3AED] shrink-0" />
+                        <span className="truncate">{subj.faculty}</span>
                       </p>
                     </div>
 
-                    {/* Circular Percentage Ring */}
+                    {/* Radial Percentage Gauge Ring */}
                     <div className="relative shrink-0 w-16 h-16 flex items-center justify-center">
                       <svg className="w-16 h-16 transform -rotate-90">
                         <circle
@@ -327,7 +368,7 @@ function StudentAttendance() {
                           cx="32"
                           cy="32"
                           r={cRadius}
-                          className={circleColorClass}
+                          className={ringColor}
                           strokeWidth="5"
                           strokeDasharray={cCircumference}
                           strokeDashoffset={cOffset}
@@ -337,29 +378,29 @@ function StudentAttendance() {
                         />
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                        <span className="text-xs font-black text-slate-900 dark:text-white">
+                        <span className="text-xs font-black text-slate-900 dark:text-white font-mono">
                           {subj.rateFormatted}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Metadata Stats Row */}
-                  <div className="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-white/[0.02] p-2.5 rounded-xl border border-slate-100 dark:border-white/[0.04] text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-3">
+                  {/* LPU-Inspired Metadata Grid (Attended vs Last Session) */}
+                  <div className="grid grid-cols-2 gap-3 bg-slate-50 dark:bg-white/[0.02] p-3.5 rounded-2xl border border-slate-100 dark:border-white/[0.04] text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-4">
                     <div>
-                      <span className="text-[9px] text-slate-400 dark:text-slate-500 block uppercase font-extrabold">Attended</span>
-                      <span className="font-black text-slate-900 dark:text-white">{subj.present} / {subj.total}</span>
+                      <span className="text-[9px] text-slate-400 dark:text-slate-500 block uppercase font-black tracking-wider mb-0.5">ATTENDED</span>
+                      <span className="font-black text-slate-900 dark:text-white font-mono text-xs">{subj.present} / {subj.total}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] text-slate-400 dark:text-slate-500 block uppercase font-extrabold">Last Session</span>
-                      <span className="font-black text-slate-900 dark:text-white truncate">{subj.lastAttended}</span>
+                      <span className="text-[9px] text-slate-400 dark:text-slate-500 block uppercase font-black tracking-wider mb-0.5">LAST SESSION</span>
+                      <span className="font-black text-slate-900 dark:text-white truncate text-[11px] block">{subj.lastAttended}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Footer Link Button */}
-                <div className="flex items-center justify-between text-[11px] font-black text-indigo-600 dark:text-indigo-400 pt-2 border-t border-slate-100 dark:border-white/5">
-                  <span>Inspect Detailed Logs</span>
+                {/* Card Footer Link */}
+                <div className="flex items-center justify-between text-[11px] font-black text-[#7C3AED] dark:text-[#A78BFA] pt-2.5 border-t border-slate-100 dark:border-white/5">
+                  <span>View Attendance</span>
                   <FaChevronRight className="text-[10px] group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
@@ -368,41 +409,41 @@ function StudentAttendance() {
         </div>
       </div>
 
-      {/* Informational notification card alert at bottom */}
-      <div className="flex items-start gap-3 bg-emerald-500/5 border border-emerald-500/15 rounded-2xl p-4 text-xs text-slate-600 dark:text-slate-400 select-none">
-        <FaInfoCircle className="text-emerald-500 text-sm mt-0.5 shrink-0" />
+      {/* Info notice alert */}
+      <div className="flex items-start gap-3 bg-purple-500/5 border border-purple-500/10 rounded-2.5xl p-4 text-xs text-slate-600 dark:text-slate-400 select-none">
+        <FaInfoCircle className="text-[#7C3AED] text-sm mt-0.5 shrink-0" />
         <div className="text-left">
           <p className="font-semibold leading-relaxed">
-            Attendance is updated automatically after each subject session.
+            Attendance records are logged in real-time by classroom teachers upon session completion.
             <br />
-            Ensure regular attendance to maintain an aggregate rate above 75%.
+            Maintain an aggregate score above <strong>75.0%</strong> to meet academic eligibility requirements.
           </p>
         </div>
       </div>
 
-      {/* ================= DETAILED SUBJECT ATTENDANCE MODAL ================= */}
+      {/* ================= SUBJECT ATTENDANCE DETAIL MODAL ================= */}
       {selectedSubjectModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden text-left my-auto animate-in fade-in zoom-in duration-200">
-            
-            {/* Modal Top Banner */}
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden text-left my-auto relative">
+
+            {/* Modal Header */}
             <div className="bg-slate-900 dark:bg-[#111A3A] text-white p-5 sm:p-6 border-b border-slate-800 dark:border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setSelectedSubjectModal(null)}
-                  className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+                  className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer shrink-0"
                 >
                   <FaArrowLeft className="text-xs" />
                 </button>
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-indigo-400 bg-indigo-500/20 px-2 py-0.5 rounded border border-indigo-400/20">
-                    Subject Log
+                  <span className="text-[9px] font-black uppercase tracking-wider text-purple-300 bg-purple-500/20 px-2 py-0.5 rounded border border-purple-400/20">
+                    SUBJECT LOG
                   </span>
-                  <h3 className="text-lg font-black tracking-tight text-white mt-1">
+                  <h3 className="text-base sm:text-lg font-black tracking-tight text-white leading-tight mt-0.5">
                     {selectedSubjectModal.subject}
                   </h3>
-                  <p className="text-xs text-indigo-300 font-extrabold flex items-center gap-1 mt-0.5">
-                    <FaChalkboardTeacher className="text-xs" />
+                  <p className="text-xs text-slate-300 font-bold flex items-center gap-1.5 mt-0.5">
+                    <FaChalkboardTeacher className="text-xs text-purple-400" />
                     <span>{selectedSubjectModal.faculty}</span>
                   </p>
                 </div>
@@ -410,53 +451,61 @@ function StudentAttendance() {
 
               <button
                 onClick={() => setSelectedSubjectModal(null)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-300 hover:text-white transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-300 hover:text-white transition-colors cursor-pointer shrink-0"
               >
                 <FaTimes className="text-xs" />
               </button>
             </div>
 
-            {/* Modal Summary KPI Header */}
+            {/* Modal Summary KPI Strip */}
             <div className="bg-slate-50 dark:bg-white/[0.02] p-4 sm:p-5 border-b border-slate-200/60 dark:border-white/5 flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center justify-center text-xl font-black shrink-0">
+              <div className="flex items-center gap-3.5">
+                <div className="w-13 h-13 rounded-2xl bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20 flex items-center justify-center text-xl font-black shrink-0 font-mono px-3 py-2">
                   {selectedSubjectModal.rateFormatted}
                 </div>
                 <div>
-                  <span className="text-xs font-black text-slate-900 dark:text-white">
+                  <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
                     {selectedSubjectModal.present} Attended / {selectedSubjectModal.total} Total Sessions
-                  </span>
-                  <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                  </h4>
+                  <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
                     {selectedSubjectModal.absent} Absences Recorded
                   </p>
                 </div>
               </div>
 
-              {/* Status Pills Selector inside Modal */}
-              <div className="flex bg-slate-200/80 dark:bg-[#0B132A] p-1 rounded-xl border border-slate-300/50 dark:border-white/10">
-                {["All", "Present", "Absent"].map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setModalFilter(f)}
-                    className={`px-3 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                      modalFilter === f
-                        ? "bg-[#2563EB] text-white shadow-sm"
-                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                    }`}
-                  >
-                    {f}
-                  </button>
-                ))}
+              {/* Status Filter Tabs */}
+              <div className="flex bg-slate-200/70 dark:bg-[#0B132A] p-1 rounded-xl border border-slate-300/50 dark:border-white/10 select-none">
+                {["All", "Present", "Absent"].map((filter) => {
+                  const isActive = modalFilter === filter;
+                  return (
+                    <button
+                      key={filter}
+                      onClick={() => setModalFilter(filter)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                        isActive
+                          ? "bg-[#2563EB] text-white shadow-sm"
+                          : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                      }`}
+                    >
+                      {filter}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Detailed Session Logs List */}
-            <div className="p-4 sm:p-6 max-h-[380px] overflow-y-auto space-y-3 scrollbar-thin">
+            {/* Session Logs List */}
+            <div className="p-4 sm:p-6 max-h-[380px] overflow-y-auto space-y-3">
               {selectedSubjectModal.records
                 .filter(r => modalFilter === "All" || r.status === modalFilter)
                 .length === 0 ? (
-                  <div className="py-12 text-center text-slate-400 dark:text-slate-500 font-bold text-xs">
-                    No sessions found matching status "{modalFilter}".
+                  <div className="py-12 text-center text-slate-400 dark:text-slate-500 font-semibold text-xs flex flex-col items-center gap-2">
+                    <FaCalendarAlt className="text-2xl text-slate-300 dark:text-slate-700" />
+                    <span>
+                      {selectedSubjectModal.total === 0
+                        ? "No sessions recorded yet."
+                        : `No sessions found matching status "${modalFilter}".`}
+                    </span>
                   </div>
                 ) : (
                   selectedSubjectModal.records
@@ -469,7 +518,7 @@ function StudentAttendance() {
                           className="flex items-center justify-between p-3.5 bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl shadow-sm hover:border-slate-300 dark:hover:border-white/20 transition-all"
                         >
                           <div className="flex items-center gap-3.5">
-                            {/* Big 'P' or 'A' status badge on left */}
+                            {/* [P] / [A] Badge */}
                             <div className={`w-10 h-10 rounded-xl font-black text-sm flex items-center justify-center shrink-0 border ${
                               isPresent
                                 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
@@ -483,8 +532,8 @@ function StudentAttendance() {
                               <p className="text-xs font-black text-slate-900 dark:text-white">
                                 {session.dayShort}, {session.formattedDate || session.date}
                               </p>
-                              <p className="text-[11px] font-extrabold text-indigo-600 dark:text-indigo-400 mt-0.5 flex items-center gap-1">
-                                <FaChalkboardTeacher className="text-xs" />
+                              <p className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
+                                <FaChalkboardTeacher className="text-xs text-[#7C3AED]" />
                                 <span>{session.teacherName || selectedSubjectModal.faculty}</span>
                               </p>
                             </div>
@@ -509,7 +558,7 @@ function StudentAttendance() {
             <div className="p-4 bg-slate-50 dark:bg-white/[0.02] border-t border-slate-200/60 dark:border-white/5 text-right">
               <button
                 onClick={() => setSelectedSubjectModal(null)}
-                className="px-5 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-black hover:opacity-90 transition-opacity cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-black hover:opacity-90 transition-opacity cursor-pointer"
               >
                 Close
               </button>
