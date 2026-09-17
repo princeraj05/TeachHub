@@ -109,6 +109,7 @@ function TeacherLayout() {
     { to: "/teacher/dashboard", icon: <FaTachometerAlt className="text-purple-500" />, label: t("dashboard", "Dashboard") },
     { to: "/teacher/mydiary", icon: <FaBookOpen className="text-indigo-500" />, label: t("my_diary", "My Diary") },
     { to: "/teacher/my-classes", icon: <FaSchool className="text-blue-500" />, label: t("my_classes", "My Classes") },
+    { to: "/teacher/schools", icon: <FaSchool className="text-purple-500" />, label: t("school_directory", "School Directory") },
     { to: "/teacher/my-students", icon: <FaUserGraduate className="text-teal-500" />, label: t("my_students", "My Students") },
     { to: "/teacher/mark-attendance", icon: <FaClipboardCheck className="text-emerald-500" />, label: t("mark_attendance", "Mark Attendance") },
     { to: "/teacher/attendance-history", icon: <FaCalendarAlt className="text-[#38BDF8]" />, label: t("attendance", "Attendance History") },

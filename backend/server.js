@@ -40,6 +40,7 @@ const noteRoutes = require("./routes/noteRoutes");
 const appNotificationRoutes = require("./routes/appNotificationRoutes");
 const accountDeletionRoutes = require("./routes/accountDeletionRoutes");
 const publicLegalRoutes = require("./routes/publicLegalRoutes");
+const schoolChangeRoutes = require("./routes/schoolChangeRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -238,6 +239,7 @@ app.use("/api/notes", noteRoutes);
 app.use("/api", featureRoutes);
 app.use("/api", paymentRoutes);
 app.use("/api/account-deletion-request", accountDeletionRoutes);
+app.use("/api/school-change-requests", schoolChangeRoutes);
 app.use("/", publicLegalRoutes);
 
 app.get("/", (req, res) => {

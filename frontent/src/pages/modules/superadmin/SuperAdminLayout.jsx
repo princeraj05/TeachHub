@@ -18,6 +18,7 @@ import {
   FaMoneyBillWave,
   FaUsers,
   FaSchool,
+  FaExchangeAlt,
   FaBell,
   FaThLarge,
   FaTimes,
@@ -119,6 +120,7 @@ function SuperAdminLayout() {
     { to: "/superadmin/dashboard", icon: <FaTachometerAlt className="text-xl" />, label: "Dashboard" },
     { to: "/superadmin/users", icon: <FaUsers className="text-xl" />, label: "Users" },
     { to: "/superadmin/schools", icon: <FaSchool className="text-xl" />, label: "Schools" },
+    { to: "/superadmin/school-change-requests", icon: <FaExchangeAlt className="text-xl text-purple-500" />, label: "School Change Requests" },
     { to: "/superadmin/events", icon: <FaCalendarAlt className="text-xl" />, label: "Events" },
     { to: "/superadmin/payments", icon: <FaMoneyBillWave className="text-xl" />, label: "Payments" },
     { to: "/superadmin/about", icon: <FaInfoCircle className="text-xl" />, label: "About / Config" },
@@ -197,283 +199,39 @@ function SuperAdminLayout() {
         </div>
       </aside>
 
-      {/* MOBILE: Fixed Bottom Navigation Bar */}
-      <nav className="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#0B132A]/95 backdrop-blur-md border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-around z-[60] px-1 py-1 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] select-none h-14">
-        <Link
-          to="/superadmin/dashboard"
-          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
-            isActive("/superadmin/dashboard") ? "text-[#7C3AED] dark:text-[#38BDF8] font-bold" : "text-slate-400 dark:text-slate-500"
-          }`}
-        >
-          <FaTachometerAlt className="text-base" />
-          <span className="text-[9px] font-extrabold tracking-tight">Dashboard</span>
-        </Link>
-
-        <Link
-          to="/superadmin/users"
-          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
-            isActive("/superadmin/users") ? "text-[#7C3AED] dark:text-[#38BDF8] font-bold" : "text-slate-400 dark:text-slate-500"
-          }`}
-        >
-          <FaUsers className="text-base" />
-          <span className="text-[9px] font-extrabold tracking-tight">Users</span>
-        </Link>
-
-        <Link
-          to="/superadmin/schools"
-          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
-            isActive("/superadmin/schools") ? "text-[#7C3AED] dark:text-[#38BDF8] font-bold" : "text-slate-400 dark:text-slate-500"
-          }`}
-        >
-          <FaSchool className="text-base" />
-          <span className="text-[9px] font-extrabold tracking-tight">Schools</span>
-        </Link>
-
-        <Link
-          to="/superadmin/payments"
-          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
-            isActive("/superadmin/payments") ? "text-[#7C3AED] dark:text-[#38BDF8] font-bold" : "text-slate-400 dark:text-slate-500"
-          }`}
-        >
-          <FaMoneyBillWave className="text-base" />
-          <span className="text-[9px] font-extrabold tracking-tight">Payments</span>
-        </Link>
-
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 cursor-pointer ${
-            mobileMenuOpen ? "text-[#7C3AED] dark:text-[#38BDF8] font-bold" : "text-slate-400 dark:text-slate-500"
-          }`}
-        >
-          <FaThLarge className="text-base" />
-          <span className="text-[9px] font-extrabold tracking-tight">More</span>
-        </button>
-      </nav>
-
-      {/* MOBILE / DRAWER: Left Sliding Navigation Drawer */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[100] flex text-left select-none">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm animate-fadeIn"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-
-          {/* Drawer Content */}
-          <div className="relative w-[300px] sm:w-[340px] max-w-[85vw] h-full bg-white dark:bg-[#0B132A] shadow-2xl flex flex-col z-10 overflow-hidden text-slate-800 dark:text-slate-100 animate-slideRight">
-            
-            {/* Top Profile Header Card (TeachHub Purple & Blue Gradient) */}
-            <div
-              onClick={() => {
-                setMobileMenuOpen(false);
-                navigate("/superadmin/profile");
-              }}
-              className="relative bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#38BDF8] p-5 text-white flex flex-col items-center text-center cursor-pointer group shrink-0 shadow-md"
-            >
-              {/* Close Drawer Button */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setMobileMenuOpen(false);
-                }}
-                className="absolute top-3 right-3 text-white/80 hover:text-white bg-black/20 hover:bg-black/30 w-7 h-7 rounded-full flex items-center justify-center text-xs transition cursor-pointer"
-              >
-                <FaTimes />
-              </button>
-
-              {/* SuperAdmin Photo Circle */}
-              <div className="w-20 h-20 rounded-full border-4 border-white/40 shadow-xl overflow-hidden mb-3 bg-white/20 shrink-0">
-                {avatar ? (
-                  <img src={avatar} alt="Super Admin Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center font-black text-2xl text-white">
-                    {name.charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
-
-              {/* SuperAdmin Name */}
-              <h3 className="text-base font-black tracking-tight text-white group-hover:underline">
-                {name}
-              </h3>
-              
-              {/* Role Badge */}
-              <p className="text-[11px] font-bold text-white/90 mt-0.5 uppercase tracking-wider">
-                SUPER ADMIN
-              </p>
-
-              {/* Subtitle */}
-              <p className="text-[10px] font-semibold text-white/80 mt-0.5 truncate max-w-[240px]">
-                {platformName} Platform Owner
-              </p>
-            </div>
-
-            {/* Live Search Filter Box */}
-            <div className="p-3 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">
-              <div className="relative">
-                <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
-                <input
-                  type="text"
-                  placeholder="Search menu..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3.5 py-2 bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-[#7C3AED]/30"
-                />
-              </div>
-            </div>
-
-            {/* Nav Items List (Profile is #1) */}
-            <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
-              {[
-                { to: "/superadmin/profile", icon: <FaUserCircle className="text-[#7C3AED] dark:text-[#38BDF8]" />, label: "Profile" },
-                { to: "/superadmin/dashboard", icon: <FaTachometerAlt className="text-purple-500" />, label: "Dashboard" },
-                { to: "/superadmin/users", icon: <FaUsers className="text-teal-500" />, label: "Users Directory" },
-                { to: "/superadmin/schools", icon: <FaSchool className="text-blue-500" />, label: "Schools Directory" },
-                { to: "/superadmin/events", icon: <FaCalendarAlt className="text-indigo-500" />, label: "Platform Events" },
-                { to: "/superadmin/payments", icon: <FaMoneyBillWave className="text-emerald-500" />, label: "Payments Overview" },
-                { to: "/superadmin/about", icon: <FaInfoCircle className="text-slate-400" />, label: "About / Config" },
-                { to: "/superadmin/support", icon: <FaComments className="text-amber-500" />, label: "Support Tickets" },
-                { to: "/superadmin/notifications", icon: <FaBell className="text-rose-500" />, label: `Notifications ${unreadCount > 0 ? `(${unreadCount})` : ''}` }
-              ]
-                .filter(link => link.label.toLowerCase().includes(searchQuery.toLowerCase()))
-                .map((link) => {
-                  const active = location.pathname === link.to;
-                  return (
-                    <Link
-                      key={link.to}
-                      to={link.to}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition text-xs font-bold ${
-                        active
-                          ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] font-black border border-[#7C3AED]/20"
-                          : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
-                      }`}
-                    >
-                      <span className="text-base shrink-0">{link.icon}</span>
-                      <span className="truncate">{link.label}</span>
-                    </Link>
-                  );
-                })}
-            </div>
-
-            {/* Drawer Footer Logout Button */}
-            <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.02]">
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  handleLogout();
-                }}
-                className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-extrabold text-xs py-3 px-5 rounded-2xl shadow-md flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider transition active:scale-95"
-              >
-                <span>LOGOUT</span>
-                <FaSignOutAlt className="text-sm" />
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-screen overflow-y-auto min-w-0 pl-0 md:pl-20 lg:pl-64 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0 relative z-10">
-        {/* Header */}
-        <header className="flex items-center justify-between bg-white/80 dark:bg-[#0B132A]/80 backdrop-blur-xl px-4 py-2.5 sm:px-6 sm:py-3 mx-3 md:mx-6 mt-2 md:mt-3 border border-slate-200/80 dark:border-white/15 rounded-2xl shadow-sm z-30 select-none">
-          <div className="flex items-center gap-3 min-w-0">
-            {/* 3-Bar Hamburger Button */}
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(true)}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 cursor-pointer transition text-base flex items-center justify-center border border-slate-200/60 dark:border-white/10"
-              title="Open Navigation Menu"
-            >
-              <FaBars />
-            </button>
-
-            <div className="min-w-0">
-              <h1 className="text-sm sm:text-base md:text-lg font-black text-slate-800 dark:text-white tracking-tight truncate max-w-[200px] sm:max-w-md md:max-w-xl">
-                Super Admin Workspace
-              </h1>
-              <p className="text-[9px] sm:text-[10px] text-[#7C3AED] dark:text-[#38BDF8] font-extrabold uppercase tracking-widest mt-0.5">Control Center</p>
-            </div>
+      {/* Main Content Container */}
+      <div className="flex-1 flex flex-col md:pl-20 lg:pl-64 min-w-0 h-screen overflow-hidden">
+        {/* Top Navbar */}
+        <header className="h-16 border-b border-slate-200 dark:border-white/[0.08] bg-white/80 dark:bg-[#0B132A]/80 backdrop-blur-md flex items-center justify-between px-4 sm:px-8 z-30 shrink-0 select-none">
+          <div className="flex items-center gap-4 flex-1 max-w-md">
+            <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white truncate">
+              Super Admin Panel
+            </h2>
           </div>
 
-          <div className="relative flex items-center gap-2.5 sm:gap-3 shrink-0">
-            {/* Quick theme switch in header */}
+          <div className="flex items-center gap-3">
             <button
-              type="button"
               onClick={toggleTheme}
-              className="p-2 sm:p-2.5 rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 cursor-pointer transition-all duration-200 text-xs sm:text-sm shadow-xs active:scale-95 flex items-center justify-center"
-              title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              className="p-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition"
               aria-label="Toggle Theme"
             >
-              {theme === "dark" ? (
-                <FaSun className="text-amber-400 animate-pulse text-sm" />
-              ) : (
-                <FaMoon className="text-purple-600 dark:text-purple-400 text-sm" />
-              )}
+              {theme === "dark" ? <FaSun className="text-amber-400 text-sm" /> : <FaMoon className="text-purple-600 text-sm" />}
             </button>
 
-            <div
-              className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group"
-              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-            >
-              <div className="hidden sm:flex flex-col items-end">
-                <p className="text-xs font-bold text-[#0F172A] dark:text-slate-200 group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition duration-200">
-                  {name}
-                </p>
-                <p className="text-[8px] sm:text-[9px] text-slate-400 font-extrabold uppercase tracking-wider">System Owner</p>
+            <div className="flex items-center gap-3 pl-2 border-l border-slate-200 dark:border-white/10">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#38BDF8] text-white flex items-center justify-center font-black text-xs shadow-md">
+                {avatar ? <img src={avatar} alt="Avatar" className="w-full h-full object-cover rounded-xl" /> : name.charAt(0)}
               </div>
-
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-xs sm:text-sm shadow-sm border border-white/20 overflow-hidden">
-                {avatar ? (
-                  <img src={avatar} alt="" onError={() => setAvatar("")} className="w-full h-full object-cover" />
-                ) : (
-                  name.charAt(0).toUpperCase()
-                )}
+              <div className="hidden sm:block text-left">
+                <p className="text-xs font-black text-slate-900 dark:text-white leading-none">{name}</p>
+                <p className="text-[10px] text-purple-600 dark:text-[#38BDF8] font-bold uppercase tracking-wider mt-0.5">Super Admin</p>
               </div>
             </div>
-
-            {profileDropdownOpen && (
-              <>
-                <div className="fixed inset-0 z-[45]" onClick={() => setProfileDropdownOpen(false)} />
-                <div className="absolute right-0 top-12 w-52 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 text-slate-700 dark:text-slate-300 animate-fadeIn">
-                  <div className="px-3 py-2 border-b border-slate-100 dark:border-white/[0.08] mb-1 flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-xs overflow-hidden border border-white/20 shrink-0">
-                      {avatar ? (
-                        <img src={avatar} alt="" onError={() => setAvatar("")} className="w-full h-full object-cover" />
-                      ) : (
-                        name.charAt(0).toUpperCase()
-                      )}
-                    </div>
-                    <div className="overflow-hidden">
-                      <p className="text-xs font-bold text-slate-800 dark:text-white truncate">{name}</p>
-                      <span className="inline-flex items-center gap-1 text-[8px] font-extrabold text-[#7C3AED] dark:text-[#38BDF8] uppercase tracking-widest mt-0.5 bg-[#7C3AED]/10 dark:bg-white/5 border border-[#7C3AED]/20 dark:border-white/[0.06] px-1.5 py-0.5 rounded">
-                        <FaUserShield /> Super Admin
-                      </span>
-                    </div>
-                  </div>
-                  <Link
-                    to="/superadmin/profile"
-                    onClick={() => setProfileDropdownOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition"
-                  >
-                    <FaUserCircle /> My Profile
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-2 w-full text-left px-3 py-2 text-xs font-bold text-rose-500 dark:text-rose-400 hover:bg-rose-500/10 rounded-xl transition cursor-pointer"
-                  >
-                    <FaSignOutAlt /> Logout
-                  </button>
-                </div>
-              </>
-            )}
           </div>
         </header>
 
-        <main className="p-4 md:p-6 flex-1 overflow-x-auto relative">
+        {/* Page Content */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 relative">
           <Outlet />
         </main>
       </div>

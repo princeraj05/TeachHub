@@ -13,9 +13,11 @@ import {
   FaGraduationCap,
   FaBook,
   FaCalendarAlt,
-  FaArrowRight
+  FaArrowRight,
+  FaExchangeAlt
 } from "react-icons/fa";
 import API_URL from "../../../../config/api";
+import SchoolChangeModal from "../../../../components/SchoolChangeModal";
 
 const SORA = "'Sora', sans-serif";
 
@@ -28,9 +30,12 @@ function SchoolDirectory() {
   const [schools, setSchools] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [user, setUser] = useState(null);
+  const [myChangeRequest, setMyChangeRequest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showChangeModal, setShowChangeModal] = useState(false);
+  const [targetChangeSchool, setTargetChangeSchool] = useState("");
   const [selectedSchool, setSelectedSchool] = useState("");
   const [requestedRole, setRequestedRole] = useState("student");
   const [submitting, setSubmitting] = useState(false);
@@ -45,14 +50,16 @@ function SchoolDirectory() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [schoolsRes, profileRes, appointmentsRes] = await Promise.all([
+      const [schoolsRes, profileRes, appointmentsRes, changeReqRes] = await Promise.all([
         axios.get(`${API}/api/schools`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/api/auth/profile`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/api/appointments`, { headers: { Authorization: `Bearer ${token}` } })
+        axios.get(`${API}/api/appointments`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/api/school-change-requests/my-request`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: null }))
       ]);
       setSchools(schoolsRes.data || []);
       setUser(profileRes.data);
       setAppointments(appointmentsRes.data || []);
+      setMyChangeRequest(changeReqRes.data || null);
     } catch (err) {
       console.error("Error loading school directory:", err);
     } finally {
@@ -341,10 +348,36 @@ function SchoolDirectory() {
                         <FaSchool className="text-xs text-purple-500" />
                         Registered School
                       </span>
-                    ) : isApprovedHere ? (
-                      <span className="flex-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-center py-3 rounded-2xl text-xs font-extrabold uppercase tracking-wider">
-                        Joined
+                    ) : user && user.schoolName && user.schoolName.trim().toLowerCase() === school.name.trim().toLowerCase() ? (
+                      <span className="flex-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-center py-3 rounded-2xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-1.5">
+                        <FaCheckCircle className="text-xs text-emerald-500" />
+                        CURRENT SCHOOL
                       </span>
+                    ) : user && user.schoolName && user.schoolName.trim() !== "" ? (
+                      myChangeRequest && myChangeRequest.status === "pending" && myChangeRequest.requestedSchoolName.trim().toLowerCase() === school.name.trim().toLowerCase() ? (
+                        <span className="flex-1 bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-center py-3 rounded-2xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-1.5">
+                          <FaExchangeAlt className="text-xs" />
+                          CHANGE REQUEST PENDING
+                        </span>
+                      ) : myChangeRequest && myChangeRequest.status === "pending" ? (
+                        <button
+                          disabled
+                          className="flex-1 bg-slate-100 dark:bg-slate-800/40 text-slate-400 py-3 rounded-2xl text-xs font-extrabold cursor-not-allowed text-center"
+                        >
+                          Change Pending
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setTargetChangeSchool(school.name);
+                            setShowChangeModal(true);
+                          }}
+                          className="flex-1 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white py-3 rounded-2xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 shadow-md shadow-purple-600/20 cursor-pointer active:scale-[0.98]"
+                        >
+                          <FaExchangeAlt className="text-[10px]" />
+                          <span>Request School Change</span>
+                        </button>
+                      )
                     ) : isThisApplied ? (
                       <span className={`flex-1 text-center py-3 rounded-2xl text-xs font-extrabold uppercase tracking-wider border ${
                         user.requestStatus === "scheduled"
@@ -396,6 +429,21 @@ function SchoolDirectory() {
           <FaSchool className="text-slate-350 dark:text-slate-700 text-5xl mx-auto mb-4" />
           <p className="text-xs text-slate-400 dark:text-slate-500 font-bold italic">No schools registered in system.</p>
         </div>
+      )}
+
+      {/* School Change Modal */}
+      {showChangeModal && (
+        <SchoolChangeModal
+          currentSchoolName={user?.schoolName}
+          requestedSchoolName={targetChangeSchool}
+          userRole={user?.role}
+          onClose={() => setShowChangeModal(false)}
+          onSuccess={(req) => {
+            setMyChangeRequest(req);
+            setShowChangeModal(false);
+            fetchData();
+          }}
+        />
       )}
 
       {appointments.length > 0 && (

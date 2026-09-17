@@ -17,6 +17,11 @@ const {
   revokeSupportRole
 } = require("../controllers/superAdminController");
 
+const {
+  getSuperAdminRequests,
+  processSuperAdminAction
+} = require("../controllers/schoolChangeController");
+
 router.use(protect);
 router.use(authorize("superadmin"));
 
@@ -26,6 +31,10 @@ router.get("/schools", getSchools);
 router.delete("/users/:id", deleteUser);
 router.get("/dashboard-stats", getDashboardStats);
 router.get("/schools-detail", getSchoolsDetail);
+
+// School Change Requests Routes (Super Admin Only)
+router.get("/school-change-requests", getSuperAdminRequests);
+router.post("/school-change-requests/:id/action", processSuperAdminAction);
 
 // Support Team Management Routes
 router.get("/support-team", getSupportTeam);

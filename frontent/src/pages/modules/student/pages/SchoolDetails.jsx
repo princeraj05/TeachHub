@@ -21,9 +21,11 @@ import {
   FaTimes,
   FaShareAlt,
   FaEnvelope,
-  FaPhone
+  FaPhone,
+  FaExchangeAlt
 } from "react-icons/fa";
 import API_URL from "../../../../config/api";
+import SchoolChangeModal from "../../../../components/SchoolChangeModal";
 
 const SORA = "'Sora', sans-serif";
 
@@ -63,9 +65,11 @@ function SchoolDetails() {
   // Selected teacher for detail modal
   const [selectedTeacher, setSelectedTeacher] = useState(null);
 
-  // Join school request state
+  // Join school request & change request state
   const [user, setUser] = useState(null);
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showChangeModal, setShowChangeModal] = useState(false);
+  const [myChangeRequest, setMyChangeRequest] = useState(null);
   const [requestedRole, setRequestedRole] = useState("student");
   const [submitting, setSubmitting] = useState(false);
 
@@ -107,8 +111,8 @@ function SchoolDetails() {
       });
       setSchool(schoolRes.data);
 
-      // Fetch events, teachers, and profile in parallel
-      const [upRes, compRes, teachersRes, profileRes] = await Promise.all([
+      // Fetch events, teachers, profile, and active change request in parallel
+      const [upRes, compRes, teachersRes, profileRes, changeReqRes] = await Promise.all([
         axios.get(`${API}/api/events/upcoming?schoolName=${encodeURIComponent(name)}`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
@@ -123,12 +127,16 @@ function SchoolDetails() {
         }),
         axios.get(`${API}/api/auth/profile`, {
           headers: { Authorization: `Bearer ${token}` }
-        }).catch(err => null)
+        }).catch(err => null),
+        axios.get(`${API}/api/school-change-requests/my-request`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(err => ({ data: null }))
       ]);
 
       setUpcomingEvents(upRes.data || []);
       setCompletedEvents(compRes.data || []);
       setTeachers(teachersRes.data || []);
+      setMyChangeRequest(changeReqRes?.data || null);
       if (profileRes && profileRes.data) {
         setUser(profileRes.data);
         if (profileRes.data.requestedRole && ["student", "teacher"].includes(profileRes.data.requestedRole)) {
@@ -186,21 +194,55 @@ function SchoolDetails() {
       );
     }
 
-    const isApprovedHere = user && user.role !== "unassigned" && user.requestStatus !== "rejected" && (
-      (user.schoolName && school?.name && user.schoolName.toLowerCase() === school.name.toLowerCase()) ||
-      (user.school && school?.name && String(user.school).toLowerCase() === school.name.toLowerCase())
-    );
-    const isThisApplied = user && user.requestStatus !== "rejected" && user.requestedSchool && school?.name && user.requestedSchool.toLowerCase() === school.name.toLowerCase() && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
-    const hasActiveRequest = user && user.requestStatus !== "rejected" && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
+    const isApprovedHere = user && user.schoolName && school?.name && user.schoolName.trim().toLowerCase() === school.name.trim().toLowerCase();
 
     if (isApprovedHere) {
       return (
         <div className={`bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 ${basePadding} text-xs font-black uppercase tracking-wider text-center flex items-center justify-center gap-1.5 shadow-sm`}>
           <FaCheckCircle className="text-emerald-500 text-xs shrink-0" />
-          <span>Enrolled</span>
+          <span>CURRENT SCHOOL</span>
         </div>
       );
     }
+
+    const userHasActiveSchool = Boolean(user && user.schoolName && user.schoolName.trim() !== "");
+    if (userHasActiveSchool) {
+      const isPendingChangeTarget = myChangeRequest && myChangeRequest.status === "pending" && myChangeRequest.requestedSchoolName.trim().toLowerCase() === school?.name?.trim().toLowerCase();
+      const hasAnyPendingChangeRequest = Boolean(myChangeRequest && myChangeRequest.status === "pending");
+
+      if (isPendingChangeTarget) {
+        return (
+          <div className={`bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25 ${basePadding} text-xs font-black uppercase tracking-wider text-center flex items-center justify-center gap-1.5 shadow-sm`}>
+            <FaExchangeAlt className="text-xs shrink-0" />
+            <span>CHANGE REQUEST PENDING</span>
+          </div>
+        );
+      }
+
+      if (hasAnyPendingChangeRequest) {
+        return (
+          <button
+            disabled
+            className={`bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 text-slate-400 dark:text-slate-500 ${basePadding} text-xs font-bold cursor-not-allowed text-center opacity-70`}
+          >
+            Change Pending
+          </button>
+        );
+      }
+
+      return (
+        <button
+          onClick={() => setShowChangeModal(true)}
+          className={`bg-gradient-to-r from-[#7C3AED] to-[#312E81] hover:opacity-90 text-white ${basePadding} text-xs font-bold transition shadow-md shadow-[#7C3AED]/20 cursor-pointer text-center flex items-center justify-center gap-1.5`}
+        >
+          <FaExchangeAlt className="text-xs shrink-0" />
+          <span>Request School Change</span>
+        </button>
+      );
+    }
+
+    const isThisApplied = user && user.requestStatus !== "rejected" && user.requestedSchool && school?.name && user.requestedSchool.toLowerCase() === school.name.toLowerCase() && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
+    const hasActiveRequest = user && user.requestStatus !== "rejected" && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
 
     if (isThisApplied || (hasActiveRequest && (!user.requestedSchool || user.requestedSchool.toLowerCase() === school?.name?.toLowerCase()))) {
       let label = "Applied";
@@ -1175,6 +1217,16 @@ function SchoolDetails() {
           onClose={() => {
             setLightboxIndex(null);
             setLightboxImages(null);
+      {showChangeModal && (
+        <SchoolChangeModal
+          currentSchoolName={user?.schoolName}
+          requestedSchoolName={school?.name}
+          userRole={user?.role}
+          onClose={() => setShowChangeModal(false)}
+          onSuccess={(req) => {
+            setMyChangeRequest(req);
+            setShowChangeModal(false);
+            fetchSchoolDetails();
           }}
         />
       )}

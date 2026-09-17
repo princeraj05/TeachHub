@@ -13,6 +13,7 @@ const SuperAdminProfile = lazy(() => import("./SuperAdminProfile"));
 const SuperAdminEvents = lazy(() => import("./SuperAdminEvents"));
 const SuperAdminAboutApp = lazy(() => import("./SuperAdminAboutApp"));
 const SuperAdminNotifications = lazy(() => import("./SuperAdminNotifications"));
+const SuperAdminSchoolChangeRequests = lazy(() => import("./SuperAdminSchoolChangeRequests"));
 const PaymentCenter = lazy(() => import("../../../components/PaymentCenter"));
 
 const PageLoader = () => (
@@ -32,6 +33,7 @@ function SuperAdminRoutes() {
         <Route path="dashboard" element={<Suspense fallback={<PageLoader />}><SuperAdminDashboard /></Suspense>} />
         <Route path="users" element={<Suspense fallback={<PageLoader />}><SuperAdminUsers /></Suspense>} />
         <Route path="schools" element={<Suspense fallback={<PageLoader />}><SuperAdminSchools /></Suspense>} />
+        <Route path="school-change-requests" element={<Suspense fallback={<PageLoader />}><SuperAdminSchoolChangeRequests /></Suspense>} />
         <Route path="support" element={<Suspense fallback={<PageLoader />}><SuperAdminSupport /></Suspense>} />
         <Route path="support-team" element={<Suspense fallback={<PageLoader />}><SuperAdminSupportTeam /></Suspense>} />
         <Route path="profile" element={<Suspense fallback={<PageLoader />}><SuperAdminProfile /></Suspense>} />

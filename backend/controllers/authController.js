@@ -735,8 +735,12 @@ exports.submitJoinRequest = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (user.role && ["student", "teacher", "admin", "superadmin"].includes(user.role)) {
-      return res.status(400).json({ message: "You are already an assigned active member of a school." });
+    if (user.role && ["admin", "superadmin"].includes(user.role)) {
+      return res.status(400).json({ message: "Admin and Super Admin users cannot submit school joining requests." });
+    }
+
+    if (user.schoolName && user.schoolName.trim() !== "") {
+      return res.status(400).json({ message: "You are currently associated with an active school. Please submit a Request School Change instead of a direct joining request." });
     }
 
     if (user.requestStatus && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus)) {
