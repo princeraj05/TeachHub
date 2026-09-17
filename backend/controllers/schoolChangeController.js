@@ -234,6 +234,7 @@ exports.processSuperAdminAction = async (req, res) => {
       targetUser.requestStatus = "";
       if (targetUser.role === "student") {
         targetUser.classId = null;
+        targetUser.rollNo = null;
       }
       await targetUser.save();
 

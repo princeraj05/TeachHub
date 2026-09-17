@@ -210,9 +210,14 @@ exports.getStudentAttendance = async (req,res)=>{
   try{
 
     const studentId = req.user.id;
+    const user = await User.findById(studentId).select("schoolName").lean();
+    if (!user || !user.schoolName) {
+      return res.json([]);
+    }
 
     const attendance = await Attendance.find({
-      student: studentId
+      student: studentId,
+      schoolName: user.schoolName
     })
     .sort({ date:-1 })
     .populate("subject", "name")
