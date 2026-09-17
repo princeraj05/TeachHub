@@ -1217,6 +1217,10 @@ function SchoolDetails() {
           onClose={() => {
             setLightboxIndex(null);
             setLightboxImages(null);
+          }}
+        />
+      )}
+
       {showChangeModal && (
         <SchoolChangeModal
           currentSchoolName={user?.schoolName}
