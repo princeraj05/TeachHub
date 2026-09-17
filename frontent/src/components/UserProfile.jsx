@@ -128,6 +128,7 @@ function UserProfile() {
     phoneNumber: "",
     avatar: "",
     gender: "Male",
+    dob: "",
     address: "",
     requestedRole: "student",
     requestedSchool: "",
@@ -169,6 +170,7 @@ function UserProfile() {
           phoneNumber: res.data.phoneNumber || "",
           avatar: userAvatar,
           gender: res.data.gender || "Male",
+          dob: res.data.dob || "",
           address: res.data.address || res.data.schoolAddress || "",
           requestedRole: roleType,
           requestedSchool: res.data.requestedSchool || res.data.schoolName || "",
@@ -501,6 +503,11 @@ function UserProfile() {
                 <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{user?.gender || formData.gender || "Not Specified"}</p>
               </div>
 
+              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">DATE OF BIRTH</p>
+                <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{user?.dob || formData.dob || "Not Provided"}</p>
+              </div>
+
               <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4 sm:col-span-2">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{isAdminApplicant ? "SCHOOL / ADMIN ADDRESS" : "RESIDENTIAL ADDRESS / LOCATION"}</p>
                 <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{user?.address || formData.address || "Not Provided"}</p>
@@ -811,6 +818,17 @@ function UserProfile() {
                     <option value="Female">Female</option>
                     <option value="Other">Other</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">Date of Birth</label>
+                  <input
+                    type="date"
+                    name="dob"
+                    value={formData.dob || ""}
+                    onChange={handleChange}
+                    className="w-full bg-slate-50 dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
+                  />
                 </div>
               </div>
 
