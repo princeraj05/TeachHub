@@ -28,11 +28,13 @@ import {
   FaComments,
   FaIdCard,
   FaShieldAlt,
-  FaHashtag
+  FaHashtag,
+  FaMapMarkerAlt
 } from "react-icons/fa";
 import { compressAvatar } from "../utils/mediaCompression";
 import ProfilePhotoCropModal from "./ProfilePhotoCropModal";
 import { pickProfilePhoto } from "../utils/mobileCapabilities";
+import { requestLocationPermission } from "../utils/permissionAndDownloadUtils";
 import { Capacitor } from "@capacitor/core";
 import API_URL from "../config/api";
 
@@ -87,10 +89,37 @@ function UserProfile() {
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [cropModalImage, setCropModalImage] = useState(null);
+  const [gettingLocation, setGettingLocation] = useState(false);
 
   const handleSelectLanguage = (selectedLang) => {
     changeLanguage(selectedLang);
     setShowLanguageModal(false);
+  };
+
+  const handleFetchCurrentLocation = async () => {
+    setGettingLocation(true);
+    const res = await requestLocationPermission();
+    if (!res.success) {
+      alert(res.error || "Could not fetch location");
+      setGettingLocation(false);
+      return;
+    }
+    const { latitude, longitude } = res.coords;
+    try {
+      const geoRes = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+      );
+      const data = await geoRes.json();
+      if (data && data.display_name) {
+        setFormData((prev) => ({ ...prev, address: data.display_name }));
+      } else {
+        setFormData((prev) => ({ ...prev, address: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` }));
+      }
+    } catch (err) {
+      setFormData((prev) => ({ ...prev, address: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` }));
+    } finally {
+      setGettingLocation(false);
+    }
   };
 
   // Applicant Profile Form State
@@ -98,6 +127,7 @@ function UserProfile() {
     name: "",
     phoneNumber: "",
     avatar: "",
+    gender: "Male",
     address: "",
     requestedRole: "student",
     requestedSchool: "",
@@ -138,6 +168,7 @@ function UserProfile() {
           name: res.data.name || "",
           phoneNumber: res.data.phoneNumber || "",
           avatar: userAvatar,
+          gender: res.data.gender || "Male",
           address: res.data.address || res.data.schoolAddress || "",
           requestedRole: roleType,
           requestedSchool: res.data.requestedSchool || res.data.schoolName || "",
@@ -465,12 +496,17 @@ function UserProfile() {
                 <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{user?.requestedSchool || user?.schoolName || "Not Selected"}</p>
               </div>
 
-              {isAdminApplicant ? (
-                <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4 sm:col-span-2">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">SCHOOL / ADMIN ADDRESS</p>
-                  <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{user?.address || formData.address || "Not Provided"}</p>
-                </div>
-              ) : !isTeacherApplicant ? (
+              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">GENDER</p>
+                <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{user?.gender || formData.gender || "Not Specified"}</p>
+              </div>
+
+              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4 sm:col-span-2">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{isAdminApplicant ? "SCHOOL / ADMIN ADDRESS" : "RESIDENTIAL ADDRESS / LOCATION"}</p>
+                <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{user?.address || formData.address || "Not Provided"}</p>
+              </div>
+
+              {isAdminApplicant ? null : !isTeacherApplicant ? (
                 <>
                   <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{isPendingApplicant ? "TARGET ADMISSION CLASS" : "CLASS"}</p>
@@ -762,6 +798,46 @@ function UserProfile() {
                     className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
                   />
                 </div>
+
+                <div>
+                  <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">Gender</label>
+                  <select
+                    name="gender"
+                    value={formData.gender || "Male"}
+                    onChange={handleChange}
+                    className="w-full bg-slate-50 dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Residential Address / Location with Choose Current Location button */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[10px] font-extrabold uppercase text-slate-400 block">
+                    {isAdminApplicant ? "School / Admin Address" : "Residential Address / Location"}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleFetchCurrentLocation}
+                    disabled={gettingLocation}
+                    className="text-[10px] font-extrabold text-[#7C3AED] dark:text-[#38BDF8] bg-[#7C3AED]/10 hover:bg-[#7C3AED]/20 px-2.5 py-1 rounded-xl border border-[#7C3AED]/20 transition flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                  >
+                    <FaMapMarkerAlt className="text-[9px]" />
+                    {gettingLocation ? "Detecting Location..." : "Choose Current Location"}
+                  </button>
+                </div>
+                <textarea
+                  name="address"
+                  value={formData.address || ""}
+                  onChange={handleChange}
+                  rows="2"
+                  placeholder="Enter address or choose current location"
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED] resize-none"
+                />
               </div>
 
               {/* Role-Specific Fields */}
@@ -775,18 +851,6 @@ function UserProfile() {
                       value={formData.requestedSchool}
                       onChange={handleChange}
                       placeholder="Enter school name"
-                      className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">School / Admin Address</label>
-                    <input
-                      type="text"
-                      name="address"
-                      value={formData.address || ""}
-                      onChange={handleChange}
-                      placeholder="Enter school address or location"
                       className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#7C3AED]"
                     />
                   </div>
