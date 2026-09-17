@@ -398,7 +398,19 @@ function UserProfile() {
               <FaEdit className="text-xs" /> Edit Profile
             </button>
             <button
-              onClick={() => navigate(isPendingApplicant ? "/pending/support" : "/student/support")}
+              onClick={() => {
+                if (isAdminApplicant || location.pathname.startsWith("/admin") || user?.role === "admin") {
+                  navigate("/admin/support");
+                } else if (isTeacherApplicant || location.pathname.startsWith("/teacher") || user?.role === "teacher") {
+                  navigate("/teacher/support");
+                } else if (location.pathname.startsWith("/superadmin") || user?.role === "superadmin") {
+                  navigate("/superadmin/support");
+                } else if (isPendingApplicant) {
+                  navigate("/pending/support");
+                } else {
+                  navigate("/student/support");
+                }
+              }}
               className="flex-1 sm:flex-initial w-full bg-white/15 hover:bg-white/25 text-white border border-white/20 font-extrabold text-xs px-5 py-3 rounded-2xl flex items-center justify-center gap-2 backdrop-blur-md transition-all active:scale-95 cursor-pointer"
             >
               <FaComments className="text-xs" /> Help Chat
