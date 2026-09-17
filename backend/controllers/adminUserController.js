@@ -248,6 +248,26 @@ exports.processJoinRequest = async (req, res) => {
           candidate.role = "student";
           candidate.requestStatus = "approved";
           candidate.approvedAt = new Date();
+
+          // Auto-link to matching class in new school if targetClass exists
+          if (candidate.targetClass) {
+            const rawTarget = String(candidate.targetClass).replace(/^class\s+/i, "").trim();
+            const matchingClass = await Class.findOne({
+              schoolName: candidate.schoolName,
+              $or: [
+                { name: candidate.targetClass },
+                { name: rawTarget },
+                { name: `Class ${rawTarget}` }
+              ]
+            });
+
+            if (matchingClass) {
+              candidate.classId = matchingClass._id;
+              await Class.findByIdAndUpdate(matchingClass._id, {
+                $addToSet: { students: candidate._id }
+              });
+            }
+          }
         } else {
           candidate.requestStatus = "scheduled";
           candidate.admissionExamDate = new Date(examDate);

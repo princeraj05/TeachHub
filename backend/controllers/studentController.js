@@ -7,25 +7,44 @@ const AdmissionExam = require("../models/AdmissionExam");
 const ExamSubmission = require("../models/ExamSubmission");
 
 
+// Helper: Authoritatively resolve class for a student scoped by user's active school
+const resolveStudentClassData = async (user) => {
+  if (!user || !user.schoolName) return null;
+  let classData = null;
+  if (user.classId) {
+    classData = await Class.findOne({ _id: user.classId, schoolName: user.schoolName }).lean();
+  }
+  if (!classData) {
+    classData = await Class.findOne({ students: user._id, schoolName: user.schoolName }).lean();
+  }
+  return classData;
+};
+
+
 // ================= STUDENT DASHBOARD =================
 
 exports.getStudentDashboard = async (req, res) => {
-
   try {
-
     const studentId = req.user.id;
+    const user = await User.findById(studentId).select("schoolName classId").lean();
+    if (!user || !user.schoolName) {
+      return res.json({
+        subjects: 0,
+        attendance: 0,
+        exams: 0,
+        achievements: 0
+      });
+    }
 
-    const classData = await Class.findOne({
-      students: studentId
-    });
+    const classData = await resolveStudentClassData(user);
 
     let subjects = 0;
     let attendance = 0;
     let exams = 0;
 
     if (classData) {
-
       const subjectList = await Subject.find({
+        schoolName: user.schoolName,
         $or: [{ class: classData._id }, { classes: classData._id }]
       });
 
@@ -49,7 +68,6 @@ exports.getStudentDashboard = async (req, res) => {
       if (totalAttendance > 0) {
         attendance = Math.round((presentAttendance / totalAttendance) * 100);
       }
-
     }
 
     res.json({
@@ -60,13 +78,10 @@ exports.getStudentDashboard = async (req, res) => {
     });
 
   } catch (error) {
-
     res.status(500).json({
       message: error.message
     });
-
   }
-
 };
 
 
@@ -79,15 +94,19 @@ exports.getStudentSubjects = async (req, res) => {
     const MasterSyllabus = require("../models/MasterSyllabus");
     const SubjectNote = require("../models/SubjectNote");
 
-    const classData = await Class.findOne({
-      students: studentId
-    }).lean();
+    const user = await User.findById(studentId).select("schoolName classId").lean();
+    if (!user || !user.schoolName) {
+      return res.json([]);
+    }
+
+    const classData = await resolveStudentClassData(user);
 
     if (!classData) {
       return res.json([]);
     }
 
     const subjects = await Subject.find({
+      schoolName: user.schoolName,
       $or: [{ class: classData._id }, { classes: classData._id }]
     }).populate("teacher", "name").lean();
 
@@ -358,21 +377,22 @@ exports.submitStudentAdmissionExam = async (req, res) => {
 // ================= GET STUDENT EXAMS =================
 
 exports.getStudentExams = async (req,res)=>{
-
   try{
-
     const studentId = req.user.id;
+    const user = await User.findById(studentId).select("schoolName classId").lean();
+    if (!user || !user.schoolName) {
+      return res.json([]);
+    }
 
-    const classData = await Class.findOne({
-      students: studentId
-    });
+    const classData = await resolveStudentClassData(user);
 
     if(!classData){
       return res.json([]);
     }
 
     const exams = await Exam.find({
-      class: classData._id
+      class: classData._id,
+      schoolName: user.schoolName
     })
     .populate("subject","name")
     .populate("proctor", "name email role")
@@ -414,13 +434,10 @@ exports.getStudentExams = async (req,res)=>{
     res.json(formatted);
 
   }catch(err){
-
     res.status(500).json({
       message:err.message
     });
-
   }
-
 };
 
 // ================= SUBMIT STUDENT EXAM =================
@@ -542,10 +559,10 @@ exports.getStudentDiary = async (req, res) => {
   try {
     const studentId = req.user.id;
     const user = await User.findById(studentId).lean();
-    if (!user) return res.status(404).json({ message: "Student not found" });
+    if (!user || !user.schoolName) return res.status(404).json({ message: "Student not found or not associated with an active school" });
 
-    const classData = await Class.findOne({ students: studentId }).lean();
-    const schoolName = user.schoolName || classData?.schoolName || "G.D Academy";
+    const classData = await resolveStudentClassData(user);
+    const schoolName = user.schoolName;
     const className = classData ? `Class ${classData.name}` : "Class 5";
     const section = classData?.section || "A";
 

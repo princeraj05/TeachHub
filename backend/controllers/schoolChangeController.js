@@ -237,6 +237,12 @@ exports.processSuperAdminAction = async (req, res) => {
       }
       await targetUser.save();
 
+      // Pull user out of all old Class enrollments
+      await Class.updateMany(
+        { students: targetUser._id },
+        { $pull: { students: targetUser._id } }
+      );
+
       // 2. Notify Student/Teacher
       await createAppNotification({
         recipient: targetUser._id,

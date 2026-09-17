@@ -55,30 +55,44 @@ const getMySchool = async (req, res) => {
       const name = targetSchoolName ? targetSchoolName.trim() : "My School";
       const normalizedName = normalizeName(name);
 
-      try {
-        school = await School.create({
-          adminId: adminUser._id,
-          name: name,
-          normalizedName: normalizedName,
-          status: "Active",
-          profileCompletion: 0
-        });
-      } catch (cErr) {
-        school = await resolveSchoolForAdmin({
-          adminUserId: adminUser._id,
-          targetSchoolName: name,
-          adminEmail: adminUser.email,
-          reqId: logger.reqId
-        });
+      // Safety check: verify if admin already owns an existing school to prevent duplicates
+      const existingSchoolForAdmin = await School.findOne({
+        $or: [
+          { adminId: adminUser._id },
+          { email: adminUser.email },
+          { principalEmail: adminUser.email }
+        ]
+      });
 
-        if (!school) {
+      if (existingSchoolForAdmin) {
+        console.log(`[getMySchool:${logger.reqId}] Found existing school for admin during auto-create check: ${existingSchoolForAdmin._id}`);
+        school = existingSchoolForAdmin;
+      } else {
+        try {
           school = await School.create({
             adminId: adminUser._id,
             name: name,
-            normalizedName: `${normalizedName}-${Date.now()}`,
+            normalizedName: normalizedName,
             status: "Active",
             profileCompletion: 0
           });
+        } catch (cErr) {
+          school = await resolveSchoolForAdmin({
+            adminUserId: adminUser._id,
+            targetSchoolName: name,
+            adminEmail: adminUser.email,
+            reqId: logger.reqId
+          });
+
+          if (!school) {
+            school = await School.create({
+              adminId: adminUser._id,
+              name: name,
+              normalizedName: `${normalizedName}-${Date.now()}`,
+              status: "Active",
+              profileCompletion: 0
+            });
+          }
         }
       }
       logger.end("autoCreateSchool");

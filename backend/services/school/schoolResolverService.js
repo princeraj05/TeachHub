@@ -25,11 +25,29 @@ const resolveSchoolForAdmin = async ({ adminUserId, targetSchoolName, adminEmail
     console.log(`[SchoolResolver:${requestId}] adminId START`);
     const t0 = Date.now();
     try {
-      school = await measureDatabaseOperation(`School.findOne.adminId`, requestId, async () => {
-        return await School.findOne({ adminId: objId })
-          .sort({ profileCompletion: -1, updatedAt: -1 })
-          .maxTimeMS(5000)
-          .lean();
+      school = await measureDatabaseOperation(`School.find.adminId`, requestId, async () => {
+        const matches = await School.find({ adminId: objId }).maxTimeMS(5000).lean();
+        if (!matches || matches.length === 0) return null;
+        if (matches.length === 1) return matches[0];
+
+        console.warn(`[SchoolResolver:${requestId}] WARNING: ${matches.length} schools match adminId ${adminUserId}`);
+        
+        // 1a. Attempt targetSchoolName match first
+        if (targetSchoolName) {
+          const normTarget = normalizeName(targetSchoolName);
+          const exactMatch = matches.find(s => s.normalizedName === normTarget || normalizeName(s.name) === normTarget);
+          if (exactMatch) return exactMatch;
+        }
+
+        // 1b. Rank by profile content completeness
+        matches.sort((a, b) => {
+          const scoreA = (a.schoolPhotos?.length || 0) + (a.principalName ? 5 : 0) + (a.coverImage ? 5 : 0) + (a.description ? 5 : 0);
+          const scoreB = (b.schoolPhotos?.length || 0) + (b.principalName ? 5 : 0) + (b.coverImage ? 5 : 0) + (b.description ? 5 : 0);
+          if (scoreB !== scoreA) return scoreB - scoreA;
+          return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
+        });
+
+        return matches[0];
       });
     } catch (err) {
       console.error(`[SchoolResolver:${requestId}] adminId lookup failed: ${err.message}`);
