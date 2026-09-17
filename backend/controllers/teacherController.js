@@ -802,11 +802,15 @@ exports.getStudentDetails = async (req, res) => {
     const rollNo = student.rollNo || (student.phoneNumber ? `${classNum}${sectionLetter}${student.phoneNumber.slice(-3)}` : `${classNum}${sectionLetter}001`);
     const admissionNo = student.admissionNo || `ADM2023${student._id.toString().slice(-3).toUpperCase()}`;
 
-    // 3. Count Attendance Stats across the school for this student
+    // 3. Count Attendance Stats & History across the school for this student
     const schoolAtt = await Attendance.find({
       student: studentId,
       schoolName: req.user.schoolName
-    });
+    })
+      .populate("teacher", "name")
+      .populate("class", "name section")
+      .populate("subject", "name")
+      .sort({ date: -1 });
 
     let present = 0;
     let absent = 0;
@@ -823,8 +827,18 @@ exports.getStudentDetails = async (req, res) => {
     const totalAttendance = schoolAtt.length;
     const attendancePercentage = totalAttendance > 0 ? Math.round((present / totalAttendance) * 100) : 0;
 
-    // 4. Academic Performance & Published Results (e.g. StudentResult & StudentMark)
-    const publishedResult = await StudentResult.findOne({
+    const attendanceHistory = schoolAtt.map(a => ({
+      _id: a._id,
+      date: a.date,
+      status: a.status,
+      className: a.class ? `Class ${a.class.name}${a.class.section ? ` - ${a.class.section}` : ""}` : (classAndSection !== "Not Assigned" ? classAndSection : "Class"),
+      teacherName: a.teacher?.name || classTeacher || "Teacher",
+      subjectName: a.subject?.name || "General Attendance",
+      remarks: a.remarks || ""
+    }));
+
+    // 4. Academic Performance & Published Results (StudentResult & StudentMark)
+    const allPublishedResults = await StudentResult.find({
       student: studentId,
       schoolName: req.user.schoolName,
       isPublished: true
@@ -837,46 +851,77 @@ exports.getStudentDetails = async (req, res) => {
     let lowestScoreVal = 100;
     let lowestSubject = "N/A";
     let subjectList = [];
+    const publishedResults = [];
 
-    if (publishedResult) {
-      overallGrade = publishedResult.overallGrade || "N/A";
-      averageScore = Math.round(publishedResult.percentage || 0);
-
+    for (const r of allPublishedResults) {
       const marks = await StudentMark.find({
         student: studentId,
         schoolName: req.user.schoolName,
-        examTerm: publishedResult.examTerm,
-        academicYear: publishedResult.academicYear
+        examTerm: r.examTerm,
+        academicYear: r.academicYear
       }).populate("subject", "name");
 
-      if (marks.length > 0) {
-        let hasValidMark = false;
-        marks.forEach(m => {
-          const subName = m.subject?.name || m.subjectNameSnapshot || "Subject";
-          const max = m.maxMarks || 100;
-          const scorePct = Math.round((m.marksObtained / max) * 100);
+      const formattedMarks = marks.map(m => {
+        const subName = m.subject?.name || m.subjectNameSnapshot || "Subject";
+        const max = m.maxMarks || 100;
+        const scorePct = Math.round((m.marksObtained / max) * 100);
+        return {
+          _id: m._id,
+          subjectName: subName,
+          marksObtained: m.marksObtained,
+          maxMarks: max,
+          percentage: scorePct,
+          grade: m.grade || (scorePct >= 90 ? "A+" : scorePct >= 80 ? "A" : scorePct >= 70 ? "B" : scorePct >= 60 ? "C" : "D"),
+          isAbsent: m.isAbsent,
+          remarks: m.remarks || ""
+        };
+      });
 
+      publishedResults.push({
+        _id: r._id,
+        examTerm: r.examTerm,
+        academicYear: r.academicYear,
+        totalMarksObtained: r.totalMarksObtained,
+        totalMaxMarks: r.totalMaxMarks,
+        percentage: Math.round(r.percentage || 0),
+        overallGrade: r.overallGrade || "N/A",
+        overallResult: r.overallResult || "FAIL",
+        publishedAt: r.publishedAt || r.createdAt,
+        teacherRemarks: r.teacherRemarks || "",
+        marks: formattedMarks
+      });
+    }
+
+    // Top result calculation
+    const topPublished = publishedResults[0];
+    if (topPublished) {
+      overallGrade = topPublished.overallGrade;
+      averageScore = topPublished.percentage;
+
+      if (topPublished.marks.length > 0) {
+        let hasValidMark = false;
+        topPublished.marks.forEach(m => {
           if (!hasValidMark) {
-            highestScoreVal = scorePct;
-            highestSubject = subName;
-            lowestScoreVal = scorePct;
-            lowestSubject = subName;
+            highestScoreVal = m.percentage;
+            highestSubject = m.subjectName;
+            lowestScoreVal = m.percentage;
+            lowestSubject = m.subjectName;
             hasValidMark = true;
           } else {
-            if (scorePct > highestScoreVal) {
-              highestScoreVal = scorePct;
-              highestSubject = subName;
+            if (m.percentage > highestScoreVal) {
+              highestScoreVal = m.percentage;
+              highestSubject = m.subjectName;
             }
-            if (scorePct < lowestScoreVal) {
-              lowestScoreVal = scorePct;
-              lowestSubject = subName;
+            if (m.percentage < lowestScoreVal) {
+              lowestScoreVal = m.percentage;
+              lowestSubject = m.subjectName;
             }
           }
 
           subjectList.push({
-            name: subName,
-            average: scorePct,
-            grade: m.grade || (scorePct >= 90 ? "A+" : scorePct >= 80 ? "A" : scorePct >= 70 ? "B" : scorePct >= 60 ? "C" : "D")
+            name: m.subjectName,
+            average: m.percentage,
+            grade: m.grade
           });
         });
       }
@@ -926,13 +971,12 @@ exports.getStudentDetails = async (req, res) => {
       }
     }
 
-    // 5. Recent Exams (from real ExamSubmissions)
+    // 5. Exams List & Submissions
     const submissionsForExams = await ExamSubmission.find({ student: studentId })
       .populate({ path: "exam", populate: { path: "subject", select: "name" } })
-      .sort({ createdAt: -1 })
-      .limit(4);
+      .sort({ createdAt: -1 });
 
-    const recentExams = submissionsForExams.map(sub => {
+    const recentExams = submissionsForExams.slice(0, 4).map(sub => {
       const max = sub.total || 100;
       const scorePct = Math.round((sub.score / max) * 100);
       let g = "F";
@@ -951,22 +995,87 @@ exports.getStudentDetails = async (req, res) => {
       };
     });
 
-    // 6. Recent Assignments (from real MyDiary homeworks for this student's class)
-    let recentAssignments = [];
+    let classExams = [];
+    if (cls?._id) {
+      classExams = await Exam.find({ class: cls._id, schoolName: req.user.schoolName })
+        .populate("subject", "name")
+        .sort({ date: -1 });
+    }
+
+    const allExamsMap = [];
+    classExams.forEach(e => {
+      const sub = submissionsForExams.find(s => s.exam?._id?.toString() === e._id.toString());
+      if (sub) {
+        const max = sub.total || e.totalMarks || 100;
+        const scorePct = Math.round((sub.score / max) * 100);
+        let g = "F";
+        if (scorePct >= 90) g = "A+";
+        else if (scorePct >= 80) g = "A";
+        else if (scorePct >= 70) g = "B";
+        else if (scorePct >= 60) g = "C";
+
+        allExamsMap.push({
+          _id: e._id,
+          title: e.title || e.name || "Class Exam",
+          subjectName: e.subject?.name || "Subject",
+          date: e.date || e.createdAt,
+          maxMarks: e.totalMarks || 100,
+          status: "Evaluated",
+          score: scorePct,
+          grade: g
+        });
+      } else {
+        allExamsMap.push({
+          _id: e._id,
+          title: e.title || e.name || "Class Exam",
+          subjectName: e.subject?.name || "Subject",
+          date: e.date || e.createdAt,
+          maxMarks: e.totalMarks || 100,
+          status: "Not Taken",
+          score: null,
+          grade: "N/A"
+        });
+      }
+    });
+
+    // 6. Assignments List (from real MyDiary homeworks for this student's class)
+    let assignments = [];
     if (cls?._id) {
       const diaries = await MyDiary.find({ schoolName: req.user.schoolName, classId: cls._id })
-        .sort({ createdAt: -1 })
-        .limit(4);
+        .sort({ createdAt: -1 });
 
-      recentAssignments = diaries.map(d => {
+      assignments = diaries.map(d => {
         const sc = d.studentCompletions?.find(c => c.studentId?.toString() === studentId.toString());
         return {
           id: d._id,
           name: d.title,
+          description: d.description || "",
           subjectName: d.subjectName || "Subject",
+          homeworkDate: d.homeworkDate || "",
+          dueDate: d.dueDate || d.homeworkDate || new Date().toISOString(),
+          teacherName: d.teacherName || "Teacher",
           status: sc?.status || "Pending",
-          dueDate: d.dueDate || d.homeworkDate || new Date().toISOString()
+          types: d.types || []
         };
+      });
+    }
+
+    const recentAssignments = assignments.slice(0, 4);
+
+    // 7. Assigned Class Subjects
+    if (subjectList.length === 0 && cls?._id) {
+      const assignedSubjects = await Subject.find({
+        schoolName: req.user.schoolName,
+        $or: [{ class: cls._id }, { classes: cls._id }]
+      }).populate("teacher", "name");
+
+      assignedSubjects.forEach(s => {
+        subjectList.push({
+          name: s.name,
+          teacherName: s.teacher?.name || "Assigned Teacher",
+          average: 0,
+          grade: "N/A"
+        });
       });
     }
 
@@ -1008,6 +1117,7 @@ exports.getStudentDetails = async (req, res) => {
         leave,
         total: totalAttendance
       },
+      attendanceHistory,
       academicPerformance: {
         overallGrade,
         averageScore,
@@ -1016,9 +1126,14 @@ exports.getStudentDetails = async (req, res) => {
         lowestScore: lowestSubject !== "N/A" ? `${lowestScoreVal}%` : "N/A",
         lowestSubject
       },
+      publishedResults,
       subjects: subjectList,
+      allExams: allExamsMap,
       recentExams,
-      recentAssignments
+      assignments,
+      recentAssignments,
+      documents: [],
+      notes: []
     });
 
   } catch (err) {
@@ -1264,8 +1379,6 @@ exports.getProctorSessions = async (req, res) => {
 
 
 // ================= TEACHER MY DIARY (HOMEWORK MANAGEMENT) =================
-
-const MyDiary = require("../models/MyDiary");
 
 exports.getTeacherDiary = async (req, res) => {
   try {

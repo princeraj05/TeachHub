@@ -35,6 +35,10 @@ import {
   FaChevronLeft,
   FaVideo,
   FaSchool,
+  FaFolderOpen,
+  FaStickyNote,
+  FaGraduationCap,
+  FaBookOpen,
 } from "react-icons/fa";
 import API_URL from "../../../../../config/api";
 
@@ -174,12 +178,12 @@ function MyStudents() {
     ];
 
     const quickActions = [
-      { label: "Send Message", icon: <FaEnvelopeOpen />, bgColor: "bg-purple-500/10 text-purple-500 border-purple-500/20" },
-      { label: "View Attendance", icon: <FaClipboardCheck />, bgColor: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
-      { label: "View Exam Results", icon: <FaChartBar />, bgColor: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
-      { label: "View Assignments", icon: <FaFileAlt />, bgColor: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
-      { label: "Add Note", icon: <FaRegEdit />, bgColor: "bg-rose-500/10 text-rose-500 border-rose-500/20" },
-      { label: "Download Report", icon: <FaDownload />, bgColor: "bg-[#0ea5e9]/10 text-[#0ea5e9] border-[#0ea5e9]/20" }
+      { label: "Send Message", icon: <FaEnvelopeOpen />, bgColor: "bg-purple-500/10 text-purple-500 border-purple-500/20", onClick: () => navigate("/teacher/chat") },
+      { label: "View Attendance", icon: <FaClipboardCheck />, bgColor: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", onClick: () => setActiveTab("Attendance") },
+      { label: "View Exam Results", icon: <FaChartBar />, bgColor: "bg-blue-500/10 text-blue-500 border-blue-500/20", onClick: () => setActiveTab("Exams") },
+      { label: "View Assignments", icon: <FaFileAlt />, bgColor: "bg-amber-500/10 text-amber-500 border-amber-500/20", onClick: () => setActiveTab("Assignments") },
+      { label: "Add Note", icon: <FaRegEdit />, bgColor: "bg-rose-500/10 text-rose-500 border-rose-500/20", onClick: () => setActiveTab("Notes") },
+      { label: "Download Report", icon: <FaDownload />, bgColor: "bg-[#0ea5e9]/10 text-[#0ea5e9] border-[#0ea5e9]/20", onClick: () => window.print() }
     ];
 
     const initials = details.name
@@ -603,6 +607,7 @@ function MyStudents() {
                   {quickActions.map((act, index) => (
                     <button
                       key={index}
+                      onClick={act.onClick}
                       className={`flex flex-col items-center justify-center p-3.5 rounded-2xl text-center select-none cursor-pointer hover:scale-[1.02] transition-all duration-300 hover:shadow-sm leading-none h-[76px] ${act.bgColor}`}
                     >
                       <div className="mb-2.5 text-base shrink-0">{act.icon}</div>
@@ -616,14 +621,394 @@ function MyStudents() {
 
             </div>
           </div>
-        ) : (
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-10 text-center shadow-sm">
-            <div className="w-16 h-16 bg-[#7C3AED]/10 border border-[#7C3AED]/20 text-[#7C3AED] dark:text-[#A78BFA] rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <FaUserGraduate className="text-2xl" />
+        ) : activeTab === "Attendance" ? (
+          <div className="space-y-6">
+            {/* Summary metrics header */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] p-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-xs">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Overall</span>
+                <span className="text-2xl font-black text-[#7C3AED] dark:text-[#A78BFA] mt-1">{details.attendanceOverview?.percentage ?? 0}%</span>
+              </div>
+              <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] p-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-xs">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Present</span>
+                <span className="text-2xl font-black text-emerald-500 mt-1">{details.attendanceOverview?.present ?? 0}</span>
+              </div>
+              <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] p-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-xs">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Absent</span>
+                <span className="text-2xl font-black text-rose-500 mt-1">{details.attendanceOverview?.absent ?? 0}</span>
+              </div>
+              <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] p-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-xs">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Late</span>
+                <span className="text-2xl font-black text-amber-500 mt-1">{details.attendanceOverview?.late ?? 0}</span>
+              </div>
+              <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] p-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-xs">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Leave</span>
+                <span className="text-2xl font-black text-slate-500 dark:text-slate-400 mt-1">{details.attendanceOverview?.leave ?? 0}</span>
+              </div>
+              <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] p-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-xs">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Sessions</span>
+                <span className="text-2xl font-black text-slate-800 dark:text-white mt-1">{details.attendanceOverview?.total ?? 0}</span>
+              </div>
             </div>
-            <h3 className="text-slate-800 dark:text-white font-extrabold text-base">Tab content under construction</h3>
+
+            {/* Attendance session log table */}
+            <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-white/5 pb-3">
+                <h2 className="text-sm font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
+                  <FaClipboardCheck className="text-[#7C3AED]" /> Attendance Session History
+                </h2>
+                <span className="text-[10px] font-bold text-slate-400">
+                  Total Logs: {details.attendanceHistory?.length || 0}
+                </span>
+              </div>
+
+              {details.attendanceHistory && details.attendanceHistory.length > 0 ? (
+                <div className="overflow-x-auto scrollbar-thin">
+                  <table className="w-full text-xs text-left">
+                    <thead>
+                      <tr className="text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[9px] font-black border-b border-slate-100 dark:border-white/5 pb-2">
+                        <th className="py-2">Date</th>
+                        <th className="py-2">Status</th>
+                        <th className="py-2">Class / Subject</th>
+                        <th className="py-2">Marked By</th>
+                        <th className="py-2 text-right">Remarks</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100/60 dark:divide-white/5">
+                      {details.attendanceHistory.map((rec) => (
+                        <tr key={rec._id} className="hover:bg-slate-50/20 dark:hover:bg-white/[0.01] transition-colors">
+                          <td className="py-3 font-bold text-slate-800 dark:text-white">
+                            {new Date(rec.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                          </td>
+                          <td className="py-3">
+                            <span className={`inline-flex items-center text-[9px] font-extrabold px-2.5 py-0.5 rounded-md border uppercase tracking-wider ${
+                              rec.status === "Present"
+                                ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                                : rec.status === "Absent"
+                                ? "bg-rose-500/10 text-rose-500 border-rose-500/20"
+                                : rec.status === "Late"
+                                ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                                : "bg-slate-500/10 text-slate-500 border-slate-500/20"
+                            }`}>
+                              {rec.status}
+                            </span>
+                          </td>
+                          <td className="py-3 text-slate-600 dark:text-slate-300 font-semibold">
+                            {rec.className} • <span className="text-slate-400">{rec.subjectName}</span>
+                          </td>
+                          <td className="py-3 text-slate-500 dark:text-slate-400 font-medium">
+                            {rec.teacherName}
+                          </td>
+                          <td className="py-3 text-right text-slate-400 italic">
+                            {rec.remarks || "—"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center select-none">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 flex items-center justify-center text-slate-400 text-xl mb-3">
+                    <FaClipboardCheck />
+                  </div>
+                  <h3 className="text-slate-800 dark:text-white font-extrabold text-sm">No attendance records found</h3>
+                  <p className="text-slate-400 text-xs font-semibold mt-1">No daily attendance logs exist for this student under the current school.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : activeTab === "Exams" ? (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-white/5 pb-3">
+                <h2 className="text-sm font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
+                  <FaChartBar className="text-[#7C3AED]" /> Scheduled & Attempted Examinations
+                </h2>
+                <span className="text-[10px] font-bold text-slate-400">Total Exams: {details.allExams?.length || 0}</span>
+              </div>
+
+              {details.allExams && details.allExams.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {details.allExams.map((ex) => (
+                    <div key={ex._id} className="bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 rounded-2xl p-4.5 flex flex-col justify-between space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <span className="text-[9px] font-black uppercase text-[#7C3AED] dark:text-[#A78BFA] tracking-wider">
+                            {ex.subjectName}
+                          </span>
+                          <h3 className="text-sm font-extrabold text-slate-900 dark:text-white leading-tight mt-0.5">{ex.title}</h3>
+                          <p className="text-[10px] font-semibold text-slate-400 mt-1">
+                            Date: {new Date(ex.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                          </p>
+                        </div>
+                        <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border tracking-wider shrink-0 ${
+                          ex.status === "Evaluated" || ex.status === "Attempted"
+                            ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                            : "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                        }`}>
+                          {ex.status}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between border-t border-slate-200/40 dark:border-white/5 pt-3 text-xs font-bold">
+                        <span className="text-slate-500 dark:text-slate-400 text-[11px]">Max Marks: <strong className="text-slate-800 dark:text-slate-200">{ex.maxMarks}</strong></span>
+                        {ex.status === "Not Taken" ? (
+                          <span className="text-amber-500 text-xs font-extrabold">Not Taken</span>
+                        ) : (
+                          <span className="flex items-center gap-2">
+                            <span className="text-slate-900 dark:text-white font-black text-sm">{ex.score}%</span>
+                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border uppercase ${getGradeColor(ex.grade)} bg-slate-50 dark:bg-white/5`}>
+                              {ex.grade}
+                            </span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center select-none">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 flex items-center justify-center text-slate-400 text-xl mb-3">
+                    <FaChartBar />
+                  </div>
+                  <h3 className="text-slate-800 dark:text-white font-extrabold text-sm">No exams found</h3>
+                  <p className="text-slate-400 text-xs font-semibold mt-1">No examination records exist for this student's assigned class.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : activeTab === "Assignments" ? (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-white/5 pb-3">
+                <h2 className="text-sm font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
+                  <FaFileAlt className="text-[#7C3AED]" /> Class Homework & Assignments (MyDiary)
+                </h2>
+                <span className="text-[10px] font-bold text-slate-400">Total Assignments: {details.assignments?.length || 0}</span>
+              </div>
+
+              {details.assignments && details.assignments.length > 0 ? (
+                <div className="space-y-3.5">
+                  {details.assignments.map((ass) => (
+                    <div key={ass.id} className="bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[9px] font-black uppercase text-[#7C3AED] dark:text-[#A78BFA] bg-[#7C3AED]/10 px-2 py-0.5 rounded border border-[#7C3AED]/20">
+                            {ass.subjectName}
+                          </span>
+                          {ass.types?.map((t, idx) => (
+                            <span key={idx} className="text-[8px] font-bold text-slate-500 bg-slate-200/50 dark:bg-white/5 px-2 py-0.5 rounded">
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                        <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mt-1">{ass.name}</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{ass.description}</p>
+                        <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 mt-2">
+                          <span>Assigned By: <strong className="text-slate-700 dark:text-slate-300">{ass.teacherName}</strong></span>
+                          <span>Due Date: <strong className="text-slate-700 dark:text-slate-300">{new Date(ass.dueDate).toLocaleDateString()}</strong></span>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 flex items-center sm:flex-col justify-between sm:justify-center gap-2">
+                        <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-lg border tracking-wider ${
+                          ass.status === "Submitted" || ass.status === "Completed" || ass.status === "Reviewed"
+                            ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                            : "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                        }`}>
+                          {ass.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center select-none">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 flex items-center justify-center text-slate-400 text-xl mb-3">
+                    <FaFileAlt />
+                  </div>
+                  <h3 className="text-slate-800 dark:text-white font-extrabold text-sm">No assignments found</h3>
+                  <p className="text-slate-400 text-xs font-semibold mt-1">No MyDiary homework tasks have been assigned for this student's class.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : activeTab === "Performance" ? (
+          <div className="space-y-6">
+            {/* Academic Performance Top Summary Card */}
+            <div className="bg-gradient-to-tr from-[#7C3AED] to-indigo-600 rounded-3xl p-6 text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md flex items-center justify-center text-3xl shrink-0">
+                  <FaGraduationCap />
+                </div>
+                <div>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-white/80 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/20">
+                    Published Academic Performance
+                  </span>
+                  <h2 className="text-2xl font-black text-white mt-1">{details.name}'s Report Cards</h2>
+                  <p className="text-xs text-white/80 font-medium">
+                    Overall Grade: <strong>{details.academicPerformance?.overallGrade || "N/A"}</strong> • Average Score: <strong>{details.academicPerformance?.averageScore || 0}%</strong>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md border border-white/20 px-5 py-3 rounded-2xl text-center">
+                <div>
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-white/70">Highest</p>
+                  <p className="text-sm font-black text-emerald-300">{details.academicPerformance?.highestScore}</p>
+                  <p className="text-[9px] font-semibold text-white/90 truncate max-w-[100px]">{details.academicPerformance?.highestSubject}</p>
+                </div>
+                <div className="w-px h-8 bg-white/20" />
+                <div>
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-white/70">Lowest</p>
+                  <p className="text-sm font-black text-amber-300">{details.academicPerformance?.lowestScore}</p>
+                  <p className="text-[9px] font-semibold text-white/90 truncate max-w-[100px]">{details.academicPerformance?.lowestSubject}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Published Report Cards List */}
+            <div className="space-y-6">
+              {details.publishedResults && details.publishedResults.length > 0 ? (
+                details.publishedResults.map((res) => (
+                  <div key={res._id} className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-white/5 pb-3 gap-2">
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[#7C3AED] dark:text-[#A78BFA] tracking-wider">
+                          {res.academicYear} • {res.examTerm} Examination
+                        </span>
+                        <h3 className="text-base font-extrabold text-slate-900 dark:text-white mt-0.5">
+                          Official Result Summary
+                        </h3>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-lg border tracking-wider ${
+                          res.overallResult === "PASS"
+                            ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                            : "bg-rose-500/10 text-rose-500 border-rose-500/20"
+                        }`}>
+                          {res.overallResult}
+                        </span>
+                        <span className="text-sm font-black text-slate-900 dark:text-white">
+                          {res.totalMarksObtained} / {res.totalMaxMarks} ({res.percentage}%)
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Subject marks table */}
+                    <div className="overflow-x-auto scrollbar-thin">
+                      <table className="w-full text-xs text-left">
+                        <thead>
+                          <tr className="text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[8px] font-black border-b border-slate-100 dark:border-white/5 pb-2">
+                            <th className="py-2">Subject Name</th>
+                            <th className="py-2 text-center">Marks Obtained</th>
+                            <th className="py-2 text-center">Max Marks</th>
+                            <th className="py-2 text-center">Percentage</th>
+                            <th className="py-2 text-right">Grade</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100/60 dark:divide-white/5">
+                          {res.marks.map((m) => (
+                            <tr key={m._id} className="hover:bg-slate-50/20 dark:hover:bg-white/[0.01] transition-colors">
+                              <td className="py-2.5 font-extrabold text-slate-800 dark:text-white">{m.subjectName}</td>
+                              <td className="py-2.5 text-center font-bold text-slate-700 dark:text-slate-300">{m.marksObtained}</td>
+                              <td className="py-2.5 text-center text-slate-400 font-semibold">{m.maxMarks}</td>
+                              <td className="py-2.5 text-center font-black text-slate-900 dark:text-white">{m.percentage}%</td>
+                              <td className="py-2.5 text-right font-black">
+                                <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded border uppercase ${getGradeColor(m.grade)} bg-slate-50 dark:bg-white/5`}>
+                                  {m.grade}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {res.teacherRemarks && (
+                      <p className="text-xs text-slate-500 dark:text-slate-400 italic bg-slate-50 dark:bg-white/[0.02] p-3 rounded-xl border border-slate-200/50 dark:border-white/5 mt-2">
+                        Teacher Remarks: "{res.teacherRemarks}"
+                      </p>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-12 text-center shadow-sm select-none">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 flex items-center justify-center text-slate-400 text-xl mx-auto mb-3">
+                    <FaGraduationCap />
+                  </div>
+                  <h3 className="text-slate-800 dark:text-white font-extrabold text-sm">No published academic results found</h3>
+                  <p className="text-slate-400 text-xs font-semibold mt-1">Official report card results for Half-Yearly or Annual terms have not been published yet.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : activeTab === "Subjects" ? (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-white/5 pb-3">
+                <h2 className="text-sm font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
+                  <FaBookOpen className="text-[#7C3AED]" /> Enrolled Class Subjects
+                </h2>
+                <span className="text-[10px] font-bold text-slate-400">Total Subjects: {details.subjects?.length || 0}</span>
+              </div>
+
+              {details.subjects && details.subjects.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {details.subjects.map((sub, idx) => (
+                    <div key={idx} className="bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 rounded-2xl p-4.5 flex flex-col justify-between space-y-3">
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] font-black uppercase text-[#7C3AED] dark:text-[#A78BFA] bg-[#7C3AED]/10 px-2 py-0.5 rounded border border-[#7C3AED]/20">
+                            Subject #{idx + 1}
+                          </span>
+                          <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border uppercase ${getGradeColor(sub.grade)} bg-slate-50 dark:bg-white/5`}>
+                            {sub.grade}
+                          </span>
+                        </div>
+                        <h3 className="text-base font-extrabold text-slate-900 dark:text-white mt-2">{sub.name}</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          Faculty: <strong className="text-slate-700 dark:text-slate-300">{sub.teacherName || details.classTeacher || "Assigned Teacher"}</strong>
+                        </p>
+                      </div>
+
+                      <div className="border-t border-slate-200/40 dark:border-white/5 pt-3 flex items-center justify-between text-xs font-bold">
+                        <span className="text-slate-500">Average Performance</span>
+                        <span className="text-slate-900 dark:text-white font-black">{sub.average}%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center select-none">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 flex items-center justify-center text-slate-400 text-xl mb-3">
+                    <FaBookOpen />
+                  </div>
+                  <h3 className="text-slate-800 dark:text-white font-extrabold text-sm">No subjects assigned</h3>
+                  <p className="text-slate-400 text-xs font-semibold mt-1">No active curriculum subjects are assigned to this student's class under the current school.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : activeTab === "Documents" ? (
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-12 text-center shadow-sm select-none">
+            <div className="w-16 h-16 rounded-2xl bg-[#7C3AED]/10 border border-[#7C3AED]/20 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center mx-auto mb-4 text-2xl">
+              <FaFolderOpen />
+            </div>
+            <h3 className="text-slate-800 dark:text-white font-extrabold text-base">No documents available</h3>
             <p className="text-slate-400 text-xs font-semibold max-w-sm mx-auto mt-1 leading-relaxed">
-              The {activeTab} section profile dashboard will render student metrics. Please check other tabs.
+              Document storage backend is currently not configured for student files. No uploaded certificates or documents exist for this student.
+            </p>
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-12 text-center shadow-sm select-none">
+            <div className="w-16 h-16 rounded-2xl bg-[#7C3AED]/10 border border-[#7C3AED]/20 text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center mx-auto mb-4 text-2xl">
+              <FaStickyNote />
+            </div>
+            <h3 className="text-slate-800 dark:text-white font-extrabold text-base">No notes available</h3>
+            <p className="text-slate-400 text-xs font-semibold max-w-sm mx-auto mt-1 leading-relaxed">
+              Student personal notes backend is not configured for individual student profiles.
             </p>
           </div>
         )}
