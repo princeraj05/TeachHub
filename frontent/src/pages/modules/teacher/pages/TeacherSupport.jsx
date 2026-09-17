@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaBroadcastTower, FaComments, FaPhone } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useCall } from "../../../../context/CallContext";
 import SupportChatEngine from "../../../../components/SupportChatEngine";
 import API_URL from "../../../../config/api";
@@ -10,8 +10,9 @@ function TeacherSupport() {
   const API = API_URL;
   const token = localStorage.getItem("token");
   const currentUserId = localStorage.getItem("userId");
+  const location = useLocation();
 
-  const [activeTab, setActiveTab] = useState("admin"); // admin, students
+  const [activeTab, setActiveTab] = useState(location.state?.activeTab || "admin"); // admin, students
   const [subTab, setSubTab] = useState("personal"); // personal, calls
   const [contacts, setContacts] = useState([]);
   const [activeContact, setActiveContact] = useState(null);
@@ -83,7 +84,19 @@ function TeacherSupport() {
         avatar: foundAdmin.avatar || foundAdmin.photo || foundAdmin.profilePhoto || ""
       } : DEFAULT_ADMIN;
 
-      if (activeTab === "admin") {
+      if (location.state?.studentId || location.state?.activeTab === "students") {
+        const matchedStudent = res.data.find(c => 
+          c._id === location.state?.studentId || 
+          c.email === location.state?.email || 
+          c.name?.toLowerCase() === location.state?.studentName?.toLowerCase()
+        );
+        if (matchedStudent) {
+          setActiveContact(matchedStudent);
+        } else if (activeTab === "admin") {
+          setActiveContact(admin);
+          fetchBroadcastHistory();
+        }
+      } else if (activeTab === "admin") {
         setActiveContact(admin);
         fetchBroadcastHistory();
       }

@@ -6,6 +6,12 @@ import {
   Pie,
   Cell,
   ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid
 } from "recharts";
 import {
   FaUserGraduate,
@@ -39,6 +45,10 @@ import {
   FaStickyNote,
   FaGraduationCap,
   FaBookOpen,
+  FaTimes,
+  FaPrint,
+  FaCalendarCheck,
+  FaExclamationCircle
 } from "react-icons/fa";
 import API_URL from "../../../../../config/api";
 
@@ -63,7 +73,7 @@ function MyStudents() {
   });
   const [students, setStudents] = useState([]);
   
-  // Filters
+  // Directory Filters
   const [selectedClass, setSelectedClass] = useState("All Classes");
   const [selectedSection, setSelectedSection] = useState("All Sections");
   const [selectedStatus, setSelectedStatus] = useState("All Status");
@@ -74,6 +84,13 @@ function MyStudents() {
   const [studentDetails, setStudentDetails] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("Overview");
+
+  // Phase 3 Modal & Detailed View States
+  const [attendanceFilter, setAttendanceFilter] = useState("All");
+  const [examFilter, setExamFilter] = useState("All");
+  const [selectedExamDetail, setSelectedExamDetail] = useState(null);
+  const [selectedAssignmentDetail, setSelectedAssignmentDetail] = useState(null);
+  const [showReportCardModal, setShowReportCardModal] = useState(false);
 
   // Load students directory & statistics
   useEffect(() => {
@@ -128,22 +145,28 @@ function MyStudents() {
     setSelectedStudentId(null);
     setStudentDetails(null);
     setActiveTab("Overview");
+    setAttendanceFilter("All");
+    setExamFilter("All");
+    setSelectedExamDetail(null);
+    setSelectedAssignmentDetail(null);
+    setShowReportCardModal(false);
   };
 
   // Helper to determine performance grade color
   const getGradeColor = (grade) => {
+    if (!grade || grade === "N/A") return "text-slate-400";
     if (grade.startsWith("A")) return "text-emerald-500";
     if (grade.startsWith("B")) return "text-blue-500";
     if (grade.startsWith("C")) return "text-amber-500";
     return "text-rose-500";
   };
 
-  // Filter lists derived from students list
+  // Directory filter lists
   const classesList = ["All Classes", ...new Set(students.map(s => s.className))];
   const sectionsList = ["All Sections", ...new Set(students.map(s => s.sectionName))];
   const statusList = ["All Status", "Active", "Inactive"];
 
-  // Filter students array
+  // Filter directory students array
   const filteredStudents = students.filter(s => {
     const matchesClass = selectedClass === "All Classes" || s.className === selectedClass;
     const matchesSection = selectedSection === "All Sections" || s.sectionName === selectedSection;
@@ -177,13 +200,60 @@ function MyStudents() {
       { name: "Leave", value: details.attendanceOverview?.leave ?? 0, color: "#6B7280" }
     ];
 
+    // Attendance filtered history
+    const filteredAttendanceHistory = (details.attendanceHistory || []).filter(rec => {
+      if (attendanceFilter === "All") return true;
+      if (attendanceFilter === "Present") return rec.status === "Present";
+      if (attendanceFilter === "Absent") return rec.status === "Absent";
+      if (attendanceFilter === "Late") return rec.status === "Late";
+      if (attendanceFilter === "Leave") return rec.status === "Leave" || rec.status === "On Leave";
+      return true;
+    });
+
+    // Subject-wise attendance calculation
+    const subjectAttendanceMap = {};
+    (details.attendanceHistory || []).forEach(a => {
+      const sub = a.subjectName || "General Attendance";
+      if (!subjectAttendanceMap[sub]) {
+        subjectAttendanceMap[sub] = { total: 0, present: 0 };
+      }
+      subjectAttendanceMap[sub].total++;
+      if (a.status === "Present") subjectAttendanceMap[sub].present++;
+    });
+    const subjectAttendanceList = Object.keys(subjectAttendanceMap).map(sub => ({
+      subjectName: sub,
+      total: subjectAttendanceMap[sub].total,
+      present: subjectAttendanceMap[sub].present,
+      percentage: Math.round((subjectAttendanceMap[sub].present / subjectAttendanceMap[sub].total) * 100)
+    }));
+
+    // Exam filtered list
+    const filteredExams = (details.allExams || []).filter(ex => {
+      if (examFilter === "All") return true;
+      if (examFilter === "Evaluated") return ex.status === "Evaluated" || ex.status === "Attempted";
+      if (examFilter === "Not Taken") return ex.status === "Not Taken" || ex.status === "Scheduled";
+      return true;
+    });
+
     const quickActions = [
-      { label: "Send Message", icon: <FaEnvelopeOpen />, bgColor: "bg-purple-500/10 text-purple-500 border-purple-500/20", onClick: () => navigate("/teacher/chat") },
+      {
+        label: "Send Message",
+        icon: <FaEnvelopeOpen />,
+        bgColor: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+        onClick: () => navigate("/teacher/support", {
+          state: {
+            activeTab: "students",
+            studentId: details.studentId,
+            email: details.email,
+            studentName: details.name
+          }
+        })
+      },
       { label: "View Attendance", icon: <FaClipboardCheck />, bgColor: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", onClick: () => setActiveTab("Attendance") },
       { label: "View Exam Results", icon: <FaChartBar />, bgColor: "bg-blue-500/10 text-blue-500 border-blue-500/20", onClick: () => setActiveTab("Exams") },
       { label: "View Assignments", icon: <FaFileAlt />, bgColor: "bg-amber-500/10 text-amber-500 border-amber-500/20", onClick: () => setActiveTab("Assignments") },
       { label: "Add Note", icon: <FaRegEdit />, bgColor: "bg-rose-500/10 text-rose-500 border-rose-500/20", onClick: () => setActiveTab("Notes") },
-      { label: "Download Report", icon: <FaDownload />, bgColor: "bg-[#0ea5e9]/10 text-[#0ea5e9] border-[#0ea5e9]/20", onClick: () => window.print() }
+      { label: "Download Report", icon: <FaDownload />, bgColor: "bg-[#0ea5e9]/10 text-[#0ea5e9] border-[#0ea5e9]/20", onClick: () => setShowReportCardModal(true) }
     ];
 
     const initials = details.name
@@ -214,9 +284,12 @@ function MyStudents() {
               <FaArrowLeft />
               Back to Students
             </button>
-            <button className="flex items-center gap-2 px-4 py-2.5 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-2xl text-xs font-bold transition-all cursor-pointer shadow-sm">
-              <FaRegEdit />
-              Edit Profile
+            <button 
+              onClick={() => setShowReportCardModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-2xl text-xs font-bold transition-all cursor-pointer shadow-sm"
+            >
+              <FaPrint />
+              Report Card
             </button>
           </div>
         </div>
@@ -258,10 +331,22 @@ function MyStudents() {
                   <FaUser className="text-slate-400" /> Gender: <span className="text-slate-700 dark:text-slate-300 font-extrabold">{details.gender || "N/A"}</span>
                 </p>
                 <p className="flex items-center gap-2 truncate">
-                  <FaEnvelope className="text-slate-400" /> Email: <span className="text-slate-700 dark:text-slate-300 font-extrabold">{details.email || "N/A"}</span>
+                  <FaEnvelope className="text-slate-400" /> Email: {details.email ? (
+                    <a href={`mailto:${details.email}`} className="text-[#7C3AED] dark:text-[#A78BFA] hover:underline font-extrabold truncate">
+                      {details.email}
+                    </a>
+                  ) : (
+                    <span className="text-slate-700 dark:text-slate-300 font-extrabold">N/A</span>
+                  )}
                 </p>
                 <p className="flex items-center gap-2 truncate">
-                  <FaPhone className="text-slate-400" /> Phone: <span className="text-slate-700 dark:text-slate-300 font-extrabold">{details.phone || "N/A"}</span>
+                  <FaPhone className="text-slate-400" /> Phone: {details.phone ? (
+                    <a href={`tel:${details.phone}`} className="text-[#7C3AED] dark:text-[#A78BFA] hover:underline font-extrabold">
+                      {details.phone}
+                    </a>
+                  ) : (
+                    <span className="text-slate-700 dark:text-slate-300 font-extrabold">N/A</span>
+                  )}
                 </p>
                 <p className="flex items-center gap-2 truncate md:col-span-2">
                   <FaMapMarkerAlt className="text-slate-400" /> Address: <span className="text-slate-700 dark:text-slate-300 font-extrabold">{details.address || "N/A"}</span>
@@ -327,7 +412,6 @@ function MyStudents() {
         {/* Render Profile Tabs Contents */}
         {activeTab === "Overview" ? (
           <div className="space-y-6">
-            
             {/* Top row: Attendance Donut, performance overview, subjects average */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
@@ -336,12 +420,11 @@ function MyStudents() {
                 <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-white/5 pb-3">
                   <h2 className="text-sm font-extrabold text-slate-800 dark:text-white">Attendance Overview</h2>
                   <button className="text-[10px] font-black text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-lg border border-slate-200/40 dark:border-white/5 select-none">
-                    This Month
+                    Session Log
                   </button>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-around gap-4 py-2">
-                  {/* Pie donut */}
                   <div className="relative w-36 h-36 flex items-center justify-center shrink-0">
                     <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                       <PieChart>
@@ -370,7 +453,6 @@ function MyStudents() {
                     </div>
                   </div>
 
-                  {/* legends detail list */}
                   <div className="space-y-2 w-full sm:w-auto">
                     {attendanceDonut.map((d, idx) => {
                       const count = d.value;
@@ -403,33 +485,33 @@ function MyStudents() {
                 <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-white/5 pb-3">
                   <h2 className="text-sm font-extrabold text-slate-800 dark:text-white">Academic Performance</h2>
                   <button className="text-[10px] font-black text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-lg border border-slate-200/40 dark:border-white/5 select-none">
-                    This Term
+                    Current Term
                   </button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 flex-1 items-center py-2 select-none">
-                  {/* Grade block */}
                   <div className="bg-slate-50 dark:bg-white/[0.02] border border-slate-150/40 dark:border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-inner h-[90px]">
                     <span className="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider">Overall Grade</span>
-                    <span className="text-3xl font-black text-emerald-500 mt-2 leading-none">{details.academicPerformance?.overallGrade}</span>
-                    <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 mt-1.5 uppercase leading-none">Excellent</span>
+                    <span className={`text-3xl font-black mt-2 leading-none ${getGradeColor(details.academicPerformance?.overallGrade)}`}>
+                      {details.academicPerformance?.overallGrade || "N/A"}
+                    </span>
+                    <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 mt-1.5 uppercase leading-none">
+                      {details.academicPerformance?.overallGrade?.startsWith("A") ? "Excellent" : "Academic Grade"}
+                    </span>
                   </div>
 
-                  {/* Avg score block */}
                   <div className="bg-slate-50 dark:bg-white/[0.02] border border-slate-150/40 dark:border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-inner h-[90px]">
                     <span className="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider">Average Score</span>
                     <span className="text-3xl font-black text-blue-500 mt-2 leading-none">{details.academicPerformance?.averageScore}%</span>
-                    <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 mt-1.5 uppercase leading-none">Above Average</span>
+                    <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 mt-1.5 uppercase leading-none">Overall Score</span>
                   </div>
 
-                  {/* Highest score */}
                   <div className="bg-slate-50 dark:bg-white/[0.02] border border-slate-150/40 dark:border-white/5 rounded-2xl p-3 flex flex-col items-center justify-center text-center shadow-inner h-[76px]">
                     <span className="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider">Highest Score</span>
                     <span className="text-xs font-black text-emerald-500 mt-1 leading-none">{details.academicPerformance?.highestScore}</span>
                     <span className="text-[8px] font-bold text-slate-450 dark:text-slate-500 mt-1.5 truncate w-full">{details.academicPerformance?.highestSubject}</span>
                   </div>
 
-                  {/* Lowest score */}
                   <div className="bg-slate-50 dark:bg-white/[0.02] border border-slate-150/40 dark:border-white/5 rounded-2xl p-3 flex flex-col items-center justify-center text-center shadow-inner h-[76px]">
                     <span className="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider">Lowest Score</span>
                     <span className="text-xs font-black text-[#F59E0B] mt-1 leading-none">{details.academicPerformance?.lowestScore}</span>
@@ -453,7 +535,6 @@ function MyStudents() {
                   </button>
                 </div>
 
-                {/* Subject progress bar lists */}
                 <div className="space-y-3.5 flex-1 max-h-[190px] overflow-y-auto pr-1.5 scrollbar-thin">
                   {details.subjects && details.subjects.length > 0 ? (
                     details.subjects.map((sub, idx) => (
@@ -461,16 +542,20 @@ function MyStudents() {
                         <div className="flex justify-between items-center text-xs font-bold text-slate-700 dark:text-slate-350">
                           <span>{sub.name}</span>
                           <span className="flex items-center gap-2">
-                            <span className="text-slate-900 dark:text-white font-black">{sub.average}%</span>
-                            <span className={`text-[9px] font-extrabold px-1 rounded uppercase tracking-wider ${getGradeColor(sub.grade)} bg-slate-50 dark:bg-white/5 border border-slate-200/40 dark:border-white/5`}>
-                              {sub.grade}
+                            <span className="text-slate-900 dark:text-white font-black">
+                              {sub.average > 0 ? `${sub.average}%` : "No result"}
                             </span>
+                            {sub.grade !== "N/A" && (
+                              <span className={`text-[9px] font-extrabold px-1 rounded uppercase tracking-wider ${getGradeColor(sub.grade)} bg-slate-50 dark:bg-white/5 border border-slate-200/40 dark:border-white/5`}>
+                                {sub.grade}
+                              </span>
+                            )}
                           </span>
                         </div>
                         <div className="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
                           <div 
                             className={`h-full ${
-                              sub.average >= 90 ? 'bg-emerald-500' : sub.average >= 80 ? 'bg-blue-500' : 'bg-amber-500'
+                              sub.average >= 90 ? 'bg-emerald-500' : sub.average >= 80 ? 'bg-blue-500' : sub.average >= 60 ? 'bg-amber-500' : 'bg-slate-300'
                             }`} 
                             style={{ width: `${sub.average}%` }} 
                           />
@@ -511,7 +596,7 @@ function MyStudents() {
                       </thead>
                       <tbody className="divide-y divide-slate-100/60 dark:divide-white/5">
                         {details.recentExams.map((exam) => (
-                          <tr key={exam._id} className="hover:bg-slate-50/20 dark:hover:bg-white/[0.01] transition-colors">
+                          <tr key={exam._id} className="hover:bg-slate-50/20 dark:hover:bg-white/[0.01] transition-colors cursor-pointer" onClick={() => setSelectedExamDetail(exam)}>
                             <td className="py-2.5 font-bold text-slate-805 dark:text-white leading-tight">
                               {exam.examName}
                               <span className="block text-[8px] text-slate-400 font-bold mt-1">
@@ -564,7 +649,7 @@ function MyStudents() {
                       </thead>
                       <tbody className="divide-y divide-slate-100/60 dark:divide-white/5">
                         {details.recentAssignments.map((ass) => (
-                          <tr key={ass.id} className="hover:bg-slate-50/20 dark:hover:bg-white/[0.01] transition-colors">
+                          <tr key={ass.id} className="hover:bg-slate-50/20 dark:hover:bg-white/[0.01] transition-colors cursor-pointer" onClick={() => setSelectedAssignmentDetail(ass)}>
                             <td className="py-2.5 font-bold text-slate-805 dark:text-white leading-tight">
                               {ass.name}
                               <span className="block text-[8px] text-slate-400 font-bold mt-1">
@@ -574,7 +659,7 @@ function MyStudents() {
                             <td className="py-2.5 text-slate-500 dark:text-slate-400 font-semibold">{ass.subjectName}</td>
                             <td className="py-2.5 text-right font-black">
                               <span className={`inline-block text-[8px] font-extrabold px-2 py-0.5 rounded border uppercase tracking-wider ${
-                                ass.status === 'Submitted'
+                                ass.status === 'Submitted' || ass.status === 'Completed'
                                   ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                                   : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
                               }`}>
@@ -651,18 +736,57 @@ function MyStudents() {
               </div>
             </div>
 
+            {/* Subject-wise Attendance Breakdown Card (if applicable) */}
+            {subjectAttendanceList.length > 0 && (
+              <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm">
+                <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <FaCalendarCheck className="text-[#7C3AED]" /> Subject-Wise Attendance Distribution
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {subjectAttendanceList.map((item, idx) => (
+                    <div key={idx} className="bg-slate-50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/5 p-4 rounded-2xl">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-extrabold text-slate-800 dark:text-white truncate">{item.subjectName}</span>
+                        <span className="text-xs font-black text-[#7C3AED]">{item.percentage}%</span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-1 font-semibold">
+                        Present: {item.present} / {item.total} sessions
+                      </p>
+                      <div className="w-full bg-slate-200 dark:bg-white/5 h-1.5 rounded-full mt-2 overflow-hidden">
+                        <div className="bg-[#7C3AED] h-full" style={{ width: `${item.percentage}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Attendance session log table */}
             <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-white/5 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 border-b border-slate-100 dark:border-white/5 pb-3 gap-3">
                 <h2 className="text-sm font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
                   <FaClipboardCheck className="text-[#7C3AED]" /> Attendance Session History
                 </h2>
-                <span className="text-[10px] font-bold text-slate-400">
-                  Total Logs: {details.attendanceHistory?.length || 0}
-                </span>
+                
+                {/* Filter Pills */}
+                <div className="flex items-center gap-1 bg-slate-100 dark:bg-white/5 p-1 rounded-xl border border-slate-200/40 dark:border-white/5">
+                  {["All", "Present", "Absent", "Late", "Leave"].map(st => (
+                    <button
+                      key={st}
+                      onClick={() => setAttendanceFilter(st)}
+                      className={`px-3 py-1 text-[10px] font-bold rounded-lg transition cursor-pointer ${
+                        attendanceFilter === st
+                          ? "bg-[#7C3AED] text-white shadow-xs"
+                          : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
+                      }`}
+                    >
+                      {st}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {details.attendanceHistory && details.attendanceHistory.length > 0 ? (
+              {filteredAttendanceHistory.length > 0 ? (
                 <div className="overflow-x-auto scrollbar-thin">
                   <table className="w-full text-xs text-left">
                     <thead>
@@ -675,7 +799,7 @@ function MyStudents() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100/60 dark:divide-white/5">
-                      {details.attendanceHistory.map((rec) => (
+                      {filteredAttendanceHistory.map((rec) => (
                         <tr key={rec._id} className="hover:bg-slate-50/20 dark:hover:bg-white/[0.01] transition-colors">
                           <td className="py-3 font-bold text-slate-800 dark:text-white">
                             {new Date(rec.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
@@ -713,7 +837,7 @@ function MyStudents() {
                     <FaClipboardCheck />
                   </div>
                   <h3 className="text-slate-800 dark:text-white font-extrabold text-sm">No attendance records found</h3>
-                  <p className="text-slate-400 text-xs font-semibold mt-1">No daily attendance logs exist for this student under the current school.</p>
+                  <p className="text-slate-400 text-xs font-semibold mt-1">No daily attendance logs exist for this filter condition under the current school.</p>
                 </div>
               )}
             </div>
@@ -721,17 +845,37 @@ function MyStudents() {
         ) : activeTab === "Exams" ? (
           <div className="space-y-6">
             <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-white/5 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 border-b border-slate-100 dark:border-white/5 pb-3 gap-3">
                 <h2 className="text-sm font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
                   <FaChartBar className="text-[#7C3AED]" /> Scheduled & Attempted Examinations
                 </h2>
-                <span className="text-[10px] font-bold text-slate-400">Total Exams: {details.allExams?.length || 0}</span>
+                
+                {/* Exam Filters */}
+                <div className="flex items-center gap-1 bg-slate-100 dark:bg-white/5 p-1 rounded-xl border border-slate-200/40 dark:border-white/5">
+                  {["All", "Evaluated", "Not Taken"].map(st => (
+                    <button
+                      key={st}
+                      onClick={() => setExamFilter(st)}
+                      className={`px-3 py-1 text-[10px] font-bold rounded-lg transition cursor-pointer ${
+                        examFilter === st
+                          ? "bg-[#7C3AED] text-white shadow-xs"
+                          : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
+                      }`}
+                    >
+                      {st}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {details.allExams && details.allExams.length > 0 ? (
+              {filteredExams.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {details.allExams.map((ex) => (
-                    <div key={ex._id} className="bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 rounded-2xl p-4.5 flex flex-col justify-between space-y-3">
+                  {filteredExams.map((ex) => (
+                    <div 
+                      key={ex._id} 
+                      onClick={() => setSelectedExamDetail(ex)}
+                      className="bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 rounded-2xl p-4.5 flex flex-col justify-between space-y-3 hover:border-[#7C3AED]/40 cursor-pointer transition-all shadow-xs hover:shadow-md"
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <span className="text-[9px] font-black uppercase text-[#7C3AED] dark:text-[#A78BFA] tracking-wider">
@@ -773,7 +917,7 @@ function MyStudents() {
                     <FaChartBar />
                   </div>
                   <h3 className="text-slate-800 dark:text-white font-extrabold text-sm">No exams found</h3>
-                  <p className="text-slate-400 text-xs font-semibold mt-1">No examination records exist for this student's assigned class.</p>
+                  <p className="text-slate-400 text-xs font-semibold mt-1">No examination records match this filter condition.</p>
                 </div>
               )}
             </div>
@@ -791,7 +935,11 @@ function MyStudents() {
               {details.assignments && details.assignments.length > 0 ? (
                 <div className="space-y-3.5">
                   {details.assignments.map((ass) => (
-                    <div key={ass.id} className="bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div 
+                      key={ass.id} 
+                      onClick={() => setSelectedAssignmentDetail(ass)}
+                      className="bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#7C3AED]/40 cursor-pointer transition-all shadow-xs hover:shadow-md"
+                    >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-[9px] font-black uppercase text-[#7C3AED] dark:text-[#A78BFA] bg-[#7C3AED]/10 px-2 py-0.5 rounded border border-[#7C3AED]/20">
@@ -804,7 +952,7 @@ function MyStudents() {
                           ))}
                         </div>
                         <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mt-1">{ass.name}</h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{ass.description}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{ass.description}</p>
                         <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 mt-2">
                           <span>Assigned By: <strong className="text-slate-700 dark:text-slate-300">{ass.teacherName}</strong></span>
                           <span>Due Date: <strong className="text-slate-700 dark:text-slate-300">{new Date(ass.dueDate).toLocaleDateString()}</strong></span>
@@ -846,7 +994,7 @@ function MyStudents() {
                   <span className="text-[9px] font-black uppercase tracking-widest text-white/80 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/20">
                     Published Academic Performance
                   </span>
-                  <h2 className="text-2xl font-black text-white mt-1">{details.name}'s Report Cards</h2>
+                  <h2 className="text-2xl font-black text-white mt-1">{details.name}'s Academic Summary</h2>
                   <p className="text-xs text-white/80 font-medium">
                     Overall Grade: <strong>{details.academicPerformance?.overallGrade || "N/A"}</strong> • Average Score: <strong>{details.academicPerformance?.averageScore || 0}%</strong>
                   </p>
@@ -868,6 +1016,29 @@ function MyStudents() {
               </div>
             </div>
 
+            {/* Subject Performance Bar Chart */}
+            {details.subjects && details.subjects.length > 0 && (
+              <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-6 shadow-sm space-y-4">
+                <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white flex items-center gap-2">
+                  <FaChartBar className="text-[#7C3AED]" /> Subject Performance Chart
+                </h3>
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={details.subjects}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                      <XAxis dataKey="name" stroke="#888888" fontSize={10} tickLine={false} />
+                      <YAxis domain={[0, 100]} stroke="#888888" fontSize={10} tickLine={false} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: "#111827", borderColor: "#374151", borderRadius: "12px", color: "#fff", fontSize: "12px" }}
+                        formatter={(value) => [`${value}%`, "Average Score"]}
+                      />
+                      <Bar dataKey="average" fill="#7C3AED" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
             {/* Published Report Cards List */}
             <div className="space-y-6">
               {details.publishedResults && details.publishedResults.length > 0 ? (
@@ -879,7 +1050,7 @@ function MyStudents() {
                           {res.academicYear} • {res.examTerm} Examination
                         </span>
                         <h3 className="text-base font-extrabold text-slate-900 dark:text-white mt-0.5">
-                          Official Result Summary
+                          Official Published Report Card
                         </h3>
                       </div>
                       <div className="flex items-center gap-3">
@@ -939,7 +1110,7 @@ function MyStudents() {
                     <FaGraduationCap />
                   </div>
                   <h3 className="text-slate-800 dark:text-white font-extrabold text-sm">No published academic results found</h3>
-                  <p className="text-slate-400 text-xs font-semibold mt-1">Official report card results for Half-Yearly or Annual terms have not been published yet.</p>
+                  <p className="text-slate-400 text-xs font-semibold mt-1">Official report card results for Half-Yearly or Annual terms have not been published yet for this student.</p>
                 </div>
               )}
             </div>
@@ -963,9 +1134,15 @@ function MyStudents() {
                           <span className="text-[9px] font-black uppercase text-[#7C3AED] dark:text-[#A78BFA] bg-[#7C3AED]/10 px-2 py-0.5 rounded border border-[#7C3AED]/20">
                             Subject #{idx + 1}
                           </span>
-                          <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border uppercase ${getGradeColor(sub.grade)} bg-slate-50 dark:bg-white/5`}>
-                            {sub.grade}
-                          </span>
+                          {sub.grade !== "N/A" ? (
+                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border uppercase ${getGradeColor(sub.grade)} bg-slate-50 dark:bg-white/5`}>
+                              {sub.grade}
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-bold text-slate-400 bg-slate-200/40 dark:bg-white/5 px-2 py-0.5 rounded">
+                              No result available
+                            </span>
+                          )}
                         </div>
                         <h3 className="text-base font-extrabold text-slate-900 dark:text-white mt-2">{sub.name}</h3>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -974,8 +1151,10 @@ function MyStudents() {
                       </div>
 
                       <div className="border-t border-slate-200/40 dark:border-white/5 pt-3 flex items-center justify-between text-xs font-bold">
-                        <span className="text-slate-500">Average Performance</span>
-                        <span className="text-slate-900 dark:text-white font-black">{sub.average}%</span>
+                        <span className="text-slate-500">Average Score</span>
+                        <span className="text-slate-900 dark:text-white font-black">
+                          {sub.average > 0 ? `${sub.average}%` : "No result"}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -998,7 +1177,7 @@ function MyStudents() {
             </div>
             <h3 className="text-slate-800 dark:text-white font-extrabold text-base">No documents available</h3>
             <p className="text-slate-400 text-xs font-semibold max-w-sm mx-auto mt-1 leading-relaxed">
-              Document storage backend is currently not configured for student files. No uploaded certificates or documents exist for this student.
+              Document storage backend is currently not configured for individual student uploads. No uploaded certificates or documents exist for this student.
             </p>
           </div>
         ) : (
@@ -1008,8 +1187,212 @@ function MyStudents() {
             </div>
             <h3 className="text-slate-800 dark:text-white font-extrabold text-base">No notes available</h3>
             <p className="text-slate-400 text-xs font-semibold max-w-sm mx-auto mt-1 leading-relaxed">
-              Student personal notes backend is not configured for individual student profiles.
+              Personal student notes model is currently not configured in backend. Class study materials are managed via My Subjects.
             </p>
+          </div>
+        )}
+
+        {/* --- MODAL 1: EXAM DETAILS MODAL --- */}
+        {selectedExamDetail && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+            <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-3">
+                <div>
+                  <span className="text-[10px] font-black uppercase text-[#7C3AED] dark:text-[#A78BFA] tracking-wider">
+                    {selectedExamDetail.subjectName}
+                  </span>
+                  <h2 className="text-lg font-extrabold text-slate-900 dark:text-white mt-0.5">{selectedExamDetail.title || selectedExamDetail.examName}</h2>
+                </div>
+                <button onClick={() => setSelectedExamDetail(null)} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-xl bg-slate-100 dark:bg-white/5 cursor-pointer">
+                  <FaTimes />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div className="bg-slate-50 dark:bg-white/[0.02] p-3 rounded-2xl border border-slate-100 dark:border-white/5">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Exam Date</span>
+                  <span className="font-extrabold text-slate-800 dark:text-white mt-1 block">
+                    {new Date(selectedExamDetail.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                  </span>
+                </div>
+                <div className="bg-slate-50 dark:bg-white/[0.02] p-3 rounded-2xl border border-slate-100 dark:border-white/5">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Max Marks</span>
+                  <span className="font-extrabold text-slate-800 dark:text-white mt-1 block">{selectedExamDetail.maxMarks}</span>
+                </div>
+                <div className="bg-slate-50 dark:bg-white/[0.02] p-3 rounded-2xl border border-slate-100 dark:border-white/5">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Status</span>
+                  <span className="font-extrabold text-slate-800 dark:text-white mt-1 block">{selectedExamDetail.status}</span>
+                </div>
+                <div className="bg-slate-50 dark:bg-white/[0.02] p-3 rounded-2xl border border-slate-100 dark:border-white/5">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Score / Grade</span>
+                  <span className="font-extrabold text-slate-800 dark:text-white mt-1 block">
+                    {selectedExamDetail.score !== null ? `${selectedExamDetail.score}% (${selectedExamDetail.grade})` : "Not Taken"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button onClick={() => setSelectedExamDetail(null)} className="px-5 py-2.5 bg-[#7C3AED] text-white text-xs font-bold rounded-2xl hover:bg-[#6D28D9] transition cursor-pointer">
+                  Close Details
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* --- MODAL 2: ASSIGNMENT DETAILS MODAL --- */}
+        {selectedAssignmentDetail && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+            <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-3">
+                <div>
+                  <span className="text-[10px] font-black uppercase text-[#7C3AED] dark:text-[#A78BFA] tracking-wider">
+                    {selectedAssignmentDetail.subjectName}
+                  </span>
+                  <h2 className="text-lg font-extrabold text-slate-900 dark:text-white mt-0.5">{selectedAssignmentDetail.name}</h2>
+                </div>
+                <button onClick={() => setSelectedAssignmentDetail(null)} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-xl bg-slate-100 dark:bg-white/5 cursor-pointer">
+                  <FaTimes />
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div className="bg-slate-50 dark:bg-white/[0.02] p-3.5 rounded-2xl border border-slate-100 dark:border-white/5">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Description</span>
+                  <p className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed">{selectedAssignmentDetail.description || "No description provided."}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-slate-50 dark:bg-white/[0.02] p-3 rounded-2xl border border-slate-100 dark:border-white/5">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Assigned By</span>
+                    <span className="font-extrabold text-slate-800 dark:text-white mt-1 block">{selectedAssignmentDetail.teacherName}</span>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-white/[0.02] p-3 rounded-2xl border border-slate-100 dark:border-white/5">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Due Date</span>
+                    <span className="font-extrabold text-slate-800 dark:text-white mt-1 block">{new Date(selectedAssignmentDetail.dueDate).toLocaleDateString()}</span>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-white/[0.02] p-3 rounded-2xl border border-slate-100 dark:border-white/5">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Status</span>
+                    <span className="font-extrabold text-slate-800 dark:text-white mt-1 block">{selectedAssignmentDetail.status}</span>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-white/[0.02] p-3 rounded-2xl border border-slate-100 dark:border-white/5">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Category Types</span>
+                    <span className="font-extrabold text-slate-800 dark:text-white mt-1 block">{(selectedAssignmentDetail.types || []).join(", ") || "Homework"}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button onClick={() => setSelectedAssignmentDetail(null)} className="px-5 py-2.5 bg-[#7C3AED] text-white text-xs font-bold rounded-2xl hover:bg-[#6D28D9] transition cursor-pointer">
+                  Close Details
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* --- MODAL 3: REPORT CARD PRINT MODAL --- */}
+        {showReportCardModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs animate-fadeIn overflow-y-auto">
+            <div className="bg-white text-slate-900 rounded-3xl p-6 max-w-3xl w-full shadow-2xl space-y-6 my-8">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+                <div>
+                  <h2 className="text-xl font-black text-[#7C3AED] uppercase tracking-wide">Academic Progress Report</h2>
+                  <p className="text-xs font-bold text-slate-500 mt-0.5">Official Student Marksheet & Performance Card</p>
+                </div>
+                <div className="flex items-center gap-2 print:hidden">
+                  <button onClick={() => window.print()} className="px-4 py-2 bg-[#7C3AED] text-white text-xs font-bold rounded-xl flex items-center gap-2 hover:bg-[#6D28D9] transition cursor-pointer">
+                    <FaPrint /> Print / Save PDF
+                  </button>
+                  <button onClick={() => setShowReportCardModal(false)} className="p-2 text-slate-400 hover:text-slate-600 rounded-xl bg-slate-100 cursor-pointer">
+                    <FaTimes />
+                  </button>
+                </div>
+              </div>
+
+              {/* Student Details Info Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs font-semibold">
+                <div>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase block">Student Name</span>
+                  <span className="font-black text-slate-800 text-sm">{details.name}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase block">Roll Number</span>
+                  <span className="font-extrabold text-slate-800">{details.rollNo}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase block">Admission No</span>
+                  <span className="font-extrabold text-slate-800">{details.admissionNo}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase block">Class & Section</span>
+                  <span className="font-extrabold text-slate-800">{details.classAndSection}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase block">Class Teacher</span>
+                  <span className="font-extrabold text-slate-800">{details.classTeacher}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase block">Overall Grade</span>
+                  <span className="font-black text-emerald-600 text-sm">{details.academicPerformance?.overallGrade || "N/A"}</span>
+                </div>
+              </div>
+
+              {/* Published Result Marks Table */}
+              {details.publishedResults && details.publishedResults.length > 0 ? (
+                details.publishedResults.map((res, rIdx) => (
+                  <div key={rIdx} className="space-y-3">
+                    <div className="flex items-center justify-between bg-purple-50 p-3 rounded-xl border border-purple-200">
+                      <span className="text-xs font-black uppercase text-[#7C3AED]">
+                        {res.academicYear} • {res.examTerm} Term Result
+                      </span>
+                      <span className="text-xs font-black text-slate-800">
+                        Total: {res.totalMarksObtained} / {res.totalMaxMarks} ({res.percentage}%) — {res.overallResult}
+                      </span>
+                    </div>
+
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-100 text-slate-600 uppercase text-[9px] font-black border-b border-slate-200">
+                          <th className="p-2">Subject</th>
+                          <th className="p-2 text-center">Marks Obtained</th>
+                          <th className="p-2 text-center">Max Marks</th>
+                          <th className="p-2 text-center">Percentage</th>
+                          <th className="p-2 text-right">Grade</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200">
+                        {res.marks.map((m, mIdx) => (
+                          <tr key={mIdx}>
+                            <td className="p-2 font-bold text-slate-800">{m.subjectName}</td>
+                            <td className="p-2 text-center font-semibold">{m.marksObtained}</td>
+                            <td className="p-2 text-center text-slate-500">{m.maxMarks}</td>
+                            <td className="p-2 text-center font-bold">{m.percentage}%</td>
+                            <td className="p-2 text-right font-black text-[#7C3AED]">{m.grade}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ))
+              ) : (
+                <div className="p-6 bg-slate-50 rounded-2xl text-center text-xs text-slate-500 font-semibold border border-slate-200">
+                  No official published report card available for this student.
+                </div>
+              )}
+
+              {/* Official Signatures */}
+              <div className="pt-8 border-t border-slate-200 grid grid-cols-2 gap-8 text-center text-xs font-bold text-slate-500">
+                <div>
+                  <div className="h-10 border-b border-slate-300 mb-1" />
+                  <span>Class Teacher Signature</span>
+                </div>
+                <div>
+                  <div className="h-10 border-b border-slate-300 mb-1" />
+                  <span>Principal Signature</span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1018,7 +1401,6 @@ function MyStudents() {
   }
 
   // --- 2. STUDENTS DIRECTORY PAGE VIEW ---
-  // Status tag colors
   const getStatusStyle = (status) => {
     return status === "Active"
       ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
@@ -1072,7 +1454,7 @@ function MyStudents() {
             </div>
           </div>
           <div className="mt-4">
-            <p className="text-[10px] font-bold text-slate-450 dark:text-slate-400">Across 4 Classes</p>
+            <p className="text-[10px] font-bold text-slate-455 dark:text-slate-400">Class Directory</p>
           </div>
         </div>
 
@@ -1106,7 +1488,7 @@ function MyStudents() {
             </div>
           </div>
           <div className="mt-4">
-            <p className="text-[10px] font-bold text-slate-450 dark:text-slate-400">This Month</p>
+            <p className="text-[10px] font-bold text-slate-450 dark:text-slate-400">Class Average</p>
           </div>
         </div>
 
@@ -1122,7 +1504,7 @@ function MyStudents() {
             </div>
           </div>
           <div className="mt-4">
-            <p className="text-[10px] font-bold text-slate-450 dark:text-slate-400">This Term</p>
+            <p className="text-[10px] font-bold text-slate-450 dark:text-slate-400">Class Average</p>
           </div>
         </div>
 
@@ -1199,163 +1581,102 @@ function MyStudents() {
         <div className="overflow-x-auto select-text scrollbar-thin">
           <table className="w-full min-w-[760px] text-sm text-left">
             <thead>
-              <tr className="bg-slate-50 dark:bg-white/[0.02] text-slate-450 dark:text-slate-500 uppercase tracking-widest text-[9px] font-black border-b border-slate-100 dark:border-white/5">
-                <th className="px-6 py-4 w-10">
-                  <input type="checkbox" className="rounded" />
-                </th>
+              <tr className="text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[9px] font-black border-b border-slate-100 dark:border-white/5 bg-slate-50/30 dark:bg-white/[0.01]">
                 <th className="px-6 py-4">Student</th>
-                <th className="px-6 py-4">Roll No.</th>
-                <th className="px-6 py-4">Class & Section</th>
-                <th className="px-6 py-4">Attendance</th>
-                <th className="px-6 py-4">Performance</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-center">Action</th>
+                <th className="px-4 py-4">Roll No</th>
+                <th className="px-4 py-4">Class</th>
+                <th className="px-4 py-4">Attendance</th>
+                <th className="px-4 py-4">Performance</th>
+                <th className="px-4 py-4">Status</th>
+                <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100/60 dark:divide-white/5">
-              {filteredStudents.length === 0 ? (
+            <tbody className="divide-y divide-slate-100 dark:divide-white/5 font-semibold text-xs">
+              {filteredStudents.length > 0 ? (
+                filteredStudents.map((std) => (
+                  <tr 
+                    key={std._id} 
+                    className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors group cursor-pointer"
+                    onClick={() => fetchStudentDetails(std._id)}
+                  >
+                    {/* Name + avatar */}
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        {std.avatar ? (
+                          <img src={std.avatar} alt="" className="w-9 h-9 rounded-xl object-cover" />
+                        ) : (
+                          <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-500 font-extrabold flex items-center justify-center text-xs">
+                            {std.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-extrabold text-slate-800 dark:text-white text-sm group-hover:text-[#7C3AED] dark:group-hover:text-[#A78BFA] transition-colors">
+                            {std.name}
+                          </p>
+                          <p className="text-[10px] text-slate-400 font-medium">{std.email}</p>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-4 font-bold text-slate-600 dark:text-slate-300">
+                      {std.rollNo}
+                    </td>
+
+                    <td className="px-4 py-4 text-slate-600 dark:text-slate-300 font-bold">
+                      {std.className} {std.sectionName && `(${std.sectionName})`}
+                    </td>
+
+                    {/* Attendance % */}
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-slate-800 dark:text-white">{std.attendancePercentage}%</span>
+                        <div className="w-16 bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${std.attendancePercentage >= 85 ? 'bg-emerald-500' : 'bg-amber-500'}`} 
+                            style={{ width: `${std.attendancePercentage}%` }} 
+                          />
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Performance Score */}
+                    <td className="px-4 py-4">
+                      <span className="font-extrabold text-slate-800 dark:text-white">{std.performanceAverage}%</span>
+                    </td>
+
+                    {/* Status Badge */}
+                    <td className="px-4 py-4">
+                      <span className={`inline-block px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider ${getStatusStyle(std.status)}`}>
+                        {std.status}
+                      </span>
+                    </td>
+
+                    {/* Action Arrow */}
+                    <td className="px-6 py-4 text-right">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fetchStudentDetails(std._id);
+                        }} 
+                        className="p-2 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-[#7C3AED] dark:hover:text-[#A78BFA] transition cursor-pointer"
+                      >
+                        <FaChevronRight className="text-xs" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
-                  <td colSpan="8" className="text-center py-16 text-slate-400">
-                    <p className="text-xs font-bold">No students found matching filters.</p>
+                  <td colSpan="7" className="py-12 text-center text-slate-400 font-medium">
+                    No students match your selected filters.
                   </td>
                 </tr>
-              ) : (
-                filteredStudents.map((s) => {
-                  const initials = s.name
-                    ? s.name
-                        .split(" ")
-                        .map((w) => w[0])
-                        .join("")
-                        .toUpperCase()
-                        .slice(0, 2)
-                    : "S";
-                  const perfStyle = getGradeColor(s.performanceGrade);
-                  
-                  return (
-                    <tr key={s._id} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.01] transition-colors">
-                      <td className="px-6 py-4 select-none">
-                        <input type="checkbox" className="rounded" />
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          {s.avatar ? (
-                            <img
-                              src={s.avatar}
-                              alt={s.name}
-                              className="w-9 h-9 rounded-xl object-cover"
-                            />
-                          ) : (
-                            <div className="w-9 h-9 rounded-xl bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#A78BFA] dark:bg-[#7C3AED]/20 border border-[#7C3AED]/15 flex items-center justify-center font-bold text-[10px] shrink-0">
-                              {initials}
-                            </div>
-                          )}
-                          <div>
-                            <span className="font-extrabold text-slate-850 dark:text-white text-xs leading-none">{s.name}</span>
-                            <span className="block text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-1">{s.email}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 font-mono font-bold text-slate-650 dark:text-slate-300 text-xs">{s.rollNo}</td>
-                      <td className="px-6 py-4">
-                        <span className="font-bold text-slate-800 dark:text-white text-xs">Class {s.className}</span>
-                        <span className="block text-[9px] text-slate-400 uppercase font-bold tracking-wide mt-1">Section {s.sectionName}</span>
-                      </td>
-                      <td className="px-6 py-4 select-none">
-                        <div className="flex items-center gap-2">
-                          <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
-                            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                              <PieChart>
-                                <Pie
-                                  data={[
-                                    { value: s.attendancePercentage, color: "#10B981" },
-                                    { value: 100 - s.attendancePercentage, color: "rgba(226,232,240,0.1)" }
-                                  ]}
-                                  cx="50%"
-                                  cy="50%"
-                                  innerRadius={8}
-                                  outerRadius={12}
-                                  startAngle={90}
-                                  endAngle={-270}
-                                  dataKey="value"
-                                >
-                                  <Cell fill="#10B981" />
-                                  <Cell fill="rgba(226,232,240,0.1)" />
-                                </Pie>
-                              </PieChart>
-                            </ResponsiveContainer>
-                          </div>
-                          <span className="text-xs font-black text-slate-850 dark:text-white">{s.attendancePercentage}%</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 select-none">
-                        <span className="flex items-center gap-2">
-                          <span className={`text-xs font-black w-6 ${perfStyle}`}>{s.performanceGrade}</span>
-                          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{s.performancePercentage}%</span>
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 select-none">
-                        <span className={`inline-flex items-center text-[8px] font-black px-2.5 py-1 rounded uppercase tracking-wide ${getStatusStyle(s.status)}`}>
-                          {s.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 select-none">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => fetchStudentDetails(s._id)}
-                            className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-[#0B132A] hover:bg-[#7C3AED]/10 border border-slate-200/50 dark:border-white/5 flex items-center justify-center text-slate-450 hover:text-[#7C3AED] transition-all cursor-pointer shadow-sm"
-                            title="Quick View"
-                          >
-                            <FaSearch className="text-[10px]" />
-                          </button>
-                          <button
-                            onClick={() => fetchStudentDetails(s._id)}
-                            className="w-8 h-8 rounded-xl bg-[#7C3AED]/10 border border-[#7C3AED]/15 flex items-center justify-center text-[#7C3AED] dark:text-[#A78BFA] hover:bg-[#7C3AED]/20 transition-all cursor-pointer shadow-sm"
-                            title="View Profile"
-                          >
-                            <FaUser className="text-[10px]" />
-                          </button>
-                          <button className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-[#0B132A] hover:bg-slate-100 dark:hover:bg-white/5 border border-slate-200/50 dark:border-white/5 flex items-center justify-center text-slate-400 transition-all cursor-pointer">
-                            <FaEllipsisV className="text-[10px]" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
               )}
             </tbody>
           </table>
         </div>
-
-        {/* Pagination bar footer */}
-        {filteredStudents.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between border-t border-slate-100 dark:border-white/5 px-6 py-5 gap-4 text-xs font-bold text-slate-450 dark:text-slate-500 select-none">
-            <span>Showing 1 to {Math.min(10, filteredStudents.length)} of {filteredStudents.length} students</span>
-            <div className="flex items-center gap-2">
-              <button className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/5 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer disabled:opacity-40" disabled>
-                <FaChevronLeft className="text-[9px]" />
-              </button>
-              <button className="w-8 h-8 rounded-xl bg-[#7C3AED] text-white flex items-center justify-center shadow-md cursor-pointer">
-                1
-              </button>
-              <button className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/5 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer">
-                2
-              </button>
-              <button className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/5 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer">
-                3
-              </button>
-              <span className="px-1 text-slate-350 select-none">...</span>
-              <button className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/5 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer">
-                13
-              </button>
-              <button className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/5 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer">
-                <FaChevronRight className="text-[9px]" />
-              </button>
-            </div>
-          </div>
-        )}
-
       </div>
+
     </div>
   );
 }

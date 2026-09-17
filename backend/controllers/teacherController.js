@@ -777,8 +777,13 @@ exports.getStudentDetails = async (req, res) => {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    // Security Check: Ensure student belongs to the requesting user's school
-    if (student.schoolName !== req.user.schoolName) {
+    // Security Check: Verify student role and ensure student belongs to requesting user's school
+    if (!student.role || !student.role.match(/^student$/i)) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+    const studentSchool = (student.schoolName || "").trim().toLowerCase();
+    const userSchool = (req.user.schoolName || "").trim().toLowerCase();
+    if (!studentSchool || !userSchool || studentSchool !== userSchool) {
       return res.status(403).json({ message: "Forbidden: Student belongs to another school" });
     }
 
