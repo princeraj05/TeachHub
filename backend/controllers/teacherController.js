@@ -6,6 +6,9 @@ const Attendance = require("../models/Attendance");
 const Timetable = require("../models/Timetable");
 const TeacherLeave = require("../models/TeacherLeave");
 const ExamSubmission = require("../models/ExamSubmission");
+const StudentResult = require("../models/StudentResult");
+const StudentMark = require("../models/StudentMark");
+const MyDiary = require("../models/MyDiary");
 
 // Helper: Fetch all classes assigned to a teacher (via direct assignment, teachers array, subjects, or timetable)
 const getTeacherClasses = async (teacherId) => {
@@ -767,33 +770,41 @@ exports.getMyStudents = async (req, res) => {
 exports.getStudentDetails = async (req, res) => {
   try {
     const studentId = req.params.studentId;
-    const teacherId = req.user.id;
 
-    // Find student
+    // 1. Find student
     const student = await User.findById(studentId);
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    // Find class of the student
-    const cls = await Class.findOne({ students: studentId });
-    const className = cls ? cls.name : "Class 10 - A";
-    const sectionName = cls ? cls.section : "Section A";
+    // Security Check: Ensure student belongs to the requesting user's school
+    if (student.schoolName !== req.user.schoolName) {
+      return res.status(403).json({ message: "Forbidden: Student belongs to another school" });
+    }
+
+    // 2. Find class of the student & class teacher
+    let cls = null;
+    if (student.classId) {
+      cls = await Class.findOne({ _id: student.classId, schoolName: req.user.schoolName }).populate("teacher", "name");
+    }
+    if (!cls) {
+      cls = await Class.findOne({ students: studentId, schoolName: req.user.schoolName }).populate("teacher", "name");
+    }
+
+    const className = cls ? cls.name : "";
+    const sectionName = cls ? cls.section : "";
+    const classAndSection = cls ? `Class ${className}${sectionName ? ` - ${sectionName}` : ""}` : "Not Assigned";
+    const classTeacher = cls?.teacher?.name || "Not Assigned";
 
     // Timing/Roll Number details
     const classNum = className.match(/\d+/) ? className.match(/\d+/)[0] : "10";
     const sectionLetter = sectionName ? sectionName.trim().toUpperCase().charAt(0) : "A";
-    const rollNo = student.phoneNumber ? `${classNum}${sectionLetter}${student.phoneNumber.slice(-3)}` : `${classNum}${sectionLetter}001`;
-    const admissionNo = `ADM2023${student._id.toString().slice(-3).toUpperCase()}`;
+    const rollNo = student.rollNo || (student.phoneNumber ? `${classNum}${sectionLetter}${student.phoneNumber.slice(-3)}` : `${classNum}${sectionLetter}001`);
+    const admissionNo = student.admissionNo || `ADM2023${student._id.toString().slice(-3).toUpperCase()}`;
 
-    // Count Attendance Stats for this Month
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0,0,0,0);
-    const monthlyAtt = await Attendance.find({
-      teacher: teacherId,
+    // 3. Count Attendance Stats across the school for this student
+    const schoolAtt = await Attendance.find({
       student: studentId,
-      date: { $gte: startOfMonth },
       schoolName: req.user.schoolName
     });
 
@@ -802,139 +813,176 @@ exports.getStudentDetails = async (req, res) => {
     let late = 0;
     let leave = 0;
 
-    monthlyAtt.forEach(a => {
+    schoolAtt.forEach(a => {
       if (a.status === "Present") present++;
       else if (a.status === "Absent") absent++;
+      else if (a.status === "Late") late++;
       else if (a.status === "On Leave" || a.status === "Leave") leave++;
     });
 
-    const totalAttendance = present + absent + late + leave;
+    const totalAttendance = schoolAtt.length;
     const attendancePercentage = totalAttendance > 0 ? Math.round((present / totalAttendance) * 100) : 0;
 
-    // Academic Performance calculations (Exams & Submissions)
-    const exams = await Exam.find({ class: cls?._id }).populate("subject", "name");
-    const examIds = exams.map(e => e._id);
-    const submissions = await ExamSubmission.find({ exam: { $in: examIds }, student: studentId });
+    // 4. Academic Performance & Published Results (e.g. StudentResult & StudentMark)
+    const publishedResult = await StudentResult.findOne({
+      student: studentId,
+      schoolName: req.user.schoolName,
+      isPublished: true
+    }).sort({ createdAt: -1 });
 
-    let overallGrade = "A";
-    let averageScore = 88;
+    let overallGrade = "N/A";
+    let averageScore = 0;
     let highestScoreVal = 0;
-    let highestSubject = "Mathematics";
+    let highestSubject = "N/A";
     let lowestScoreVal = 100;
-    let lowestSubject = "Social Science";
+    let lowestSubject = "N/A";
+    let subjectList = [];
 
-    const subjectsScoreMap = {};
+    if (publishedResult) {
+      overallGrade = publishedResult.overallGrade || "N/A";
+      averageScore = Math.round(publishedResult.percentage || 0);
 
-    submissions.forEach(sub => {
-      const examObj = exams.find(e => e._id.toString() === sub.exam.toString());
-      if (examObj) {
-        const subName = examObj.subject?.name || "Subject";
-        const scorePct = Math.round((sub.score / (sub.total || 100)) * 100);
-        
-        if (!subjectsScoreMap[subName]) subjectsScoreMap[subName] = [];
-        subjectsScoreMap[subName].push(scorePct);
-        
-        if (scorePct > highestScoreVal) {
-          highestScoreVal = scorePct;
-          highestSubject = subName;
-        }
-        if (scorePct < lowestScoreVal) {
-          lowestScoreVal = scorePct;
-          lowestSubject = subName;
+      const marks = await StudentMark.find({
+        student: studentId,
+        schoolName: req.user.schoolName,
+        examTerm: publishedResult.examTerm,
+        academicYear: publishedResult.academicYear
+      }).populate("subject", "name");
+
+      if (marks.length > 0) {
+        let hasValidMark = false;
+        marks.forEach(m => {
+          const subName = m.subject?.name || m.subjectNameSnapshot || "Subject";
+          const max = m.maxMarks || 100;
+          const scorePct = Math.round((m.marksObtained / max) * 100);
+
+          if (!hasValidMark) {
+            highestScoreVal = scorePct;
+            highestSubject = subName;
+            lowestScoreVal = scorePct;
+            lowestSubject = subName;
+            hasValidMark = true;
+          } else {
+            if (scorePct > highestScoreVal) {
+              highestScoreVal = scorePct;
+              highestSubject = subName;
+            }
+            if (scorePct < lowestScoreVal) {
+              lowestScoreVal = scorePct;
+              lowestSubject = subName;
+            }
+          }
+
+          subjectList.push({
+            name: subName,
+            average: scorePct,
+            grade: m.grade || (scorePct >= 90 ? "A+" : scorePct >= 80 ? "A" : scorePct >= 70 ? "B" : scorePct >= 60 ? "C" : "D")
+          });
+        });
+      }
+    } else {
+      // Check ExamSubmissions if any exist
+      const submissions = await ExamSubmission.find({ student: studentId }).populate({
+        path: "exam",
+        populate: { path: "subject", select: "name" }
+      });
+
+      if (submissions.length > 0) {
+        let totalSum = 0;
+        let count = 0;
+        let maxVal = -1;
+        let minVal = 101;
+
+        submissions.forEach(sub => {
+          const max = sub.total || 100;
+          const scorePct = Math.round((sub.score / max) * 100);
+          const subName = sub.exam?.subject?.name || "Subject";
+
+          totalSum += scorePct;
+          count++;
+
+          if (scorePct > maxVal) {
+            maxVal = scorePct;
+            highestSubject = subName;
+          }
+          if (scorePct < minVal) {
+            minVal = scorePct;
+            lowestSubject = subName;
+          }
+
+          subjectList.push({
+            name: subName,
+            average: scorePct,
+            grade: scorePct >= 90 ? "A+" : scorePct >= 80 ? "A" : scorePct >= 70 ? "B" : "C"
+          });
+        });
+
+        if (count > 0) {
+          averageScore = Math.round(totalSum / count);
+          highestScoreVal = maxVal;
+          lowestScoreVal = minVal;
+          overallGrade = averageScore >= 90 ? "A+" : averageScore >= 80 ? "A" : averageScore >= 70 ? "B" : "C";
         }
       }
-    });
-
-    // Calculations based on map
-    const subjectList = [];
-    const subjectsKeys = Object.keys(subjectsScoreMap);
-    let totalScoresSum = 0;
-    let totalScoresCount = 0;
-
-    subjectsKeys.forEach(subName => {
-      const arr = subjectsScoreMap[subName];
-      const avg = Math.round(arr.reduce((a,b)=>a+b,0) / arr.length);
-      totalScoresSum += avg;
-      totalScoresCount++;
-
-      let subGrade = "B";
-      if (avg >= 95) subGrade = "A+";
-      else if (avg >= 90) subGrade = "A";
-      else if (avg >= 85) subGrade = "A-";
-      else if (avg >= 80) subGrade = "B+";
-      else if (avg >= 70) subGrade = "B";
-      else subGrade = "C";
-
-      subjectList.push({
-        name: subName,
-        average: avg,
-        grade: subGrade
-      });
-    });
-
-    if (totalScoresCount > 0) {
-      averageScore = Math.round(totalScoresSum / totalScoresCount);
     }
 
-    if (averageScore >= 95) overallGrade = "A+";
-    else if (averageScore >= 90) overallGrade = "A";
-    else if (averageScore >= 85) overallGrade = "A-";
-    else if (averageScore >= 80) overallGrade = "B+";
-    else if (averageScore >= 70) overallGrade = "B";
-    else overallGrade = "C";
+    // 5. Recent Exams (from real ExamSubmissions)
+    const submissionsForExams = await ExamSubmission.find({ student: studentId })
+      .populate({ path: "exam", populate: { path: "subject", select: "name" } })
+      .sort({ createdAt: -1 })
+      .limit(4);
 
-    // Fallbacks if no exams/submissions exist
-    if (subjectList.length === 0) {
-      subjectList.push(
-        { name: "Mathematics", average: 96, grade: "A+" },
-        { name: "Science", average: 88, grade: "A" },
-        { name: "English", average: 85, grade: "A" },
-        { name: "Social Science", average: 78, grade: "B+" },
-        { name: "Hindi", average: 74, grade: "B" }
-      );
-      highestScoreVal = 96;
-      highestSubject = "Mathematics";
-      lowestScoreVal = 72;
-      lowestSubject = "Social Science";
-      averageScore = 88;
-      overallGrade = "A";
-    }
+    const recentExams = submissionsForExams.map(sub => {
+      const max = sub.total || 100;
+      const scorePct = Math.round((sub.score / max) * 100);
+      let g = "F";
+      if (scorePct >= 90) g = "A+";
+      else if (scorePct >= 80) g = "A";
+      else if (scorePct >= 70) g = "B";
+      else if (scorePct >= 60) g = "C";
 
-    // Recent Exams
-    const recentExams = submissions.slice(0, 4).map(sub => {
-      const examObj = exams.find(e => e._id.toString() === sub.exam.toString());
-      const scorePct = Math.round((sub.score / (sub.total || 100)) * 100);
-      let g = "B";
-      if (scorePct >= 95) g = "A+";
-      else if (scorePct >= 90) g = "A";
-      else if (scorePct >= 80) g = "B+";
-      else g = "B";
       return {
         _id: sub._id,
-        examName: "Unit Test - 1",
-        subjectName: examObj?.subject?.name || "Subject",
+        examName: sub.exam?.title || sub.exam?.name || "Unit Test",
+        subjectName: sub.exam?.subject?.name || "Subject",
         score: scorePct,
         grade: g,
-        date: examObj?.date || new Date()
+        date: sub.createdAt || sub.exam?.date || new Date()
       };
     });
 
-    if (recentExams.length === 0) {
-      recentExams.push(
-        { _id: "ex1", examName: "Unit Test - 1", subjectName: "Mathematics", score: 96, grade: "A+", date: "2026-05-12T00:00:00.000Z" },
-        { _id: "ex2", examName: "Chapter Test - 2", subjectName: "Science", score: 88, grade: "A", date: "2026-05-05T00:00:00.000Z" },
-        { _id: "ex3", examName: "Unit Test - 1", subjectName: "English", score: 82, grade: "A", date: "2026-04-28T00:00:00.000Z" },
-        { _id: "ex4", examName: "MCQ Test", subjectName: "Social Science", score: 78, grade: "B+", date: "2026-04-20T00:00:00.000Z" }
-      );
+    // 6. Recent Assignments (from real MyDiary homeworks for this student's class)
+    let recentAssignments = [];
+    if (cls?._id) {
+      const diaries = await MyDiary.find({ schoolName: req.user.schoolName, classId: cls._id })
+        .sort({ createdAt: -1 })
+        .limit(4);
+
+      recentAssignments = diaries.map(d => {
+        const sc = d.studentCompletions?.find(c => c.studentId?.toString() === studentId.toString());
+        return {
+          id: d._id,
+          name: d.title,
+          subjectName: d.subjectName || "Subject",
+          status: sc?.status || "Pending",
+          dueDate: d.dueDate || d.homeworkDate || new Date().toISOString()
+        };
+      });
     }
 
-    // Recent Assignments
-    const recentAssignments = [
-      { id: "as1", name: "Algebra Worksheet", subjectName: "Mathematics", status: "Submitted", dueDate: "2026-05-15T00:00:00.000Z" },
-      { id: "as2", name: "Lab Report - Ch 3", subjectName: "Science", status: "Submitted", dueDate: "2026-05-10T00:00:00.000Z" },
-      { id: "as3", name: "Essay Writing", subjectName: "English", status: "Pending", dueDate: "2026-05-18T00:00:00.000Z" },
-      { id: "as4", name: "Map Activity", subjectName: "Social Science", status: "Submitted", dueDate: "2026-05-05T00:00:00.000Z" }
-    ];
+    // Calculate Age from DOB if present
+    let age = null;
+    if (student.dob) {
+      const dobDate = new Date(student.dob);
+      if (!isNaN(dobDate.getTime())) {
+        const ageDiffMs = Date.now() - dobDate.getTime();
+        const ageDate = new Date(ageDiffMs);
+        age = Math.abs(ageDate.getUTCFullYear() - 1970);
+      }
+    }
+
+    const formattedDob = student.dob ? new Date(student.dob).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
+    const formattedJoinedOn = student.joiningDate || (student.createdAt ? new Date(student.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "");
 
     res.json({
       studentId,
@@ -943,15 +991,15 @@ exports.getStudentDetails = async (req, res) => {
       status: "Active",
       rollNo,
       admissionNo,
-      dob: student.dob || "15 May 2010",
-      age: 14,
-      gender: student.gender || "Male",
-      email: student.email,
-      phone: student.phoneNumber || "+91 98765 43210",
-      address: student.address || "123, Green Street, Jaipur, Rajasthan - 302001",
-      classAndSection: `Class ${className} - ${sectionName}`,
-      classTeacher: req.user.name || "Lovely Coder",
-      joinedOn: student.joiningDate || "10 Apr 2023",
+      dob: formattedDob,
+      age: age !== null ? age : undefined,
+      gender: student.gender || "",
+      email: student.email || "",
+      phone: student.phoneNumber || "",
+      address: student.address || "",
+      classAndSection,
+      classTeacher,
+      joinedOn: formattedJoinedOn,
       attendanceOverview: {
         percentage: attendancePercentage,
         present,
@@ -963,9 +1011,9 @@ exports.getStudentDetails = async (req, res) => {
       academicPerformance: {
         overallGrade,
         averageScore,
-        highestScore: `${highestScoreVal}%`,
+        highestScore: highestSubject !== "N/A" ? `${highestScoreVal}%` : "N/A",
         highestSubject,
-        lowestScore: `${lowestScoreVal}%`,
+        lowestScore: lowestSubject !== "N/A" ? `${lowestScoreVal}%` : "N/A",
         lowestSubject
       },
       subjects: subjectList,

@@ -167,10 +167,10 @@ function MyStudents() {
     
     // Attendance donut overview
     const attendanceDonut = [
-      { name: "Present", value: details.attendanceOverview?.present || 28, color: "#10B981" },
-      { name: "Absent", value: details.attendanceOverview?.absent || 2, color: "#EF4444" },
-      { name: "Late", value: details.attendanceOverview?.late || 0, color: "#F59E0B" },
-      { name: "Leave", value: details.attendanceOverview?.leave || 0, color: "#6B7280" }
+      { name: "Present", value: details.attendanceOverview?.present ?? 0, color: "#10B981" },
+      { name: "Absent", value: details.attendanceOverview?.absent ?? 0, color: "#EF4444" },
+      { name: "Late", value: details.attendanceOverview?.late ?? 0, color: "#F59E0B" },
+      { name: "Leave", value: details.attendanceOverview?.leave ?? 0, color: "#6B7280" }
     ];
 
     const quickActions = [
@@ -248,19 +248,19 @@ function MyStudents() {
               {/* Grid of basic fields */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-2 mt-4 text-[10px] font-bold text-slate-500 dark:text-slate-400">
                 <p className="flex items-center gap-2 truncate">
-                  <FaBirthdayCake className="text-slate-400" /> Date of Birth: <span className="text-slate-700 dark:text-slate-300 font-extrabold">{details.dob} ({details.age} Years)</span>
+                  <FaBirthdayCake className="text-slate-400" /> Date of Birth: <span className="text-slate-700 dark:text-slate-300 font-extrabold">{details.dob || "N/A"}{details.age ? ` (${details.age} Years)` : ""}</span>
                 </p>
                 <p className="flex items-center gap-2 truncate">
-                  <FaUser className="text-slate-400" /> Gender: <span className="text-slate-700 dark:text-slate-300 font-extrabold">{details.gender}</span>
+                  <FaUser className="text-slate-400" /> Gender: <span className="text-slate-700 dark:text-slate-300 font-extrabold">{details.gender || "N/A"}</span>
                 </p>
                 <p className="flex items-center gap-2 truncate">
-                  <FaEnvelope className="text-slate-400" /> Email: <span className="text-slate-700 dark:text-slate-300 font-extrabold">{details.email}</span>
+                  <FaEnvelope className="text-slate-400" /> Email: <span className="text-slate-700 dark:text-slate-300 font-extrabold">{details.email || "N/A"}</span>
                 </p>
                 <p className="flex items-center gap-2 truncate">
-                  <FaPhone className="text-slate-400" /> Phone: <span className="text-slate-700 dark:text-slate-300 font-extrabold">{details.phone}</span>
+                  <FaPhone className="text-slate-400" /> Phone: <span className="text-slate-700 dark:text-slate-300 font-extrabold">{details.phone || "N/A"}</span>
                 </p>
                 <p className="flex items-center gap-2 truncate md:col-span-2">
-                  <FaMapMarkerAlt className="text-slate-400" /> Address: <span className="text-slate-700 dark:text-slate-300 font-extrabold">{details.address}</span>
+                  <FaMapMarkerAlt className="text-slate-400" /> Address: <span className="text-slate-700 dark:text-slate-300 font-extrabold">{details.address || "N/A"}</span>
                 </p>
               </div>
             </div>
@@ -358,7 +358,7 @@ function MyStudents() {
                     </ResponsiveContainer>
                     <div className="absolute flex flex-col items-center justify-center">
                       <span className="text-2xl font-black text-slate-800 dark:text-white leading-none">
-                        {details.attendanceOverview?.percentage || 93}%
+                        {details.attendanceOverview?.percentage ?? 0}%
                       </span>
                       <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">
                         Present
@@ -370,8 +370,8 @@ function MyStudents() {
                   <div className="space-y-2 w-full sm:w-auto">
                     {attendanceDonut.map((d, idx) => {
                       const count = d.value;
-                      const total = details.attendanceOverview?.total || 30;
-                      const percent = Math.round((count / total) * 100) || 0;
+                      const total = details.attendanceOverview?.total ?? 0;
+                      const percent = total > 0 ? Math.round((count / total) * 100) : 0;
                       return (
                         <div key={idx} className="flex items-center justify-between sm:justify-start gap-4">
                           <div className="flex items-center gap-2">
@@ -451,27 +451,33 @@ function MyStudents() {
 
                 {/* Subject progress bar lists */}
                 <div className="space-y-3.5 flex-1 max-h-[190px] overflow-y-auto pr-1.5 scrollbar-thin">
-                  {details.subjects?.map((sub, idx) => (
-                    <div key={idx} className="space-y-1.5 select-none leading-none">
-                      <div className="flex justify-between items-center text-xs font-bold text-slate-700 dark:text-slate-350">
-                        <span>{sub.name}</span>
-                        <span className="flex items-center gap-2">
-                          <span className="text-slate-900 dark:text-white font-black">{sub.average}%</span>
-                          <span className={`text-[9px] font-extrabold px-1 rounded uppercase tracking-wider ${getGradeColor(sub.grade)} bg-slate-50 dark:bg-white/5 border border-slate-200/40 dark:border-white/5`}>
-                            {sub.grade}
+                  {details.subjects && details.subjects.length > 0 ? (
+                    details.subjects.map((sub, idx) => (
+                      <div key={idx} className="space-y-1.5 select-none leading-none">
+                        <div className="flex justify-between items-center text-xs font-bold text-slate-700 dark:text-slate-350">
+                          <span>{sub.name}</span>
+                          <span className="flex items-center gap-2">
+                            <span className="text-slate-900 dark:text-white font-black">{sub.average}%</span>
+                            <span className={`text-[9px] font-extrabold px-1 rounded uppercase tracking-wider ${getGradeColor(sub.grade)} bg-slate-50 dark:bg-white/5 border border-slate-200/40 dark:border-white/5`}>
+                              {sub.grade}
+                            </span>
                           </span>
-                        </span>
+                        </div>
+                        <div className="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${
+                              sub.average >= 90 ? 'bg-emerald-500' : sub.average >= 80 ? 'bg-blue-500' : 'bg-amber-500'
+                            }`} 
+                            style={{ width: `${sub.average}%` }} 
+                          />
+                        </div>
                       </div>
-                      <div className="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full ${
-                            sub.average >= 90 ? 'bg-emerald-500' : sub.average >= 80 ? 'bg-blue-500' : 'bg-amber-500'
-                          }`} 
-                          style={{ width: `${sub.average}%` }} 
-                        />
-                      </div>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-28 text-slate-400 dark:text-slate-500 text-xs font-semibold">
+                      No published subject results
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
 
@@ -490,36 +496,42 @@ function MyStudents() {
                 </div>
 
                 <div className="overflow-x-auto flex-1 select-text scrollbar-thin">
-                  <table className="w-full min-w-[280px] text-xs text-left">
-                    <thead>
-                      <tr className="text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[8px] font-black border-b border-slate-100 dark:border-white/5 pb-2">
-                        <th className="pb-2">Exam Name</th>
-                        <th className="pb-2">Subject</th>
-                        <th className="pb-2 text-right">Score</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100/60 dark:divide-white/5">
-                      {details.recentExams?.map((exam) => (
-                        <tr key={exam._id} className="hover:bg-slate-50/20 dark:hover:bg-white/[0.01] transition-colors">
-                          <td className="py-2.5 font-bold text-slate-805 dark:text-white leading-tight">
-                            {exam.examName}
-                            <span className="block text-[8px] text-slate-400 font-bold mt-1">
-                              {new Date(exam.date).toLocaleDateString()}
-                            </span>
-                          </td>
-                          <td className="py-2.5 text-slate-500 dark:text-slate-400 font-semibold">{exam.subjectName}</td>
-                          <td className="py-2.5 text-right font-black text-slate-800 dark:text-white">
-                            <span className="flex items-center justify-end gap-1.5">
-                              {exam.score}%
-                              <span className={`text-[8px] font-extrabold px-1 rounded ${getGradeColor(exam.grade)} bg-slate-50 dark:bg-white/5 border border-slate-200/40 dark:border-white/5`}>
-                                {exam.grade}
-                              </span>
-                            </span>
-                          </td>
+                  {details.recentExams && details.recentExams.length > 0 ? (
+                    <table className="w-full min-w-[280px] text-xs text-left">
+                      <thead>
+                        <tr className="text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[8px] font-black border-b border-slate-100 dark:border-white/5 pb-2">
+                          <th className="pb-2">Exam Name</th>
+                          <th className="pb-2">Subject</th>
+                          <th className="pb-2 text-right">Score</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100/60 dark:divide-white/5">
+                        {details.recentExams.map((exam) => (
+                          <tr key={exam._id} className="hover:bg-slate-50/20 dark:hover:bg-white/[0.01] transition-colors">
+                            <td className="py-2.5 font-bold text-slate-805 dark:text-white leading-tight">
+                              {exam.examName}
+                              <span className="block text-[8px] text-slate-400 font-bold mt-1">
+                                {new Date(exam.date).toLocaleDateString()}
+                              </span>
+                            </td>
+                            <td className="py-2.5 text-slate-500 dark:text-slate-400 font-semibold">{exam.subjectName}</td>
+                            <td className="py-2.5 text-right font-black text-slate-800 dark:text-white">
+                              <span className="flex items-center justify-end gap-1.5">
+                                {exam.score}%
+                                <span className={`text-[8px] font-extrabold px-1 rounded ${getGradeColor(exam.grade)} bg-slate-50 dark:bg-white/5 border border-slate-200/40 dark:border-white/5`}>
+                                  {exam.grade}
+                                </span>
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-28 text-slate-400 dark:text-slate-500 text-xs font-semibold">
+                      No recent exam records found
+                    </div>
+                  )}
                 </div>
 
                 <button onClick={() => setActiveTab("Exams")} className="w-full mt-4 bg-slate-50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-605 dark:text-slate-300 py-2 rounded-2xl text-[10px] font-black tracking-wide cursor-pointer transition-all">
@@ -537,37 +549,43 @@ function MyStudents() {
                 </div>
 
                 <div className="overflow-x-auto flex-1 select-text scrollbar-thin">
-                  <table className="w-full min-w-[280px] text-xs text-left">
-                    <thead>
-                      <tr className="text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[8px] font-black border-b border-slate-100 dark:border-white/5 pb-2">
-                        <th className="pb-2">Assignment</th>
-                        <th className="pb-2">Subject</th>
-                        <th className="pb-2 text-right">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100/60 dark:divide-white/5">
-                      {details.recentAssignments?.map((ass) => (
-                        <tr key={ass.id} className="hover:bg-slate-50/20 dark:hover:bg-white/[0.01] transition-colors">
-                          <td className="py-2.5 font-bold text-slate-805 dark:text-white leading-tight">
-                            {ass.name}
-                            <span className="block text-[8px] text-slate-400 font-bold mt-1">
-                              Due: {new Date(ass.dueDate).toLocaleDateString()}
-                            </span>
-                          </td>
-                          <td className="py-2.5 text-slate-500 dark:text-slate-400 font-semibold">{ass.subjectName}</td>
-                          <td className="py-2.5 text-right font-black">
-                            <span className={`inline-block text-[8px] font-extrabold px-2 py-0.5 rounded border uppercase tracking-wider ${
-                              ass.status === 'Submitted'
-                                ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                                : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                            }`}>
-                              {ass.status}
-                            </span>
-                          </td>
+                  {details.recentAssignments && details.recentAssignments.length > 0 ? (
+                    <table className="w-full min-w-[280px] text-xs text-left">
+                      <thead>
+                        <tr className="text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[8px] font-black border-b border-slate-100 dark:border-white/5 pb-2">
+                          <th className="pb-2">Assignment</th>
+                          <th className="pb-2">Subject</th>
+                          <th className="pb-2 text-right">Status</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100/60 dark:divide-white/5">
+                        {details.recentAssignments.map((ass) => (
+                          <tr key={ass.id} className="hover:bg-slate-50/20 dark:hover:bg-white/[0.01] transition-colors">
+                            <td className="py-2.5 font-bold text-slate-805 dark:text-white leading-tight">
+                              {ass.name}
+                              <span className="block text-[8px] text-slate-400 font-bold mt-1">
+                                Due: {new Date(ass.dueDate).toLocaleDateString()}
+                              </span>
+                            </td>
+                            <td className="py-2.5 text-slate-500 dark:text-slate-400 font-semibold">{ass.subjectName}</td>
+                            <td className="py-2.5 text-right font-black">
+                              <span className={`inline-block text-[8px] font-extrabold px-2 py-0.5 rounded border uppercase tracking-wider ${
+                                ass.status === 'Submitted'
+                                  ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                                  : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                              }`}>
+                                {ass.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-28 text-slate-400 dark:text-slate-500 text-xs font-semibold">
+                      No assignments found for this class
+                    </div>
+                  )}
                 </div>
 
                 <button onClick={() => setActiveTab("Assignments")} className="w-full mt-4 bg-slate-50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-605 dark:text-slate-300 py-2 rounded-2xl text-[10px] font-black tracking-wide cursor-pointer transition-all">
