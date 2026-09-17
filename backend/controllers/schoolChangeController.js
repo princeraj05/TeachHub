@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const SchoolChangeRequest = require("../models/SchoolChangeRequest");
 const User = require("../models/User");
 const School = require("../models/School");
+const Class = require("../models/Class");
 const { createAppNotification, notifySchoolAdmins } = require("../utils/notificationHelper");
 
 // Helper to notify all Super Admins
