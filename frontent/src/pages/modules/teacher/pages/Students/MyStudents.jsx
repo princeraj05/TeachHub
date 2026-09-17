@@ -1641,7 +1641,11 @@ function MyStudents() {
 
                     {/* Performance Score */}
                     <td className="px-4 py-4">
-                      <span className="font-extrabold text-slate-800 dark:text-white">{std.performanceAverage}%</span>
+                      <span className="font-extrabold text-slate-800 dark:text-white">
+                        {typeof (std.performanceAverage ?? std.performancePercentage) === "number" && (std.performanceAverage ?? std.performancePercentage) > 0
+                          ? `${std.performanceAverage ?? std.performancePercentage}%`
+                          : "0%"}
+                      </span>
                     </td>
 
                     {/* Status Badge */}

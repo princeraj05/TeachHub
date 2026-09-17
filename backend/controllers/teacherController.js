@@ -748,6 +748,7 @@ exports.getMyStudents = async (req, res) => {
           sectionName: c.section,
           attendancePercentage,
           performancePercentage,
+          performanceAverage: performancePercentage,
           performanceGrade: grade,
           status
         });
