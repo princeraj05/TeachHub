@@ -654,21 +654,26 @@ exports.getMyStudents = async (req, res) => {
     for (const c of classes) {
       const studentIds = c.students.map(s => s._id);
       
-      // Fetch today's attendance for these students marked by this teacher
+      // Fetch today's attendance for these students across the school
       const todayAtt = await Attendance.find({
-        teacher: teacherId,
         student: { $in: studentIds },
         date: { $gte: startOfDay, $lte: endOfDay },
         schoolName: req.user.schoolName
       });
 
-      // Fetch monthly attendance marked by this teacher
+      // Fetch all attendance for these students across the school
       const monthlyAtt = await Attendance.find({
-        teacher: teacherId,
         student: { $in: studentIds },
-        date: { $gte: startOfMonth },
         schoolName: req.user.schoolName
       });
+
+      // Fetch published StudentResult for these students
+      const StudentResult = require("../models/StudentResult");
+      const publishedResults = await StudentResult.find({
+        student: { $in: studentIds },
+        schoolName: req.user.schoolName,
+        isPublished: true
+      }).sort({ createdAt: -1 });
 
       // Fetch exams for this class
       const classExams = await Exam.find({ class: c._id });
@@ -690,7 +695,7 @@ exports.getMyStudents = async (req, res) => {
           }
         }
 
-        // Monthly attendance percent
+        // Monthly attendance percent (school-wide)
         const studentMonthly = monthlyAtt.filter(a => a.student.toString() === student._id.toString());
         let attendancePercentage = 0;
         if (studentMonthly.length > 0) {
@@ -699,12 +704,18 @@ exports.getMyStudents = async (req, res) => {
         }
         sumAttendancePct += attendancePercentage;
 
-        // Student performance score
-        const studentSubmissions = submissions.filter(s => s.student.toString() === student._id.toString());
+        // Student performance score: Check published StudentResult first, fallback to ExamSubmission
+        const studentResult = publishedResults.find(r => r.student?.toString() === student._id?.toString());
         let performancePercentage = 0;
-        if (studentSubmissions.length > 0) {
-          const totalPct = studentSubmissions.reduce((sum, s) => sum + (s.score / (s.total || 100)) * 100, 0);
-          performancePercentage = Math.round(totalPct / studentSubmissions.length);
+
+        if (studentResult && typeof studentResult.percentage === "number" && studentResult.percentage > 0) {
+          performancePercentage = Math.round(studentResult.percentage);
+        } else {
+          const studentSubmissions = submissions.filter(s => s.student.toString() === student._id.toString());
+          if (studentSubmissions.length > 0) {
+            const totalPct = studentSubmissions.reduce((sum, s) => sum + (s.score / (s.total || 100)) * 100, 0);
+            performancePercentage = Math.round(totalPct / studentSubmissions.length);
+          }
         }
         sumPerformancePct += performancePercentage;
 
@@ -981,24 +992,10 @@ exports.getStudentDetails = async (req, res) => {
       .populate({ path: "exam", populate: { path: "subject", select: "name" } })
       .sort({ createdAt: -1 });
 
-    const recentExams = submissionsForExams.slice(0, 4).map(sub => {
-      const max = sub.total || 100;
-      const scorePct = Math.round((sub.score / max) * 100);
-      let g = "F";
-      if (scorePct >= 90) g = "A+";
-      else if (scorePct >= 80) g = "A";
-      else if (scorePct >= 70) g = "B";
-      else if (scorePct >= 60) g = "C";
-
-      return {
-        _id: sub._id,
-        examName: sub.exam?.title || sub.exam?.name || "Unit Test",
-        subjectName: sub.exam?.subject?.name || "Subject",
-        score: scorePct,
-        grade: g,
-        date: sub.createdAt || sub.exam?.date || new Date()
-      };
-    });
+    const publishedMarksForStudent = await StudentMark.find({
+      student: studentId,
+      schoolName: req.user.schoolName
+    }).populate("subject", "name").lean();
 
     let classExams = [];
     if (cls?._id) {
@@ -1030,18 +1027,77 @@ exports.getStudentDetails = async (req, res) => {
           grade: g
         });
       } else {
-        allExamsMap.push({
-          _id: e._id,
-          title: e.title || e.name || "Class Exam",
-          subjectName: e.subject?.name || "Subject",
-          date: e.date || e.createdAt,
-          maxMarks: e.totalMarks || 100,
-          status: "Not Taken",
-          score: null,
-          grade: "N/A"
+        // STEP 2: Check if a published StudentMark exists for this student and subject
+        const pm = publishedMarksForStudent.find(m => {
+          const mSubId = m.subject?._id ? m.subject._id.toString() : m.subject?.toString();
+          const eSubId = e.subject?._id ? e.subject._id.toString() : e.subject?.toString();
+          if (mSubId && eSubId && mSubId === eSubId) return true;
+          if (m.subject?.name && e.subject?.name && m.subject.name.trim().toLowerCase() === e.subject.name.trim().toLowerCase()) return true;
+          return false;
         });
+
+        if (pm) {
+          const max = pm.maxMarks || e.totalMarks || 100;
+          const scorePct = Math.round((pm.marksObtained / max) * 100);
+          let g = pm.grade || (scorePct >= 90 ? "A+" : scorePct >= 80 ? "A" : scorePct >= 70 ? "B" : scorePct >= 60 ? "C" : "D");
+
+          allExamsMap.push({
+            _id: e._id,
+            title: e.title || e.name || "Class Exam",
+            subjectName: e.subject?.name || pm.subject?.name || "Subject",
+            date: e.date || e.createdAt,
+            maxMarks: max,
+            status: "Evaluated",
+            score: scorePct,
+            grade: g
+          });
+        } else {
+          allExamsMap.push({
+            _id: e._id,
+            title: e.title || e.name || "Class Exam",
+            subjectName: e.subject?.name || "Subject",
+            date: e.date || e.createdAt,
+            maxMarks: e.totalMarks || 100,
+            status: "Not Taken",
+            score: null,
+            grade: "N/A"
+          });
+        }
       }
     });
+
+    let recentExams = submissionsForExams.slice(0, 4).map(sub => {
+      const max = sub.total || 100;
+      const scorePct = Math.round((sub.score / max) * 100);
+      let g = "F";
+      if (scorePct >= 90) g = "A+";
+      else if (scorePct >= 80) g = "A";
+      else if (scorePct >= 70) g = "B";
+      else if (scorePct >= 60) g = "C";
+
+      return {
+        _id: sub._id,
+        examName: sub.exam?.title || sub.exam?.name || "Unit Test",
+        subjectName: sub.exam?.subject?.name || "Subject",
+        score: scorePct,
+        grade: g,
+        date: sub.createdAt || sub.exam?.date || new Date()
+      };
+    });
+
+    if (recentExams.length === 0 && allExamsMap.length > 0) {
+      recentExams = allExamsMap
+        .filter(e => e.status === "Evaluated")
+        .slice(0, 4)
+        .map(e => ({
+          _id: e._id,
+          examName: e.title,
+          subjectName: e.subjectName,
+          score: e.score,
+          grade: e.grade,
+          date: e.date
+        }));
+    }
 
     // 6. Assignments List (from real MyDiary homeworks for this student's class)
     let assignments = [];
