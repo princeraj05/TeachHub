@@ -477,7 +477,7 @@ function StudentEvents() {
                 </div>
               )}
 
-              <EventGallery event={selectedEvent} api={API} />
+              <EventGallery event={selectedEvent} api={API} userRole="student" />
             </div>
           </div>
         </div>

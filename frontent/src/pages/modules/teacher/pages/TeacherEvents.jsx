@@ -222,7 +222,7 @@ function TeacherEvents() {
                 <p className="text-xs text-slate-755 dark:text-slate-350 leading-relaxed whitespace-pre-wrap">{selectedEvent.description}</p>
               </div>
 
-              <EventGallery event={selectedEvent} api={API} />
+              <EventGallery event={selectedEvent} api={API} userRole="teacher" />
 
               {/* Legacy media markup retained only for backwards-compatible state handling. */}
               <div className="hidden border-t border-slate-100 dark:border-white/5 pt-6 mb-8">

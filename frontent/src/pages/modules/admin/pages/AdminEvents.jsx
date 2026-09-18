@@ -1076,6 +1076,7 @@ function AdminEvents() {
                 api={API}
                 onDeletePhoto={handleDeletePhoto}
                 onDeleteVideo={handleDeleteVideo}
+                userRole="admin"
               />
 
               {/* Legacy media markup retained only for backwards-compatible state handling. */}

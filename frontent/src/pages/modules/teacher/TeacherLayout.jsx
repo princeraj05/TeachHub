@@ -432,8 +432,8 @@ function TeacherLayout() {
             {profileDropdownOpen && (
               <>
                 <div className="fixed inset-0 z-[45]" onClick={() => setProfileDropdownOpen(false)} />
-                <div className="absolute right-0 top-12 w-52 bg-[#0F172A] border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 animate-fadeIn text-slate-300">
-                  <div className="px-3 py-2 border-b border-white/[0.08] mb-1 flex items-center gap-2.5">
+                <div className="absolute right-0 top-12 w-52 bg-white dark:bg-[#0F172A] border border-slate-200/90 dark:border-white/10 rounded-2xl p-2.5 shadow-xl dark:shadow-2xl z-50 animate-fadeIn text-slate-700 dark:text-slate-300">
+                  <div className="px-3 py-2 border-b border-slate-100 dark:border-white/[0.08] mb-1 flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#7C3AED] to-[#38BDF8] flex items-center justify-center text-white font-black text-xs overflow-hidden border border-white/20 shrink-0">
                       {avatar ? (
                         <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
@@ -442,9 +442,9 @@ function TeacherLayout() {
                       )}
                     </div>
                     <div className="overflow-hidden">
-                      <p className="text-xs font-bold text-white truncate">{name}</p>
-                      <span className="inline-flex items-center gap-1 text-[8px] font-extrabold text-[#38BDF8] uppercase tracking-widest mt-0.5 bg-white/5 border border-white/[0.06] px-1.5 py-0.5 rounded">
-                        <FaUserShield className="text-[9px] text-[#38BDF8]" />
+                      <p className="text-xs font-bold text-slate-800 dark:text-white truncate">{name}</p>
+                      <span className="inline-flex items-center gap-1 text-[8px] font-extrabold text-[#7C3AED] dark:text-[#38BDF8] uppercase tracking-widest mt-0.5 bg-purple-50 dark:bg-white/5 border border-purple-200/60 dark:border-white/[0.06] px-1.5 py-0.5 rounded">
+                        <FaUserShield className="text-[9px] text-[#7C3AED] dark:text-[#38BDF8]" />
                         Instructor
                       </span>
                     </div>
@@ -452,18 +452,19 @@ function TeacherLayout() {
                   <Link
                     to="/teacher/profile"
                     onClick={() => setProfileDropdownOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition"
+                    className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition"
                   >
-                    <FaUserCircle /> My Profile
+                    <FaUserCircle className="text-sm text-slate-400 dark:text-slate-400" /> My Profile
                   </Link>
                   <button
+                    type="button"
                     onClick={() => {
                       setProfileDropdownOpen(false);
                       handleLogout();
                     }}
-                    className="flex items-center gap-2 w-full text-left px-3 py-2 text-xs font-bold text-rose-450 hover:bg-rose-500/10 hover:text-rose-400 rounded-xl transition cursor-pointer"
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 text-xs font-bold text-rose-600 dark:text-rose-450 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-700 dark:hover:text-rose-400 rounded-xl transition cursor-pointer"
                   >
-                    <FaSignOutAlt /> Logout
+                    <FaSignOutAlt className="text-sm" /> Logout
                   </button>
                 </div>
               </>
