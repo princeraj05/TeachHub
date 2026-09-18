@@ -14,8 +14,12 @@ exports.protect = async (req, res, next) => {
     // A token only identifies the user. Read the current role and school from the
     // database so a stale token cannot retain permissions after an admin change.
     const User = require("../models/User");
-    const user = await User.findById(decoded.id).select("role schoolName").lean();
+    const user = await User.findById(decoded.id).select("role schoolName supportStatus").lean();
     if (!user) return res.status(401).json({ message: "User no longer exists" });
+
+    if (user.role === "support" && user.supportStatus === "suspended") {
+      return res.status(403).json({ message: "Support Team account is suspended. Access denied." });
+    }
 
     // Validate User Session safely
     try {

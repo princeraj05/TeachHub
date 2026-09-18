@@ -14,7 +14,7 @@ const appNotificationSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["admin", "teacher", "student", "unassigned", "superadmin"],
+    enum: ["admin", "teacher", "student", "unassigned", "superadmin", "support"],
     required: true
   },
   title: {

@@ -232,12 +232,17 @@ export default function SupportLogin() {
         idToken = credential?.idToken || (await result.user.getIdToken());
       }
 
-      const res = await axios.post(`${API}/api/auth/firebase-sync`, { idToken });
+      const res = await axios.post(`${API}/api/auth/firebase-sync`, { 
+        idToken,
+        loginContext: "support"
+      });
       const { token, user } = res.data;
 
-      // Ensure support or superadmin role
-      if (user.role !== "support" && user.role !== "superadmin") {
-        user.role = "support";
+      // Verify support or superadmin role from backend response
+      if (!user || (user.role !== "support" && user.role !== "superadmin")) {
+        setError("Access Denied: Your account is not authorized for the Support Portal.");
+        setLoading(false);
+        return;
       }
 
       localStorage.setItem("token", token);
@@ -249,7 +254,8 @@ export default function SupportLogin() {
       navigate("/support/dashboard");
     } catch (err) {
       console.error("Google Auth error:", err);
-      setError("Google authentication failed. Please try again.");
+      const msg = err.response?.data?.message || "Google authentication failed. Please try again.";
+      setError(msg);
     } finally {
       setLoading(false);
     }

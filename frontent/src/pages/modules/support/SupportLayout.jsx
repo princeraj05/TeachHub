@@ -18,16 +18,32 @@ import {
   FaBars,
   FaTimes
 } from "react-icons/fa";
+import { getSupportDashboardStats } from "../../../services/supportTicketApi";
 
 export default function SupportLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [stats, setStats] = useState(null);
 
-  const userName = localStorage.getItem("userName") || "Prince Raj";
-  const userEmail = localStorage.getItem("userEmail") || "support@teachhub.com";
-  const userInitials = userName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() || "ST";
+  const userName = localStorage.getItem("userName") || "Support Agent";
+  const userEmail = localStorage.getItem("userEmail") || "agent@teachhub.com";
+  const userInitials = userName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() || "SA";
+
+  useEffect(() => {
+    let isMounted = true;
+    getSupportDashboardStats()
+      .then((data) => {
+        if (isMounted && data) {
+          setStats(data);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load layout stats:", err?.message);
+      });
+    return () => { isMounted = false; };
+  }, [location.pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -40,15 +56,39 @@ export default function SupportLayout() {
 
   const navItems = [
     { path: "/support/dashboard", label: "Dashboard", icon: FaThLarge },
-    { path: "/support/requests", label: "Support Requests", icon: FaTicketAlt, badge: "12", badgeColor: "bg-rose-500" },
+    { 
+      path: "/support/requests", 
+      label: "Support Requests", 
+      icon: FaTicketAlt, 
+      badge: stats?.totals?.all > 0 ? String(stats.totals.all) : null, 
+      badgeColor: "bg-rose-500" 
+    },
     { path: "/support/chat", label: "Live Chat", icon: FaComments },
     { path: "/support/users", label: "Users", icon: FaUsers },
     { path: "/support/schools", label: "Schools", icon: FaSchool },
     { path: "/support/calls", label: "Calls", icon: FaPhoneAlt },
     { path: "/support/help-center", label: "Help Center", icon: FaBookOpen },
-    { path: "/support/escalated", label: "Escalated Issues", icon: FaExclamationTriangle, badge: "15", badgeColor: "bg-rose-500" },
-    { path: "/support/notifications", label: "Notifications", icon: FaBell, badge: "12", badgeColor: "bg-purple-500" },
-    { path: "/support/my-assigned", label: "My Assigned Requests", icon: FaTicketAlt, badge: "44", badgeColor: "bg-[#7C3AED]" },
+    { 
+      path: "/support/escalated", 
+      label: "Escalated Issues", 
+      icon: FaExclamationTriangle, 
+      badge: stats?.totals?.escalated > 0 ? String(stats.totals.escalated) : null, 
+      badgeColor: "bg-rose-500" 
+    },
+    { 
+      path: "/support/notifications", 
+      label: "Notifications", 
+      icon: FaBell, 
+      badge: stats?.totals?.new > 0 ? String(stats.totals.new) : null, 
+      badgeColor: "bg-purple-500" 
+    },
+    { 
+      path: "/support/my-assigned", 
+      label: "My Assigned Requests", 
+      icon: FaTicketAlt, 
+      badge: stats?.totals?.myAssigned > 0 ? String(stats.totals.myAssigned) : null, 
+      badgeColor: "bg-[#7C3AED]" 
+    },
   ];
 
   const secondaryNavItems = [
@@ -222,9 +262,11 @@ export default function SupportLayout() {
               title="Notifications"
             >
               <FaBell className="text-base" />
-              <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                5
-              </span>
+              {stats?.totals?.new > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {stats.totals.new}
+                </span>
+              )}
             </button>
 
             {/* Online Status Pill */}

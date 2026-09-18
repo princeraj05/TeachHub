@@ -190,8 +190,14 @@ exports.assignRole = async (req, res) => {
     }
 
     if (role === "support") {
+      const allowedDepts = ["Billing", "Technical", "Onboarding"];
+      if (supportDepartment && !allowedDepts.includes(supportDepartment)) {
+        return res.status(400).json({
+          message: "Invalid support department specified. Allowed departments: Billing, Technical, Onboarding"
+        });
+      }
       if (supportDepartment) user.supportDepartment = supportDepartment;
-      if (supportShift) user.supportShift = supportShift;
+      user.supportShift = "Flexible";
       user.supportStatus = "active";
     }
 
@@ -649,14 +655,14 @@ exports.getSupportTeam = async (req, res) => {
       .select("-password")
       .sort({ createdAt: -1 });
 
-    const mapped = agents.map((u, idx) => ({
+    const mapped = agents.map((u) => ({
       _id: u._id,
       name: u.name || "Support Agent",
       email: u.email || "",
       phone: u.phoneNumber || u.alternatePhone || "+91 98765 43210",
       role: "support",
-      department: u.supportDepartment || (idx % 2 === 0 ? "Technical" : "Billing & SaaS"),
-      shift: u.supportShift || "Morning (09:00 - 17:00)",
+      department: u.supportDepartment || "",
+      shift: u.supportShift || "Flexible",
       status: u.supportStatus || (u.requestStatus === "rejected" ? "suspended" : "active"),
       dutyState: u.isOnline ? "On Duty" : "Offline",
       ticketsResolved: u.ticketsResolved || 0,
@@ -675,10 +681,17 @@ exports.getSupportTeam = async (req, res) => {
 exports.createSupportAgent = async (req, res) => {
   try {
     const bcrypt = require("bcryptjs");
-    const { name, email, password, phone, department, shift } = req.body;
+    const { name, email, password, phone, department } = req.body;
 
     if (!name || !email) {
       return res.status(400).json({ message: "Name and email are required" });
+    }
+
+    const allowedDepts = ["Billing", "Technical", "Onboarding"];
+    if (department && !allowedDepts.includes(department)) {
+      return res.status(400).json({
+        message: "Invalid support department specified. Allowed departments: Billing, Technical, Onboarding"
+      });
     }
 
     const existingUser = await User.findOne({ email });
@@ -696,8 +709,8 @@ exports.createSupportAgent = async (req, res) => {
       role: "support",
       requestedRole: "support",
       requestStatus: "approved",
-      supportDepartment: department || "Technical",
-      supportShift: shift || "Morning (09:00 - 17:00)",
+      supportDepartment: department || "",
+      supportShift: "Flexible",
       supportStatus: "active",
       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=7C3AED&color=fff`
     });
@@ -729,7 +742,7 @@ exports.createSupportAgent = async (req, res) => {
 exports.toggleSupportStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, department, shift } = req.body;
+    const { status, department } = req.body;
 
     const user = await User.findById(id);
     if (!user) {
@@ -737,8 +750,16 @@ exports.toggleSupportStatus = async (req, res) => {
     }
 
     if (status) user.supportStatus = status;
-    if (department) user.supportDepartment = department;
-    if (shift) user.supportShift = shift;
+    if (department) {
+      const allowedDepts = ["Billing", "Technical", "Onboarding"];
+      if (!allowedDepts.includes(department)) {
+        return res.status(400).json({
+          message: "Invalid support department specified. Allowed departments: Billing, Technical, Onboarding"
+        });
+      }
+      user.supportDepartment = department;
+    }
+    user.supportShift = "Flexible";
 
     await user.save();
 

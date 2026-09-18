@@ -9,6 +9,14 @@ const escapeRegex = (str) => (str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '
 const createAppNotification = async ({ recipient, schoolName, role, title, message, category = "General", link = "", metadata = {} }) => {
   try {
     if (!recipient || !schoolName || !role) return null;
+
+    // Do not notify suspended support agents
+    if (role === "support") {
+      const targetUser = await User.findById(recipient).select("supportStatus").lean();
+      if (targetUser && targetUser.supportStatus === "suspended") {
+        return null;
+      }
+    }
     const notification = await AppNotification.create({
       recipient,
       schoolName,
@@ -19,6 +27,12 @@ const createAppNotification = async ({ recipient, schoolName, role, title, messa
       link,
       metadata
     });
+
+    if (global.io && recipient) {
+      global.io.to(recipient.toString()).emit("notification:new", notification);
+      global.io.to(recipient.toString()).emit("app-notification:new", notification);
+    }
+
     return notification;
   } catch (err) {
     console.error("Error creating AppNotification:", err.message);
@@ -119,9 +133,71 @@ const notifyStudentsInClass = async ({ schoolName, className, section, title, me
   }
 };
 
+/**
+ * Notify active Support Team agents belonging to a specific department (or SuperAdmins)
+ */
+const notifySupportDepartment = async ({ department, title, message, category = "Support", link = "/support/requests", metadata = {} }) => {
+  try {
+    const agents = await User.find({
+      role: { $in: ["support", "superadmin"] },
+      supportStatus: { $ne: "suspended" },
+      $or: [
+        { role: "superadmin" },
+        { supportDepartment: department }
+      ]
+    }).select("_id role schoolName supportDepartment").lean();
+
+    const notifications = [];
+    for (const agent of agents) {
+      const notif = await createAppNotification({
+        recipient: agent._id,
+        schoolName: agent.schoolName || "TeachHub HQ",
+        role: agent.role,
+        title,
+        message,
+        category,
+        link,
+        metadata
+      });
+      if (notif) notifications.push(notif);
+    }
+    return notifications;
+  } catch (err) {
+    console.error(`Error notifying support department ${department}:`, err.message);
+    return [];
+  }
+};
+
+/**
+ * Notify a specific ticket requester
+ */
+const notifyTicketRequester = async ({ requesterId, title, message, category = "Support", link = "/support/requests", metadata = {} }) => {
+  try {
+    if (!requesterId) return null;
+    const user = await User.findById(requesterId).select("_id role schoolName").lean();
+    if (!user) return null;
+
+    return await createAppNotification({
+      recipient: user._id,
+      schoolName: user.schoolName || "Campus HQ",
+      role: user.role,
+      title,
+      message,
+      category,
+      link,
+      metadata
+    });
+  } catch (err) {
+    console.error("Error notifying ticket requester:", err.message);
+    return null;
+  }
+};
+
 module.exports = {
   createAppNotification,
   notifySchoolAdmins,
   notifySchoolRole,
-  notifyStudentsInClass
+  notifyStudentsInClass,
+  notifySupportDepartment,
+  notifyTicketRequester
 };

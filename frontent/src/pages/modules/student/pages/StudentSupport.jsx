@@ -6,16 +6,16 @@ import {
   FaPhone, 
   FaSearch, 
   FaUsers,
-  FaVideo
+  FaVideo,
+  FaTicketAlt
 } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import { useCall } from "../../../../context/CallContext";
 import SupportChatEngine from "../../../../components/SupportChatEngine";
+import CreateSupportTicketModal from "../../../../components/CreateSupportTicketModal";
 import API_URL from "../../../../config/api";
 
-const SORA = "'Sora', sans-serif";
-
-function StudentSupport() {
+export default function StudentSupport() {
   const API = API_URL;
   const token = localStorage.getItem("token");
   const currentUserId = localStorage.getItem("userId");
@@ -24,6 +24,7 @@ function StudentSupport() {
   const isPendingPortal = location.pathname.startsWith("/pending");
 
   const [activeTab, setActiveTab] = useState("admin"); // admin, teachers
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [subTab, setSubTab] = useState("personal"); // personal, broadcast, calls
   const [contacts, setContacts] = useState([]);
   const [activeContact, setActiveContact] = useState(null);
@@ -179,25 +180,15 @@ function StudentSupport() {
   const teacherContacts = useMemo(() => {
     return contacts
       .filter(c => c.role?.toLowerCase() === "teacher")
-      .map(c => ({
-        ...c,
-        avatar: c.avatar || c.photo || c.profilePhoto || c.image || ""
-      }))
-      .filter(c => {
-        if (!searchQuery.trim()) return true;
-        const q = searchQuery.toLowerCase();
-        return (
-          c.name?.toLowerCase().includes(q) ||
-          c.email?.toLowerCase().includes(q) ||
-          c.subject?.toLowerCase().includes(q)
-        );
-      });
+      .filter(c => 
+        searchQuery ? c.name?.toLowerCase().includes(searchQuery.toLowerCase()) : true
+      );
   }, [contacts, searchQuery]);
 
   return (
-    <div className="font-sans flex flex-col h-[calc(100vh-130px)] min-h-[500px] bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl overflow-hidden shadow-sm" style={{ fontFamily: SORA }}>
-      {/* Top Header & Tab bar */}
-      <div className="flex flex-wrap items-center justify-between border-b border-slate-100 dark:border-white/[0.05] bg-slate-50/50 dark:bg-[#111827] p-2 sm:p-2.5 gap-2 select-none shrink-0">
+    <div className="font-sans flex flex-col h-[calc(100vh-140px)] min-h-[500px] bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl overflow-hidden shadow-sm">
+      {/* Top Header Bar */}
+      <div className="flex flex-wrap items-center justify-between border-b border-slate-100 dark:border-white/[0.05] bg-slate-50/50 dark:bg-[#1f2937]/50 p-2 sm:p-2.5 gap-2 select-none shrink-0">
         <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             onClick={() => handleTabChange("admin")}
@@ -207,7 +198,7 @@ function StudentSupport() {
                 : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
             }`}
           >
-            School Admin Support
+            Admin Support
           </button>
           <button
             onClick={() => handleTabChange("teachers")}
@@ -217,19 +208,23 @@ function StudentSupport() {
                 : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
             }`}
           >
-            My Teachers Chat
+            Teachers Chat
           </button>
         </div>
 
-        {/* Action Button: Make Group */}
-        <Link 
-          to="/student/support/groups" 
-          className="rounded-xl bg-[#7C3AED] px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-white shadow-sm hover:opacity-90 transition shrink-0 ml-auto flex items-center gap-1.5"
+        <button
+          onClick={() => setIsTicketModalOpen(true)}
+          className="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-white shadow-sm hover:opacity-90 transition flex items-center gap-1.5 cursor-pointer ml-auto"
         >
-          <FaUsers className="text-xs" />
-          <span>+ Make Group</span>
-        </Link>
+          <FaTicketAlt className="text-xs" />
+          <span>+ Create Support Ticket</span>
+        </button>
       </div>
+
+      <CreateSupportTicketModal
+        isOpen={isTicketModalOpen}
+        onClose={() => setIsTicketModalOpen(false)}
+      />
 
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* If Active Tab is Admin Support */}
@@ -257,7 +252,7 @@ function StudentSupport() {
                     : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/[0.05]"
                 }`}
               >
-                💬 {isPendingPortal ? "Super Admin Chat" : "School Admin Chat"}
+                💬 Admin Chat
               </button>
             </div>
 
@@ -266,8 +261,9 @@ function StudentSupport() {
               subTab === "broadcast" ? "flex" : "hidden md:flex"
             }`}>
               <div className="p-3 sm:p-4 border-b border-slate-100 dark:border-white/[0.05] bg-white dark:bg-[#111827] shrink-0">
-                <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                  <FaBroadcastTower className="text-teal-500" /> System Announcements
+                <h3 className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                  <FaBroadcastTower className="text-[#7C3AED]" />
+                  School Announcements
                 </h3>
               </div>
               <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
@@ -393,83 +389,61 @@ function StudentSupport() {
                     </div>
                   ) : (
                     teacherContacts.map((contact) => (
-                      <button
+                      <div
                         key={contact._id}
                         onClick={() => setActiveContact(contact)}
-                        className={`w-full p-4 text-left transition flex items-center gap-3 cursor-pointer ${
+                        className={`p-3 flex items-center justify-between cursor-pointer transition ${
                           activeContact?._id === contact._id 
-                            ? "bg-white dark:bg-white/[0.02] border-l-4 border-[#7C3AED]" 
-                            : "hover:bg-slate-100/60 dark:hover:bg-white/[0.01]"
+                            ? "bg-purple-50 dark:bg-purple-900/20" 
+                            : "hover:bg-slate-100/60 dark:hover:bg-white/[0.02]"
                         }`}
                       >
-                        <div className="w-9 h-9 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black flex-shrink-0 relative">
-                          {contact.avatar ? (
-                            <img src={contact.avatar} alt={contact.name} className="w-full h-full rounded-full object-cover" />
-                          ) : (
-                            contact.name ? contact.name.charAt(0).toUpperCase() : "T"
-                          )}
-                          {contact.isOnline && (
-                            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-[#111827] rounded-full"></span>
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between">
-                            <p className="text-xs font-bold text-slate-700 dark:text-white truncate">{contact.name}</p>
-                            {contact.unreadCount > 0 && (
-                              <span className="bg-[#7C3AED] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
-                                {contact.unreadCount}
-                              </span>
+                        <div className="flex items-center gap-3">
+                          <div className="relative">
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold overflow-hidden shadow-sm">
+                              {contact.avatar ? (
+                                <img src={contact.avatar} alt={contact.name} className="w-full h-full object-cover" />
+                              ) : (
+                                contact.name ? contact.name.charAt(0).toUpperCase() : "T"
+                              )}
+                            </div>
+                            {contact.isOnline && (
+                              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#111827]" />
                             )}
                           </div>
-                          <p className="text-[10px] text-slate-400 font-medium truncate">
-                            {contact.lastMessage ? contact.lastMessage.content || "Media Attachment" : (contact.subject || contact.email)}
-                          </p>
+                          <div>
+                            <p className="text-xs font-bold text-slate-800 dark:text-white leading-tight">{contact.name}</p>
+                            <p className="text-[10px] text-slate-400 capitalize">{contact.subject || contact.department || "Teacher"}</p>
+                          </div>
                         </div>
-                      </button>
+                      </div>
                     ))
                   )}
                 </div>
               )}
 
               {subTab === "calls" && (
-                <div className="flex-1 overflow-y-auto divide-y divide-slate-100/50 dark:divide-white/[0.03] bg-white dark:bg-[#111827]">
-                  {!Array.isArray(callsHistory) || callsHistory.length === 0 ? (
+                <div className="flex-1 overflow-y-auto divide-y divide-slate-100/50 dark:divide-white/[0.03]">
+                  {callsHistory.length === 0 ? (
                     <div className="p-6 text-center text-slate-400 text-xs font-semibold select-none">
-                      {loading ? "Loading calls..." : "No call history found."}
+                      {loading ? "Loading call logs..." : "No past call logs."}
                     </div>
                   ) : (
                     callsHistory.map((call) => {
-                      if (!call) return null;
-                      const isOutgoing = (call.caller?._id || call.caller)?.toString() === currentUserId?.toString();
-                      const partner = isOutgoing ? call.receiver : call.caller;
-                      if (!partner) return null;
-                      
-                      const partnerName = typeof partner === "object" ? partner.name : "User";
-                      const isMissed = call.status === "missed";
-                      const isRejected = call.status === "rejected";
+                      const isCaller = call.caller?._id === currentUserId;
+                      const partner = isCaller ? call.receiver : call.caller;
                       const isCompleted = call.status === "completed";
-
                       return (
-                        <div
-                          key={call._id}
-                          className="w-full p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/[0.02] transition border-b border-slate-100/50 dark:border-white/[0.03]"
-                        >
+                        <div key={call._id} className="p-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/[0.02]">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black flex-shrink-0">
-                              {partnerName ? partnerName.charAt(0).toUpperCase() : "U"}
+                            <div className="w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-900/20 text-[#7C3AED] flex items-center justify-center text-xs font-bold">
+                              {partner?.name ? partner.name.charAt(0).toUpperCase() : "U"}
                             </div>
-                            <div className="min-w-0">
-                              <p className="text-xs font-bold text-slate-700 dark:text-white truncate">{partnerName}</p>
-                              <div className="flex items-center gap-1 mt-0.5 select-none">
-                                <span className={`text-[9px] font-bold uppercase tracking-wider ${
-                                  isMissed || isRejected ? "text-rose-500" : isCompleted ? "text-green-500" : "text-amber-500"
-                                }`}>
-                                  {isOutgoing ? "Outgoing" : "Incoming"} · {call.status}
-                                </span>
-                                <span className="text-[9px] text-slate-400 font-medium">
-                                  · {new Date(call.createdAt).toLocaleDateString()} {new Date(call.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                              </div>
+                            <div>
+                              <p className="text-xs font-bold text-slate-800 dark:text-white leading-tight">{partner?.name || "User"}</p>
+                              <p className="text-[9px] text-slate-400 font-semibold mt-0.5">
+                                {isCaller ? "Outgoing" : "Incoming"} • {new Date(call.createdAt).toLocaleDateString()} {new Date(call.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
                               {isCompleted && call.duration > 0 && (
                                 <p className="text-[9px] text-slate-400 font-semibold font-mono mt-0.5">
                                   Duration: {Math.floor(call.duration / 60)}m {call.duration % 60}s
@@ -529,5 +503,3 @@ function StudentSupport() {
     </div>
   );
 }
-
-export default StudentSupport;

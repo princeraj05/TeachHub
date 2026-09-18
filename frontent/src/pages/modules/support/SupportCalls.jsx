@@ -1,63 +1,183 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import axios from "axios";
 import { 
   FaPhoneAlt, 
   FaVideo, 
   FaPhoneSlash, 
   FaClock, 
-  FaCalendarAlt, 
   FaUser, 
   FaSearch, 
   FaFilter, 
-  FaChevronLeft, 
-  FaChevronRight, 
-  FaEllipsisV, 
-  FaComments,
+  FaPlus,
+  FaPhoneVolume,
+  FaSpinner,
+  FaExclamationCircle,
   FaMicrophone,
   FaMicrophoneSlash,
-  FaPlus,
-  FaPhoneVolume
+  FaRedo
 } from "react-icons/fa";
+import { useCall } from "../../../context/CallContext";
+import API_URL from "../../../config/api";
 
 export default function SupportCalls() {
+  const API = API_URL;
+  const token = localStorage.getItem("token");
+  const currentUserId = localStorage.getItem("userId");
+
   const [activeTab, setActiveTab] = useState("all");
-  const [dialNumber, setDialNumber] = useState("");
-  const [callMode, setCallMode] = useState("audio"); // "audio" or "video"
-  const [inCall, setInCall] = useState(true);
-  const [isMuted, setIsMuted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [callMode, setCallMode] = useState("voice"); // "voice" or "video"
+  const [contacts, setContacts] = useState([]);
+  const [selectedContact, setSelectedContact] = useState(null);
+  const [callsHistory, setCallsHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchContactText, setSearchContactText] = useState("");
 
-  // Mock Calls Dataset matching Screenshot 5
-  const calls = [
-    { id: "1", user: "Amit Kumar", phone: "+91 98765 43210", role: "Student", school: "G.D Academy", type: "Audio", duration: "12:45", timeDate: "Today, 11:20 AM", status: "Active", avatarBg: "bg-blue-600" },
-    { id: "2", user: "Neha Singh", phone: "+91 87654 32109", role: "Teacher", school: "Sunrise Public School", type: "Video", duration: "28:12", timeDate: "Today, 10:45 AM", status: "Completed", avatarBg: "bg-purple-600" },
-    { id: "3", user: "Ramesh Kumar", phone: "+91 76543 21098", role: "School Admin", school: "Bright Future School", type: "Audio", duration: "05:30", timeDate: "Today, 09:12 AM", status: "Missed", avatarBg: "bg-[#7C3AED]" },
-    { id: "4", user: "Pooja Sharma", phone: "+91 99887 76655", role: "Teacher", school: "R.K Public School", type: "Video", duration: "15:20", timeDate: "Yesterday, 4:30 PM", status: "Completed", avatarBg: "bg-[#0284C7]" },
-    { id: "5", user: "Vikram Patel", phone: "+91 88776 65432", role: "Student", school: "Model Children School", type: "Audio", duration: "08:10", timeDate: "Yesterday, 2:15 PM", status: "Completed", avatarBg: "bg-amber-600" },
-    { id: "6", user: "Anjali Verma", phone: "+91 77665 44321", role: "Parent", school: "Little Flower School", type: "Audio", duration: "00:00", timeDate: "Yesterday, 1:05 PM", status: "Missed", avatarBg: "bg-rose-600" },
-    { id: "7", user: "Suresh Yadav", phone: "+91 96543 23110", role: "Teacher", school: "Green Valley School", type: "Video", duration: "22:18", timeDate: "8 Sept 2026, 5:40 PM", status: "Completed", avatarBg: "bg-emerald-600" }
-  ];
+  const {
+    callState,
+    callType,
+    callPartner,
+    callDuration,
+    isMuted,
+    isCamOff,
+    startCall,
+    endCall,
+    cancelCall,
+    toggleMute,
+    toggleCamera
+  } = useCall() || {};
 
-  const handleDialClick = (digit) => {
-    setDialNumber(prev => prev + digit);
+  const fetchContacts = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API}/api/support/users`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setContacts(res.data || []);
+      if (res.data && res.data.length > 0 && !selectedContact) {
+        setSelectedContact(res.data[0]);
+      }
+    } catch (err) {
+      console.error("Error fetching support call contacts:", err);
+    }
+  }, [API, token, selectedContact]);
+
+  const fetchCallsHistory = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${API}/api/support/calls`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCallsHistory(res.data || []);
+    } catch (err) {
+      console.error("Error fetching call history:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [API, token]);
+
+  useEffect(() => {
+    fetchContacts();
+    fetchCallsHistory();
+
+    const handleCallHistoryUpdate = () => {
+      fetchCallsHistory();
+    };
+    window.addEventListener("call:history-updated", handleCallHistoryUpdate);
+    return () => {
+      window.removeEventListener("call:history-updated", handleCallHistoryUpdate);
+    };
+  }, [fetchContacts, fetchCallsHistory]);
+
+  const handleStartCall = () => {
+    if (!selectedContact) {
+      alert("Please select a target user to initiate call.");
+      return;
+    }
+    startCall(selectedContact, callMode);
+  };
+
+  const handleDialDigit = (digit) => {
+    setSearchContactText(prev => prev + digit);
+  };
+
+  // Filtered Contacts for Selection
+  const matchingContacts = useMemo(() => {
+    if (!searchContactText.trim()) return contacts;
+    const q = searchContactText.toLowerCase().trim();
+    return contacts.filter(c =>
+      c.name?.toLowerCase().includes(q) ||
+      c.email?.toLowerCase().includes(q) ||
+      c.role?.toLowerCase().includes(q) ||
+      c.schoolName?.toLowerCase().includes(q)
+    );
+  }, [contacts, searchContactText]);
+
+  // Real-time Summary Statistics
+  const stats = useMemo(() => {
+    const total = callsHistory.length;
+    const active = callState !== "idle" ? 1 : 0;
+    const missed = callsHistory.filter(c => c.status === "missed" || c.status === "rejected" || c.status === "timeout").length;
+    const video = callsHistory.filter(c => c.type === "video").length;
+    return { active, total, missed, video };
+  }, [callsHistory, callState]);
+
+  // Filter Calls History Table by Tabs & Search
+  const filteredCalls = useMemo(() => {
+    return callsHistory.filter(call => {
+      const isCaller = call.caller?._id === currentUserId;
+      const partner = isCaller ? call.receiver : call.caller;
+      const partnerName = partner?.name?.toLowerCase() || "";
+      const partnerSchool = partner?.schoolName?.toLowerCase() || "";
+      const matchesSearch = !searchQuery.trim() || 
+        partnerName.includes(searchQuery.toLowerCase()) || 
+        partnerSchool.includes(searchQuery.toLowerCase());
+
+      if (!matchesSearch) return false;
+
+      if (activeTab === "activecalls") return callState !== "idle";
+      if (activeTab === "missedcalls") return call.status === "missed" || call.status === "rejected" || call.status === "timeout";
+      if (activeTab === "videocalls") return call.type === "video";
+      return true;
+    });
+  }, [callsHistory, currentUserId, searchQuery, activeTab, callState]);
+
+  const formatDuration = (sec) => {
+    if (!sec || isNaN(sec)) return "00:00";
+    const mins = Math.floor(sec / 60);
+    const secs = sec % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const getFileUrl = (url) => {
+    if (!url) return "";
+    if (url.startsWith("http://") || url.startsWith("https://")) return url;
+    return `${API}${url}`;
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 select-none">
       
       {/* PAGE HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white tracking-tight flex items-center gap-3">
-            <span>Calls</span>
+            <span>Support Calling Center</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Manage and view all support calls with students, teachers and school admins.
+            Real-time audio & video support call operations with students, teachers and school admins.
           </p>
         </div>
 
-        <button className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-purple-600/25">
-          <FaPlus className="text-xs" />
-          <span>Make a Call</span>
-        </button>
+        {selectedContact && (
+          <button 
+            onClick={handleStartCall}
+            disabled={callState !== "idle"}
+            className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-purple-600/25 transition cursor-pointer disabled:opacity-50"
+          >
+            <FaPhoneAlt className="text-xs" />
+            <span>Call {selectedContact.name}</span>
+          </button>
+        )}
       </div>
 
       {/* 5 SUMMARY STAT CARDS */}
@@ -67,7 +187,7 @@ export default function SupportCalls() {
             <FaPhoneVolume className="text-lg animate-pulse" />
           </div>
           <div>
-            <div className="text-xl font-black text-slate-800 dark:text-white leading-tight">2</div>
+            <div className="text-xl font-black text-slate-800 dark:text-white leading-tight">{stats.active}</div>
             <div className="text-[10px] text-slate-400 font-medium">Active Calls</div>
           </div>
         </div>
@@ -77,8 +197,8 @@ export default function SupportCalls() {
             <FaPhoneAlt className="text-lg" />
           </div>
           <div>
-            <div className="text-xl font-black text-slate-800 dark:text-white leading-tight">24</div>
-            <div className="text-[10px] text-slate-400 font-medium">Recent Calls</div>
+            <div className="text-xl font-black text-slate-800 dark:text-white leading-tight">{stats.total}</div>
+            <div className="text-[10px] text-slate-400 font-medium">Total Calls Logged</div>
           </div>
         </div>
 
@@ -87,8 +207,8 @@ export default function SupportCalls() {
             <FaPhoneSlash className="text-lg" />
           </div>
           <div>
-            <div className="text-xl font-black text-slate-800 dark:text-white leading-tight">5</div>
-            <div className="text-[10px] text-slate-400 font-medium">Missed Calls</div>
+            <div className="text-xl font-black text-slate-800 dark:text-white leading-tight">{stats.missed}</div>
+            <div className="text-[10px] text-slate-400 font-medium">Missed / Rejected</div>
           </div>
         </div>
 
@@ -97,8 +217,8 @@ export default function SupportCalls() {
             <FaVideo className="text-lg" />
           </div>
           <div>
-            <div className="text-xl font-black text-slate-800 dark:text-white leading-tight">18</div>
-            <div className="text-[10px] text-slate-400 font-medium">Video Calls</div>
+            <div className="text-xl font-black text-slate-800 dark:text-white leading-tight">{stats.video}</div>
+            <div className="text-[10px] text-slate-400 font-medium">Video Sessions</div>
           </div>
         </div>
 
@@ -107,8 +227,10 @@ export default function SupportCalls() {
             <FaClock className="text-lg" />
           </div>
           <div>
-            <div className="text-xl font-black text-slate-800 dark:text-white leading-tight">120</div>
-            <div className="text-[10px] text-slate-400 font-medium">Total Calls</div>
+            <div className="text-xl font-black text-slate-800 dark:text-white leading-tight">
+              {stats.total > 0 ? `${Math.round(stats.total * 4.2)}m` : "0m"}
+            </div>
+            <div className="text-[10px] text-slate-400 font-medium">Est. Duration</div>
           </div>
         </div>
       </div>
@@ -116,195 +238,230 @@ export default function SupportCalls() {
       {/* MAIN LAYOUT: Calls Table (Col 8) & Interactive Dialpad / Call Controls Sidebar (Col 4) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* CALLS TABLE & BOTTOM WIDGETS AREA (Col 8) */}
+        {/* CALLS TABLE AREA (Col 8) */}
         <div className="lg:col-span-8 space-y-4">
           
-          {/* Controls Bar & Tabs */}
+          {/* Controls Bar & Filter Tabs */}
           <div className="bg-white dark:bg-[#0D1527] border border-slate-200 dark:border-white/10 rounded-2xl p-3 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#162238] p-1 rounded-xl text-xs w-full sm:w-auto overflow-x-auto">
-              {["All Calls", "Active Calls", "Recent Calls", "Missed Calls", "Video Calls"].map((tab) => (
+              {[
+                { key: "all", label: "All Calls" },
+                { key: "activecalls", label: "Active" },
+                { key: "missedcalls", label: "Missed" },
+                { key: "videocalls", label: "Video" }
+              ].map((tab) => (
                 <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab.toLowerCase().replace(/\s+/g, ""))}
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
                   className={`px-3 py-1.5 rounded-lg font-bold transition whitespace-nowrap ${
-                    activeTab === tab.toLowerCase().replace(/\s+/g, "")
+                    activeTab === tab.key
                       ? "bg-purple-600 text-white shadow" 
                       : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  {tab}
+                  {tab.label}
                 </button>
               ))}
             </div>
 
-            <div className="flex items-center gap-2 text-xs">
-              <select className="bg-slate-100 dark:bg-[#162238] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-slate-800 dark:text-white focus:outline-none">
-                <option>Last 30 Days</option>
-                <option>This Week</option>
-              </select>
-              <button className="flex items-center gap-1 bg-slate-100 dark:bg-[#162238] border border-slate-200 dark:border-white/10 px-3 py-2 rounded-xl text-slate-400 hover:text-white">
-                <FaFilter />
-                <span>Filters</span>
-              </button>
+            {/* Search Filter Input */}
+            <div className="relative w-full sm:w-64">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search history by name..."
+                className="w-full pl-8 pr-3 py-1.5 bg-slate-100 dark:bg-[#162238] border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-white text-xs focus:outline-none"
+              />
+              <FaSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
             </div>
           </div>
 
-          {/* Table Container */}
+          {/* Call History Table */}
           <div className="bg-white dark:bg-[#0D1527] border border-slate-200 dark:border-white/10 rounded-2xl shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="bg-slate-50 dark:bg-[#121B2E] border-b border-slate-200 dark:border-white/10 text-slate-400 font-bold uppercase tracking-wider">
-                    <th className="p-3.5 w-10">
-                      <input type="checkbox" className="rounded text-purple-600 focus:ring-0" />
-                    </th>
-                    <th className="p-3.5">#</th>
-                    <th className="p-3.5">User</th>
-                    <th className="p-3.5">Role</th>
-                    <th className="p-3.5">School</th>
-                    <th className="p-3.5">Call Type</th>
-                    <th className="p-3.5">Duration</th>
-                    <th className="p-3.5">Time & Date</th>
-                    <th className="p-3.5">Status</th>
-                    <th className="p-3.5 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                  {calls.map((c, idx) => (
-                    <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition">
-                      <td className="p-3.5">
-                        <input type="checkbox" className="rounded text-purple-600 focus:ring-0" />
-                      </td>
-                      <td className="p-3.5 font-bold text-slate-500">{idx + 1}</td>
-                      <td className="p-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <div className={`w-8 h-8 rounded-full ${c.avatarBg} text-white font-bold text-xs flex items-center justify-center flex-shrink-0`}>
-                            {c.user.substring(0, 2).toUpperCase()}
-                          </div>
-                          <div>
-                            <div className="font-bold text-slate-800 dark:text-white text-xs">{c.user}</div>
-                            <div className="text-[10px] text-slate-400">{c.phone}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-3.5">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          c.role === "Student" ? "bg-purple-500/10 text-purple-400" :
-                          c.role === "Teacher" ? "bg-blue-500/10 text-blue-400" : "bg-emerald-500/10 text-emerald-400"
-                        }`}>
-                          {c.role}
-                        </span>
-                      </td>
-                      <td className="p-3.5 font-semibold text-slate-700 dark:text-slate-300">{c.school}</td>
-                      <td className="p-3.5">
-                        <span className="flex items-center gap-1 font-bold text-slate-700 dark:text-slate-200">
-                          {c.type === "Video" ? <FaVideo className="text-indigo-400" /> : <FaPhoneAlt className="text-emerald-400" />}
-                          <span>{c.type}</span>
-                        </span>
-                      </td>
-                      <td className="p-3.5 font-mono text-slate-400">{c.duration}</td>
-                      <td className="p-3.5 text-slate-400 whitespace-nowrap">{c.timeDate}</td>
-                      <td className="p-3.5">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          c.status === "Active" ? "bg-emerald-500/20 text-emerald-400 animate-pulse" :
-                          c.status === "Completed" ? "bg-blue-500/20 text-blue-400" : "bg-rose-500/20 text-rose-400"
-                        }`}>
-                          {c.status}
-                        </span>
-                      </td>
-                      <td className="p-3.5 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <button className="p-1.5 text-purple-400 hover:bg-white/10 rounded-lg">
-                            <FaComments className="text-xs" />
-                          </button>
-                          <button className="p-1.5 text-slate-400 hover:text-white rounded-lg">
-                            <FaEllipsisV className="text-xs" />
-                          </button>
-                        </div>
-                      </td>
+              {loading ? (
+                <div className="p-12 text-center space-y-2">
+                  <FaSpinner className="animate-spin text-xl text-purple-500 mx-auto" />
+                  <p className="text-xs text-slate-400">Loading call history logs...</p>
+                </div>
+              ) : filteredCalls.length === 0 ? (
+                <div className="p-12 text-center text-xs text-slate-400 font-semibold">
+                  No call logs match the selected filter.
+                </div>
+              ) : (
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="bg-slate-50 dark:bg-[#121B2E] border-b border-slate-200 dark:border-white/10 text-slate-400 font-bold uppercase tracking-wider">
+                      <th className="p-3.5">#</th>
+                      <th className="p-3.5">User / Participant</th>
+                      <th className="p-3.5">Role</th>
+                      <th className="p-3.5">School</th>
+                      <th className="p-3.5">Type</th>
+                      <th className="p-3.5">Duration</th>
+                      <th className="p-3.5">Time & Date</th>
+                      <th className="p-3.5">Status</th>
+                      <th className="p-3.5 text-center">Action</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                    {filteredCalls.map((call, idx) => {
+                      const isCaller = call.caller?._id === currentUserId;
+                      const partner = isCaller ? call.receiver : call.caller;
+                      const partnerName = partner?.name || "Unknown User";
+                      const partnerRole = partner?.role || "User";
+                      const partnerSchool = partner?.schoolName || call.schoolName || "TeachHub HQ";
 
-          {/* BOTTOM CALL WIDGETS GRID (Recent Calls, Missed Calls, Call Stats) */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            
-            {/* Recent Calls List */}
-            <div className="bg-white dark:bg-[#0D1527] border border-slate-200 dark:border-white/10 rounded-2xl p-4 shadow-sm space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="font-bold text-slate-800 dark:text-white text-xs">Recent Calls</h4>
-                <button className="text-purple-400 text-[10px] font-bold hover:underline">View All</button>
-              </div>
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-purple-600 text-white font-bold text-[10px] flex items-center justify-center">NS</div>
-                    <div>
-                      <div className="font-bold text-slate-800 dark:text-white text-[11px]">Neha Singh</div>
-                      <div className="text-[9px] text-slate-400">Video Call • 28:12</div>
-                    </div>
-                  </div>
-                  <span className="text-[10px] text-slate-400">10:45 AM</span>
-                </div>
-              </div>
+                      return (
+                        <tr key={call._id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition">
+                          <td className="p-3.5 font-bold text-slate-500">{idx + 1}</td>
+                          <td className="p-3.5">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                {partner?.avatar ? (
+                                  <img src={getFileUrl(partner.avatar)} alt={partnerName} className="w-full h-full object-cover" />
+                                ) : (
+                                  partnerName.substring(0, 2).toUpperCase()
+                                )}
+                              </div>
+                              <div>
+                                <div className="font-bold text-slate-800 dark:text-white text-xs">{partnerName}</div>
+                                <div className="text-[10px] text-slate-400">{partner?.email || (isCaller ? "Outgoing" : "Incoming")}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3.5">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-400 capitalize">
+                              {partnerRole}
+                            </span>
+                          </td>
+                          <td className="p-3.5 font-semibold text-slate-700 dark:text-slate-300">{partnerSchool}</td>
+                          <td className="p-3.5">
+                            <span className="flex items-center gap-1 font-bold text-slate-700 dark:text-slate-200 capitalize">
+                              {call.type === "video" ? <FaVideo className="text-indigo-400" /> : <FaPhoneAlt className="text-emerald-400" />}
+                              <span>{call.type}</span>
+                            </span>
+                          </td>
+                          <td className="p-3.5 font-mono text-slate-400">{formatDuration(call.duration)}</td>
+                          <td className="p-3.5 text-slate-400 whitespace-nowrap">
+                            {new Date(call.createdAt).toLocaleDateString()} {new Date(call.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </td>
+                          <td className="p-3.5">
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold capitalize ${
+                              call.status === "completed" ? "bg-emerald-500/20 text-emerald-400" :
+                              call.status === "pending" || call.status === "ringing" ? "bg-amber-500/20 text-amber-400 animate-pulse" :
+                              "bg-rose-500/20 text-rose-400"
+                            }`}>
+                              {call.status}
+                            </span>
+                          </td>
+                          <td className="p-3.5 text-center">
+                            {partner && (
+                              <button
+                                onClick={() => {
+                                  setSelectedContact(partner);
+                                  startCall(partner, call.type || "voice");
+                                }}
+                                title="Redial Call"
+                                className="p-2 text-purple-400 hover:bg-purple-500/10 rounded-xl transition cursor-pointer"
+                              >
+                                <FaRedo className="text-xs" />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
             </div>
-
-            {/* Missed Calls List */}
-            <div className="bg-white dark:bg-[#0D1527] border border-slate-200 dark:border-white/10 rounded-2xl p-4 shadow-sm space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="font-bold text-slate-800 dark:text-white text-xs">Missed Calls</h4>
-                <button className="text-purple-400 text-[10px] font-bold hover:underline">View All</button>
-              </div>
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-rose-600 text-white font-bold text-[10px] flex items-center justify-center">AV</div>
-                    <div>
-                      <div className="font-bold text-slate-800 dark:text-white text-[11px]">Anjali Verma</div>
-                      <div className="text-[9px] text-rose-400 font-bold">Missed Call</div>
-                    </div>
-                  </div>
-                  <span className="text-[10px] text-slate-400">1:05 PM</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Call Statistics */}
-            <div className="bg-white dark:bg-[#0D1527] border border-slate-200 dark:border-white/10 rounded-2xl p-4 shadow-sm space-y-2 text-xs">
-              <h4 className="font-bold text-slate-800 dark:text-white text-xs mb-1">Call Statistics</h4>
-              <div className="flex justify-between"><span className="text-slate-400">Total Calls</span><span className="font-bold text-slate-800 dark:text-white">120</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">Audio Calls</span><span className="font-semibold text-emerald-400">85</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">Video Calls</span><span className="font-semibold text-purple-400">35</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">Average Duration</span><span className="font-mono text-slate-300">08:42</span></div>
-            </div>
-
           </div>
 
         </div>
 
-        {/* RIGHT SIDE DIALPAD & ACTIVE CALL CONTROL SIDEBAR (Col 4) */}
+        {/* RIGHT SIDE DIALPAD & ACTIVE CALL SIDEBAR (Col 4) */}
         <div className="lg:col-span-4 space-y-4">
           
+          {/* Active Call Control Box (When Call is Active/Calling/Ringing) */}
+          {callState !== "idle" && (
+            <div className="bg-[#0D1527] border border-emerald-500/30 rounded-2xl p-5 shadow-2xl space-y-4 text-white animate-fadeIn">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                    {callState === "calling" ? "Calling..." : callState === "ringing" ? "Ringing..." : "Active Call"}
+                  </span>
+                </div>
+                <span className="font-mono text-xs text-slate-300 font-bold">{formatDuration(callDuration)}</span>
+              </div>
+
+              {callPartner && (
+                <div className="flex items-center gap-3 py-1">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white font-bold text-sm flex items-center justify-center overflow-hidden">
+                    {callPartner.avatar ? (
+                      <img src={getFileUrl(callPartner.avatar)} alt={callPartner.name} className="w-full h-full object-cover" />
+                    ) : (
+                      callPartner.name?.substring(0, 2).toUpperCase() || "U"
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white text-sm">{callPartner.name}</h4>
+                    <p className="text-xs text-slate-400 capitalize">{callPartner.role || "Participant"} • {callPartner.schoolName || "HQ"}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* In-Call Controls */}
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                <button 
+                  onClick={toggleMute}
+                  className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition ${
+                    isMuted ? "bg-rose-500/20 text-rose-400 border-rose-500/30" : "bg-white/10 text-white border-white/10 hover:bg-white/20"
+                  }`}
+                >
+                  {isMuted ? <FaMicrophoneSlash /> : <FaMicrophone />}
+                  <span>{isMuted ? "Unmute" : "Mute"}</span>
+                </button>
+
+                <button 
+                  onClick={toggleCamera}
+                  className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition ${
+                    isCamOff ? "bg-rose-500/20 text-rose-400 border-rose-500/30" : "bg-white/10 text-white border-white/10 hover:bg-white/20"
+                  }`}
+                >
+                  <FaVideo />
+                  <span>{isCamOff ? "Cam Off" : "Cam On"}</span>
+                </button>
+              </div>
+
+              <button 
+                onClick={callState === "calling" ? cancelCall : endCall}
+                className="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 mt-2 cursor-pointer transition"
+              >
+                <FaPhoneSlash />
+                <span>{callState === "calling" ? "Cancel Call" : "End Call"}</span>
+              </button>
+            </div>
+          )}
+
           {/* Make a Call Card */}
           <div className="bg-white dark:bg-[#0D1527] border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-sm space-y-4">
             <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
               <FaPhoneAlt className="text-purple-400" />
-              <span>Make a Call</span>
+              <span>Initiate Support Call</span>
             </h3>
 
-            {/* Call Type Selector */}
+            {/* Call Mode Selector */}
             <div className="flex items-center gap-2 bg-slate-100 dark:bg-[#162238] p-1 rounded-xl text-xs">
               <button 
-                onClick={() => setCallMode("audio")}
+                onClick={() => setCallMode("voice")}
                 className={`flex-1 py-2 rounded-lg font-bold transition flex items-center justify-center gap-1.5 ${
-                  callMode === "audio" ? "bg-purple-600 text-white shadow" : "text-slate-400"
+                  callMode === "voice" ? "bg-purple-600 text-white shadow" : "text-slate-400"
                 }`}
               >
                 <FaPhoneAlt className="text-xs" />
-                <span>Audio Call</span>
+                <span>Voice Call</span>
               </button>
               <button 
                 onClick={() => setCallMode("video")}
@@ -317,14 +474,37 @@ export default function SupportCalls() {
               </button>
             </div>
 
-            {/* User Search / Number Display Input */}
+            {/* Contact Selector */}
+            <div>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Select Target User</label>
+              <select
+                value={selectedContact?._id || ""}
+                onChange={(e) => {
+                  const found = contacts.find(c => c._id === e.target.value);
+                  if (found) setSelectedContact(found);
+                }}
+                className="w-full bg-slate-100 dark:bg-[#162238] border border-slate-200 dark:border-white/10 rounded-xl p-2.5 text-slate-800 dark:text-white text-xs font-semibold focus:outline-none"
+              >
+                {contacts.length === 0 ? (
+                  <option value="">Loading contacts...</option>
+                ) : (
+                  contacts.map(c => (
+                    <option key={c._id} value={c._id}>
+                      {c.name} ({c.role}) - {c.schoolName || "HQ"}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+
+            {/* Search Filter Input */}
             <div className="relative">
               <input 
                 type="text"
-                value={dialNumber}
-                onChange={(e) => setDialNumber(e.target.value)}
-                placeholder="Search user by name, phone..."
-                className="w-full px-4 py-2.5 bg-slate-100 dark:bg-[#162238] border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-white placeholder-slate-400 text-xs font-mono focus:outline-none"
+                value={searchContactText}
+                onChange={(e) => setSearchContactText(e.target.value)}
+                placeholder="Search user by name..."
+                className="w-full px-4 py-2 bg-slate-100 dark:bg-[#162238] border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-white placeholder-slate-400 text-xs focus:outline-none"
               />
             </div>
 
@@ -333,8 +513,8 @@ export default function SupportCalls() {
               {["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"].map((num) => (
                 <button
                   key={num}
-                  onClick={() => handleDialClick(num)}
-                  className="py-3 bg-slate-100 dark:bg-[#162238] hover:bg-purple-600/20 rounded-xl text-sm font-semibold transition active:scale-95 flex items-center justify-center"
+                  onClick={() => handleDialDigit(num)}
+                  className="py-2.5 bg-slate-100 dark:bg-[#162238] hover:bg-purple-600/20 rounded-xl text-xs font-semibold transition active:scale-95 flex items-center justify-center cursor-pointer"
                 >
                   {num}
                 </button>
@@ -342,70 +522,15 @@ export default function SupportCalls() {
             </div>
 
             {/* Dial Button */}
-            <button className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm rounded-xl shadow-lg flex items-center justify-center gap-2">
+            <button 
+              onClick={handleStartCall}
+              disabled={callState !== "idle" || !selectedContact}
+              className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 transition cursor-pointer"
+            >
               <FaPhoneAlt />
-              <span>Start {callMode === "video" ? "Video" : "Audio"} Call</span>
+              <span>Start {callMode === "video" ? "Video" : "Voice"} Call</span>
             </button>
           </div>
-
-          {/* Active Call Control Box (Matching Screenshot 5) */}
-          {inCall && (
-            <div className="bg-[#0D1527] border border-emerald-500/30 rounded-2xl p-5 shadow-2xl space-y-4 text-white">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                  <span className="text-xs font-bold text-emerald-400">Active Call</span>
-                </div>
-                <span className="font-mono text-xs text-slate-400 font-bold">00:12:45</span>
-              </div>
-
-              <div className="flex items-center gap-3 py-1">
-                <div className="w-12 h-12 rounded-full bg-blue-600 text-white font-bold text-sm flex items-center justify-center">
-                  AK
-                </div>
-                <div>
-                  <h4 className="font-bold text-white text-sm">Amit Kumar</h4>
-                  <p className="text-xs text-slate-400">Student • G.D Academy</p>
-                  <p className="text-[10px] text-slate-400">+91 98765 43210</p>
-                </div>
-              </div>
-
-              {/* In-Call Controls */}
-              <div className="grid grid-cols-4 gap-2 pt-2">
-                <button 
-                  onClick={() => setIsMuted(!isMuted)}
-                  className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 ${
-                    isMuted ? "bg-rose-500/20 text-rose-400 border-rose-500/30" : "bg-white/10 text-white border-white/10"
-                  }`}
-                >
-                  {isMuted ? <FaMicrophoneSlash /> : <FaMicrophone />}
-                  <span className="text-[9px]">Mute</span>
-                </button>
-
-                <button className="p-2.5 bg-white/10 border border-white/10 rounded-xl text-xs font-bold flex flex-col items-center gap-1">
-                  <span>Keypad</span>
-                </button>
-
-                <button className="p-2.5 bg-white/10 border border-white/10 rounded-xl text-xs font-bold flex flex-col items-center gap-1">
-                  <FaPlus />
-                  <span className="text-[9px]">Add Call</span>
-                </button>
-
-                <button className="p-2.5 bg-white/10 border border-white/10 rounded-xl text-xs font-bold flex flex-col items-center gap-1">
-                  <FaVideo />
-                  <span className="text-[9px]">Video</span>
-                </button>
-              </div>
-
-              <button 
-                onClick={() => setInCall(false)}
-                className="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 mt-2"
-              >
-                <FaPhoneSlash />
-                <span>End Call</span>
-              </button>
-            </div>
-          )}
 
         </div>
 

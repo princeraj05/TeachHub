@@ -168,8 +168,8 @@ const userSchema = new mongoose.Schema({
   previousInstitute: { type: String, default: "" },
 
   // Support Team Specific Fields
-  supportDepartment: { type: String, default: "Technical" },
-  supportShift: { type: String, default: "Morning (09:00 - 17:00)" },
+  supportDepartment: { type: String, default: "" },
+  supportShift: { type: String, default: "Flexible" },
   supportStatus: { type: String, enum: ["active", "suspended", "on_duty", "off_duty"], default: "active" },
   ticketsResolved: { type: Number, default: 0 },
   activeTickets: { type: Number, default: 0 },

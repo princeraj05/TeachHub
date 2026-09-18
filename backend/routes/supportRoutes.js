@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { protect } = require("../middleware/authMiddleware");
+const { protect, authorize } = require("../middleware/authMiddleware");
 const { 
   sendMessage, 
   getHistory, 
@@ -10,7 +10,9 @@ const {
   deleteMessage, 
   getCallHistory,
   getActiveCall,
-  getSupportShowcase
+  getSupportShowcase,
+  getSupportUsersList,
+  getSupportSchoolsList
 } = require("../controllers/supportController");
 const multer = require("multer");
 const path = require("path");
@@ -51,6 +53,8 @@ router.post("/message", sendMessage);
 router.get("/history", getHistory);
 router.get("/users", getContacts);
 router.get("/contacts", getContacts);
+router.get("/users-list", authorize("support", "superadmin"), getSupportUsersList);
+router.get("/schools-list", authorize("support", "superadmin"), getSupportSchoolsList);
 router.post("/upload", upload.single("file"), handleUpload);
 router.post("/react", addReaction);
 router.delete("/message/:id", deleteMessage);

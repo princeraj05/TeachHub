@@ -82,37 +82,32 @@ message:"Invalid email or password"
 
 // compare password
 
-const isMatch = await bcrypt.compare(password,user.password);
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
 
-if(!isMatch){
-return res.status(400).json({
-message:"Invalid email or password"
-});
-}
+    if (user.role === "support" && user.supportStatus === "suspended") {
+      return res.status(403).json({ message: "Support Team account is suspended. Access denied." });
+    }
 
-
-// generate token
-
-const token = jwt.sign(
-{
-id:user._id,
-role:user.role
-},
-process.env.JWT_SECRET,
-{expiresIn:"365d"}
-);
-
+    // generate token
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "365d" }
+    );
 
     // Create login session
     await createSession(user._id, token, req);
 
     // response
-
     res.json({
-
       message: "Login Successful",
       token,
-
       user: {
         _id: user._id,
         name: user.name,
@@ -122,17 +117,13 @@ process.env.JWT_SECRET,
         requestStatus: user.requestStatus || "",
         isSubmittedToSuperAdmin: user.isSubmittedToSuperAdmin || false
       }
-
     });
 
-}catch(err){
-
-res.status(500).json({
-error:err.message
-});
-
-}
-
+  } catch (err) {
+    res.status(500).json({
+      error: err.message
+    });
+  }
 };
 
 
@@ -140,7 +131,7 @@ error:err.message
 
 exports.firebaseSync = async (req, res) => {
   try {
-    const { idToken } = req.body;
+    const { idToken, loginContext } = req.body;
     if (!idToken) {
       return res.status(400).json({ message: "Firebase ID Token is required" });
     }
@@ -165,6 +156,16 @@ exports.firebaseSync = async (req, res) => {
     let user = await User.findOne({ email: searchRegex });
 
     const isSuperAdmin = email === (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase();
+
+    // Support Login Context Enforcement
+    if (loginContext === "support") {
+      if (!user || (user.role !== "support" && user.role !== "superadmin" && !isSuperAdmin)) {
+        return res.status(403).json({ message: "Access Denied: You do not have permission to access the Support Portal." });
+      }
+      if (user.role === "support" && user.supportStatus === "suspended") {
+        return res.status(403).json({ message: "Support Team account is suspended. Access denied." });
+      }
+    }
 
     if (!user) {
       // Create user as unassigned by default

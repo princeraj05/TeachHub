@@ -1,27 +1,40 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaBroadcastTower, FaComments, FaPhone } from "react-icons/fa";
+import { FaBroadcastTower, FaComments, FaPhone, FaTicketAlt } from "react-icons/fa";
 import { useCall } from "../../../../context/CallContext";
 import SupportChatEngine from "../../../../components/SupportChatEngine";
+import CreateSupportTicketModal from "../../../../components/CreateSupportTicketModal";
 import API_URL from "../../../../config/api";
 
-function AdminSupport() {
+export default function AdminSupport() {
   const API = API_URL;
   const token = localStorage.getItem("token");
   const currentUserId = localStorage.getItem("userId");
 
   const [activeTab, setActiveTab] = useState("superadmin"); // superadmin, teachers, students
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [subTab, setSubTab] = useState("personal"); // personal, broadcast, calls
-
   const [contacts, setContacts] = useState([]);
   const [activeContact, setActiveContact] = useState(null);
+  
   const [broadcastMessages, setBroadcastMessages] = useState([]);
-  const [callsHistory, setCallsHistory] = useState([]);
   const [newBroadcast, setNewBroadcast] = useState("");
+  const [callsHistory, setCallsHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
 
-  const { socket } = useCall();
+  const callCtx = useCall() || {};
+  const socket = callCtx.socket;
+
+  const DEFAULT_SUPERADMIN = {
+    _id: "superadmin_support_fallback",
+    name: "Super Admin Support",
+    email: "support@teachhub.com",
+    role: "superadmin",
+    schoolName: "TeachHub HQ",
+    isOnline: true,
+    avatar: ""
+  };
 
   useEffect(() => {
     fetchContacts();
@@ -59,16 +72,6 @@ function AdminSupport() {
       socket.off("user:status-change", handleUserStatusChange);
     };
   }, [socket]);
-
-  const DEFAULT_SUPERADMIN = {
-    _id: "superadmin_support_fallback",
-    name: "Super Admin Support",
-    email: "support@teachhub.com",
-    role: "superadmin",
-    schoolName: "TeachHub HQ",
-    isOnline: true,
-    avatar: ""
-  };
 
   const fetchContacts = async () => {
     try {
@@ -186,25 +189,40 @@ function AdminSupport() {
   return (
     <div className="font-sans flex flex-col h-[calc(100vh-140px)] bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-white/[0.08] rounded-3xl overflow-hidden shadow-sm">
       {/* Tabs Header */}
-      <div className="flex flex-wrap border-b border-slate-100 dark:border-white/[0.05] bg-slate-50/50 dark:bg-[#1f2937]/50 p-1.5 sm:p-2 gap-1.5 sm:gap-2 select-none">
-        {[
-          { key: "superadmin", label: "Super Admin Support" },
-          { key: "teachers", label: "Teachers Chat" },
-          { key: "students", label: "Students Chat" }
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => handleTabChange(tab.key)}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-              activeTab === tab.key
-                ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/15"
-                : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/[0.02] dark:hover:text-white"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center justify-between border-b border-slate-100 dark:border-white/[0.05] bg-slate-50/50 dark:bg-[#1f2937]/50 p-1.5 sm:p-2 gap-1.5 sm:gap-2 select-none shrink-0">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          {[
+            { key: "superadmin", label: "Super Admin Support" },
+            { key: "teachers", label: "Teachers Chat" },
+            { key: "students", label: "Students Chat" }
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => handleTabChange(tab.key)}
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                activeTab === tab.key
+                  ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/15"
+                  : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/[0.02] dark:hover:text-white"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <button
+          onClick={() => setIsTicketModalOpen(true)}
+          className="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-white shadow-sm hover:opacity-90 transition flex items-center gap-1.5 cursor-pointer ml-auto"
+        >
+          <FaTicketAlt className="text-xs" />
+          <span>+ Create Support Ticket</span>
+        </button>
       </div>
+
+      <CreateSupportTicketModal 
+        isOpen={isTicketModalOpen} 
+        onClose={() => setIsTicketModalOpen(false)} 
+      />
 
       {/* Main Support Area */}
       <div className="flex-1 flex overflow-hidden">
@@ -245,7 +263,7 @@ function AdminSupport() {
                       : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 dark:bg-white/[0.02] dark:text-slate-400 dark:border-white/[0.05] dark:hover:bg-white/[0.05]"
                   }`}
                 >
-                  Broadcasts
+                  Broadcast
                 </button>
                 <button
                   onClick={() => handleSubTabChange("calls")}
@@ -260,111 +278,98 @@ function AdminSupport() {
               </div>
 
               {subTab === "personal" && (
-                <div className="flex-1 overflow-y-auto divide-y divide-slate-100/50 dark:divide-white/[0.05]">
+                <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-white/[0.03]">
                   {filteredContacts.length === 0 ? (
-                    <div className="p-6 text-center text-slate-400 text-xs font-semibold select-none">
-                      No {activeTab} found in your school.
+                    <div className="p-8 text-center text-slate-400 text-xs font-semibold">
+                      {loading ? "Loading..." : "No contacts found."}
                     </div>
                   ) : (
-                    filteredContacts.map((contact) => (
-                      <button
+                    filteredContacts.map(contact => (
+                      <div
                         key={contact._id}
                         onClick={() => setActiveContact(contact)}
-                        className={`w-full p-4 text-left hover:bg-slate-100/60 dark:hover:bg-white/[0.02] transition flex items-center gap-3 cursor-pointer ${
+                        className={`p-3.5 flex items-center justify-between cursor-pointer transition ${
                           activeContact?._id === contact._id 
-                            ? "bg-white dark:bg-white/[0.04] border-l-4 border-[#7C3AED]" 
-                            : "bg-slate-50/50 dark:bg-transparent"
+                            ? "bg-[#7C3AED]/10 text-[#7C3AED]" 
+                            : "hover:bg-slate-100/60 dark:hover:bg-white/[0.02]"
                         }`}
                       >
-                        <div className="w-9 h-9 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black flex-shrink-0 relative">
-                          {contact.name.charAt(0).toUpperCase()}
-                          {contact.isOnline && (
-                            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-[#111827] rounded-full"></span>
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between">
-                            <p className="text-xs font-bold text-slate-700 dark:text-white truncate">{contact.name}</p>
-                            {contact.unreadCount > 0 && (
-                              <span className="bg-[#7C3AED] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
-                                {contact.unreadCount}
-                              </span>
+                        <div className="flex items-center gap-3">
+                          <div className="relative">
+                            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-white/[0.05] text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold text-sm overflow-hidden">
+                              {contact.avatar ? (
+                                <img src={contact.avatar} alt={contact.name} className="w-full h-full object-cover" />
+                              ) : (
+                                contact.name?.charAt(0).toUpperCase() || "U"
+                              )}
+                            </div>
+                            {contact.isOnline && (
+                              <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-[#111827]" />
                             )}
                           </div>
-                          <p className="text-[10px] text-slate-400 dark:text-slate-550 font-medium truncate">
-                            {contact.lastMessage ? contact.lastMessage.content || "Media Attachment" : contact.email}
-                          </p>
+                          <div>
+                            <p className="text-xs font-bold text-slate-800 dark:text-white">{contact.name}</p>
+                            <p className="text-[10px] text-slate-400 capitalize">{contact.role}</p>
+                          </div>
                         </div>
-                      </button>
+                      </div>
                     ))
                   )}
                 </div>
               )}
 
               {subTab === "broadcast" && (
-                <div className="p-4 flex flex-col h-full bg-white dark:bg-[#111827]">
-                  <h3 className="text-xs font-bold text-slate-700 dark:text-slate-350 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
-                    <FaBroadcastTower className="text-teal-500" /> Send Broadcast
-                  </h3>
-                  <form onSubmit={handleSendBroadcast} className="space-y-3">
+                <div className="p-4 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-2">
+                      <FaBroadcastTower className="text-[#7C3AED]" />
+                      Broadcast to {activeTab === "teachers" ? "Teachers" : "Students"}
+                    </h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-4">
+                      Send an announcement broadcast message to all active {activeTab}.
+                    </p>
                     <textarea
-                      placeholder={`Type announcement to all ${activeTab}...`}
+                      rows={4}
                       value={newBroadcast}
                       onChange={(e) => setNewBroadcast(e.target.value)}
-                      rows={4}
-                      required
-                      className="w-full px-3 py-2 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.05] rounded-xl text-xs text-slate-700 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none"
+                      placeholder="Write broadcast message..."
+                      className="w-full p-3 rounded-2xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#1f2937] text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/30"
                     />
-                    <button
-                      type="submit"
-                      disabled={!newBroadcast.trim() || sending}
-                      className="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs tracking-wider transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center gap-1.5"
-                    >
-                      <FaBroadcastTower /> Send Broadcast
-                    </button>
-                  </form>
+                  </div>
+                  <button
+                    onClick={handleSendBroadcast}
+                    disabled={sending || !newBroadcast.trim()}
+                    className="w-full mt-4 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] disabled:opacity-50 text-white font-bold text-xs transition shadow-md shadow-[#7C3AED]/15 cursor-pointer"
+                  >
+                    {sending ? "Sending..." : "Send Announcement Broadcast"}
+                  </button>
                 </div>
               )}
 
               {subTab === "calls" && (
-                <div className="flex-1 overflow-y-auto divide-y divide-slate-100/50 dark:divide-white/[0.05] bg-white dark:bg-[#111827]">
+                <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-white/[0.03]">
                   {callsHistory.length === 0 ? (
-                    <div className="p-6 text-center text-slate-400 text-xs font-semibold select-none">
-                      No call history found.
+                    <div className="p-8 text-center text-slate-400 text-xs font-semibold select-none">
+                      {loading ? "Loading call logs..." : "No past call logs."}
                     </div>
                   ) : (
                     callsHistory.map((call) => {
-                      const isOutgoing = call.caller?._id === currentUserId;
-                      const partner = isOutgoing ? call.receiver : call.caller;
-                      if (!partner) return null;
-                      
-                      const isMissed = call.status === "missed";
-                      const isRejected = call.status === "rejected";
+                      const isCaller = call.caller?._id === currentUserId;
+                      const partner = isCaller ? call.receiver : call.caller;
                       const isCompleted = call.status === "completed";
-
                       return (
-                        <div
-                          key={call._id}
-                          className="w-full p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/[0.02] transition border-b border-slate-100/50 dark:border-white/[0.05] bg-slate-50/50 dark:bg-transparent"
-                        >
+                        <div key={call._id} className="p-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/[0.02]">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center font-black flex-shrink-0">
-                              {partner.name.charAt(0).toUpperCase()}
+                            <div className="w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-900/20 text-[#7C3AED] flex items-center justify-center text-xs font-bold">
+                              {partner?.name ? partner.name.charAt(0).toUpperCase() : "U"}
                             </div>
-                            <div className="min-w-0">
-                              <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{partner.name}</p>
-                              <div className="flex items-center gap-1 mt-0.5 select-none">
-                                <span className={`text-[9px] font-bold uppercase tracking-wider ${
-                                  isMissed || isRejected ? "text-rose-500" : isCompleted ? "text-green-500" : "text-amber-500"
-                                }`}>
-                                  {isOutgoing ? "Outgoing" : "Incoming"} · {call.status}
-                                </span>
-                                <span className="text-[9px] text-slate-400 dark:text-slate-500 font-medium">
-                                  · {new Date(call.createdAt).toLocaleDateString()} {new Date(call.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                              </div>
+                            <div>
+                              <p className="text-xs font-bold text-slate-800 dark:text-white leading-tight">{partner?.name || "User"}</p>
+                              <p className="text-[9px] text-slate-400 font-semibold mt-0.5">
+                                {isCaller ? "Outgoing" : "Incoming"} • {new Date(call.createdAt).toLocaleDateString()} {new Date(call.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
                               {isCompleted && call.duration > 0 && (
-                                <p className="text-[9px] text-slate-400 dark:text-slate-500 font-semibold font-mono mt-0.5">
+                                <p className="text-[9px] text-slate-400 font-semibold font-mono mt-0.5">
                                   Duration: {Math.floor(call.duration / 60)}m {call.duration % 60}s
                                 </p>
                               )}
@@ -381,7 +386,7 @@ function AdminSupport() {
               )}
             </div>
 
-            {/* Messaging Area / Chat Engine */}
+            {/* Chat area */}
             <div className={`flex-1 flex-col h-full bg-white dark:bg-[#111827] relative ${
               activeContact ? "flex" : "hidden lg:flex"
             }`}>
@@ -395,27 +400,21 @@ function AdminSupport() {
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/10 dark:bg-transparent">
                     <div className="w-16 h-16 rounded-3xl bg-[#7C3AED]/10 text-[#7C3AED] flex items-center justify-center text-2xl mb-4">
-                      <FaPhone />
+                      <FaComments />
                     </div>
-                    <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">No Chat Selected</h3>
+                    <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">No Contact Selected</h3>
                     <p className="text-xs text-slate-400 dark:text-slate-550 mt-1 max-w-xs leading-relaxed">
-                      Select a {activeTab === "teachers" ? "teacher" : "student"} from the list on the left to start support messaging.
+                      Select a contact from the list on the left to view conversation and start messaging.
                     </p>
                   </div>
                 )
               ) : subTab === "broadcast" ? (
-                /* Broadcast messages view */
-                <div className="flex-1 flex flex-col h-full bg-white dark:bg-[#111827] relative">
-                  <div className="p-4 border-b border-slate-100 dark:border-white/[0.05] bg-white dark:bg-[#111827]">
-                    <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                      <FaBroadcastTower className="text-teal-500" /> Sent Broadcasts to {activeTab}
-                    </h3>
-                  </div>
-
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/30 dark:bg-[#1e293b]/10">
+                <div className="flex-1 flex flex-col p-6 overflow-hidden">
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4">Broadcast Log History</h3>
+                  <div className="flex-1 overflow-y-auto space-y-3 pr-2">
                     {broadcastMessages.length === 0 ? (
-                      <div className="py-20 text-center text-slate-400 text-xs font-semibold select-none">
-                        No broadcasts sent yet.
+                      <div className="text-center py-12 text-slate-400 text-xs font-semibold">
+                        No broadcast messages sent yet.
                       </div>
                     ) : (
                       broadcastMessages.map((msg) => (
@@ -453,5 +452,3 @@ function AdminSupport() {
     </div>
   );
 }
-
-export default AdminSupport;

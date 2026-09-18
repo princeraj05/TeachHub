@@ -28,6 +28,8 @@ const resultRoutes = require("./routes/resultRoutes");
 const adminProfileRoutes = require("./routes/adminProfileRoutes");
 const superAdminRoutes = require("./routes/superAdminRoutes");
 const supportRoutes = require("./routes/supportRoutes");
+const supportTicketRoutes = require("./routes/supportTicketRoutes");
+const helpArticleRoutes = require("./routes/helpArticleRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const eventVideoInteractionRoutes = require("./routes/eventVideoInteractionRoutes");
 const schoolRoutes = require("./routes/schoolRoutes");
@@ -229,6 +231,8 @@ app.use("/api/results", resultRoutes);
 
 app.use("/api/admin/profile", adminProfileRoutes);
 app.use("/api/superadmin", superAdminRoutes);
+app.use("/api/support/tickets", supportTicketRoutes);
+app.use("/api/support/help-articles", helpArticleRoutes);
 app.use("/api/support", supportRoutes);
 app.use("/api/events/videos", eventVideoInteractionRoutes);
 app.use("/api/events", eventRoutes);
@@ -831,6 +835,7 @@ io.on("connection", (socket) => {
 });
 
 app.set("io", io);
+global.io = io;
 
 
 // ================= GLOBAL ERROR HANDLER =================

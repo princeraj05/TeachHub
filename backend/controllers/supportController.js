@@ -5,7 +5,7 @@ const TeacherNotification = require("../models/TeacherNotification");
 const cloudinary = require("../config/cloudinary");
 const fs = require("fs");
 
-// Check if sender is authorized to message receiver (Strict School Isolation)
+// Check if sender is authorized to message receiver (Strict School Isolation & Support Security)
 const validateCommunicationRights = async (senderId, senderRole, senderSchool, receiverId) => {
   if (receiverId === "superadmin_support_fallback" || receiverId === "admin_support_fallback") {
     return true;
@@ -13,12 +13,18 @@ const validateCommunicationRights = async (senderId, senderRole, senderSchool, r
 
   const receiver = await User.findById(receiverId);
   if (!receiver) {
-    if (senderRole === "admin" || senderRole === "superadmin") return true;
+    if (senderRole === "admin" || senderRole === "superadmin" || senderRole === "support") return true;
     return false;
   }
 
   const receiverRole = receiver.role;
   const receiverSchool = receiver.schoolName || "";
+
+  // Support Agent <-> Any Requester / SuperAdmin allowed
+  if (senderRole === "support" || receiverRole === "support") {
+    if (receiverRole === "support" && receiver.supportStatus === "suspended") return false;
+    return true;
+  }
 
   // Super Admin <-> Admin support allowed
   if (senderRole === "superadmin" || receiverRole === "superadmin") {
@@ -258,16 +264,43 @@ exports.getContacts = async (req, res) => {
 
     if (role === "unassigned") {
       contacts = [];
+    } else if (role === "support") {
+      const SupportTicket = require("../models/SupportTicket");
+      const agentDept = userDoc?.supportDepartment || req.user.supportDepartment || "";
+
+      // Server-side department isolation: Find tickets assigned to agent or in agent's assigned department
+      const ticketQuery = agentDept ? { $or: [{ assignedDepartment: agentDept }, { department: agentDept }, { assignedTo: currentUserId }] } : {};
+      const departmentTickets = await SupportTicket.find(ticketQuery).select("requester ticketNumber category priority status assignedDepartment").lean();
+      
+      const requesterIds = departmentTickets.map(t => t.requester?.toString()).filter(Boolean);
+      
+      // Also include any users who have exchanged direct messages with this support agent
+      const directMessages = await Message.find({
+        $or: [{ sender: currentUserId }, { receiver: currentUserId }],
+        type: "personal"
+      }).select("sender receiver").lean();
+      
+      const messagePartnerIds = directMessages.map(m => m.sender.toString() === currentUserId ? m.receiver?.toString() : m.sender.toString()).filter(Boolean);
+      
+      const superAdminDocs = await User.find({ role: "superadmin" }).select("_id").lean();
+      const superAdminIds = superAdminDocs.map(u => u._id.toString());
+      
+      const allUserIds = Array.from(new Set([...requesterIds, ...messagePartnerIds, ...superAdminIds])).filter(id => id !== currentUserId);
+      
+      contacts = await User.find({
+        _id: { $in: allUserIds },
+        supportStatus: { $ne: "suspended" }
+      }).select("name email role schoolName supportDepartment isOnline lastSeen avatar photo profilePhoto image").lean();
     } else if (role === "superadmin") {
-      contacts = await User.find({ _id: { $ne: currentUserId }, role: { $in: ["admin", "Admin"] } })
-        .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto image");
+      contacts = await User.find({ _id: { $ne: currentUserId } })
+        .select("name email role schoolName supportDepartment requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto image");
     } else if (role === "admin") {
       const superAdmins = await User.find({ role: { $regex: /^superadmin$/i } })
         .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto image");
       
       const query = {
         _id: { $ne: currentUserId },
-        role: { $in: ["teacher", "student", "Teacher", "Student"] }
+        role: { $in: ["teacher", "student", "Teacher", "Student", "support"] }
       };
       if (schoolRegex) {
         query.$or = [{ schoolName: schoolRegex }, { requestedSchool: schoolRegex }];
@@ -277,7 +310,7 @@ exports.getContacts = async (req, res) => {
         .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto image");
       
       if (schoolUsers.length === 0) {
-        schoolUsers = await User.find({ _id: { $ne: currentUserId }, role: { $in: ["teacher", "student", "Teacher", "Student"] } })
+        schoolUsers = await User.find({ _id: { $ne: currentUserId }, role: { $in: ["teacher", "student", "Teacher", "Student", "support"] } })
           .select("name email role schoolName requestedSchool requestStatus isOnline lastSeen avatar photo profilePhoto image");
       }
       contacts = [...superAdmins, ...schoolUsers];
@@ -515,27 +548,41 @@ exports.deleteMessage = async (req, res) => {
 exports.getCallHistory = async (req, res) => {
   try {
     const currentUserId = req.user.id;
-    // Resolve user's actual schoolName from DB if missing in token
-    let schoolName = req.user.schoolName || "";
-    if (!schoolName && req.user.role !== "superadmin") {
-      const user = await User.findById(currentUserId);
-      if (user) schoolName = user.schoolName || "";
-    }
-
-    const calls = await Call.find({
+    const role = req.user.role;
+    let query = {
       $or: [
         { caller: currentUserId },
         { receiver: currentUserId }
       ]
-    })
-    .populate("caller", "name email role avatar schoolName")
-    .populate("receiver", "name email role avatar schoolName")
-    .sort({ createdAt: -1 })
-    .limit(50);
+    };
 
-    // Apply strict school isolation checks to the logs
+    if (role === "support") {
+      const SupportTicket = require("../models/SupportTicket");
+      const userDoc = await User.findById(currentUserId).lean();
+      const agentDept = userDoc?.supportDepartment || req.user.supportDepartment || "";
+      const deptTickets = await SupportTicket.find(agentDept ? { $or: [{ assignedDepartment: agentDept }, { department: agentDept }, { assignedTo: currentUserId }] } : {}).select("requester").lean();
+      const deptRequesterIds = deptTickets.map(t => t.requester?.toString()).filter(Boolean);
+      
+      const allTargetIds = Array.from(new Set([currentUserId, ...deptRequesterIds]));
+      query = {
+        $or: [
+          { caller: { $in: allTargetIds } },
+          { receiver: { $in: allTargetIds } }
+        ]
+      };
+    } else if (role === "superadmin") {
+      query = {};
+    }
+
+    const calls = await Call.find(query)
+      .populate("caller", "name email role avatar schoolName")
+      .populate("receiver", "name email role avatar schoolName")
+      .sort({ createdAt: -1 })
+      .limit(100);
+
+    // Apply strict school / department authorization checks to the logs
     const filteredCalls = calls.filter(c => {
-      if (req.user.role === "superadmin") return true;
+      if (role === "superadmin" || role === "support") return true;
       
       // If the querying user was a direct participant, they are fully authorized to view this log
       if (
@@ -545,6 +592,7 @@ exports.getCallHistory = async (req, res) => {
         return true;
       }
       
+      let schoolName = req.user.schoolName || "";
       let recordSchool = c.schoolName || "";
       if (!recordSchool) {
         const callerSchool = c.caller?.schoolName || "";
@@ -595,28 +643,9 @@ exports.getSupportShowcase = async (req, res) => {
   try {
     const School = require("../models/School");
     
-    // Sync any user's schoolName to School collection if missing
-    const userSchools = await User.distinct("schoolName", { schoolName: { $ne: "", $exists: true } });
-    for (const rawName of userSchools) {
-      if (!rawName || !rawName.trim()) continue;
-      const trimmed = rawName.trim();
-      const normalized = trimmed.toLowerCase().replace(/\s+/g, " ");
-      const exists = await School.findOne({ normalizedName: normalized });
-      if (!exists) {
-        const adminUser = await User.findOne({ schoolName: trimmed, role: "admin" });
-        await School.create({
-          name: trimmed,
-          normalizedName: normalized,
-          adminId: adminUser ? adminUser._id : null,
-          email: adminUser ? adminUser.email : null,
-          status: "Active"
-        });
-      }
-    }
-
     const SchoolCount = await School.countDocuments({});
     const StudentCount = await User.countDocuments({ role: "student" });
-    const TeacherCount = await User.countDocuments({ role: "teacher" });
+    const TeacherCount = await User.countDocuments({ role: { $in: ["teacher", "Teacher"] } });
 
     const publicSchools = await School.find({})
       .select("name photo coverImage motto address coverPosition description")
@@ -637,6 +666,245 @@ exports.getSupportShowcase = async (req, res) => {
       schools: [], 
       stats: { schools: 0, students: 0, teachers: 0, support: "24/7" } 
     });
+  }
+};
+
+// ================= GET SUPPORT USERS LIST =================
+exports.getSupportUsersList = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, role = "all", status = "all", search = "" } = req.query;
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
+    const skip = (pageNum - 1) * limitNum;
+
+    const escapeRegex = (str) => (str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    const query = {};
+
+    // Role filtering
+    if (role && role !== "all") {
+      if (role.toLowerCase() === "student") {
+        query.role = "student";
+      } else if (role.toLowerCase() === "teacher") {
+        query.role = { $in: ["teacher", "Teacher"] };
+      } else if (role.toLowerCase() === "schooladmin" || role.toLowerCase() === "admin") {
+        query.role = { $in: ["admin", "Admin"] };
+      } else if (role.toLowerCase() === "support") {
+        query.role = "support";
+      }
+    }
+
+    // Status filtering
+    if (status && status !== "all") {
+      if (status.toLowerCase() === "active") {
+        query.supportStatus = { $ne: "suspended" };
+      } else if (status.toLowerCase() === "inactive" || status.toLowerCase() === "suspended") {
+        query.supportStatus = "suspended";
+      }
+    }
+
+    // Search query
+    if (search && search.trim()) {
+      const regex = new RegExp(escapeRegex(search), "i");
+      query.$or = [
+        { name: regex },
+        { email: regex },
+        { phoneNumber: regex },
+        { schoolName: regex },
+        { employeeId: regex }
+      ];
+    }
+
+    // Safe projections: EXCLUDE sensitive fields like password, token, otp, firebaseUid
+    const safeProjection = "-password -token -otp -firebaseUid";
+
+    const [users, total] = await Promise.all([
+      User.find(query)
+        .select(safeProjection)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum)
+        .lean(),
+      User.countDocuments(query)
+    ]);
+
+    // Aggregate overall system user stats
+    const [totalUsersCount, studentsCount, teachersCount, adminsCount] = await Promise.all([
+      User.countDocuments({}),
+      User.countDocuments({ role: "student" }),
+      User.countDocuments({ role: { $in: ["teacher", "Teacher"] } }),
+      User.countDocuments({ role: { $in: ["admin", "Admin"] } })
+    ]);
+
+    // Format user docs and attach support ticket history summary
+    const SupportTicket = require("../models/SupportTicket");
+
+    const formattedUsers = await Promise.all(users.map(async (u) => {
+      const userTickets = await SupportTicket.find({ requester: u._id })
+        .select("ticketNumber category priority status createdAt title issueType description")
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .lean();
+
+      return {
+        id: u._id.toString(),
+        code: u.employeeId || `USR-${u._id.toString().substring(18).toUpperCase()}`,
+        name: u.name || "Unnamed User",
+        role: u.role === "student" ? "Student" : u.role === "teacher" || u.role === "Teacher" ? "Teacher" : u.role === "admin" || u.role === "Admin" ? "School Admin" : u.role === "support" ? "Support Agent" : u.role === "superadmin" ? "Super Admin" : u.role,
+        rawRole: u.role,
+        class: u.targetClass || u.previousClass || "N/A",
+        school: u.schoolName || u.requestedSchool || "Unassigned School",
+        schoolLocation: u.address || u.timezone || "India",
+        email: u.email || "",
+        phone: u.phoneNumber || "+91 00000 00000",
+        dob: u.dob || "N/A",
+        joinedOn: u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }) : "N/A",
+        status: u.supportStatus === "suspended" ? "Inactive" : "Active",
+        avatarBg: u.role === "student" ? "bg-purple-600" : (u.role === "teacher" || u.role === "Teacher") ? "bg-blue-600" : "bg-rose-600",
+        principal: u.fatherName || "N/A",
+        totalStudents: 0,
+        totalTeachers: 0,
+        schoolContact: u.alternatePhone || u.phoneNumber || "N/A",
+        tickets: userTickets.map(t => ({
+          id: `#${t.ticketNumber}`,
+          title: t.category || t.issueType || "Support Request",
+          status: t.status,
+          date: new Date(t.createdAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }),
+          color: t.status === "Open" || t.status === "New" ? "text-rose-400 bg-rose-500/10" : t.status === "In Progress" ? "text-amber-400 bg-amber-500/10" : "text-emerald-400 bg-emerald-500/10"
+        }))
+      };
+    }));
+
+    return res.json({
+      users: formattedUsers,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum) || 1,
+      stats: {
+        totalUsers: totalUsersCount,
+        students: studentsCount,
+        teachers: teachersCount,
+        schoolAdmins: adminsCount
+      }
+    });
+  } catch (error) {
+    console.error("getSupportUsersList error:", error);
+    res.status(500).json({ message: error.message || "Server error" });
+  }
+};
+
+// ================= GET SUPPORT SCHOOLS LIST =================
+exports.getSupportSchoolsList = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, status = "all", search = "" } = req.query;
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
+    const skip = (pageNum - 1) * limitNum;
+
+    const School = require("../models/School");
+    const SupportTicket = require("../models/SupportTicket");
+
+    const escapeRegex = (str) => (str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    const query = {};
+
+    if (status && status !== "all") {
+      if (status.toLowerCase() === "active") {
+        query.status = { $ne: "Inactive" };
+      } else if (status.toLowerCase() === "inactive") {
+        query.status = "Inactive";
+      }
+    }
+
+    if (search && search.trim()) {
+      const regex = new RegExp(escapeRegex(search), "i");
+      query.$or = [
+        { name: regex },
+        { address: regex },
+        { email: regex },
+        { principalName: regex },
+        { code: regex }
+      ];
+    }
+
+    const [schools, total] = await Promise.all([
+      School.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum)
+        .lean(),
+      School.countDocuments(query)
+    ]);
+
+    // Aggregate stats across all schools
+    const [totalSchoolsCount, activeSchoolsCount, inactiveSchoolsCount, totalTeachersCount, totalStudentsCount] = await Promise.all([
+      School.countDocuments({}),
+      School.countDocuments({ status: { $ne: "Inactive" } }),
+      School.countDocuments({ status: "Inactive" }),
+      User.countDocuments({ role: { $in: ["teacher", "Teacher"] } }),
+      User.countDocuments({ role: "student" })
+    ]);
+
+    // Format school records and compute live counts
+    const formattedSchools = await Promise.all(schools.map(async (s) => {
+      const schoolNameRegex = new RegExp("^" + escapeRegex(s.name) + "$", "i");
+      
+      const [teacherCount, studentCount, adminUser, schoolTickets] = await Promise.all([
+        User.countDocuments({ schoolName: schoolNameRegex, role: { $in: ["teacher", "Teacher"] } }),
+        User.countDocuments({ schoolName: schoolNameRegex, role: "student" }),
+        User.findOne({ schoolName: schoolNameRegex, role: { $in: ["admin", "Admin"] } }).select("name email phoneNumber").lean(),
+        SupportTicket.find({ $or: [{ schoolName: schoolNameRegex }] })
+          .select("ticketNumber category priority status createdAt title issueType")
+          .sort({ createdAt: -1 })
+          .limit(5)
+          .lean()
+      ]);
+
+      return {
+        id: s._id.toString(),
+        code: s.code || `SCH-${s._id.toString().substring(18).toUpperCase()}`,
+        name: s.name,
+        location: s.address || s.location || "Bihar, India",
+        established: s.established || "2020",
+        contact: s.phoneNumber || (adminUser ? adminUser.phoneNumber : "+91 00000 00000"),
+        email: s.email || (adminUser ? adminUser.email : "info@school.edu"),
+        address: s.address || s.name + ", Bihar",
+        website: s.website || `www.${s.normalizedName ? s.normalizedName.replace(/\s+/g, "") : "school"}.edu.in`,
+        adminName: adminUser ? adminUser.name : (s.principalName || "School Admin"),
+        adminEmail: adminUser ? adminUser.email : (s.email || "admin@school.edu"),
+        teachers: teacherCount || s.totalTeachers || 0,
+        students: studentCount || s.totalStudents || 0,
+        classes: s.totalClasses || 8,
+        status: s.status || "Active",
+        ticketsCount: schoolTickets.length,
+        ticketsHistory: schoolTickets.map(t => ({
+          id: `#${t.ticketNumber}`,
+          title: t.category || t.issueType || "Support Issue",
+          status: t.status,
+          date: new Date(t.createdAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }),
+          color: t.status === "Open" || t.status === "New" ? "text-rose-400 bg-rose-500/10" : t.status === "In Progress" ? "text-amber-400 bg-amber-500/10" : "text-emerald-400 bg-emerald-500/10"
+        }))
+      };
+    }));
+
+    return res.json({
+      schools: formattedSchools,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum) || 1,
+      stats: {
+        totalSchools: totalSchoolsCount,
+        activeSchools: activeSchoolsCount,
+        inactiveSchools: inactiveSchoolsCount,
+        totalTeachers: totalTeachersCount,
+        totalStudents: totalStudentsCount
+      }
+    });
+  } catch (error) {
+    console.error("getSupportSchoolsList error:", error);
+    res.status(500).json({ message: error.message || "Server error" });
   }
 };
 

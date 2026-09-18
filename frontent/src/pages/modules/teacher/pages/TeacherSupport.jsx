@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaBroadcastTower, FaComments, FaPhone } from "react-icons/fa";
+import { FaBroadcastTower, FaComments, FaPhone, FaTicketAlt } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import { useCall } from "../../../../context/CallContext";
 import SupportChatEngine from "../../../../components/SupportChatEngine";
+import CreateSupportTicketModal from "../../../../components/CreateSupportTicketModal";
 import API_URL from "../../../../config/api";
 
 function TeacherSupport() {
@@ -13,6 +14,7 @@ function TeacherSupport() {
   const location = useLocation();
 
   const [activeTab, setActiveTab] = useState(location.state?.activeTab || "admin"); // admin, students
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [subTab, setSubTab] = useState("personal"); // personal, calls
   const [contacts, setContacts] = useState([]);
   const [activeContact, setActiveContact] = useState(null);
@@ -188,14 +190,28 @@ function TeacherSupport() {
           </button>
         </div>
 
-        {/* Action Button: Make Group */}
-        <Link 
-          to="/teacher/support/groups" 
-          className="rounded-xl bg-[#7C3AED] px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-white shadow-sm hover:opacity-90 transition shrink-0 ml-auto"
-        >
-          + Make Group
-        </Link>
+        <div className="flex items-center gap-2 ml-auto shrink-0">
+          <button
+            onClick={() => setIsTicketModalOpen(true)}
+            className="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-white shadow-sm hover:opacity-90 transition flex items-center gap-1.5 cursor-pointer"
+          >
+            <FaTicketAlt className="text-xs" />
+            <span>+ Create Support Ticket</span>
+          </button>
+
+          <Link 
+            to="/teacher/support/groups" 
+            className="rounded-xl bg-[#7C3AED] px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-white shadow-sm hover:opacity-90 transition shrink-0"
+          >
+            + Make Group
+          </Link>
+        </div>
       </div>
+
+      <CreateSupportTicketModal
+        isOpen={isTicketModalOpen}
+        onClose={() => setIsTicketModalOpen(false)}
+      />
 
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* If Active Tab is Admin Support */}
