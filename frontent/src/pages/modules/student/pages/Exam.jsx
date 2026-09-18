@@ -24,150 +24,33 @@ import {
 } from "react-icons/fa";
 import API_URL from "../../../../config/api";
 
-const SORA = "'Sora', sans-serif";
-
-const DUMMY_EXAMS = [];
-
-// Countdown Timer Component
-const AdmissionCountdown = ({ dateStr, onLaunchTest, examTaken }) => {
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
-
-  function calculateTimeLeft() {
-    const diff = new Date(dateStr) - new Date();
-    if (diff <= 0) return null;
-
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-    const minutes = Math.floor((diff / 1000 / 60) % 60);
-    const seconds = Math.floor((diff / 1000) % 60);
-
-    return { days, hours, minutes, seconds };
-  }
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [dateStr]);
-
-  if (examTaken) {
-    return (
-      <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1.5 rounded-xl border border-emerald-100/50">
-        Completed
-      </span>
-    );
-  }
-
-  if (!timeLeft) {
-    return (
-      <button
-        onClick={onLaunchTest}
-        className="text-[10px] font-black uppercase tracking-wider bg-teal-500 hover:bg-teal-600 dark:bg-[#38BDF8] dark:hover:bg-[#0EA5E9] text-white dark:text-[#090F1C] px-4 py-2 rounded-xl shadow-md transition animate-bounce cursor-pointer"
-      >
-        Start Your Exam
-      </button>
-    );
-  }
-
-  const { days, hours, minutes, seconds } = timeLeft;
-  return (
-    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-extrabold rounded-xl border border-amber-200 bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 font-mono whitespace-nowrap">
-      ⏳ {days > 0 ? `${days}d ` : ""}{hours.toString().padStart(2, '0')}:{minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}
-    </span>
-  );
-};
-
-// Video preview box for proctoring camera
-const VideoPreview = ({ stream }) => {
-  const videoRef = useRef(null);
-
-  useEffect(() => {
-    if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
-    }
-  }, [stream]);
-
-  return (
-    <video
-      ref={videoRef}
-      autoPlay
-      playsInline
-      muted
-      className="w-40 h-28 rounded-2xl object-cover border-2 border-[#7C3AED] shadow-2xl scale-x-[-1]"
-    />
-  );
-};
-
 function Exam() {
-  const API = API_URL;
-  const token = localStorage.getItem("token");
+  const { isDarkMode } = useTheme();
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
+  const token = localStorage.getItem("token");
+  const API = API_URL;
 
   const [exams, setExams] = useState([]);
+  const [publishedResults, setPublishedResults] = useState([]);
   const [profile, setProfile] = useState(null);
   const [search, setSearch] = useState("");
-
-  const userInitials = useMemo(() => {
-    if (!profile?.name) return "I";
-    return profile.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
-  }, [profile]);
-
-  // Exam Proctoring states
-  const [activeTest, setActiveTest] = useState(null); // null or "admission" or "class-online"
+  const [activeTest, setActiveTest] = useState(null); // 'admission' | 'class-online'
   const [selectedClassExam, setSelectedClassExam] = useState(null);
-  const [testStep, setTestStep] = useState("setup"); // "setup" | "taking" | "graded"
+  const [testStep, setTestStep] = useState(null); // 'setup' | 'taking' | 'submitted'
+  const [selectedOfflineExam, setSelectedOfflineExam] = useState(null);
+  const [showOfflineModal, setShowOfflineModal] = useState(false);
+
+  // Proctoring states
+  const [cameraActive, setCameraActive] = useState(false);
+  const [screenActive, setScreenActive] = useState(false);
+  const [cameraStream, setCameraStream] = useState(null);
+  const [screenStream, setScreenStream] = useState(null);
+  const [mediaError, setMediaError] = useState("");
 
   const socketRef = useRef(null);
 
-  // Media streams
-  const [cameraStream, setCameraStream] = useState(null);
-  const [screenStream, setScreenStream] = useState(null);
-  const [cameraActive, setCameraActive] = useState(false);
-  const [screenActive, setScreenActive] = useState(false);
-  const [mediaError, setMediaError] = useState("");
-
-  // Test content
-  const [testPaper, setTestPaper] = useState(null);
-  const [currentQIndex, setCurrentQIndex] = useState(0);
-  const [activeSection, setActiveSection] = useState("Mathematics");
-  const [selectedAnswers, setSelectedAnswers] = useState([]);
-  const [loadingTest, setLoadingTest] = useState(false);
-  const [submittingTest, setSubmittingTest] = useState(false);
-  const [testResult, setTestResult] = useState(null);
-
   useEffect(() => {
-    if (testStep === "taking") {
-      const proctorVal = activeTest === "admission"
-        ? (profile?.admissionExamProctor)
-        : (selectedClassExam?.proctor);
-
-      const proctorId = proctorVal?._id || proctorVal;
-
-      if (proctorId) {
-        const token = localStorage.getItem("token");
-        const API = API_URL;
-        socketRef.current = io(API, {
-          auth: { token }
-        });
-
-        socketRef.current.emit("test-session-start", { proctorId });
-
-        return () => {
-          if (socketRef.current) {
-            socketRef.current.emit("test-session-stop", { proctorId });
-            socketRef.current.disconnect();
-          }
-        };
-      }
-    }
-  }, [testStep, activeTest, profile, selectedClassExam]);
-
-  useEffect(() => {
-    let camInterval;
-    let screenInterval;
-
+    let camInterval, screenInterval;
     const proctorVal = activeTest === "admission"
       ? (profile?.admissionExamProctor)
       : (selectedClassExam?.proctor);
@@ -252,8 +135,6 @@ function Exam() {
       .then((res) => setProfile(res.data))
       .catch((err) => console.log(err));
   }, [API, token]);
-  const [selectedOfflineExam, setSelectedOfflineExam] = useState(null);
-  const [showOfflineModal, setShowOfflineModal] = useState(false);
 
   const formatDurationStr = (dur) => {
     if (!dur) return "60 Min";
