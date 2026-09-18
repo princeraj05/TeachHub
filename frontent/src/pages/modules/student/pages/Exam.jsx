@@ -239,6 +239,13 @@ function Exam() {
       .catch((err) => console.log(err));
 
     axios
+      .get(`${API}/api/student/results`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setPublishedResults(res.data || []))
+      .catch((err) => console.log(err));
+
+    axios
       .get(`${API}/api/auth/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -284,20 +291,47 @@ function Exam() {
       };
 
       const daysLeft = getDaysLeft(e.date);
+
+      // Check for subject score in publishedResults as fallback if studentMark is not directly on e
+      let matchedSubjectMark = e.studentMark;
+      const currentSubjName = (e.subject || e.title || "").toLowerCase().trim();
+
+      if (!matchedSubjectMark && Array.isArray(publishedResults)) {
+        for (const resDoc of publishedResults) {
+          if (Array.isArray(resDoc.subjects)) {
+            const subMatch = resDoc.subjects.find(
+              s => (s.subjectName || "").toLowerCase().trim() === currentSubjName ||
+                   currentSubjName.includes((s.subjectName || "").toLowerCase().trim())
+            );
+            if (subMatch) {
+              const maxM = subMatch.maxMarks || 100;
+              matchedSubjectMark = {
+                marksObtained: subMatch.marksObtained,
+                maxMarks: maxM,
+                isAbsent: subMatch.isAbsent,
+                percentage: maxM > 0 ? Math.round((subMatch.marksObtained / maxM) * 100) : 0
+              };
+              break;
+            }
+          }
+        }
+      }
+
+      let isExamTaken = e.taken || !!matchedSubjectMark || !!e.submission;
       let status = "Upcoming";
-      if (e.taken || e.studentMark || e.submission || daysLeft < 0) {
+      if (isExamTaken || daysLeft < 0) {
         status = "Completed";
       }
 
       // Add scores for completed ones if studentMark or submission exists
-      let isAbsent = e.studentMark ? e.studentMark.isAbsent : false;
-      let score = e.studentMark
-        ? e.studentMark.percentage
+      let isAbsent = matchedSubjectMark ? matchedSubjectMark.isAbsent : false;
+      let score = matchedSubjectMark
+        ? matchedSubjectMark.percentage
         : e.submission?.score;
-      let total = e.studentMark
-        ? e.studentMark.maxMarks
+      let total = matchedSubjectMark
+        ? matchedSubjectMark.maxMarks
         : (e.submission?.total || 100);
-      let marksObtained = e.studentMark ? e.studentMark.marksObtained : null;
+      let marksObtained = matchedSubjectMark ? matchedSubjectMark.marksObtained : null;
 
       const roomStr = e.roomNumber
         ? (String(e.roomNumber).trim().toLowerCase().startsWith("room") ? e.roomNumber : `Room ${e.roomNumber}`)
@@ -318,7 +352,7 @@ function Exam() {
         marksObtained
       };
     });
-  }, [exams, profile]);
+  }, [exams, profile, publishedResults]);
 
   const [activeFilter, setActiveFilter] = useState("All");
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);

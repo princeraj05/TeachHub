@@ -234,20 +234,32 @@ const exams = await Exam.find(query)
 
 if (req.user.role === "student") {
   const studentMarks = await StudentMark.find({
-    student: req.user.id,
-    ...(req.user.schoolName ? { schoolName: req.user.schoolName } : {})
-  }).lean();
+    student: req.user.id
+  }).populate("subject", "name").lean();
 
   const studentSubmissions = await ExamSubmission.find({
     student: req.user.id
   }).lean();
 
-  const marksMap = new Map();
+  const exactMap = new Map();
+  const termMap = new Map();
+  const subjMap = new Map();
+  const nameMap = new Map();
+
   studentMarks.forEach((m) => {
     const subjId = m.subject?._id ? m.subject._id.toString() : m.subject?.toString();
+    const subjName = (m.subjectNameSnapshot || m.subject?.name || "").trim().toLowerCase();
+
     if (subjId) {
-      const key = `${subjId}_${m.examTerm}_${m.academicYear}`;
-      marksMap.set(key, m);
+      const exactKey = `${subjId}_${m.examTerm}_${m.academicYear}`;
+      const termKey = `${subjId}_${m.examTerm}`;
+      exactMap.set(exactKey, m);
+      termMap.set(termKey, m);
+      subjMap.set(subjId, m);
+    }
+    if (subjName) {
+      nameMap.set(`${subjName}_${m.examTerm}`, m);
+      nameMap.set(subjName, m);
     }
   });
 
@@ -261,15 +273,25 @@ if (req.user.role === "student") {
   const formattedExams = exams.map((exam) => {
     const examObj = exam.toObject();
     const subjId = exam.subject?._id ? exam.subject._id.toString() : exam.subject?.toString();
-    const markKey = `${subjId}_${exam.examTerm}_${exam.academicYear}`;
-    const mark = marksMap.get(markKey);
+    const subjName = (exam.subject?.name || exam.title || "").trim().toLowerCase();
+
+    const exactKey = `${subjId}_${exam.examTerm}_${exam.academicYear}`;
+    const termKey = `${subjId}_${exam.examTerm}`;
+
+    const mark = exactMap.get(exactKey) ||
+                 termMap.get(termKey) ||
+                 subjMap.get(subjId) ||
+                 nameMap.get(`${subjName}_${exam.examTerm}`) ||
+                 nameMap.get(subjName);
+
     const submission = submissionMap.get(exam._id.toString());
 
     if (mark) {
-      const percentage = mark.maxMarks > 0 ? Math.round((mark.marksObtained / mark.maxMarks) * 100) : 0;
+      const maxM = mark.maxMarks || exam.maxMarks || 100;
+      const percentage = maxM > 0 ? Math.round((mark.marksObtained / maxM) * 100) : 0;
       examObj.studentMark = {
         marksObtained: mark.marksObtained,
-        maxMarks: mark.maxMarks,
+        maxMarks: maxM,
         isAbsent: mark.isAbsent,
         grade: mark.grade,
         percentage

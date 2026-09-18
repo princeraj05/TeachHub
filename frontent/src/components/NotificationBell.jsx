@@ -107,118 +107,151 @@ export default function NotificationBell({ fullViewPath = "" }) {
         )}
       </button>
 
-      {/* Popover Dropdown */}
+      {/* Popover Dropdown / Floating Mobile Card */}
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden animate-fadeIn text-slate-800 dark:text-slate-100">
-          {/* Header */}
-          <div className="p-3.5 border-b border-slate-100 dark:border-white/10 flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
-            <div className="flex items-center gap-2">
-              <FaBell className="text-[#7C3AED] dark:text-[#38BDF8] text-sm" />
-              <h3 className="text-xs font-black tracking-tight uppercase">Notifications</h3>
-              {unreadCount > 0 && (
-                <span className="bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] text-[10px] font-black px-2 py-0.5 rounded-full">
-                  {unreadCount} new
-                </span>
-              )}
-            </div>
+        <>
+          {/* Mobile Backdrop Overlay */}
+          <div
+            onClick={() => setIsOpen(false)}
+            className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-[90] sm:hidden"
+          />
 
-            <div className="flex items-center gap-2">
-              {unreadCount > 0 && (
+          {/* Popover Card Container */}
+          <div className="fixed inset-x-2.5 top-16 sm:inset-auto sm:absolute sm:right-0 sm:top-full sm:mt-3.5 w-auto sm:w-96 max-w-md sm:max-w-none bg-white dark:bg-[#0D1326] border border-slate-200/90 dark:border-white/10 rounded-2.5xl shadow-2xl z-[100] overflow-hidden animate-fadeIn text-slate-800 dark:text-slate-100 select-none">
+            {/* Header */}
+            <div className="p-3.5 sm:p-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between bg-slate-50/80 dark:bg-white/[0.03]">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-[#7C3AED]/10 dark:bg-[#38BDF8]/10 text-[#7C3AED] dark:text-[#38BDF8] flex items-center justify-center text-xs shrink-0">
+                  <FaBell />
+                </div>
+                <h3 className="text-xs font-black tracking-wider uppercase text-slate-900 dark:text-white">
+                  Notifications
+                </h3>
+                {unreadCount > 0 && (
+                  <span className="bg-[#7C3AED]/15 dark:bg-[#38BDF8]/15 text-[#7C3AED] dark:text-[#38BDF8] text-[10px] font-black px-2 py-0.5 rounded-full border border-[#7C3AED]/20 dark:border-[#38BDF8]/20">
+                    {unreadCount} new
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleMarkAllRead}
+                    className="text-[10px] font-extrabold text-[#7C3AED] dark:text-[#38BDF8] hover:underline flex items-center gap-1 cursor-pointer bg-purple-500/10 dark:bg-[#38BDF8]/10 px-2 py-1 rounded-lg border border-[#7C3AED]/20 transition-all"
+                    title="Mark all as read"
+                  >
+                    <FaCheckDouble className="text-[10px]" /> Read all
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={handleMarkAllRead}
-                  className="text-[10px] font-bold text-[#7C3AED] dark:text-[#38BDF8] hover:underline flex items-center gap-1 cursor-pointer"
-                  title="Mark all as read"
+                  onClick={() => setIsOpen(false)}
+                  className="w-7 h-7 rounded-lg bg-slate-200/60 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 text-slate-500 dark:text-slate-300 flex items-center justify-center transition cursor-pointer shrink-0"
                 >
-                  <FaCheckDouble /> Read all
+                  <FaTimes className="text-xs" />
                 </button>
-              )}
+              </div>
+            </div>
+
+            {/* Filter Tabs Bar */}
+            <div className="flex border-b border-slate-100 dark:border-white/10 text-xs font-bold px-3.5 pt-2.5 gap-4 bg-slate-50/40 dark:bg-white/[0.01]">
               <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 rounded-lg transition cursor-pointer"
+                onClick={() => setFilter("all")}
+                className={`pb-2 border-b-2 transition-all cursor-pointer font-black ${
+                  filter === "all"
+                    ? "border-[#7C3AED] text-[#7C3AED] dark:text-[#38BDF8]"
+                    : "border-transparent text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                }`}
               >
-                <FaTimes className="text-xs" />
+                All ({notifications.length})
+              </button>
+              <button
+                onClick={() => setFilter("unread")}
+                className={`pb-2 border-b-2 transition-all cursor-pointer font-black ${
+                  filter === "unread"
+                    ? "border-[#7C3AED] text-[#7C3AED] dark:text-[#38BDF8]"
+                    : "border-transparent text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                }`}
+              >
+                Unread ({unreadCount})
               </button>
             </div>
-          </div>
 
-          {/* Filter Tabs */}
-          <div className="flex border-b border-slate-100 dark:border-white/10 text-xs font-bold px-3 pt-2 gap-4">
-            <button
-              onClick={() => setFilter("all")}
-              className={`pb-2 border-b-2 transition cursor-pointer ${filter === "all" ? "border-[#7C3AED] text-[#7C3AED] dark:text-[#38BDF8]" : "border-transparent text-slate-400 hover:text-slate-700 dark:hover:text-white"}`}
-            >
-              All ({notifications.length})
-            </button>
-            <button
-              onClick={() => setFilter("unread")}
-              className={`pb-2 border-b-2 transition cursor-pointer ${filter === "unread" ? "border-[#7C3AED] text-[#7C3AED] dark:text-[#38BDF8]" : "border-transparent text-slate-400 hover:text-slate-700 dark:hover:text-white"}`}
-            >
-              Unread ({unreadCount})
-            </button>
-          </div>
-
-          {/* Notification Items List */}
-          <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-white/5">
-            {loading && notifications.length === 0 ? (
-              <div className="p-6 text-center text-xs text-slate-400 font-semibold">
-                Loading notifications...
-              </div>
-            ) : filteredItems.length === 0 ? (
-              <div className="p-6 text-center text-xs text-slate-400 font-medium">
-                No notifications found.
-              </div>
-            ) : (
-              filteredItems.map((n) => (
-                <div
-                  key={n._id}
-                  onClick={() => handleNotificationClick(n)}
-                  className={`p-3.5 flex items-start gap-3 transition cursor-pointer hover:bg-slate-50 dark:hover:bg-white/[0.04] ${!n.isRead ? "bg-[#7C3AED]/5 dark:bg-[#38BDF8]/5 font-medium" : ""}`}
-                >
-                  <span className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${!n.isRead ? "bg-[#7C3AED] dark:bg-[#38BDF8]" : "bg-transparent"}`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className={`text-xs font-bold truncate ${!n.isRead ? "text-slate-900 dark:text-white font-black" : "text-slate-700 dark:text-slate-300"}`}>
-                        {n.title}
-                      </p>
-                      <span className="text-[9px] text-slate-400 shrink-0 font-semibold">
-                        {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">
-                      {n.message}
-                    </p>
-                    {n.category && (
-                      <span className="inline-block mt-1.5 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300">
-                        {n.category}
-                      </span>
-                    )}
-                  </div>
-                  {n.link && (
-                    <FaExternalLinkAlt className="text-[10px] text-slate-400 mt-1 shrink-0" />
-                  )}
+            {/* Notification Items List */}
+            <div className="max-h-[340px] sm:max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-white/5">
+              {loading && notifications.length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-400 font-bold flex flex-col items-center gap-2">
+                  <div className="w-6 h-6 border-2 border-[#7C3AED] border-t-transparent rounded-full animate-spin" />
+                  <span>Loading notifications...</span>
                 </div>
-              ))
+              ) : filteredItems.length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-400 font-semibold">
+                  No notifications found.
+                </div>
+              ) : (
+                filteredItems.map((n) => (
+                  <div
+                    key={n._id}
+                    onClick={() => handleNotificationClick(n)}
+                    className={`p-3.5 flex items-start gap-3 transition cursor-pointer hover:bg-slate-50 dark:hover:bg-white/[0.04] ${
+                      !n.isRead ? "bg-[#7C3AED]/[0.06] dark:bg-[#38BDF8]/[0.06]" : ""
+                    }`}
+                  >
+                    <span
+                      className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${
+                        !n.isRead ? "bg-[#7C3AED] dark:bg-[#38BDF8] shadow-sm shadow-[#7C3AED]" : "bg-transparent"
+                      }`}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <p
+                          className={`text-xs truncate ${
+                            !n.isRead
+                              ? "text-slate-900 dark:text-white font-black"
+                              : "text-slate-700 dark:text-slate-300 font-bold"
+                          }`}
+                        >
+                          {n.title}
+                        </p>
+                        <span className="text-[9px] text-slate-400 shrink-0 font-extrabold font-mono">
+                          {new Date(n.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed font-semibold">
+                        {n.message}
+                      </p>
+                      {n.category && (
+                        <span className="inline-block mt-1.5 text-[8px] font-black uppercase px-2 py-0.5 rounded-md bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20">
+                          {n.category}
+                        </span>
+                      )}
+                    </div>
+                    {n.link && <FaExternalLinkAlt className="text-[10px] text-slate-400 mt-1 shrink-0 opacity-70" />}
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Footer View Notification Center */}
+            {fullViewPath && (
+              <div className="p-3 border-t border-slate-100 dark:border-white/10 text-center bg-slate-50/80 dark:bg-white/[0.02]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    navigate(fullViewPath);
+                  }}
+                  className="text-xs font-black text-[#7C3AED] dark:text-[#38BDF8] hover:underline cursor-pointer flex items-center justify-center gap-1.5 mx-auto"
+                >
+                  <span>View Notification Center</span>
+                  <span>→</span>
+                </button>
+              </div>
             )}
           </div>
-
-          {/* Footer view full notifications page link */}
-          {fullViewPath && (
-            <div className="p-2.5 border-t border-slate-100 dark:border-white/10 text-center bg-slate-50/50 dark:bg-white/[0.02]">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsOpen(false);
-                  navigate(fullViewPath);
-                }}
-                className="text-xs font-bold text-[#7C3AED] dark:text-[#38BDF8] hover:underline cursor-pointer"
-              >
-                View Notification Center →
-              </button>
-            </div>
-          )}
-        </div>
+        </>
       )}
     </div>
   );

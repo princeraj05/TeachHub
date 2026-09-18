@@ -118,6 +118,26 @@ const formatTimeRange = (startTime, endTime) => {
   return start || end || "";
 };
 
+const parseTimeToMinutes = (timeStr) => {
+  if (!timeStr) return 0;
+  const str = String(timeStr).trim().toUpperCase();
+  const match = str.match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/);
+  if (!match) return 0;
+
+  let hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const ampm = match[3];
+
+  if (ampm) {
+    if (ampm === "PM" && hours < 12) hours += 12;
+    if (ampm === "AM" && hours === 12) hours = 0;
+  } else {
+    if (hours >= 1 && hours <= 6) hours += 12;
+  }
+
+  return hours * 60 + minutes;
+};
+
 export default function TimetableView() {
   const API = API_URL;
   const navigate = useNavigate();
@@ -153,15 +173,20 @@ export default function TimetableView() {
     loadTimetable();
   }, [API]);
 
-  // Filter real entries for selected day
+  // Filter real entries for selected day and sort chronologically (09:00 AM, 10:00 AM, 11:00 AM, 12:00 PM, 01:00 PM...)
   const dayEntries = useMemo(() => {
     const realDayEntries = allEntries.filter(
       (e) => e.day?.toLowerCase() === selectedDay.toLowerCase()
     );
 
-    return [...realDayEntries].sort((a, b) =>
-      (a.startTime || "").localeCompare(b.startTime || "")
-    );
+    return [...realDayEntries].sort((a, b) => {
+      const timeA = parseTimeToMinutes(a.startTime);
+      const timeB = parseTimeToMinutes(b.startTime);
+      if (timeA !== timeB) return timeA - timeB;
+      const pA = Number(a.periodNumber) || 0;
+      const pB = Number(b.periodNumber) || 0;
+      return pA - pB;
+    });
   }, [allEntries, selectedDay]);
 
   return (
