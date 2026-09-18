@@ -1,5 +1,6 @@
 const Event = require("../models/Event");
 const User = require("../models/User");
+const School = require("../models/School");
 const fs = require("fs");
 const path = require("path");
 const cloudinary = require("../config/cloudinary");
@@ -101,6 +102,33 @@ exports.createEvent = async (req, res) => {
 
 const escapeRegex = (str) => (str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+// Helper to attach official school logo badge from School collection
+const attachSchoolLogos = async (events) => {
+  if (!events || events.length === 0) return [];
+  const plainEvents = events.map(e => (typeof e.toObject === "function" ? e.toObject() : e));
+  const schoolNames = [...new Set(plainEvents.map(e => e.schoolName).filter(Boolean))];
+
+  if (schoolNames.length === 0) return plainEvents;
+
+  const schools = await School.find({
+    $or: schoolNames.map(name => ({ name: new RegExp("^" + escapeRegex(name) + "$", "i") }))
+  }).select("name photo logo coverImage").lean();
+
+  const schoolLogoMap = {};
+  schools.forEach(s => {
+    const key = (s.name || "").toLowerCase().trim();
+    schoolLogoMap[key] = s.photo || s.logo || s.coverImage || "";
+  });
+
+  return plainEvents.map(e => {
+    const key = (e.schoolName || "").toLowerCase().trim();
+    return {
+      ...e,
+      schoolLogo: schoolLogoMap[key] || ""
+    };
+  });
+};
+
 // 2. Get Events (Filtered by School Name for standard users, all for Super Admin)
 exports.getEvents = async (req, res) => {
   try {
@@ -123,7 +151,8 @@ exports.getEvents = async (req, res) => {
     }
 
     const events = await Event.find(query).sort({ eventDate: -1 });
-    res.json(events);
+    const enriched = await attachSchoolLogos(events);
+    res.json(enriched);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -157,7 +186,8 @@ exports.getUpcomingEvents = async (req, res) => {
     }
 
     const events = await Event.find(query).sort({ eventDate: 1 });
-    res.json(events);
+    const enriched = await attachSchoolLogos(events);
+    res.json(enriched);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -193,7 +223,8 @@ exports.getCompletedEvents = async (req, res) => {
     }
 
     const events = await Event.find(query).sort({ eventDate: -1 });
-    res.json(events);
+    const enriched = await attachSchoolLogos(events);
+    res.json(enriched);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

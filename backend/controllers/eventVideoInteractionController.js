@@ -2,8 +2,22 @@ const EventVideoInteraction = require("../models/EventVideoInteraction");
 const Event = require("../models/Event");
 const User = require("../models/User");
 
+// Helper to normalize video URL for robust matching
+const normalizeUrl = (rawUrl) => {
+  if (!rawUrl) return "";
+  let clean = String(rawUrl).trim();
+  if (clean.startsWith("http://") || clean.startsWith("https://")) {
+    try {
+      const parsed = new URL(clean);
+      clean = parsed.pathname;
+    } catch (e) {}
+  }
+  return clean.replace(/^\/+/, "");
+};
+
 // Helper to find or create interaction doc
-const getOrCreateInteraction = async (eventId, videoUrl) => {
+const getOrCreateInteraction = async (eventId, rawVideoUrl) => {
+  const videoUrl = normalizeUrl(rawVideoUrl);
   let doc = await EventVideoInteraction.findOne({ eventId, videoUrl });
   if (!doc) {
     doc = await EventVideoInteraction.create({
@@ -27,23 +41,26 @@ exports.getVideoStats = async (req, res) => {
       return res.status(400).json({ error: "eventId and videoUrls array are required" });
     }
 
+    const normalizedUrls = videoUrls.map(normalizeUrl);
+
     const interactions = await EventVideoInteraction.find({
       eventId,
-      videoUrl: { $in: videoUrls }
+      videoUrl: { $in: normalizedUrls }
     }).lean();
 
     const statsMap = {};
-    videoUrls.forEach((url) => {
-      const match = interactions.find((i) => i.videoUrl === url);
+    videoUrls.forEach((rawUrl) => {
+      const norm = normalizeUrl(rawUrl);
+      const match = interactions.find((i) => i.videoUrl === norm);
       if (match) {
-        statsMap[url] = {
+        statsMap[rawUrl] = {
           likesCount: (match.likes || []).length,
           commentsCount: (match.comments || []).length,
           isLiked: (match.likes || []).some((id) => id.toString() === userId.toString()),
           isSaved: (match.savedBy || []).some((id) => id.toString() === userId.toString())
         };
       } else {
-        statsMap[url] = {
+        statsMap[rawUrl] = {
           likesCount: 0,
           commentsCount: 0,
           isLiked: false,
@@ -62,14 +79,14 @@ exports.getVideoStats = async (req, res) => {
 // Toggle Like
 exports.toggleLikeVideo = async (req, res) => {
   try {
-    const { eventId, videoUrl } = req.body;
+    const { eventId, videoUrl: rawVideoUrl } = req.body;
     const userId = req.user._id;
 
-    if (!eventId || !videoUrl) {
+    if (!eventId || !rawVideoUrl) {
       return res.status(400).json({ error: "eventId and videoUrl are required" });
     }
 
-    const interaction = await getOrCreateInteraction(eventId, videoUrl);
+    const interaction = await getOrCreateInteraction(eventId, rawVideoUrl);
     const userIdStr = userId.toString();
     const alreadyLiked = interaction.likes.some((id) => id.toString() === userIdStr);
 
@@ -95,14 +112,14 @@ exports.toggleLikeVideo = async (req, res) => {
 // Toggle Save
 exports.toggleSaveVideo = async (req, res) => {
   try {
-    const { eventId, videoUrl } = req.body;
+    const { eventId, videoUrl: rawVideoUrl } = req.body;
     const userId = req.user._id;
 
-    if (!eventId || !videoUrl) {
+    if (!eventId || !rawVideoUrl) {
       return res.status(400).json({ error: "eventId and videoUrl are required" });
     }
 
-    const interaction = await getOrCreateInteraction(eventId, videoUrl);
+    const interaction = await getOrCreateInteraction(eventId, rawVideoUrl);
     const userIdStr = userId.toString();
     const alreadySaved = interaction.savedBy.some((id) => id.toString() === userIdStr);
 
@@ -127,11 +144,13 @@ exports.toggleSaveVideo = async (req, res) => {
 // Get Video Comments
 exports.getVideoComments = async (req, res) => {
   try {
-    const { eventId, videoUrl } = req.query;
+    const { eventId, videoUrl: rawVideoUrl } = req.query;
 
-    if (!eventId || !videoUrl) {
+    if (!eventId || !rawVideoUrl) {
       return res.status(400).json({ error: "eventId and videoUrl are required" });
     }
+
+    const videoUrl = normalizeUrl(rawVideoUrl);
 
     const interaction = await EventVideoInteraction.findOne({ eventId, videoUrl })
       .populate("comments.user", "name role profileImage photo")
@@ -159,14 +178,14 @@ exports.getVideoComments = async (req, res) => {
 // Add Comment
 exports.addVideoComment = async (req, res) => {
   try {
-    const { eventId, videoUrl, text } = req.body;
+    const { eventId, videoUrl: rawVideoUrl, text } = req.body;
     const userId = req.user._id;
 
-    if (!eventId || !videoUrl || !text || !text.trim()) {
+    if (!eventId || !rawVideoUrl || !text || !text.trim()) {
       return res.status(400).json({ error: "eventId, videoUrl and non-empty text are required" });
     }
 
-    const interaction = await getOrCreateInteraction(eventId, videoUrl);
+    const interaction = await getOrCreateInteraction(eventId, rawVideoUrl);
     
     const newCommentObj = {
       user: userId,
@@ -186,9 +205,9 @@ exports.addVideoComment = async (req, res) => {
       createdAt: newCommentObj.createdAt,
       user: {
         _id: userDoc._id,
-        name: userDoc.name || "User",
-        role: userDoc.role || "student",
-        avatar: userDoc.profileImage || userDoc.photo || ""
+        name: userDoc?.name || "User",
+        role: userDoc?.role || "student",
+        avatar: userDoc?.profileImage || userDoc?.photo || ""
       }
     };
 

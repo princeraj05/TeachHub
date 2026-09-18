@@ -114,15 +114,17 @@ export default function ReelsVideoViewer({
   const handleToggleLike = async () => {
     if (!currentVideo.eventId || !currentVideo.url) return;
 
-    // Optimistic UI update
+    // Instant optimistic UI update
     setStatsMap((prev) => {
       const existing = prev[currentVideo.url] || { likesCount: 0, isLiked: false };
+      const nextIsLiked = !existing.isLiked;
+      const nextCount = nextIsLiked ? existing.likesCount + 1 : Math.max(0, existing.likesCount - 1);
       return {
         ...prev,
         [currentVideo.url]: {
           ...existing,
-          isLiked: !existing.isLiked,
-          likesCount: existing.isLiked ? Math.max(0, existing.likesCount - 1) : existing.likesCount + 1
+          isLiked: nextIsLiked,
+          likesCount: nextCount
         }
       };
     });
@@ -146,7 +148,6 @@ export default function ReelsVideoViewer({
       }
     } catch (err) {
       console.error("Error toggling like:", err);
-      // Revert batch stats
       fetchBatchStats();
     }
   };
@@ -230,17 +231,19 @@ export default function ReelsVideoViewer({
 
   // Add Comment
   const handleAddComment = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (!newCommentText.trim()) return;
 
+    const commentText = newCommentText.trim();
     setSubmittingComment(true);
+
     try {
       const res = await axios.post(
         `${API}/api/events/videos/comments`,
         {
           eventId: currentVideo.eventId,
           videoUrl: currentVideo.url,
-          text: newCommentText.trim()
+          text: commentText
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -250,13 +253,16 @@ export default function ReelsVideoViewer({
         setNewCommentText("");
 
         // Update comment count
-        setStatsMap((prev) => ({
-          ...prev,
-          [currentVideo.url]: {
-            ...prev[currentVideo.url],
-            commentsCount: res.data.commentsCount
-          }
-        }));
+        setStatsMap((prev) => {
+          const existing = prev[currentVideo.url] || { commentsCount: 0 };
+          return {
+            ...prev,
+            [currentVideo.url]: {
+              ...existing,
+              commentsCount: res.data.commentsCount || (existing.commentsCount + 1)
+            }
+          };
+        });
       }
     } catch (err) {
       console.error("Error adding comment:", err);
@@ -402,7 +408,11 @@ export default function ReelsVideoViewer({
                   >
                     <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-tr from-purple-600 to-blue-500 flex items-center justify-center text-white shrink-0 border border-white/30">
                       {vid.schoolLogo ? (
-                        <img src={vid.schoolLogo} alt="School Logo" className="w-full h-full object-cover" />
+                        <img
+                          src={vid.schoolLogo.startsWith("http") || vid.schoolLogo.startsWith("data:") ? vid.schoolLogo : `${API}/${vid.schoolLogo.replace(/^\/+/, "")}`}
+                          alt="School Logo"
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <FaSchool className="text-xs" />
                       )}
@@ -554,13 +564,21 @@ export default function ReelsVideoViewer({
                 type="text"
                 value={newCommentText}
                 onChange={(e) => setNewCommentText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddComment(e);
+                  }
+                }}
                 placeholder="Add a comment..."
                 className="flex-1 bg-white/10 text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-slate-400"
               />
               <button
-                type="submit"
+                type="button"
+                onClick={handleAddComment}
                 disabled={submittingComment || !newCommentText.trim()}
-                className="p-2.5 bg-[#7C3AED] hover:bg-[#6D28D9] disabled:opacity-50 text-white rounded-xl transition cursor-pointer flex items-center justify-center shrink-0"
+                className="p-2.5 bg-[#7C3AED] hover:bg-[#6D28D9] active:scale-95 disabled:opacity-50 text-white rounded-xl transition cursor-pointer flex items-center justify-center shrink-0"
+                title="Post Comment"
               >
                 <FaPaperPlane className="text-xs" />
               </button>
