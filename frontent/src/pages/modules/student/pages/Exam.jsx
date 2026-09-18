@@ -24,6 +24,8 @@ import {
 } from "react-icons/fa";
 import API_URL from "../../../../config/api";
 
+const SORA = "'Sora', sans-serif";
+
 function Exam() {
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
