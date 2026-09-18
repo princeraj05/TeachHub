@@ -2,6 +2,8 @@ const Exam = require("../models/Exam");
 const User = require("../models/User");
 const Class = require("../models/Class");
 const Subject = require("../models/Subject");
+const StudentMark = require("../models/StudentMark");
+const ExamSubmission = require("../models/ExamSubmission");
 const TeacherNotification = require("../models/TeacherNotification");
 const { notifyStudentsInClass, notifySchoolRole } = require("../utils/notificationHelper");
 
@@ -229,6 +231,61 @@ const exams = await Exam.find(query)
   .populate("subject", "name")
   .populate("proctor", "name email role")
   .sort({ date: 1 });
+
+if (req.user.role === "student") {
+  const studentMarks = await StudentMark.find({
+    student: req.user.id,
+    ...(req.user.schoolName ? { schoolName: req.user.schoolName } : {})
+  }).lean();
+
+  const studentSubmissions = await ExamSubmission.find({
+    student: req.user.id
+  }).lean();
+
+  const marksMap = new Map();
+  studentMarks.forEach((m) => {
+    const subjId = m.subject?._id ? m.subject._id.toString() : m.subject?.toString();
+    if (subjId) {
+      const key = `${subjId}_${m.examTerm}_${m.academicYear}`;
+      marksMap.set(key, m);
+    }
+  });
+
+  const submissionMap = new Map();
+  studentSubmissions.forEach((sub) => {
+    if (sub.exam) {
+      submissionMap.set(sub.exam.toString(), sub);
+    }
+  });
+
+  const formattedExams = exams.map((exam) => {
+    const examObj = exam.toObject();
+    const subjId = exam.subject?._id ? exam.subject._id.toString() : exam.subject?.toString();
+    const markKey = `${subjId}_${exam.examTerm}_${exam.academicYear}`;
+    const mark = marksMap.get(markKey);
+    const submission = submissionMap.get(exam._id.toString());
+
+    if (mark) {
+      const percentage = mark.maxMarks > 0 ? Math.round((mark.marksObtained / mark.maxMarks) * 100) : 0;
+      examObj.studentMark = {
+        marksObtained: mark.marksObtained,
+        maxMarks: mark.maxMarks,
+        isAbsent: mark.isAbsent,
+        grade: mark.grade,
+        percentage
+      };
+      examObj.taken = !mark.isAbsent;
+    }
+    if (submission) {
+      examObj.submission = submission;
+      examObj.taken = true;
+    }
+
+    return examObj;
+  });
+
+  return res.json(formattedExams);
+}
 
 res.json(exams);
 

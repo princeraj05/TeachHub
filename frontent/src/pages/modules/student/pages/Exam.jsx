@@ -285,13 +285,19 @@ function Exam() {
 
       const daysLeft = getDaysLeft(e.date);
       let status = "Upcoming";
-      if (e.taken || daysLeft < 0) {
+      if (e.taken || e.studentMark || e.submission || daysLeft < 0) {
         status = "Completed";
       }
 
-      // Add scores for completed ones if submission exists
-      let score = e.submission?.score;
-      let total = e.submission?.total || 100;
+      // Add scores for completed ones if studentMark or submission exists
+      let isAbsent = e.studentMark ? e.studentMark.isAbsent : false;
+      let score = e.studentMark
+        ? e.studentMark.percentage
+        : e.submission?.score;
+      let total = e.studentMark
+        ? e.studentMark.maxMarks
+        : (e.submission?.total || 100);
+      let marksObtained = e.studentMark ? e.studentMark.marksObtained : null;
 
       const roomStr = e.roomNumber
         ? (String(e.roomNumber).trim().toLowerCase().startsWith("room") ? e.roomNumber : `Room ${e.roomNumber}`)
@@ -307,7 +313,9 @@ function Exam() {
         room: roomStr,
         status,
         score,
-        total
+        total,
+        isAbsent,
+        marksObtained
       };
     });
   }, [exams, profile]);
@@ -711,9 +719,13 @@ function Exam() {
                               <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black border bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 uppercase">
                                 Completed
                               </span>
-                              {exam.score !== undefined && exam.score !== null ? (
+                              {exam.isAbsent ? (
+                                <span className="text-xs text-rose-600 dark:text-rose-400 font-bold bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/20">
+                                  Not Taken
+                                </span>
+                              ) : (exam.score !== undefined && exam.score !== null) || (exam.marksObtained !== undefined && exam.marksObtained !== null) ? (
                                 <span className="text-xs text-emerald-600 dark:text-emerald-400 font-black font-mono bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
-                                  Score: {exam.score}%
+                                  Score: {exam.score !== undefined && exam.score !== null ? exam.score : Math.round((exam.marksObtained / (exam.total || 100)) * 100)}%
                                 </span>
                               ) : (
                                 <span className="text-xs text-slate-400 dark:text-slate-500 font-bold bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-lg">

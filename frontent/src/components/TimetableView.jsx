@@ -241,8 +241,8 @@ export default function TimetableView() {
             </p>
           </div>
         ) : (
-          /* Timetable Cards Grid - 2 Column Grid for Compact LPU-style View */
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pb-8">
+          /* Timetable Cards Grid - 2 Column Grid for Mobile and Desktop */
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 pb-8">
             {dayEntries.map((entry, idx) => {
               const timeRange = formatTimeRange(entry.startTime, entry.endTime);
               const subjectName = entry.subject?.name || "Subject";
@@ -258,53 +258,53 @@ export default function TimetableView() {
                   className="group rounded-2xl border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0B132A] shadow-xs hover:shadow-md hover:border-[#7C3AED]/40 transition-all duration-200 overflow-hidden flex flex-col justify-between"
                 >
                   {/* Top Time Header Banner */}
-                  <div className={`px-3.5 py-1.5 sm:py-2 flex items-center justify-between text-xs ${theme.headerBg}`}>
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <FaClock className="text-[11px] opacity-90 shrink-0" />
-                      <span className="font-extrabold tracking-wide text-[11px] sm:text-xs truncate">{timeRange}</span>
+                  <div className={`px-2 sm:px-3.5 py-1.5 sm:py-2 flex items-center justify-between text-xs ${theme.headerBg}`}>
+                    <div className="flex items-center gap-1 min-w-0">
+                      <FaClock className="text-[10px] sm:text-[11px] opacity-90 shrink-0" />
+                      <span className="font-extrabold tracking-tight text-[9px] sm:text-xs truncate">{timeRange}</span>
                     </div>
-                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-white/20 text-white tracking-wider border border-white/20 shrink-0 ml-2">
+                    <span className="text-[8px] sm:text-[9px] font-black uppercase px-1 sm:px-2 py-0.5 rounded-md bg-white/20 text-white tracking-wider border border-white/20 shrink-0 ml-1">
                       {classType}
                     </span>
                   </div>
 
                   {/* Card Content Body */}
-                  <div className="p-3 sm:p-3.5 flex-1 flex flex-col justify-between space-y-2.5">
+                  <div className="p-2 sm:p-3.5 flex-1 flex flex-col justify-between space-y-2 sm:space-y-2.5">
                     
                     {/* Subject & Icon */}
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start justify-between gap-1">
                       <div className="min-w-0 flex-1">
-                        <h4 className="text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-tight truncate group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition-colors leading-snug">
+                        <h4 className="text-xs sm:text-base font-black text-slate-900 dark:text-white tracking-tight truncate group-hover:text-[#7C3AED] dark:group-hover:text-[#38BDF8] transition-colors leading-snug">
                           {subjectName}
                         </h4>
-                        <span className={`inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border mt-1 ${theme.badge}`}>
+                        <span className={`inline-block text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md border mt-0.5 sm:mt-1 ${theme.badge}`}>
                           {section}
                         </span>
                       </div>
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-2xs ${theme.iconBg}`}>
-                        <FaBook className="text-xs" />
+                      <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 shadow-2xs ${theme.iconBg}`}>
+                        <FaBook className="text-[10px] sm:text-xs" />
                       </div>
                     </div>
 
                     {/* Teacher & Location Info */}
-                    <div className="pt-2 border-t border-slate-100 dark:border-white/5 space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
+                    <div className="pt-1.5 sm:pt-2 border-t border-slate-100 dark:border-white/5 space-y-1 sm:space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
                       
                       {/* Teacher */}
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-5 h-5 rounded-md bg-purple-500/10 text-[#7C3AED] dark:text-[#38BDF8] flex items-center justify-center shrink-0">
-                          <FaChalkboardTeacher className="text-[10px]" />
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-md bg-purple-500/10 text-[#7C3AED] dark:text-[#38BDF8] flex items-center justify-center shrink-0">
+                          <FaChalkboardTeacher className="text-[8px] sm:text-[10px]" />
                         </div>
-                        <span className="truncate text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200">{teacherName}</span>
+                        <span className="truncate text-[10px] sm:text-xs font-bold text-slate-800 dark:text-slate-200">{teacherName}</span>
                       </div>
 
                       {/* Room & Period Badge */}
-                      <div className="flex items-center justify-between pt-0.5">
-                        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-white/[0.06] text-[10px] font-bold text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-white/10">
-                          <FaMapMarkerAlt className="text-[#7C3AED] dark:text-[#38BDF8] text-[9px] shrink-0" />
+                      <div className="flex items-center justify-between pt-0.5 gap-1">
+                        <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-slate-100 dark:bg-white/[0.06] text-[9px] sm:text-[10px] font-bold text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-white/10 min-w-0">
+                          <FaMapMarkerAlt className="text-[#7C3AED] dark:text-[#38BDF8] text-[8px] sm:text-[9px] shrink-0" />
                           <span className="truncate">Room {room}</span>
                         </div>
-                        <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-100 dark:bg-white/[0.04] px-2 py-0.5 rounded-md border border-slate-200/60 dark:border-white/[0.08] shrink-0">
-                          Period {idx + 1}
+                        <span className="text-[8px] sm:text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-100 dark:bg-white/[0.04] px-1.5 py-0.5 rounded-md border border-slate-200/60 dark:border-white/[0.08] shrink-0">
+                          P{idx + 1}
                         </span>
                       </div>
 
