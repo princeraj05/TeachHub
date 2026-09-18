@@ -55,7 +55,7 @@ exports.protect = async (req, res, next) => {
       console.error("UserSession middleware check error:", sErr.message);
     }
 
-    req.user = { ...decoded, role: user.role, schoolName: user.schoolName || "" };
+    req.user = { ...decoded, id: decoded.id || user._id.toString(), _id: user._id, role: user.role, schoolName: user.schoolName || "" };
     next();
   } catch (err) {
     return res.status(401).json({ message: "Token invalid" });

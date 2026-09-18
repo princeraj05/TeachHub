@@ -2,10 +2,34 @@ const EventVideoInteraction = require("../models/EventVideoInteraction");
 const Event = require("../models/Event");
 const User = require("../models/User");
 
+// Helper to extract user ID safely
+const getUserId = (req) => {
+  return req.user?.id || req.user?._id;
+};
+
+// Helper to verify school access control
+const verifyEventAccess = async (eventId, user) => {
+  if (!eventId) return { allowed: false, status: 400, message: "eventId is required" };
+  const event = await Event.findById(eventId).lean();
+  if (!event) return { allowed: false, status: 404, message: "Event not found" };
+
+  if (user.role !== "superadmin" && user.role !== "admin") {
+    if (user.schoolName && event.schoolName) {
+      if (event.schoolName.toLowerCase().trim() !== user.schoolName.toLowerCase().trim()) {
+        return { allowed: false, status: 403, message: "Access Denied: Cross-school interaction unauthorized" };
+      }
+    }
+  }
+  return { allowed: true, event };
+};
+
 // Helper to normalize video URL for robust matching
 const normalizeUrl = (rawUrl) => {
   if (!rawUrl) return "";
   let clean = String(rawUrl).trim();
+  try {
+    clean = decodeURIComponent(clean);
+  } catch (e) {}
   if (clean.startsWith("http://") || clean.startsWith("https://")) {
     try {
       const parsed = new URL(clean);
@@ -15,18 +39,26 @@ const normalizeUrl = (rawUrl) => {
   return clean.replace(/^\/+/, "");
 };
 
-// Helper to find or create interaction doc
+// Helper to find or create interaction doc safely
 const getOrCreateInteraction = async (eventId, rawVideoUrl) => {
   const videoUrl = normalizeUrl(rawVideoUrl);
   let doc = await EventVideoInteraction.findOne({ eventId, videoUrl });
   if (!doc) {
-    doc = await EventVideoInteraction.create({
-      eventId,
-      videoUrl,
-      likes: [],
-      savedBy: [],
-      comments: []
-    });
+    try {
+      doc = await EventVideoInteraction.create({
+        eventId,
+        videoUrl,
+        likes: [],
+        savedBy: [],
+        comments: []
+      });
+    } catch (err) {
+      if (err.code === 11000) {
+        doc = await EventVideoInteraction.findOne({ eventId, videoUrl });
+      } else {
+        throw err;
+      }
+    }
   }
   return doc;
 };
@@ -35,13 +67,27 @@ const getOrCreateInteraction = async (eventId, rawVideoUrl) => {
 exports.getVideoStats = async (req, res) => {
   try {
     const { eventId, videoUrls } = req.body;
-    const userId = req.user._id;
+    const userId = getUserId(req);
 
+    if (!userId) {
+      return res.status(401).json({ error: "User authentication required" });
+    }
     if (!eventId || !Array.isArray(videoUrls)) {
       return res.status(400).json({ error: "eventId and videoUrls array are required" });
     }
 
-    const normalizedUrls = videoUrls.map(normalizeUrl);
+    const access = await verifyEventAccess(eventId, req.user);
+    if (!access.allowed) {
+      return res.status(access.status).json({ error: access.message });
+    }
+
+    const normalizedMap = {};
+    videoUrls.forEach((rawUrl) => {
+      const norm = normalizeUrl(rawUrl);
+      if (norm) normalizedMap[norm] = rawUrl;
+    });
+
+    const normalizedUrls = Object.keys(normalizedMap);
 
     const interactions = await EventVideoInteraction.find({
       eventId,
@@ -49,6 +95,8 @@ exports.getVideoStats = async (req, res) => {
     }).lean();
 
     const statsMap = {};
+    const userIdStr = userId.toString();
+
     videoUrls.forEach((rawUrl) => {
       const norm = normalizeUrl(rawUrl);
       const match = interactions.find((i) => i.videoUrl === norm);
@@ -56,8 +104,8 @@ exports.getVideoStats = async (req, res) => {
         statsMap[rawUrl] = {
           likesCount: (match.likes || []).length,
           commentsCount: (match.comments || []).length,
-          isLiked: (match.likes || []).some((id) => id.toString() === userId.toString()),
-          isSaved: (match.savedBy || []).some((id) => id.toString() === userId.toString())
+          isLiked: (match.likes || []).some((id) => id && id.toString() === userIdStr),
+          isSaved: (match.savedBy || []).some((id) => id && id.toString() === userIdStr)
         };
       } else {
         statsMap[rawUrl] = {
@@ -69,7 +117,7 @@ exports.getVideoStats = async (req, res) => {
       }
     });
 
-    return res.json({ statsMap });
+    return res.json({ success: true, statsMap });
   } catch (error) {
     console.error("Error fetching video stats:", error);
     return res.status(500).json({ error: "Failed to fetch video stats" });
@@ -80,18 +128,26 @@ exports.getVideoStats = async (req, res) => {
 exports.toggleLikeVideo = async (req, res) => {
   try {
     const { eventId, videoUrl: rawVideoUrl } = req.body;
-    const userId = req.user._id;
+    const userId = getUserId(req);
 
+    if (!userId) {
+      return res.status(401).json({ error: "User authentication required" });
+    }
     if (!eventId || !rawVideoUrl) {
       return res.status(400).json({ error: "eventId and videoUrl are required" });
     }
 
+    const access = await verifyEventAccess(eventId, req.user);
+    if (!access.allowed) {
+      return res.status(access.status).json({ error: access.message });
+    }
+
     const interaction = await getOrCreateInteraction(eventId, rawVideoUrl);
     const userIdStr = userId.toString();
-    const alreadyLiked = interaction.likes.some((id) => id.toString() === userIdStr);
+    const alreadyLiked = (interaction.likes || []).some((id) => id && id.toString() === userIdStr);
 
     if (alreadyLiked) {
-      interaction.likes = interaction.likes.filter((id) => id.toString() !== userIdStr);
+      interaction.likes = interaction.likes.filter((id) => id && id.toString() !== userIdStr);
     } else {
       interaction.likes.push(userId);
     }
@@ -113,18 +169,26 @@ exports.toggleLikeVideo = async (req, res) => {
 exports.toggleSaveVideo = async (req, res) => {
   try {
     const { eventId, videoUrl: rawVideoUrl } = req.body;
-    const userId = req.user._id;
+    const userId = getUserId(req);
 
+    if (!userId) {
+      return res.status(401).json({ error: "User authentication required" });
+    }
     if (!eventId || !rawVideoUrl) {
       return res.status(400).json({ error: "eventId and videoUrl are required" });
     }
 
+    const access = await verifyEventAccess(eventId, req.user);
+    if (!access.allowed) {
+      return res.status(access.status).json({ error: access.message });
+    }
+
     const interaction = await getOrCreateInteraction(eventId, rawVideoUrl);
     const userIdStr = userId.toString();
-    const alreadySaved = interaction.savedBy.some((id) => id.toString() === userIdStr);
+    const alreadySaved = (interaction.savedBy || []).some((id) => id && id.toString() === userIdStr);
 
     if (alreadySaved) {
-      interaction.savedBy = interaction.savedBy.filter((id) => id.toString() !== userIdStr);
+      interaction.savedBy = interaction.savedBy.filter((id) => id && id.toString() !== userIdStr);
     } else {
       interaction.savedBy.push(userId);
     }
@@ -145,15 +209,24 @@ exports.toggleSaveVideo = async (req, res) => {
 exports.getVideoComments = async (req, res) => {
   try {
     const { eventId, videoUrl: rawVideoUrl } = req.query;
+    const userId = getUserId(req);
 
+    if (!userId) {
+      return res.status(401).json({ error: "User authentication required" });
+    }
     if (!eventId || !rawVideoUrl) {
       return res.status(400).json({ error: "eventId and videoUrl are required" });
+    }
+
+    const access = await verifyEventAccess(eventId, req.user);
+    if (!access.allowed) {
+      return res.status(access.status).json({ error: access.message });
     }
 
     const videoUrl = normalizeUrl(rawVideoUrl);
 
     const interaction = await EventVideoInteraction.findOne({ eventId, videoUrl })
-      .populate("comments.user", "name role profileImage photo")
+      .populate("comments.user", "name role profileImage photo avatar")
       .lean();
 
     const comments = (interaction?.comments || []).map((c) => ({
@@ -161,14 +234,14 @@ exports.getVideoComments = async (req, res) => {
       text: c.text,
       createdAt: c.createdAt,
       user: {
-        _id: c.user?._id,
+        _id: c.user?._id || c.user,
         name: c.user?.name || "User",
         role: c.user?.role || "student",
-        avatar: c.user?.profileImage || c.user?.photo || ""
+        avatar: c.user?.profileImage || c.user?.photo || c.user?.avatar || ""
       }
     }));
 
-    return res.json({ comments });
+    return res.json({ success: true, comments });
   } catch (error) {
     console.error("Error fetching video comments:", error);
     return res.status(500).json({ error: "Failed to fetch comments" });
@@ -179,14 +252,22 @@ exports.getVideoComments = async (req, res) => {
 exports.addVideoComment = async (req, res) => {
   try {
     const { eventId, videoUrl: rawVideoUrl, text } = req.body;
-    const userId = req.user._id;
+    const userId = getUserId(req);
 
+    if (!userId) {
+      return res.status(401).json({ error: "User authentication required" });
+    }
     if (!eventId || !rawVideoUrl || !text || !text.trim()) {
       return res.status(400).json({ error: "eventId, videoUrl and non-empty text are required" });
     }
 
+    const access = await verifyEventAccess(eventId, req.user);
+    if (!access.allowed) {
+      return res.status(access.status).json({ error: access.message });
+    }
+
     const interaction = await getOrCreateInteraction(eventId, rawVideoUrl);
-    
+
     const newCommentObj = {
       user: userId,
       text: text.trim(),
@@ -196,18 +277,18 @@ exports.addVideoComment = async (req, res) => {
     interaction.comments.push(newCommentObj);
     await interaction.save();
 
-    // Populate the newly added user details
-    const userDoc = await User.findById(userId).select("name role profileImage photo").lean();
+    const userDoc = await User.findById(userId).select("name role profileImage photo avatar").lean();
+    const addedCommentDoc = interaction.comments[interaction.comments.length - 1];
 
     const addedComment = {
-      _id: interaction.comments[interaction.comments.length - 1]._id,
-      text: newCommentObj.text,
-      createdAt: newCommentObj.createdAt,
+      _id: addedCommentDoc._id,
+      text: addedCommentDoc.text,
+      createdAt: addedCommentDoc.createdAt,
       user: {
-        _id: userDoc._id,
+        _id: userDoc?._id || userId,
         name: userDoc?.name || "User",
         role: userDoc?.role || "student",
-        avatar: userDoc?.profileImage || userDoc?.photo || ""
+        avatar: userDoc?.profileImage || userDoc?.photo || userDoc?.avatar || ""
       }
     };
 
@@ -221,3 +302,4 @@ exports.addVideoComment = async (req, res) => {
     return res.status(500).json({ error: "Failed to add comment" });
   }
 };
+

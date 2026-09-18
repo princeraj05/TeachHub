@@ -26,7 +26,6 @@ export default function ReelsVideoViewer({
   userRole = "student"
 }) {
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
   const API = API_URL;
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -38,28 +37,42 @@ export default function ReelsVideoViewer({
   const [newCommentText, setNewCommentText] = useState("");
   const [loadingComments, setLoadingComments] = useState(false);
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [pendingLike, setPendingLike] = useState(false);
+  const [pendingSave, setPendingSave] = useState(false);
   const [doubleTapAnimation, setDoubleTapAnimation] = useState(false);
 
   const containerRef = useRef(null);
   const videoRefs = useRef({});
 
-  // Reset index when opened
+  // Reset index and stats when opened
   useEffect(() => {
     if (isOpen) {
       setCurrentIndex(initialIndex);
       setIsPlaying(true);
-      // Fetch stats for all videos in batch
+      setShowComments(false);
+      setCommentsList([]);
+      setNewCommentText("");
       fetchBatchStats();
     }
   }, [isOpen, initialIndex, videos]);
+
+  // Sync comments drawer & input text when current reel index changes
+  useEffect(() => {
+    setNewCommentText("");
+    const video = videos[currentIndex];
+    if (showComments && video?.eventId && video?.url) {
+      fetchCommentsForVideo(video);
+    }
+  }, [currentIndex]);
 
   // Fetch stats for current videos
   const fetchBatchStats = async () => {
     if (!videos || videos.length === 0) return;
     try {
       const eventId = videos[0]?.eventId;
-      const videoUrls = videos.map((v) => v.url);
-      if (!eventId) return;
+      const videoUrls = videos.map((v) => v.url).filter(Boolean);
+      if (!eventId || videoUrls.length === 0) return;
+      const token = localStorage.getItem("token");
 
       const res = await axios.post(
         `${API}/api/events/videos/stats`,
@@ -67,10 +80,29 @@ export default function ReelsVideoViewer({
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.data && res.data.statsMap) {
-        setStatsMap(res.data.statsMap);
+        setStatsMap((prev) => ({ ...prev, ...res.data.statsMap }));
       }
     } catch (err) {
       console.error("Error fetching reels stats:", err);
+    }
+  };
+
+  // Fetch comments for a specific video
+  const fetchCommentsForVideo = async (targetVideo) => {
+    if (!targetVideo?.eventId || !targetVideo?.url) return;
+    setLoadingComments(true);
+    const token = localStorage.getItem("token");
+    try {
+      const res = await axios.get(`${API}/api/events/videos/comments`, {
+        params: { eventId: targetVideo.eventId, videoUrl: targetVideo.url },
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCommentsList(res.data.comments || []);
+    } catch (err) {
+      console.error("Error loading comments:", err);
+      setCommentsList([]);
+    } finally {
+      setLoadingComments(false);
     }
   };
 
@@ -110,13 +142,15 @@ export default function ReelsVideoViewer({
     isSaved: false
   };
 
-  // Handle Like
+  // Handle Like Toggle
   const handleToggleLike = async () => {
-    if (!currentVideo.eventId || !currentVideo.url) return;
+    if (!currentVideo.eventId || !currentVideo.url || pendingLike) return;
+    setPendingLike(true);
+    const token = localStorage.getItem("token");
 
-    // Instant optimistic UI update
+    // Optimistic UI update
     setStatsMap((prev) => {
-      const existing = prev[currentVideo.url] || { likesCount: 0, isLiked: false };
+      const existing = prev[currentVideo.url] || { likesCount: 0, commentsCount: 0, isLiked: false, isSaved: false };
       const nextIsLiked = !existing.isLiked;
       const nextCount = nextIsLiked ? existing.likesCount + 1 : Math.max(0, existing.likesCount - 1);
       return {
@@ -136,7 +170,7 @@ export default function ReelsVideoViewer({
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      if (res.data) {
+      if (res.data && res.data.success) {
         setStatsMap((prev) => ({
           ...prev,
           [currentVideo.url]: {
@@ -149,6 +183,8 @@ export default function ReelsVideoViewer({
     } catch (err) {
       console.error("Error toggling like:", err);
       fetchBatchStats();
+    } finally {
+      setPendingLike(false);
     }
   };
 
@@ -174,13 +210,15 @@ export default function ReelsVideoViewer({
     }
   };
 
-  // Handle Save
+  // Handle Save Toggle
   const handleToggleSave = async () => {
-    if (!currentVideo.eventId || !currentVideo.url) return;
+    if (!currentVideo.eventId || !currentVideo.url || pendingSave) return;
+    setPendingSave(true);
+    const token = localStorage.getItem("token");
 
     // Optimistic update
     setStatsMap((prev) => {
-      const existing = prev[currentVideo.url] || { isSaved: false };
+      const existing = prev[currentVideo.url] || { likesCount: 0, commentsCount: 0, isLiked: false, isSaved: false };
       return {
         ...prev,
         [currentVideo.url]: {
@@ -197,7 +235,7 @@ export default function ReelsVideoViewer({
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      if (res.data) {
+      if (res.data && res.data.success) {
         setStatsMap((prev) => ({
           ...prev,
           [currentVideo.url]: {
@@ -209,33 +247,26 @@ export default function ReelsVideoViewer({
     } catch (err) {
       console.error("Error toggling save:", err);
       fetchBatchStats();
+    } finally {
+      setPendingSave(false);
     }
   };
 
   // Handle Comments Open
-  const handleOpenComments = async () => {
+  const handleOpenComments = () => {
     setShowComments(true);
-    setLoadingComments(true);
-    try {
-      const res = await axios.get(`${API}/api/events/videos/comments`, {
-        params: { eventId: currentVideo.eventId, videoUrl: currentVideo.url },
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setCommentsList(res.data.comments || []);
-    } catch (err) {
-      console.error("Error loading comments:", err);
-    } finally {
-      setLoadingComments(false);
-    }
+    fetchCommentsForVideo(currentVideo);
   };
 
   // Add Comment
   const handleAddComment = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
-    if (!newCommentText.trim()) return;
+    if (!newCommentText.trim() || submittingComment) return;
+    if (!currentVideo.eventId || !currentVideo.url) return;
 
     const commentText = newCommentText.trim();
     setSubmittingComment(true);
+    const token = localStorage.getItem("token");
 
     try {
       const res = await axios.post(
@@ -252,7 +283,6 @@ export default function ReelsVideoViewer({
         setCommentsList((prev) => [...prev, res.data.comment]);
         setNewCommentText("");
 
-        // Update comment count
         setStatsMap((prev) => {
           const existing = prev[currentVideo.url] || { commentsCount: 0 };
           return {
@@ -275,7 +305,6 @@ export default function ReelsVideoViewer({
   const handleSchoolClick = (e) => {
     e.stopPropagation();
     onClose();
-    // Route to appropriate directory based on user role
     const schoolTarget = currentVideo.schoolName || "";
     if (userRole === "teacher") {
       navigate(`/teacher/schools?school=${encodeURIComponent(schoolTarget)}`);
@@ -446,8 +475,9 @@ export default function ReelsVideoViewer({
                   <div className="flex flex-col items-center gap-1">
                     <button
                       type="button"
+                      disabled={pendingLike}
                       onClick={handleToggleLike}
-                      className="p-3 rounded-full bg-black/40 backdrop-blur-md hover:scale-110 active:scale-95 transition cursor-pointer"
+                      className="p-3 rounded-full bg-black/40 backdrop-blur-md hover:scale-110 active:scale-95 disabled:opacity-70 transition cursor-pointer"
                     >
                       {currentStats.isLiked ? (
                         <FaHeart className="text-2xl text-red-500 animate-bounce" />
@@ -478,8 +508,9 @@ export default function ReelsVideoViewer({
                   <div className="flex flex-col items-center gap-1">
                     <button
                       type="button"
+                      disabled={pendingSave}
                       onClick={handleToggleSave}
-                      className="p-3 rounded-full bg-black/40 backdrop-blur-md hover:scale-110 active:scale-95 transition cursor-pointer"
+                      className="p-3 rounded-full bg-black/40 backdrop-blur-md hover:scale-110 active:scale-95 disabled:opacity-70 transition cursor-pointer"
                     >
                       {currentStats.isSaved ? (
                         <FaBookmark className="text-2xl text-amber-400" />
@@ -508,7 +539,7 @@ export default function ReelsVideoViewer({
               <button
                 type="button"
                 onClick={() => setShowComments(false)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-full hover:bg-white/10"
+                className="p-1.5 text-slate-400 hover:text-white rounded-full hover:bg-white/10 cursor-pointer"
               >
                 <FaTimes />
               </button>
@@ -528,7 +559,7 @@ export default function ReelsVideoViewer({
                   const avatarUrl = c.user?.avatar
                     ? c.user.avatar.startsWith("http")
                       ? c.user.avatar
-                      : `${API}/${c.user.avatar}`
+                      : `${API}/${c.user.avatar.replace(/^\/+/, "")}`
                     : null;
 
                   return (
@@ -558,24 +589,17 @@ export default function ReelsVideoViewer({
               )}
             </div>
 
-            {/* Add Comment Input */}
+            {/* Add Comment Input Form */}
             <form onSubmit={handleAddComment} className="p-3 border-t border-white/10 bg-[#0B132A] flex items-center gap-2">
               <input
                 type="text"
                 value={newCommentText}
                 onChange={(e) => setNewCommentText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddComment(e);
-                  }
-                }}
                 placeholder="Add a comment..."
                 className="flex-1 bg-white/10 text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-slate-400"
               />
               <button
-                type="button"
-                onClick={handleAddComment}
+                type="submit"
                 disabled={submittingComment || !newCommentText.trim()}
                 className="p-2.5 bg-[#7C3AED] hover:bg-[#6D28D9] active:scale-95 disabled:opacity-50 text-white rounded-xl transition cursor-pointer flex items-center justify-center shrink-0"
                 title="Post Comment"
@@ -589,3 +613,4 @@ export default function ReelsVideoViewer({
     </div>
   );
 }
+
