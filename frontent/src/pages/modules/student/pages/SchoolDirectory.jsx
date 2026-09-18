@@ -32,7 +32,17 @@ function SchoolDirectory() {
   const [user, setUser] = useState(null);
   const [myChangeRequest, setMyChangeRequest] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const queryParams = new URLSearchParams(location.search);
+  const querySchool = queryParams.get("school") || "";
+
+  const [search, setSearch] = useState(querySchool);
+
+  useEffect(() => {
+    const qName = new URLSearchParams(location.search).get("school");
+    if (qName) {
+      setSearch(qName);
+    }
+  }, [location.search]);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showChangeModal, setShowChangeModal] = useState(false);
   const [targetChangeSchool, setTargetChangeSchool] = useState("");

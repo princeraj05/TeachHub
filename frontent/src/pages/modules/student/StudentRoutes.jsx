@@ -53,6 +53,8 @@ function StudentRoutes() {
         <Route path="contact" element={<Suspense fallback={<PageLoader />}><StudentContact /></Suspense>} />
         <Route path="logout" element={<Suspense fallback={<PageLoader />}><StudentLogout /></Suspense>} />
         <Route path="schools" element={<Suspense fallback={<PageLoader />}><SchoolDirectory /></Suspense>} />
+        <Route path="school-directory" element={<Suspense fallback={<PageLoader />}><SchoolDirectory /></Suspense>} />
+        <Route path="school%20directory" element={<Suspense fallback={<PageLoader />}><SchoolDirectory /></Suspense>} />
         <Route path="schools/:name" element={<Suspense fallback={<PageLoader />}><SchoolDetails /></Suspense>} />
         <Route path="about" element={<Suspense fallback={<PageLoader />}><AboutAppPage /></Suspense>} />
         <Route path="teacher-on-leave" element={<Suspense fallback={<PageLoader />}><TeacherOnLeave /></Suspense>} />

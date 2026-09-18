@@ -64,6 +64,8 @@ function TeacherRoutes() {
         <Route path="results" element={<Suspense fallback={<PageLoader />}><TeacherAcademicResults /></Suspense>} />
         <Route path="about" element={<Suspense fallback={<PageLoader />}><AboutAppPage /></Suspense>} />
         <Route path="schools" element={<Suspense fallback={<PageLoader />}><SchoolDirectory /></Suspense>} />
+        <Route path="school-directory" element={<Suspense fallback={<PageLoader />}><SchoolDirectory /></Suspense>} />
+        <Route path="school%20directory" element={<Suspense fallback={<PageLoader />}><SchoolDirectory /></Suspense>} />
         <Route path="schools/:name" element={<Suspense fallback={<PageLoader />}><SchoolDetails /></Suspense>} />
       </Route>
     </Routes>

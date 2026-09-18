@@ -272,11 +272,11 @@ export default function ReelsVideoViewer({
     // Route to appropriate directory based on user role
     const schoolTarget = currentVideo.schoolName || "";
     if (userRole === "teacher") {
-      navigate(`/teacher/school-directory?school=${encodeURIComponent(schoolTarget)}`);
+      navigate(`/teacher/schools?school=${encodeURIComponent(schoolTarget)}`);
     } else if (userRole === "admin") {
-      navigate(`/admin/school-directory?school=${encodeURIComponent(schoolTarget)}`);
+      navigate(`/admin/about-school`);
     } else {
-      navigate(`/student/school-directory?school=${encodeURIComponent(schoolTarget)}`);
+      navigate(`/student/schools?school=${encodeURIComponent(schoolTarget)}`);
     }
   };
 
