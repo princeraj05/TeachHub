@@ -25,7 +25,7 @@ export default function PendingSupportTeam() {
           <div>
             <h1 className="text-xl sm:text-2xl font-black tracking-tight">TeachHub Support Team</h1>
             <p className="text-xs text-white/80 font-semibold mt-0.5">
-              Official TeachHub platform assistance for login, school joining, billing, and onboarding.
+              Official TeachHub platform assistance for login, school joining, and onboarding.
             </p>
           </div>
         </div>
@@ -43,6 +43,7 @@ export default function PendingSupportTeam() {
 
       {/* Department Selection Landing */}
       <SupportDepartmentLanding
+        hideBilling={true}
         onSelectDepartment={(dept) => {
           setSelectedDepartment(dept);
           setIsTicketModalOpen(true);
@@ -54,6 +55,7 @@ export default function PendingSupportTeam() {
 
       <CreateSupportTicketModal
         isOpen={isTicketModalOpen}
+        hideBilling={true}
         initialDepartment={selectedDepartment}
         onClose={handleModalClose}
       />

@@ -25,7 +25,7 @@ export default function AdminSupportTeam() {
           <div>
             <h1 className="text-xl sm:text-2xl font-black tracking-tight">TeachHub Support Team</h1>
             <p className="text-xs text-white/80 font-semibold mt-0.5">
-              Official TeachHub platform assistance for billing, app issues, and onboarding.
+              Official TeachHub platform assistance for onboarding and technical issues.
             </p>
           </div>
         </div>
@@ -43,6 +43,7 @@ export default function AdminSupportTeam() {
 
       {/* Department Selection Landing */}
       <SupportDepartmentLanding
+        hideBilling={true}
         onSelectDepartment={(dept) => {
           setSelectedDepartment(dept);
           setIsTicketModalOpen(true);
@@ -54,6 +55,7 @@ export default function AdminSupportTeam() {
 
       <CreateSupportTicketModal
         isOpen={isTicketModalOpen}
+        hideBilling={true}
         initialDepartment={selectedDepartment}
         onClose={handleModalClose}
       />

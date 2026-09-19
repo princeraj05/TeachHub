@@ -46,9 +46,13 @@ const CATEGORIES_BY_DEPT = [
   }
 ];
 
-export default function CreateSupportTicketModal({ isOpen, onClose, initialDepartment }) {
+export default function CreateSupportTicketModal({ isOpen, onClose, initialDepartment, hideBilling = true }) {
   const API = API_URL;
   const token = localStorage.getItem("token");
+
+  const availableCategoryGroups = hideBilling
+    ? CATEGORIES_BY_DEPT.filter((g) => g.department !== "Billing")
+    : CATEGORIES_BY_DEPT;
 
   const [category, setCategory] = useState("Attendance Issue");
   const [subject, setSubject] = useState("");
@@ -62,14 +66,16 @@ export default function CreateSupportTicketModal({ isOpen, onClose, initialDepar
 
   useEffect(() => {
     if (initialDepartment && isOpen) {
-      const deptGroup = CATEGORIES_BY_DEPT.find(
+      const deptGroup = availableCategoryGroups.find(
         (g) => g.department.toLowerCase() === initialDepartment.toLowerCase()
       );
       if (deptGroup && deptGroup.categories.length > 0) {
         setCategory(deptGroup.categories[0]);
       }
+    } else if (isOpen && hideBilling && category && category.includes("Payment") || category.includes("Subscription") || category.includes("Invoice") || category.includes("Refund") || category.includes("Transaction") || category.includes("Salary")) {
+      setCategory("Attendance Issue");
     }
-  }, [initialDepartment, isOpen]);
+  }, [initialDepartment, isOpen, hideBilling]);
 
   if (!isOpen) return null;
 
@@ -228,7 +234,7 @@ export default function CreateSupportTicketModal({ isOpen, onClose, initialDepar
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full bg-slate-50 dark:bg-[#090F1C] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-purple-500"
                 >
-                  {CATEGORIES_BY_DEPT.map((group) => (
+                  {availableCategoryGroups.map((group) => (
                     <optgroup key={group.department} label={group.department}>
                       {group.categories.map((cat) => (
                         <option key={cat} value={cat}>

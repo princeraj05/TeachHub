@@ -7,15 +7,15 @@ import {
   FaQuestionCircle 
 } from "react-icons/fa";
 
-export default function SupportDepartmentLanding({ onSelectDepartment }) {
-  const departments = [
+export default function SupportDepartmentLanding({ onSelectDepartment, hideBilling = true }) {
+  const allDepartments = [
     {
-      id: "Billing",
-      title: "Billing",
-      icon: <FaCreditCard className="text-[#7C3AED] dark:text-[#38BDF8] text-2xl" />,
-      badgeBg: "bg-purple-500/10 text-purple-600 dark:text-[#38BDF8] border-purple-500/20",
-      description: "Payment, fees, subscription and transaction related issues.",
-      examples: ["Payment Failed", "Fee Payment", "Subscription", "Transaction Issue"]
+      id: "Onboarding",
+      title: "Onboarding",
+      icon: <FaCompass className="text-emerald-500 text-2xl" />,
+      badgeBg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+      description: "Login, account setup, school joining and getting started with TeachHub.",
+      examples: ["Login Help", "School Joining", "Account Setup", "How TeachHub Works"]
     },
     {
       id: "Technical",
@@ -26,14 +26,20 @@ export default function SupportDepartmentLanding({ onSelectDepartment }) {
       examples: ["App Not Working", "Page Error", "Feature Issue", "Technical Problem"]
     },
     {
-      id: "Onboarding",
-      title: "Onboarding",
-      icon: <FaCompass className="text-emerald-500 text-2xl" />,
-      badgeBg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-      description: "Login, account setup, school joining and getting started with TeachHub.",
-      examples: ["Login Help", "School Joining", "Account Setup", "How TeachHub Works"]
+      id: "Billing",
+      title: "Billing",
+      icon: <FaCreditCard className="text-[#7C3AED] dark:text-[#38BDF8] text-2xl" />,
+      badgeBg: "bg-purple-500/10 text-purple-600 dark:text-[#38BDF8] border-purple-500/20",
+      description: "Payment, fees, subscription and transaction related issues.",
+      examples: ["Payment Failed", "Fee Payment", "Subscription", "Transaction Issue"]
     }
   ];
+
+  const departments = hideBilling
+    ? allDepartments.filter((d) => d.id !== "Billing")
+    : allDepartments;
+
+  const gridColsClass = departments.length === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-3";
 
   return (
     <div className="w-full bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm mb-6 select-none">
@@ -49,7 +55,7 @@ export default function SupportDepartmentLanding({ onSelectDepartment }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className={`grid ${gridColsClass} gap-4`}>
         {departments.map((dept) => (
           <div
             key={dept.id}
