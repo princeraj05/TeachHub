@@ -1698,6 +1698,19 @@ function PendingApproval() {
               <span className="hidden lg:block">{t("profile", "Profile")}</span>
             </Link>
 
+            {/* Support Team */}
+            <Link
+              to="/pending/support-team"
+              className={`w-full flex items-center justify-center lg:justify-start gap-4 px-4 py-3.5 rounded-2xl text-xs font-bold transition duration-200 ${
+                isLinkActive("support-team")
+                  ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:bg-[#38BDF8]/10 dark:text-[#38BDF8]"
+                  : "text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-white/5"
+              }`}
+            >
+              <FaHeadphones className="text-xl shrink-0 text-purple-500" />
+              <span className="hidden lg:block">{t("support_team", "Support Team")}</span>
+            </Link>
+
             {/* 6. About App */}
             <Link
               to="/pending/about"
