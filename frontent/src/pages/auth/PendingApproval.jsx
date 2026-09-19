@@ -44,6 +44,7 @@ import AboutAppPage from "../modules/student/pages/AboutAppPage";
 import AboutYourSchool from "../modules/admin/pages/AboutYourSchool";
 import PaymentCenter from "../../components/PaymentCenter";
 import PendingSupportTeam from "./PendingSupportTeam";
+import RequesterSupportTicketDetail from "../../components/RequesterSupportTicketDetail";
 import { useTheme } from "../../context/ThemeContext";
 import { FaVideo } from "react-icons/fa";
 import { useCall } from "../../context/CallContext";
@@ -493,8 +494,13 @@ function PendingApproval() {
   // Renders the specific subroute/tab content
   const renderTabContent = () => {
     switch (activeTab) {
-      case "support-team":
+      case "support-team": {
+        const ticketMatch = location.pathname.match(/\/pending\/support-team\/requests\/(.+)/);
+        if (ticketMatch) {
+          return <RequesterSupportTicketDetail />;
+        }
         return <PendingSupportTeam />;
+      }
       case "events":
         return <GlobalEvents />;
       case "schools":

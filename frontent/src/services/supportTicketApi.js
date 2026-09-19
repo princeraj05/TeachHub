@@ -18,6 +18,14 @@ export const getSupportTickets = async (params = {}) => {
   return res.data;
 };
 
+export const getMyRequests = async (params = {}) => {
+  const res = await axios.get(`${API_URL}/api/support/tickets/my-requests`, {
+    ...getAuthHeaders(),
+    params
+  });
+  return res.data;
+};
+
 export const getMyAssignedTickets = async (params = {}) => {
   const res = await axios.get(`${API_URL}/api/support/tickets/assigned`, {
     ...getAuthHeaders(),

@@ -2,10 +2,17 @@ import React, { useState } from "react";
 import { FaTicketAlt, FaLifeRing } from "react-icons/fa";
 import SupportDepartmentLanding from "../../../../components/SupportDepartmentLanding";
 import CreateSupportTicketModal from "../../../../components/CreateSupportTicketModal";
+import RequesterTicketHistory from "../../../../components/RequesterTicketHistory";
 
 export default function TeacherSupportTeam() {
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const handleModalClose = () => {
+    setIsTicketModalOpen(false);
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   return (
     <div className="space-y-6 font-sans">
@@ -42,10 +49,13 @@ export default function TeacherSupportTeam() {
         }}
       />
 
+      {/* Requester Ticket History */}
+      <RequesterTicketHistory refreshTrigger={refreshTrigger} />
+
       <CreateSupportTicketModal
         isOpen={isTicketModalOpen}
         initialDepartment={selectedDepartment}
-        onClose={() => setIsTicketModalOpen(false)}
+        onClose={handleModalClose}
       />
     </div>
   );

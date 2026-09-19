@@ -14,6 +14,7 @@ const ResultMarks = lazy(() => import("./pages/ResultMarks"));
 const StudentProfile = lazy(() => import("./pages/StudentProfile"));
 const StudentSupport = lazy(() => import("./pages/StudentSupport"));
 const StudentSupportTeam = lazy(() => import("./pages/StudentSupportTeam"));
+const RequesterSupportTicketDetail = lazy(() => import("../../../components/RequesterSupportTicketDetail"));
 const StudentEvents = lazy(() => import("./pages/StudentEvents"));
 const StudentContact = lazy(() => import("./pages/StudentContact"));
 const StudentLogout = lazy(() => import("./pages/StudentLogout"));
@@ -50,6 +51,7 @@ function StudentRoutes() {
         <Route path="profile" element={<Suspense fallback={<PageLoader />}><StudentProfile /></Suspense>} />
         <Route path="support" element={<Suspense fallback={<PageLoader />}><StudentSupport /></Suspense>} />
         <Route path="support-team" element={<Suspense fallback={<PageLoader />}><StudentSupportTeam /></Suspense>} />
+        <Route path="support-team/requests/:id" element={<Suspense fallback={<PageLoader />}><RequesterSupportTicketDetail /></Suspense>} />
         <Route path="support/groups" element={<Suspense fallback={<PageLoader />}><GroupChat /></Suspense>} />
         <Route path="events" element={<Suspense fallback={<PageLoader />}><StudentEvents /></Suspense>} />
         <Route path="contact" element={<Suspense fallback={<PageLoader />}><StudentContact /></Suspense>} />

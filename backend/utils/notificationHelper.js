@@ -177,6 +177,12 @@ const notifyTicketRequester = async ({ requesterId, title, message, category = "
     const user = await User.findById(requesterId).select("_id role schoolName").lean();
     if (!user) return null;
 
+    const ticketId = metadata?.ticketId;
+    const targetRole = user.role === "unassigned" ? "pending" : (user.role || "student");
+    const requesterLink = ticketId
+      ? `/${targetRole}/support-team/requests/${ticketId}`
+      : (link && !link.startsWith("/support/requests") ? link : `/${targetRole}/support-team`);
+
     return await createAppNotification({
       recipient: user._id,
       schoolName: user.schoolName || "Campus HQ",
@@ -184,7 +190,7 @@ const notifyTicketRequester = async ({ requesterId, title, message, category = "
       title,
       message,
       category,
-      link,
+      link: requesterLink,
       metadata
     });
   } catch (err) {

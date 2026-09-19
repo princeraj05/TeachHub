@@ -19,6 +19,7 @@ const ExamSchedule = lazy(() => import("./pages/Exams/ExamSchedule"));
 const AdminProfile = lazy(() => import("./pages/Profile/AdminProfile"));
 const AdminSupport = lazy(() => import("./pages/AdminSupport"));
 const AdminSupportTeam = lazy(() => import("./pages/AdminSupportTeam"));
+const RequesterSupportTicketDetail = lazy(() => import("../../../components/RequesterSupportTicketDetail"));
 const AdminRequests = lazy(() => import("./pages/Requests/AdminRequests"));
 const LiveProctoring = lazy(() => import("../teacher/pages/LiveProctoring/LiveProctoring"));
 const AdminEvents = lazy(() => import("./pages/AdminEvents"));
@@ -80,6 +81,7 @@ function AdminRoutes() {
         {/* Support */}
         <Route path="support" element={<Suspense fallback={<PageLoader />}><AdminSupport /></Suspense>} />
         <Route path="support-team" element={<Suspense fallback={<PageLoader />}><AdminSupportTeam /></Suspense>} />
+        <Route path="support-team/requests/:id" element={<Suspense fallback={<PageLoader />}><RequesterSupportTicketDetail /></Suspense>} />
 
         {/* Events */}
         <Route path="events" element={<Suspense fallback={<PageLoader />}><AdminEvents /></Suspense>} />
