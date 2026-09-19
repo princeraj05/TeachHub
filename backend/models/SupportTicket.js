@@ -90,10 +90,58 @@ const supportTicketSchema = new mongoose.Schema(
       default: null
     },
 
-    messageIds: [
+    messages: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Message"
+        sender: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true
+        },
+
+        senderRole: {
+          type: String,
+          enum: [
+            "student",
+            "teacher",
+            "admin",
+            "support",
+            "superadmin",
+            "unassigned"
+          ],
+          required: true
+        },
+
+        message: {
+          type: String,
+          required: true,
+          trim: true
+        },
+
+        attachments: [
+          {
+            url: {
+              type: String,
+              required: true
+            },
+            filename: {
+              type: String,
+              default: ""
+            },
+            mimeType: {
+              type: String,
+              default: ""
+            },
+            size: {
+              type: Number,
+              default: 0
+            }
+          }
+        ],
+
+        createdAt: {
+          type: Date,
+          default: Date.now
+        }
       }
     ],
     callIds: [
