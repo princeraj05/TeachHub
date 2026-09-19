@@ -18,8 +18,8 @@ const {
 router.use(protect);
 
 // Requester endpoints
-router.post("/", authorize("student", "teacher", "admin", "superadmin"), createTicket);
-router.get("/my-requests", authorize("student", "teacher", "admin", "superadmin"), getMyRequests);
+router.post("/", authorize("student", "teacher", "admin", "superadmin", "unassigned"), createTicket);
+router.get("/my-requests", authorize("student", "teacher", "admin", "superadmin", "unassigned"), getMyRequests);
 
 // Support & Super Admin endpoints
 router.get("/", authorize("support", "superadmin"), getAllTickets);
