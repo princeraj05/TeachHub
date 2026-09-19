@@ -62,7 +62,7 @@ const escapeRegex = (str) => (str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '
 // POST /api/support/tickets
 exports.createTicket = async (req, res) => {
   try {
-    const { role, id: userId, schoolName: userSchool } = req.user;
+    const { role, requestedRole: userRequestedRole, id: userId, schoolName: userSchool } = req.user;
 
     if (role === "support") {
       return res.status(403).json({ message: "Support Agents cannot submit support tickets." });
@@ -70,11 +70,22 @@ exports.createTicket = async (req, res) => {
 
     const allowedRequesterRoles = ["student", "teacher", "admin"];
     let requesterRole = role;
-    if (!allowedRequesterRoles.includes(role)) {
+
+    if (role === "unassigned") {
+      if (allowedRequesterRoles.includes(userRequestedRole)) {
+        requesterRole = userRequestedRole;
+      } else if (userRequestedRole === "superadmin") {
+        requesterRole = "admin";
+      } else {
+        return res.status(400).json({
+          message: "Pending user must have a valid requested role (student, teacher, or admin) to submit support tickets."
+        });
+      }
+    } else if (!allowedRequesterRoles.includes(role)) {
       if (role === "superadmin") {
         requesterRole = "admin";
       } else {
-        return res.status(403).json({ message: "Only Students, Teachers, and Admins can create support tickets." });
+        return res.status(403).json({ message: "Only Students, Teachers, Admins, and Pending Users can create support tickets." });
       }
     }
 

@@ -15,6 +15,7 @@ const ExamDetailsAndResults = lazy(() => import("./pages/Exams/ExamDetailsAndRes
 const TeacherProfile = lazy(() => import("./pages/Profile/TeacherProfile"));
 const MyClasses = lazy(() => import("./pages/MyClasses/MyClasses"));
 const TeacherSupport = lazy(() => import("./pages/TeacherSupport"));
+const TeacherSupportTeam = lazy(() => import("./pages/TeacherSupportTeam"));
 const LiveProctoring = lazy(() => import("./pages/LiveProctoring/LiveProctoring"));
 const TeacherEvents = lazy(() => import("./pages/TeacherEvents"));
 const TeacherLeave = lazy(() => import("./pages/TeacherLeave"));
@@ -54,6 +55,7 @@ function TeacherRoutes() {
         <Route path="profile" element={<Suspense fallback={<PageLoader />}><TeacherProfile /></Suspense>} />
         <Route path="my-classes" element={<Suspense fallback={<PageLoader />}><MyClasses /></Suspense>} />
         <Route path="support" element={<Suspense fallback={<PageLoader />}><TeacherSupport /></Suspense>} />
+        <Route path="support-team" element={<Suspense fallback={<PageLoader />}><TeacherSupportTeam /></Suspense>} />
         <Route path="events" element={<Suspense fallback={<PageLoader />}><TeacherEvents /></Suspense>} />
         <Route path="on-leave" element={<Suspense fallback={<PageLoader />}><TeacherLeave /></Suspense>} />
         <Route path="showtimetable" element={<Suspense fallback={<PageLoader />}><ShowTimetable /></Suspense>} />

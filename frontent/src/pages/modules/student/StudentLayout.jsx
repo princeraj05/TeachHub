@@ -15,6 +15,7 @@ import {
   FaGraduationCap,
   FaUserCircle,
   FaComments,
+  FaHeadset,
   FaSun,
   FaMoon,
   FaCalendarAlt,
@@ -118,7 +119,8 @@ function StudentLayout() {
     { to: "/student/events", icon: <FaCalendarAlt className="text-cyan-500" />, label: t("events", "Events") },
     { to: "/student/teacher-on-leave", icon: <FaUserCircle className="text-orange-500" />, label: t("teacher_on_leave", "Teacher On Leave") },
     { to: "/student/schools", icon: <FaSchool className="text-purple-500" />, label: t("school_directory", "School Directory") },
-    { to: "/student/support", icon: <FaComments className="text-[#38BDF8]" />, label: t("help_support", "Support Chat") },
+    { to: "/student/support", icon: <FaComments className="text-[#38BDF8]" />, label: t("help_support", "Help & Support") },
+    { to: "/student/support-team", icon: <FaHeadset className="text-[#7C3AED]" />, label: t("support_team", "Support Team") },
     { to: "/student/notifications", icon: <FaBell className="text-[#7C3AED]" />, label: t("notifications", "Notifications") },
     { to: "/student/about", icon: <FaInfoCircle className="text-slate-400" />, label: t("about_app", "About App") }
   ];

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { 
   FaTicketAlt, 
@@ -12,7 +12,7 @@ import API_URL from "../config/api";
 
 const CATEGORIES_BY_DEPT = [
   {
-    department: "Technical Support",
+    department: "Technical",
     categories: [
       "Attendance Issue",
       "Exam / Proctoring Problem",
@@ -23,7 +23,7 @@ const CATEGORIES_BY_DEPT = [
     ]
   },
   {
-    department: "Billing & Subscription",
+    department: "Billing",
     categories: [
       "School Subscription",
       "Student Payment",
@@ -34,7 +34,7 @@ const CATEGORIES_BY_DEPT = [
     ]
   },
   {
-    department: "Account Onboarding",
+    department: "Onboarding",
     categories: [
       "Admin Account Setup",
       "Teacher Onboarding",
@@ -46,7 +46,7 @@ const CATEGORIES_BY_DEPT = [
   }
 ];
 
-export default function CreateSupportTicketModal({ isOpen, onClose }) {
+export default function CreateSupportTicketModal({ isOpen, onClose, initialDepartment }) {
   const API = API_URL;
   const token = localStorage.getItem("token");
 
@@ -59,6 +59,17 @@ export default function CreateSupportTicketModal({ isOpen, onClose }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [createdTicket, setCreatedTicket] = useState(null);
+
+  useEffect(() => {
+    if (initialDepartment && isOpen) {
+      const deptGroup = CATEGORIES_BY_DEPT.find(
+        (g) => g.department.toLowerCase() === initialDepartment.toLowerCase()
+      );
+      if (deptGroup && deptGroup.categories.length > 0) {
+        setCategory(deptGroup.categories[0]);
+      }
+    }
+  }, [initialDepartment, isOpen]);
 
   if (!isOpen) return null;
 

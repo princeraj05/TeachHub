@@ -19,6 +19,7 @@ import {
   FaTimes,
   FaUserShield,
   FaComments,
+  FaHeadset,
   FaSun,
   FaMoon,
   FaUserPlus,
@@ -388,7 +389,20 @@ function AdminLayout() {
               }`}
             >
               <div className="flex-shrink-0"><FaComments className="text-xl" /></div>
-              <span className="hidden lg:block text-sm font-semibold">Support</span>
+              <span className="hidden lg:block text-sm font-semibold">Help & Support</span>
+            </Link>
+
+            {/* Support Team */}
+            <Link
+              to="/admin/support-team"
+              className={`flex items-center gap-4 px-3.5 py-3 rounded-xl transition-all duration-200 ${
+                isActive("/admin/support-team")
+                  ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] dark:bg-[#38BDF8]/10 font-bold"
+                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <div className="flex-shrink-0"><FaHeadset className="text-xl text-[#7C3AED]" /></div>
+              <span className="hidden lg:block text-sm font-semibold">Support Team</span>
             </Link>
 
             {/* Events */}
@@ -593,6 +607,8 @@ function AdminLayout() {
                 { to: "/admin/assign-student-class", icon: <FaUsers className="text-purple-500" />, label: "Assign Student Class" },
                 { to: "/admin/teacher-leaves", icon: <FaUserShield className="text-orange-500" />, label: "Teacher Leaves" },
                 { to: "/admin/about-school", icon: <FaInfoCircle className="text-slate-400" />, label: "About School Info" },
+                { to: "/admin/support", icon: <FaComments className="text-[#38BDF8]" />, label: "Help & Support" },
+                { to: "/admin/support-team", icon: <FaHeadset className="text-[#7C3AED]" />, label: "Support Team" },
                 { to: "/admin/about", icon: <FaInfoCircle className="text-[#38BDF8]" />, label: "About App" },
                 { to: "/admin/payments", icon: <FaMoneyBillWave className="text-emerald-500" />, label: "Payments Center" },
                 { to: "/admin/attendance-report", icon: <FaClipboardCheck className="text-teal-500" />, label: "Attendance Report" }

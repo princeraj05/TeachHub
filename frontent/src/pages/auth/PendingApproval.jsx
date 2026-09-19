@@ -43,6 +43,7 @@ import RegisterExam from "../modules/student/pages/RegisterExam";
 import AboutAppPage from "../modules/student/pages/AboutAppPage";
 import AboutYourSchool from "../modules/admin/pages/AboutYourSchool";
 import PaymentCenter from "../../components/PaymentCenter";
+import PendingSupportTeam from "./PendingSupportTeam";
 import { useTheme } from "../../context/ThemeContext";
 import { FaVideo } from "react-icons/fa";
 import { useCall } from "../../context/CallContext";
@@ -199,6 +200,7 @@ function PendingApproval() {
   // Derive active tab from URL path
   const getActiveTab = () => {
     const path = location.pathname;
+    if (path.startsWith("/pending/support-team") || path.startsWith("/pending/support")) return "support-team";
     if (path.startsWith("/pending/events")) return "events";
     if (path.startsWith("/pending/schools") || path.startsWith("/pending/school")) return "schools";
     if (path.startsWith("/pending/about-school")) return "about-school";
@@ -491,6 +493,8 @@ function PendingApproval() {
   // Renders the specific subroute/tab content
   const renderTabContent = () => {
     switch (activeTab) {
+      case "support-team":
+        return <PendingSupportTeam />;
       case "events":
         return <GlobalEvents />;
       case "schools":
@@ -801,6 +805,20 @@ function PendingApproval() {
                       </div>
                     </div>
                     <FaChevronRight className="text-slate-400 text-xs shrink-0" />
+                  </Link>
+
+                  {/* TeachHub Support Team */}
+                  <Link to="/pending/support-team" className="w-full bg-gradient-to-r from-purple-600/10 to-indigo-600/10 dark:from-purple-600/20 dark:to-indigo-600/20 rounded-2.5xl border border-purple-500/30 shadow-sm p-4 flex items-center justify-between hover:border-purple-500 transition-all">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-purple-500 text-white flex items-center justify-center shrink-0 shadow-md">
+                        <FaHeadphones className="text-lg" />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-xs font-extrabold text-purple-700 dark:text-purple-300">Need Help? Contact Support Team</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-semibold">Get assistance with login, account setup & school joining</p>
+                      </div>
+                    </div>
+                    <FaChevronRight className="text-purple-500 text-xs shrink-0" />
                   </Link>
                 </div>
               </div>
@@ -1866,6 +1884,7 @@ function PendingApproval() {
                 { to: "/pending/schools", icon: <FaSchool className="text-purple-500" />, label: "School" },
                 { to: "/pending/about-school", icon: <FaSchool className="text-amber-500" />, label: "About Your School" },
                 { to: "/pending/events", icon: <FaCalendarAlt className="text-cyan-500" />, label: "Event" },
+                { to: "/pending/support-team", icon: <FaHeadphones className="text-purple-500" />, label: "Support Team" },
                 { to: "/pending/profile", icon: <FaUserCircle className="text-[#7C3AED] dark:text-[#38BDF8]" />, label: "Profile" },
                 { to: "/pending/about", icon: <FaInfoCircle className="text-slate-400" />, label: "About App" }
               ] : [
@@ -1874,6 +1893,7 @@ function PendingApproval() {
                 { to: "/pending/schools", icon: <FaSchool className="text-purple-500" />, label: "School Directory" },
                 { to: "/pending/events", icon: <FaCalendarAlt className="text-cyan-500" />, label: "Event" },
                 ...(!isTeacher ? [{ to: "/pending/exams", icon: <FaBookOpen className="text-blue-500" />, label: "Exam" }] : []),
+                { to: "/pending/support-team", icon: <FaHeadphones className="text-purple-500" />, label: "Support Team" },
                 { to: "/pending/profile", icon: <FaUserCircle className="text-[#7C3AED] dark:text-[#38BDF8]" />, label: "Profile" },
                 { to: "/pending/about", icon: <FaInfoCircle className="text-slate-400" />, label: "About App" }
               ])
