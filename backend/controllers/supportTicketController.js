@@ -58,6 +58,12 @@ const generateTicketNumber = async () => {
 
 const escapeRegex = (str) => (str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+const normalizeDepartment = (dept) => {
+  const rawDept = (dept || "").trim();
+  if (rawDept === "Account Onboarding") return "Onboarding";
+  return rawDept;
+};
+
 // ================= 1. CREATE TICKET =================
 // POST /api/support/tickets
 exports.createTicket = async (req, res) => {
@@ -144,7 +150,8 @@ exports.createTicket = async (req, res) => {
 // GET /api/support/tickets
 exports.getAllTickets = async (req, res) => {
   try {
-    const { role, supportDepartment } = req.user;
+    const { role } = req.user;
+    const supportDepartment = normalizeDepartment(req.user.supportDepartment);
     const query = {};
 
     // Support Agent Department Isolation
@@ -155,7 +162,7 @@ exports.getAllTickets = async (req, res) => {
       query.assignedDepartment = supportDepartment;
     } else if (role === "superadmin") {
       if (req.query.department) {
-        query.assignedDepartment = req.query.department;
+        query.assignedDepartment = normalizeDepartment(req.query.department);
       }
     }
 
@@ -296,7 +303,8 @@ exports.getAssignedTickets = async (req, res) => {
 // GET /api/support/tickets/escalated
 exports.getEscalatedTickets = async (req, res) => {
   try {
-    const { role, supportDepartment } = req.user;
+    const { role } = req.user;
+    const supportDepartment = normalizeDepartment(req.user.supportDepartment);
     const query = { isEscalated: true };
 
     if (role === "support") {
@@ -306,7 +314,7 @@ exports.getEscalatedTickets = async (req, res) => {
       query.assignedDepartment = supportDepartment;
     } else if (role === "superadmin") {
       if (req.query.department) {
-        query.assignedDepartment = req.query.department;
+        query.assignedDepartment = normalizeDepartment(req.query.department);
       }
     }
 
@@ -371,7 +379,8 @@ exports.getTicketById = async (req, res) => {
       return res.status(404).json({ message: "Support ticket not found." });
     }
 
-    const { role, id: userId, supportDepartment } = req.user;
+    const { role, id: userId } = req.user;
+    const supportDepartment = normalizeDepartment(req.user.supportDepartment);
 
     // Authorization Guard
     let isAuthorized = false;
@@ -407,7 +416,8 @@ exports.replyTicket = async (req, res) => {
       return res.status(404).json({ message: "Support ticket not found." });
     }
 
-    const { role, id: userId, supportDepartment } = req.user;
+    const { role, id: userId } = req.user;
+    const supportDepartment = normalizeDepartment(req.user.supportDepartment);
 
     // Authorization Guard
     let isAuthorized = false;
@@ -514,7 +524,8 @@ exports.updateTicketStatus = async (req, res) => {
       return res.status(404).json({ message: "Support ticket not found." });
     }
 
-    const { role, supportDepartment } = req.user;
+    const { role } = req.user;
+    const supportDepartment = normalizeDepartment(req.user.supportDepartment);
 
     // Authorization Guard
     let isAuthorized = false;
@@ -692,7 +703,8 @@ exports.escalateTicket = async (req, res) => {
       return res.status(400).json({ message: "This support ticket has already been escalated." });
     }
 
-    const { role, supportDepartment } = req.user;
+    const { role } = req.user;
+    const supportDepartment = normalizeDepartment(req.user.supportDepartment);
 
     // Authorization Guard
     let isAuthorized = false;
@@ -864,7 +876,8 @@ exports.assignTicket = async (req, res) => {
 // GET /api/support/tickets/dashboard-stats
 exports.getSupportDashboard = async (req, res) => {
   try {
-    const { id: userId, role, supportDepartment } = req.user;
+    const { id: userId, role } = req.user;
+    const supportDepartment = normalizeDepartment(req.user.supportDepartment);
     const deptQuery = {};
 
     // Support Agent Department Isolation
@@ -875,7 +888,7 @@ exports.getSupportDashboard = async (req, res) => {
       deptQuery.assignedDepartment = supportDepartment;
     } else if (role === "superadmin") {
       if (req.query.department) {
-        deptQuery.assignedDepartment = req.query.department;
+        deptQuery.assignedDepartment = normalizeDepartment(req.query.department);
       }
     }
 

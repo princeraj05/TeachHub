@@ -5,6 +5,12 @@ const TeacherNotification = require("../models/TeacherNotification");
 const cloudinary = require("../config/cloudinary");
 const fs = require("fs");
 
+const normalizeDepartment = (dept) => {
+  const rawDept = (dept || "").trim();
+  if (rawDept === "Account Onboarding") return "Onboarding";
+  return rawDept;
+};
+
 // Check if sender is authorized to message receiver (Strict School Isolation & Support Security)
 const validateCommunicationRights = async (senderId, senderRole, senderSchool, receiverId) => {
   if (receiverId === "superadmin_support_fallback" || receiverId === "admin_support_fallback") {
@@ -266,7 +272,7 @@ exports.getContacts = async (req, res) => {
       contacts = [];
     } else if (role === "support") {
       const SupportTicket = require("../models/SupportTicket");
-      const agentDept = userDoc?.supportDepartment || req.user.supportDepartment || "";
+      const agentDept = normalizeDepartment(userDoc?.supportDepartment || req.user.supportDepartment);
 
       // Server-side department isolation: Find tickets assigned to agent or in agent's assigned department
       const ticketQuery = agentDept ? { $or: [{ assignedDepartment: agentDept }, { department: agentDept }, { assignedTo: currentUserId }] } : {};
@@ -559,7 +565,7 @@ exports.getCallHistory = async (req, res) => {
     if (role === "support") {
       const SupportTicket = require("../models/SupportTicket");
       const userDoc = await User.findById(currentUserId).lean();
-      const agentDept = userDoc?.supportDepartment || req.user.supportDepartment || "";
+      const agentDept = normalizeDepartment(userDoc?.supportDepartment || req.user.supportDepartment);
       const deptTickets = await SupportTicket.find(agentDept ? { $or: [{ assignedDepartment: agentDept }, { department: agentDept }, { assignedTo: currentUserId }] } : {}).select("requester").lean();
       const deptRequesterIds = deptTickets.map(t => t.requester?.toString()).filter(Boolean);
       

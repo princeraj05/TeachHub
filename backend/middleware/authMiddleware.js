@@ -14,7 +14,7 @@ exports.protect = async (req, res, next) => {
     // A token only identifies the user. Read the current role and school from the
     // database so a stale token cannot retain permissions after an admin change.
     const User = require("../models/User");
-    const user = await User.findById(decoded.id).select("role requestedRole schoolName supportStatus").lean();
+    const user = await User.findById(decoded.id).select("role requestedRole schoolName supportStatus supportDepartment").lean();
     if (!user) return res.status(401).json({ message: "User no longer exists" });
 
     if (user.role === "support" && user.supportStatus === "suspended") {
@@ -59,7 +59,7 @@ exports.protect = async (req, res, next) => {
       console.error("UserSession middleware check error:", sErr.message);
     }
 
-    req.user = { ...decoded, id: decoded.id || user._id.toString(), _id: user._id, role: user.role, requestedRole: user.requestedRole || "", schoolName: user.schoolName || "" };
+    req.user = { ...decoded, id: decoded.id || user._id.toString(), _id: user._id, role: user.role, requestedRole: user.requestedRole || "", schoolName: user.schoolName || "", supportDepartment: user.supportDepartment || "" };
     next();
   } catch (err) {
     return res.status(401).json({ message: "Token invalid" });
