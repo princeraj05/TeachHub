@@ -278,7 +278,7 @@ export default function CreateTimetable() {
       </div>
 
       {/* ── TABS NAVIGATION BAR ── */}
-      <div className="flex flex-wrap items-center gap-2 mb-6 border-b border-slate-800/80 pb-3 select-none">
+      <div className="flex flex-wrap items-center gap-2 mb-6 border-b border-slate-200 dark:border-slate-800/80 pb-3 select-none">
         {TABS.map(tab => {
           const isActive = activeTab === tab.id;
           return (
@@ -291,8 +291,8 @@ export default function CreateTimetable() {
               }}
               className={`px-4 py-2 text-xs font-bold rounded-xl transition cursor-pointer select-none ${
                 isActive
-                  ? "bg-[#7C3AED]/10 text-purple-400 border border-[#7C3AED]/30"
-                  : "text-slate-455 hover:bg-slate-850 hover:text-white"
+                  ? "bg-[#7C3AED]/10 text-purple-600 dark:text-purple-400 border border-[#7C3AED]/30"
+                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               {tab.label}
@@ -303,13 +303,13 @@ export default function CreateTimetable() {
 
       {/* ── MESSAGES ── */}
       {message && (
-        <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-450 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm mb-6 animate-fadeIn">
+        <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm mb-6 animate-fadeIn">
           <FaCheckCircle className="text-emerald-500 text-lg shrink-0" />
           {message}
         </div>
       )}
       {errorMsg && (
-        <div className="flex items-center gap-3 bg-rose-500/10 border border-rose-500/20 text-rose-455 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm mb-6 animate-fadeIn">
+        <div className="flex items-center gap-3 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 rounded-2xl px-5 py-4 text-sm font-bold shadow-sm mb-6 animate-fadeIn">
           <FaInfoCircle className="text-rose-500 text-lg shrink-0" />
           {errorMsg}
         </div>

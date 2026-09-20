@@ -131,70 +131,72 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* ── Global Dark Theme overrides for TeachHub ── */
-.dark .bg-white:not(.lg\:bg-transparent):not(.dark\:lg\:bg-transparent) {
-  background-color: #0F172A !important;
-}
-
-.dark .bg-white\/60 {
-  background-color: rgba(15, 23, 42, 0.6) !important;
-}
-
-.dark .bg-slate-50 {
-  background-color: #1E293B !important;
-}
-
-.dark .bg-slate-100 {
-  background-color: #1E293B !important;
-}
-
-.dark .hover\:bg-slate-50\/50:hover, 
-.dark .hover\:bg-slate-50:hover,
-.dark .group:hover .group-hover\:bg-slate-50 {
-  background-color: rgba(255, 255, 255, 0.03) !important;
-}
-
-.dark .text-slate-900, 
-.dark .text-slate-800, 
-.dark .text-slate-700 {
-  color: #F1F5F9 !important;
-}
-
-.dark .text-slate-600, 
-.dark .text-slate-500 {
-  color: #94A3B8 !important;
-}
-
-.dark .text-\[\#0F172A\] {
-  color: #F1F5F9 !important;
-}
-
-.dark .border-slate-200, 
-.dark .border-slate-200\/50, 
-.dark .border-slate-200\/60, 
-.dark .border-slate-200\/80, 
-.dark .border-slate-100 {
-  border-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.dark input, 
-.dark select, 
-.dark textarea {
-  background-color: #1E293B !important;
-  color: #F1F5F9 !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
-}
-
-.dark input::placeholder {
-  color: #64748B !important;
-}
-
-.dark thead tr, 
-.dark tr.bg-slate-50 {
-  background-color: #1E293B !important;
+/* ── Global Dark Theme fallbacks for TeachHub ── */
+.dark input:not([class*="dark:bg-"]), 
+.dark select:not([class*="dark:bg-"]), 
+.dark textarea:not([class*="dark:bg-"]) {
+  background-color: #1E293B;
+  color: #F1F5F9;
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .dark option {
-  background-color: #0F172A !important;
-  color: #F1F5F9 !important;
+  background-color: #0F172A;
+  color: #F1F5F9;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748B;
+}
+
+/* Base surface fallbacks for dark mode when dark: utility is missing */
+.dark .bg-white:not([class*="dark:bg-"]):not([class*="bg-[#7C3AED]"]):not([class*="bg-purple-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-blue-"]):not([class*="bg-amber-"]):not(.keep-white) {
+  background-color: #0F172A;
+}
+
+.dark .bg-white\/60:not([class*="dark:bg-"]) {
+  background-color: rgba(15, 23, 42, 0.6);
+}
+
+.dark .bg-slate-50:not([class*="dark:bg-"]) {
+  background-color: #1E293B;
+}
+
+.dark .bg-slate-100:not([class*="dark:bg-"]) {
+  background-color: #1E293B;
+}
+
+.dark .hover\:bg-slate-50\/50:hover:not([class*="dark:hover:bg-"]), 
+.dark .hover\:bg-slate-50:hover:not([class*="dark:hover:bg-"]),
+.dark .group:hover .group-hover\:bg-slate-50:not([class*="dark:group-hover:bg-"]) {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.dark .text-slate-900:not([class*="dark:text-"]):not([class*="text-white"]), 
+.dark .text-slate-800:not([class*="dark:text-"]):not([class*="text-white"]), 
+.dark .text-slate-700:not([class*="dark:text-"]):not([class*="text-white"]) {
+  color: #F1F5F9;
+}
+
+.dark .text-slate-600:not([class*="dark:text-"]), 
+.dark .text-slate-500:not([class*="dark:text-"]) {
+  color: #94A3B8;
+}
+
+.dark .text-\[\#0F172A\]:not([class*="dark:text-"]) {
+  color: #F1F5F9;
+}
+
+.dark .border-slate-200:not([class*="dark:border-"]), 
+.dark .border-slate-200\/50:not([class*="dark:border-"]), 
+.dark .border-slate-200\/60:not([class*="dark:border-"]), 
+.dark .border-slate-200\/80:not([class*="dark:border-"]), 
+.dark .border-slate-100:not([class*="dark:border-"]) {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark thead tr:not([class*="dark:bg-"]), 
+.dark tr.bg-slate-50:not([class*="dark:bg-"]) {
+  background-color: #1E293B;
 }

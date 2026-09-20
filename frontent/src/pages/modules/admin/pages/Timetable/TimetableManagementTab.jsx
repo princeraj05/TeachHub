@@ -13,6 +13,7 @@ import {
   FaSyncAlt,
   FaExclamationTriangle
 } from "react-icons/fa";
+import axios from "axios";
 import API_URL from "../../../../../config/api";
 
 const DAYS_LIST = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -57,8 +58,6 @@ const formatTime12h = (timeStr) => {
   return `${String(displayH).padStart(2, "0")}:${displayM} ${ampm}`;
 };
 
-import axios from "axios";
-
 const formatMinutesTo12h = (mins) => {
   const h = Math.floor(mins / 60) % 24;
   const m = mins % 60;
@@ -70,7 +69,6 @@ const formatMinutesTo12h = (mins) => {
 
 const buildTimeSlots = (lunchStartStr = "12:00 PM", lunchMins = 60) => {
   let lunchStart = parseMins(lunchStartStr);
-  // Ensure lunch start is in a valid school daytime range (11:00 AM to 02:30 PM = 660 to 870 mins)
   if (lunchStart < 660 || lunchStart > 870) {
     lunchStart = 12 * 60; // default 12:00 PM (720 mins)
   }
@@ -78,14 +76,12 @@ const buildTimeSlots = (lunchStartStr = "12:00 PM", lunchMins = 60) => {
   const lunchEnd = lunchStart + lunchDuration;
 
   const slots = [];
-
-  // 1. Morning period slots up to Lunch Break (starting from 08:00 AM)
   let currentMins = 8 * 60; // 480 mins
 
   while (currentMins < lunchStart) {
     let nextMins = currentMins + 60;
     if (nextMins > lunchStart) {
-      nextMins = lunchStart; // exact boundary before lunch break
+      nextMins = lunchStart;
     }
     slots.push({
       label: `${formatMinutesTo12h(currentMins)} - ${formatMinutesTo12h(nextMins)}`,
@@ -97,7 +93,6 @@ const buildTimeSlots = (lunchStartStr = "12:00 PM", lunchMins = 60) => {
     currentMins = nextMins;
   }
 
-  // 2. Add Lunch Break
   slots.push({
     label: `${formatMinutesTo12h(lunchStart)} - ${formatMinutesTo12h(lunchEnd)}`,
     start: formatMinutesTo12h(lunchStart),
@@ -107,7 +102,6 @@ const buildTimeSlots = (lunchStartStr = "12:00 PM", lunchMins = 60) => {
     name: `Lunch Break (${lunchDuration} Mins)`
   });
 
-  // 3. Afternoon period slots after Lunch Break up to 04:30 PM (990 mins)
   currentMins = lunchEnd;
   const maxDayEndMins = 16 * 60 + 30; // 04:30 PM
 
@@ -129,17 +123,17 @@ const buildTimeSlots = (lunchStartStr = "12:00 PM", lunchMins = 60) => {
   return slots;
 };
 
-// Color mapping for subjects
+// Color mapping for subjects (Support both light and dark themes)
 const SUBJECT_COLORS = {
-  Mathematics: "bg-purple-950/60 border-purple-800/80 text-purple-200",
-  Science: "bg-emerald-950/60 border-emerald-800/80 text-emerald-200",
-  English: "bg-blue-950/60 border-blue-800/80 text-blue-200",
-  Hindi: "bg-orange-950/60 border-orange-800/80 text-orange-200",
-  "Social Science": "bg-cyan-950/60 border-cyan-800/80 text-cyan-200",
-  Sanskrit: "bg-teal-950/60 border-teal-800/80 text-teal-200",
-  Computer: "bg-sky-950/60 border-sky-800/80 text-sky-200",
-  "Physical Education": "bg-indigo-950/60 border-indigo-800/80 text-indigo-200",
-  "Art & Craft": "bg-pink-950/60 border-pink-800/80 text-pink-200"
+  Mathematics: "bg-purple-100 border-purple-300 text-purple-900 dark:bg-purple-950/60 dark:border-purple-800/80 dark:text-purple-200",
+  Science: "bg-emerald-100 border-emerald-300 text-emerald-900 dark:bg-emerald-950/60 dark:border-emerald-800/80 dark:text-emerald-200",
+  English: "bg-blue-100 border-blue-300 text-blue-900 dark:bg-blue-950/60 dark:border-blue-800/80 dark:text-blue-200",
+  Hindi: "bg-amber-100 border-amber-300 text-amber-900 dark:bg-orange-950/60 dark:border-orange-800/80 dark:text-orange-200",
+  "Social Science": "bg-cyan-100 border-cyan-300 text-cyan-900 dark:bg-cyan-950/60 dark:border-cyan-800/80 dark:text-cyan-200",
+  Sanskrit: "bg-teal-100 border-teal-300 text-teal-900 dark:bg-teal-950/60 dark:border-teal-800/80 dark:text-teal-200",
+  Computer: "bg-sky-100 border-sky-300 text-sky-900 dark:bg-sky-950/60 dark:border-sky-800/80 dark:text-sky-200",
+  "Physical Education": "bg-indigo-100 border-indigo-300 text-indigo-900 dark:bg-indigo-950/60 dark:border-indigo-800/80 dark:text-indigo-200",
+  "Art & Craft": "bg-pink-100 border-pink-300 text-pink-900 dark:bg-pink-950/60 dark:border-pink-800/80 dark:text-pink-200"
 };
 
 const LEGEND_COLORS = [
@@ -152,7 +146,7 @@ const LEGEND_COLORS = [
   { name: "Computer", color: "bg-sky-500" },
   { name: "Physical Education", color: "bg-indigo-500" },
   { name: "Art & Craft", color: "bg-pink-500" },
-  { name: "Break", color: "bg-slate-655" },
+  { name: "Break", color: "bg-slate-500" },
   { name: "Lunch Break", color: "bg-amber-600" },
   { name: "Conflicting Time", color: "bg-rose-500" }
 ];
@@ -168,18 +162,14 @@ function TimetableManagementTab({
   setSelectedClassId,
   breakSettings
 }) {
-
-  // Initial default class ID selection
   const initialClassId = selectedClassId || classes[0]?._id || "";
 
-  // Filters state
   const [filterClass, setFilterClass] = useState(initialClassId);
   const [filterTeacher, setFilterTeacher] = useState("All");
   const [filterSubject, setFilterSubject] = useState("All");
   const [showBreaks, setShowBreaks] = useState(true);
   const [showFullDay, setShowFullDay] = useState(false);
 
-  // Break duration and timing states (configurable by Admin)
   const [shortBreakStartTime, setShortBreakStartTime] = useState(breakSettings?.shortBreakStartTime || "11:00 AM");
   const [shortBreakDuration, setShortBreakDuration] = useState(breakSettings?.shortBreakDuration !== undefined ? breakSettings.shortBreakDuration : 30);
   const [lunchBreakStartTime, setLunchBreakStartTime] = useState(breakSettings?.lunchBreakStartTime || "12:00 PM");
@@ -187,7 +177,6 @@ function TimetableManagementTab({
   const [showBreakModal, setShowBreakModal] = useState(false);
   const [savingBreaks, setSavingBreaks] = useState(false);
 
-  // Sync breakSettings prop whenever parent finishes loading
   React.useEffect(() => {
     if (breakSettings) {
       if (breakSettings.shortBreakStartTime) setShortBreakStartTime(breakSettings.shortBreakStartTime);
@@ -197,14 +186,12 @@ function TimetableManagementTab({
     }
   }, [breakSettings]);
 
-  // Filter active state
   const [activeFilters, setActiveFilters] = useState({
     classId: initialClassId,
     teacherId: "All",
     subjectId: "All"
   });
 
-  // Synchronize class selection across tabs and props
   React.useEffect(() => {
     const targetClassId = selectedClassId || (classes.length > 0 ? classes[0]._id : "");
     if (targetClassId) {
@@ -216,7 +203,6 @@ function TimetableManagementTab({
     }
   }, [selectedClassId, classes]);
 
-  // Load school break settings on mount
   React.useEffect(() => {
     const API = API_URL;
     const token = localStorage.getItem("token");
@@ -275,24 +261,20 @@ function TimetableManagementTab({
     if (setSelectedClassId) setSelectedClassId(defaultClassId);
   };
 
-  // Filtered timetable entries based on active filters
   const filteredEntries = useMemo(() => {
     return entries.filter(e => {
-      // 1. Class filter
       if (activeFilters.classId) {
         const entryClassId = String(e.class?._id || e.class || "");
         if (entryClassId !== String(activeFilters.classId)) {
           return false;
         }
       }
-      // 2. Teacher filter
       if (activeFilters.teacherId && activeFilters.teacherId !== "All") {
         const entryTeacherId = String(e.teacher?._id || e.teacher || "");
         if (entryTeacherId !== String(activeFilters.teacherId)) {
           return false;
         }
       }
-      // 3. Subject filter
       if (activeFilters.subjectId && activeFilters.subjectId !== "All") {
         const entrySubjectId = String(e.subject?._id || e.subject || "");
         if (entrySubjectId !== String(activeFilters.subjectId)) {
@@ -303,7 +285,6 @@ function TimetableManagementTab({
     });
   }, [entries, activeFilters]);
 
-  // Dynamic TIME_SLOTS: Only show time slots up to the scheduled classes
   const TIME_SLOTS = useMemo(() => {
     const rawSlots = buildTimeSlots(lunchBreakStartTime, lunchBreakDuration);
 
@@ -312,14 +293,10 @@ function TimetableManagementTab({
     }
 
     if (filteredEntries.length === 0) {
-      // If no entries scheduled yet, show morning slots up to 11:00 AM
       return rawSlots.filter(s => parseMins(s.start) <= 660);
     }
 
-    // Find the latest class end time among filtered entries
     const maxEndMins = Math.max(...filteredEntries.map(e => parseMins(e.endTime)));
-    
-    // Always include slots up to max end time (at least 11:00 AM)
     const cutoffMins = Math.max(maxEndMins, 660);
 
     return rawSlots.filter(s => {
@@ -328,11 +305,8 @@ function TimetableManagementTab({
     });
   }, [lunchBreakStartTime, lunchBreakDuration, filteredEntries, showFullDay]);
 
-  // Check if a cell has an overlapping conflict (two or more entries at the same day/time range)
   const cellConflicts = useMemo(() => {
     const conflictMap = new Set();
-    
-    // Check conflicts among all active filtered entries
     for (let i = 0; i < filteredEntries.length; i++) {
       for (let j = i + 1; j < filteredEntries.length; j++) {
         const a = filteredEntries[i];
@@ -354,27 +328,21 @@ function TimetableManagementTab({
     return conflictMap;
   }, [filteredEntries]);
 
-  // Find period matching day and time slot
   const getCellPeriod = (day, slot) => {
     const slotStartMins = parseMins(slot.start);
     const slotEndMins = parseMins(slot.end);
 
     return filteredEntries.find(e => {
       if (e.day !== day) return false;
-      
       const entryStartMins = parseMins(e.startTime);
-
-      // Period matches if its start time falls within this slot range [slotStartMins, slotEndMins)
       return entryStartMins >= slotStartMins && entryStartMins < slotEndMins;
     });
   };
 
-  // Get Subject color class
   const getSubjectColor = (subjectName) => {
-    return SUBJECT_COLORS[subjectName] || "bg-slate-900 border-slate-800 text-slate-200";
+    return SUBJECT_COLORS[subjectName] || "bg-slate-100 border-slate-200 text-slate-900 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200";
   };
 
-  // Calculate stats summary dynamically
   const statsSummary = useMemo(() => {
     const uniqueSubjects = new Set();
     const uniqueTeachers = new Set();
@@ -386,7 +354,7 @@ function TimetableManagementTab({
       if (e.teacher?.name || e.teacher) uniqueTeachers.add(e.teacher?.name || String(e.teacher));
     });
 
-    const breaksCount = showBreaks ? 12 : 0; // 2 breaks per day for 6 days = 12
+    const breaksCount = showBreaks ? 12 : 0;
 
     return {
       totalPeriods: periodsCount + breaksCount,
@@ -538,14 +506,14 @@ function TimetableManagementTab({
               <button
                 type="button"
                 onClick={() => setShowBreakModal(true)}
-                className="px-3 py-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-300 hover:bg-purple-500/20 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
               >
                 <FaClock className="text-[10px]" /> Break Settings
               </button>
 
               <button
                 onClick={() => setActiveTab("basic")}
-                className="flex items-center gap-1.5 text-purple-500 hover:underline cursor-pointer"
+                className="flex items-center gap-1.5 text-purple-600 dark:text-purple-400 hover:underline cursor-pointer"
               >
                 <FaPlus className="text-[10px]" /> Add Timetable
               </button>
@@ -567,16 +535,12 @@ function TimetableManagementTab({
               </thead>
               <tbody>
                 {TIME_SLOTS.map((slot, sIdx) => {
-                  
-                  // Hide breaks rows if unchecked
                   if (slot.isBreak && !showBreaks) return null;
 
-                  // Render breaks spanned horizontally
                   if (slot.isBreak) {
                     let breakColor = "bg-slate-200/60 dark:bg-[#1E293B]/40 text-slate-700 dark:text-slate-400";
                     if (slot.type === "lunch") breakColor = "bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-500";
 
-                    // Find any entries accidentally created during this break slot
                     const slotStartMins = parseMins(slot.start);
                     const slotEndMins = parseMins(slot.end);
                     const breakEntries = filteredEntries.filter(e => {
@@ -630,38 +594,35 @@ function TimetableManagementTab({
                             {period ? (
                               <div className={`border rounded-xl p-2.5 flex flex-col justify-between min-h-[96px] transition hover:scale-[1.01] hover:shadow-md ${
                                 hasConflict 
-                                  ? "bg-rose-950/50 border-rose-800 text-rose-200" 
+                                  ? "bg-rose-100 border-rose-300 text-rose-900 dark:bg-rose-950/50 dark:border-rose-800 dark:text-rose-200" 
                                   : getSubjectColor(period.subject?.name)
                               }`}>
                                 <div className="flex items-start justify-between gap-1">
                                   <h5 className="text-[10px] font-black leading-tight truncate flex-1">{period.subject?.name || "Subject"}</h5>
                                   
-                                  {/* Delete handler */}
                                   <button
                                     onClick={() => remove(period._id)}
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 text-[8px] text-rose-400 hover:text-rose-300 cursor-pointer shrink-0"
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 text-[8px] text-rose-500 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 cursor-pointer shrink-0"
                                     title="Delete Period"
                                   >
                                     <FaTrashAlt />
                                   </button>
                                 </div>
-                                <span className="block text-[8.5px] font-bold text-slate-300/80 truncate mt-0.5">
+                                <span className="block text-[8.5px] font-bold opacity-80 truncate mt-0.5">
                                   {period.teacher?.name || "Teacher"}
                                 </span>
                                 
-                                {/* Timing badge - High visibility with clock icon */}
-                                <div className="flex items-center gap-1 my-1 px-1.5 py-0.5 rounded-md bg-black/40 border border-white/10 text-[8.5px] font-extrabold text-cyan-300 tracking-tight whitespace-nowrap overflow-hidden select-none">
-                                  <FaClock className="text-[7.5px] text-cyan-400 shrink-0" />
+                                <div className="flex items-center gap-1 my-1 px-1.5 py-0.5 rounded-md bg-white/70 dark:bg-black/40 border border-black/10 dark:border-white/10 text-[8.5px] font-extrabold text-slate-800 dark:text-cyan-300 tracking-tight whitespace-nowrap overflow-hidden select-none">
+                                  <FaClock className="text-[7.5px] text-purple-600 dark:text-cyan-400 shrink-0" />
                                   <span className="truncate">{formatTime12h(period.startTime)} - {formatTime12h(period.endTime)}</span>
                                 </div>
                                 
-                                {/* Room location & conflict indicator */}
                                 <div className="flex items-center justify-between text-[8px] font-bold select-none mt-0.5">
-                                  <span className="text-[8px] font-extrabold text-slate-200 bg-slate-900/80 px-1.5 py-0.5 rounded border border-white/10 truncate max-w-[65px]">
+                                  <span className="text-[8px] font-extrabold text-slate-800 dark:text-slate-200 bg-white/80 dark:bg-slate-900/80 px-1.5 py-0.5 rounded border border-black/10 dark:border-white/10 truncate max-w-[65px]">
                                     {period.room || "Room 101"}
                                   </span>
                                   {hasConflict && (
-                                    <FaExclamationTriangle className="text-rose-400 animate-pulse text-[9.5px]" title="Conflict Alert!" />
+                                    <FaExclamationTriangle className="text-rose-500 animate-pulse text-[9.5px]" title="Conflict Alert!" />
                                   )}
                                 </div>
                               </div>
@@ -776,8 +737,6 @@ function TimetableManagementTab({
             </div>
 
             <form onSubmit={handleSaveBreakSettings} className="space-y-4">
-              
-              {/* Lunch Break Settings */}
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">🍱 Lunch Break</span>

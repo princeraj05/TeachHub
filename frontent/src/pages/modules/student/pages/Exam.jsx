@@ -27,7 +27,8 @@ import API_URL from "../../../../config/api";
 const SORA = "'Sora', sans-serif";
 
 function Exam() {
-  const { isDarkMode } = useTheme();
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const API = API_URL;

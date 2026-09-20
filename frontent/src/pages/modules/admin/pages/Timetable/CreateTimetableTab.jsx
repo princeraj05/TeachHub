@@ -419,7 +419,7 @@ function CreateTimetableTab({
                     onClick={() => handleDayCheckbox(d)}
                     className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition select-none cursor-pointer ${
                       isChecked
-                        ? "border-purple-600 bg-purple-600/10 text-purple-700 dark:text-white font-black"
+                        ? "border-purple-600 bg-purple-600/10 text-purple-700 dark:text-purple-300 font-black"
                         : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0F172A] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
