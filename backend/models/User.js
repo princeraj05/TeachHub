@@ -44,6 +44,7 @@ const userSchema = new mongoose.Schema({
   emailNotifications: { type: Boolean, default: true },
   smsNotifications: { type: Boolean, default: true },
   pushNotifications: { type: Boolean, default: true },
+  fcmToken: { type: String, default: "", trim: true },
   dndMode: { type: Boolean, default: false },
 
   fatherMobileNumber: { type: String, default: "", trim: true, maxlength: 20 },

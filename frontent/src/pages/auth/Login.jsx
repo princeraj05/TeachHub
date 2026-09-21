@@ -20,6 +20,7 @@ import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { useTheme } from "../../context/ThemeContext";
 import { usePlatform } from "../../context/PlatformContext";
 import API_URL from "../../config/api";
+import { initFCM } from "../../utils/fcm";
 
 const SORA = "'Sora', sans-serif";
 
@@ -93,7 +94,7 @@ function Login({ scope }) {
   useEffect(() => {
     const fetchAboutInfo = async () => {
       try {
-        const res = await axios.get(`${API}/api/about-app`);
+        const res = await axios.get(`${API}/api/about-app`, { timeout: 30000 });
         if (res.data) {
           if (res.data.stats) {
             setLiveStats(res.data.stats);
@@ -209,6 +210,8 @@ function Login({ scope }) {
     localStorage.setItem("name", data.user.name);
     localStorage.setItem("avatar", data.user.avatar || "");
 
+    initFCM(navigate);
+
     const role = data.user.role;
 
     if (role === "superadmin") {
@@ -226,14 +229,17 @@ function Login({ scope }) {
 
   const syncWithBackend = async (idToken) => {
     try {
-      const res = await axios.post(`${API}/api/auth/firebase-sync`, { idToken });
+      const res = await axios.post(`${API}/api/auth/firebase-sync`, { idToken }, { timeout: 45000 });
       saveAuthAndNavigate(res.data);
     } catch (error) {
       console.error("Backend sync error:", error);
-      const errDetails = error.response?.data?.message 
+      let errDetails = error.response?.data?.message 
         || error.response?.data?.error 
         || error.message 
         || "Sync Failed";
+      if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+        errDetails = "Backend server is warming up on Render. Please wait 10 seconds and try again.";
+      }
       const statusText = error.response?.status ? ` [HTTP ${error.response.status}]` : "";
       alert(`Backend Sync Failed${statusText}:\n${errDetails}\n\nAPI: ${API}`);
     }
@@ -246,7 +252,7 @@ function Login({ scope }) {
     setLoading(true);
     setDevOtpMessage("");
     try {
-      const res = await axios.post(`${API}/api/auth/send-otp`, { email });
+      const res = await axios.post(`${API}/api/auth/send-otp`, { email }, { timeout: 45000 });
       setOtpSent(true);
       if (res.data.otp) {
         setDevOtpMessage(`Verification code: ${res.data.otp} (SMTP failed/Dev Mode)`);
@@ -256,10 +262,13 @@ function Login({ scope }) {
       setCooldown(60);
     } catch (error) {
       console.error("Send OTP error:", error);
-      const errDetails = error.response?.data?.message 
+      let errDetails = error.response?.data?.message 
         || error.response?.data?.error 
         || error.message 
         || "Failed to send OTP";
+      if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+        errDetails = "Backend server is warming up on Render. Please wait 10 seconds and try tapping Send OTP again.";
+      }
       const statusText = error.response?.status ? ` [HTTP ${error.response.status}]` : "";
       alert(`Send OTP Failed${statusText}:\n${errDetails}\n\nAPI: ${API}`);
     } finally {
@@ -272,14 +281,17 @@ function Login({ scope }) {
     if (!email || !otp) return;
     setLoading(true);
     try {
-      const res = await axios.post(`${API}/api/auth/verify-otp`, { email, otp });
+      const res = await axios.post(`${API}/api/auth/verify-otp`, { email, otp }, { timeout: 45000 });
       saveAuthAndNavigate(res.data);
     } catch (error) {
       console.error("Verify OTP error:", error);
-      const errDetails = error.response?.data?.message 
+      let errDetails = error.response?.data?.message 
         || error.response?.data?.error 
         || error.message 
         || "Invalid or expired OTP";
+      if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+        errDetails = "Backend server is warming up on Render. Please wait 10 seconds and try again.";
+      }
       const statusText = error.response?.status ? ` [HTTP ${error.response.status}]` : "";
       alert(`Verify OTP Failed${statusText}:\n${errDetails}\n\nAPI: ${API}`);
     } finally {

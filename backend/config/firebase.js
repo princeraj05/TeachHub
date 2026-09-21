@@ -102,12 +102,20 @@ if (getApps().length === 0) {
   app = getApps()[0];
 }
 
+const { getMessaging } = require("firebase-admin/messaging");
+
 const firebaseAdmin = {
   auth: () => {
     if (!getApps().length) {
       throw new Error("Firebase Admin SDK is not initialized. Please configure credentials.");
     }
     return getAuth();
+  },
+  messaging: () => {
+    if (!getApps().length) {
+      return null;
+    }
+    return getMessaging();
   }
 };
 

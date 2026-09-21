@@ -3,6 +3,8 @@ const User = require("../models/User");
 
 const escapeRegex = (str) => (str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+const firebaseAdmin = require("../config/firebase");
+
 /**
  * Create a single notification for a specific user
  */
@@ -31,6 +33,43 @@ const createAppNotification = async ({ recipient, schoolName, role, title, messa
     if (global.io && recipient) {
       global.io.to(recipient.toString()).emit("notification:new", notification);
       global.io.to(recipient.toString()).emit("app-notification:new", notification);
+    }
+
+    // Extended FCM Mobile Push Notification Dispatch
+    try {
+      const recipientUser = await User.findById(recipient).select("fcmToken pushNotifications").lean();
+      if (recipientUser && recipientUser.fcmToken && recipientUser.pushNotifications !== false) {
+        const messaging = firebaseAdmin.messaging();
+        if (messaging) {
+          await messaging.send({
+            token: recipientUser.fcmToken,
+            notification: {
+              title: title || "Your School Alert",
+              body: message || "You have a new notification."
+            },
+            data: {
+              notificationId: notification._id.toString(),
+              category: category || "General",
+              link: link || "",
+              route: link || "/"
+            },
+            android: {
+              priority: "high",
+              notification: {
+                channelId: "default",
+                sound: "default"
+              }
+            }
+          });
+        }
+      }
+    } catch (fcmErr) {
+      console.warn("FCM push notification delivery notice:", fcmErr.message);
+      if (fcmErr.code === "messaging/registration-token-not-registered" || fcmErr.code === "messaging/invalid-registration-token") {
+        try {
+          await User.findByIdAndUpdate(recipient, { fcmToken: "" });
+        } catch (e) {}
+      }
     }
 
     return notification;

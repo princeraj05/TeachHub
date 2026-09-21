@@ -6,6 +6,7 @@ import MainRoutes from "./routes/MainRoutes";
 import SessionManager from "./components/SessionManager";
 import { PlatformProvider } from "./context/PlatformContext";
 import { LanguageProvider } from "./context/LanguageContext";
+import { initFCM } from "./utils/fcm";
 
 function BackButtonHandler() {
   const location = useLocation();
@@ -31,12 +32,26 @@ function BackButtonHandler() {
   return null;
 }
 
+function FCMInitializer() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      initFCM(navigate);
+    }
+  }, [navigate]);
+
+  return null;
+}
+
 function App() {
   const Router = Capacitor.isNativePlatform() ? HashRouter : BrowserRouter;
 
   return (
     <Router>
       <BackButtonHandler />
+      <FCMInitializer />
       <LanguageProvider>
         <PlatformProvider>
           <SessionManager>

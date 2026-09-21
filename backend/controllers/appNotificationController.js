@@ -95,3 +95,37 @@ exports.deleteNotification = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// Register FCM Device Token for authenticated user
+exports.registerFcmToken = async (req, res) => {
+  try {
+    const User = require("../models/User");
+    const userId = req.user.id || req.user._id;
+    const { fcmToken } = req.body;
+
+    if (!fcmToken || typeof fcmToken !== "string" || !fcmToken.trim()) {
+      return res.status(400).json({ message: "Valid fcmToken string is required" });
+    }
+
+    const cleanToken = fcmToken.trim();
+    await User.findByIdAndUpdate(userId, { fcmToken: cleanToken, pushNotifications: true });
+
+    res.json({ success: true, message: "FCM device token registered successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Unregister FCM Device Token on logout
+exports.unregisterFcmToken = async (req, res) => {
+  try {
+    const User = require("../models/User");
+    const userId = req.user.id || req.user._id;
+
+    await User.findByIdAndUpdate(userId, { fcmToken: "" });
+
+    res.json({ success: true, message: "FCM device token unregistered successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
