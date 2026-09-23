@@ -229,8 +229,24 @@ function Login({ scope }) {
 
   const syncWithBackend = async (idToken) => {
     try {
-      const res = await axios.post(`${API}/api/auth/firebase-sync`, { idToken }, { timeout: 45000 });
-      saveAuthAndNavigate(res.data);
+      let data;
+      try {
+        const res = await axios.post(`${API}/api/auth/firebase-sync`, { idToken }, { timeout: 45000 });
+        data = res.data;
+      } catch (axiosErr) {
+        console.warn("Axios sync failed, trying native fetch fallback:", axiosErr);
+        const nativeRes = await fetch(`${API}/api/auth/firebase-sync`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken })
+        });
+        if (!nativeRes.ok) {
+          const errBody = await nativeRes.json().catch(() => ({}));
+          throw new Error(errBody.message || errBody.error || `HTTP ${nativeRes.status}`);
+        }
+        data = await nativeRes.json();
+      }
+      saveAuthAndNavigate(data);
     } catch (error) {
       console.error("Backend sync error:", error);
       let errDetails = error.response?.data?.message 
@@ -238,7 +254,7 @@ function Login({ scope }) {
         || error.message 
         || "Sync Failed";
       if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
-        errDetails = "Backend server is warming up on Render. Please wait 10 seconds and try again.";
+        errDetails = "Backend server is warming up. Please wait 10 seconds and try again.";
       }
       const statusText = error.response?.status ? ` [HTTP ${error.response.status}]` : "";
       alert(`Backend Sync Failed${statusText}:\n${errDetails}\n\nAPI: ${API}`);

@@ -3,6 +3,9 @@
   "appName": "Your School Student",
   "webDir": "dist",
   "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    },
     "GoogleAuth": {
       "scopes": [
         "profile",
