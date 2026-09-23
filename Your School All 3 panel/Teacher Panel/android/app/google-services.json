@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "50641468952-fgk4a27ka3sps7n3ndd5essmljemqh0p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yourschool.admin",
+            "certificate_hash": "f74e4201187a5ff84c4d136646b6681326406dce"
+          }
+        },
+        {
           "client_id": "50641468952-llh9oc7br5hjm3s9bv9d7jtj5dadbr3h.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -59,11 +67,64 @@
           }
         },
         {
+          "client_id": "50641468952-j7h5ihkupjvalllktsi3hks4mmsjnirl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yourschool.app",
+            "certificate_hash": "c32a9bdef4ee25086fc58010d0cebf6959108b48"
+          }
+        },
+        {
           "client_id": "50641468952-mhs1osep52275n1s7brhvgbc7n85h2uk.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.yourschool.app",
             "certificate_hash": "bf1f5a19f1896553e3dcda5229468b8d40ff2c14"
+          }
+        },
+        {
+          "client_id": "50641468952-ol7h20r73peroliu7g8ajk3q12ehoqq2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yourschool.app",
+            "certificate_hash": "c910aaba9aab0bcc6ba7ccec9e2a946d1d7dc7d8"
+          }
+        },
+        {
+          "client_id": "50641468952-mhouc9io3shkvc2df0dr15lt4ndc77ml.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTzTXromN6LcZSrIuF9whtl_KsDAHWTbs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "50641468952-mhouc9io3shkvc2df0dr15lt4ndc77ml.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:50641468952:android:0fbbc27371abedd01f4d6d",
+        "android_client_info": {
+          "package_name": "com.yourschool.student"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "50641468952-v3bfrc1l4rbvh0al35ri8nu07mo6sse2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yourschool.student",
+            "certificate_hash": "6a9bc378ace2359ea099ff6e6d275bb612040f36"
           }
         },
         {
@@ -95,6 +156,14 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "50641468952-j4lnkrit0fll77rpjjf1lk1tjs54n626.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yourschool.teacher",
+            "certificate_hash": "c3ad853f9985ebdaffa112692118d5fb382bf8ec"
+          }
+        },
         {
           "client_id": "50641468952-jkocq8sebpqmp11l5uc2i2ncu4kp8n2c.apps.googleusercontent.com",
           "client_type": 1,

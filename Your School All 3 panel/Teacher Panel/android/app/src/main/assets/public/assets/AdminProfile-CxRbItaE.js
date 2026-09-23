@@ -1,1 +1,0 @@
-import{j as r}from"./index-DBscEKBl.js";import{U as o}from"./UserProfile-DAW69Y4B.js";import"./icons-Bj9TWfFo.js";import"./recharts-CiwlOOlM.js";import"./firebase-88jjFPAs.js";import"./ProfilePhotoCropModal-DAHKp4k_.js";function f(){return r.jsx(o,{})}export{f as default};
