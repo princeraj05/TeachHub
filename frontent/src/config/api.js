@@ -3,7 +3,7 @@ export const getApiUrl = () => {
   if (envUrl && envUrl.trim() !== "") {
     return envUrl.replace(/\/+$/, "");
   }
-  return import.meta.env.DEV ? "http://localhost:5000" : "https://teachhub-tp9j.onrender.com";
+  return import.meta.env.DEV ? "http://localhost:5000" : "https://api.yourschoolacademy.com";
 };
 
 export const API_URL = getApiUrl();
@@ -19,7 +19,7 @@ export const getPublicSiteUrl = () => {
       return origin.replace(/\/+$/, "");
     }
   }
-  return "https://myschool-admin-panel.vercel.app";
+  return "https://yourschoolacademy.com";
 };
 
 export const PUBLIC_SITE_URL = getPublicSiteUrl();

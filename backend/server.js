@@ -167,7 +167,7 @@ async function startServer() {
       if (!appInfo) {
         await AboutApp.create({});
       } else {
-        const publicFrontendUrl = "https://myschool-admin-panel.vercel.app";
+        const publicFrontendUrl = process.env.FRONTEND_URL || "https://yourschoolacademy.com";
         let updated = false;
         const legalMap = {
           privacyPolicyUrl: "/privacy-policy",
