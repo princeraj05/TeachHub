@@ -201,7 +201,26 @@ function Exam() {
         return Math.ceil((new Date(dateStr) - new Date()) / (1000 * 60 * 60 * 24));
       };
 
-      const isPast = e.date ? (new Date(new Date(e.date).getFullYear(), new Date(e.date).getMonth(), new Date(e.date).getDate()) < new Date().setHours(0,0,0,0)) : false;
+      let isPast = false;
+      if (e.date) {
+        let y, m, d;
+        if (typeof e.date === "string" && e.date.includes("-")) {
+          const parts = e.date.split("T")[0].split("-");
+          if (parts.length === 3) {
+            y = parseInt(parts[0], 10);
+            m = parseInt(parts[1], 10) - 1;
+            d = parseInt(parts[2], 10);
+          }
+        }
+        if (!y) {
+          const dt = new Date(e.date);
+          y = dt.getFullYear();
+          m = dt.getMonth();
+          d = dt.getDate();
+        }
+        const examEnd = new Date(y, m, d, 23, 59, 59, 999).getTime();
+        isPast = examEnd < Date.now();
+      }
 
       // Check for subject score in publishedResults as fallback if studentMark is not directly on e
       let matchedSubjectMark = e.studentMark;
