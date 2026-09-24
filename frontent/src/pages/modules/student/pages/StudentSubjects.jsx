@@ -239,36 +239,42 @@ function StudentSubjects() {
       </div>
 
       {/* Metrics Stats Row Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         
         {/* Card 1: Total Subjects */}
-        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm overflow-hidden">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/25 flex items-center justify-center mb-2 sm:mb-4">
-            <FaBookOpen className="text-xs sm:text-sm" />
+        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2xl p-2.5 sm:p-4 shadow-sm overflow-hidden flex flex-col justify-between">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 text-[#7C3AED] border border-[#7C3AED]/25 flex items-center justify-center mb-1.5 sm:mb-2 shrink-0">
+            <FaBookOpen className="text-xs" />
           </div>
-          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{metrics.total}</p>
-          <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">Total Subjects</p>
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-purple-600 dark:bg-purple-500" />
+          <div>
+            <p className="text-base sm:text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-1">{metrics.total}</p>
+            <p className="text-[8px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wider truncate">Total Subjects</p>
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 dark:bg-purple-500" />
         </div>
 
         {/* Card 2: Active Subjects */}
-        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm overflow-hidden">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/25 flex items-center justify-center mb-2 sm:mb-4">
-            <FaClipboardCheck className="text-xs sm:text-sm" />
+        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2xl p-2.5 sm:p-4 shadow-sm overflow-hidden flex flex-col justify-between">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/25 flex items-center justify-center mb-1.5 sm:mb-2 shrink-0">
+            <FaClipboardCheck className="text-xs" />
           </div>
-          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{metrics.active}</p>
-          <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">Active Subjects</p>
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-emerald-500" />
+          <div>
+            <p className="text-base sm:text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-1">{metrics.active}</p>
+            <p className="text-[8px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wider truncate">Active Subjects</p>
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500" />
         </div>
 
         {/* Card 3: Average Progress */}
-        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm overflow-hidden col-span-2 sm:col-span-1">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/25 flex items-center justify-center mb-2 sm:mb-4">
-            <FaChartPie className="text-xs sm:text-sm" />
+        <div className="relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2xl p-2.5 sm:p-4 shadow-sm overflow-hidden flex flex-col justify-between">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 text-blue-500 border border-blue-500/25 flex items-center justify-center mb-1.5 sm:mb-2 shrink-0">
+            <FaChartPie className="text-xs" />
           </div>
-          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{metrics.avgProgress}%</p>
-          <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">Average Progress</p>
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 dark:bg-blue-500" />
+          <div>
+            <p className="text-base sm:text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-1">{metrics.avgProgress}%</p>
+            <p className="text-[8px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wider truncate">Avg Progress</p>
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-500" />
         </div>
 
       </div>
@@ -367,22 +373,22 @@ function StudentSubjects() {
                 </div>
 
                 {/* Inner stats row */}
-                <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-slate-100 dark:border-white/5 text-[10px] text-slate-505 dark:text-slate-400 font-black">
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-3 mt-3 pt-3 border-t border-slate-100 dark:border-white/5 text-[10px] text-slate-500 dark:text-slate-400 font-black">
                   
                   {/* Stat 1: Chapters */}
                   <div
                     onClick={() => openStudentChapters(sub)}
-                    className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity"
+                    className="bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.04] p-2 sm:p-2.5 rounded-xl flex flex-col xs:flex-row items-start xs:items-center gap-1.5 sm:gap-2.5 cursor-pointer hover:border-purple-500/30 transition-all min-w-0 overflow-hidden"
                     title="Click to view chapter list & syllabus"
                   >
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${visuals.style}`}>
-                      <FaBook className="text-xs" />
+                    <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center shrink-0 ${visuals.style}`}>
+                      <FaBook className="text-[10px] sm:text-xs" />
                     </div>
-                    <div>
-                      <p className="text-[9px] text-slate-450 dark:text-slate-550 font-bold uppercase tracking-wide leading-none flex items-center gap-1">
-                        Chapters <FaExternalLinkAlt className="text-[7px] text-[#7C3AED]" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[8px] sm:text-[9px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide leading-none flex items-center gap-1 truncate">
+                        Chapters <FaExternalLinkAlt className="text-[6px] text-[#7C3AED] shrink-0" />
                       </p>
-                      <p className="text-xs font-black text-purple-600 dark:text-purple-400 hover:underline mt-1 leading-none">
+                      <p className="text-[10px] sm:text-xs font-black text-purple-600 dark:text-purple-400 mt-1 leading-tight truncate">
                         {sub.chaptersCount || sub.chaptersList?.length || 0} Total
                       </p>
                     </div>
@@ -391,35 +397,36 @@ function StudentSubjects() {
                   {/* Stat 2: Notes */}
                   <div
                     onClick={() => openStudentNotes(sub)}
-                    className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity"
+                    className="bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.04] p-2 sm:p-2.5 rounded-xl flex flex-col xs:flex-row items-start xs:items-center gap-1.5 sm:gap-2.5 cursor-pointer hover:border-purple-500/30 transition-all min-w-0 overflow-hidden"
                     title="Click to view uploaded notes"
                   >
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${visuals.style}`}>
-                      <FaBookOpen className="text-xs" />
+                    <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center shrink-0 ${visuals.style}`}>
+                      <FaBookOpen className="text-[10px] sm:text-xs" />
                     </div>
-                    <div>
-                      <p className="text-[9px] text-slate-450 dark:text-slate-550 font-bold uppercase tracking-wide leading-none flex items-center gap-1">
-                        Notes <FaExternalLinkAlt className="text-[7px] text-[#7C3AED]" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[8px] sm:text-[9px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide leading-none flex items-center gap-1 truncate">
+                        Notes <FaExternalLinkAlt className="text-[6px] text-[#7C3AED] shrink-0" />
                       </p>
-                      <p className="text-xs font-black text-purple-600 dark:text-purple-400 mt-1 leading-none">
+                      <p className="text-[10px] sm:text-xs font-black text-purple-600 dark:text-purple-400 mt-1 leading-tight truncate">
                         {sub.notesCount} {sub.notesCount === 1 ? "Note" : "Notes"}
                       </p>
                     </div>
                   </div>
 
                   {/* Stat 3: Next Class */}
-                  <div className="flex items-center gap-2.5">
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${visuals.style}`}>
-                      <FaCalendarAlt className="text-xs" />
+                  <div className="bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.04] p-2 sm:p-2.5 rounded-xl flex flex-col xs:flex-row items-start xs:items-center gap-1.5 sm:gap-2.5 min-w-0 overflow-hidden">
+                    <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center shrink-0 ${visuals.style}`}>
+                      <FaCalendarAlt className="text-[10px] sm:text-xs" />
                     </div>
-                    <div>
-                      <p className="text-[9px] text-slate-450 dark:text-slate-550 font-bold uppercase tracking-wide leading-none">Next Class</p>
-                      <p className="text-xs font-black text-slate-900 dark:text-white mt-1 leading-none truncate max-w-[110px]">{sub.nextClass}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[8px] sm:text-[9px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide leading-none truncate">Next Class</p>
+                      <p className="text-[9px] sm:text-xs font-black text-slate-900 dark:text-white mt-1 leading-tight break-words" title={sub.nextClass}>
+                        {sub.nextClass}
+                      </p>
                     </div>
                   </div>
 
                 </div>
-
               </div>
             );
           })}

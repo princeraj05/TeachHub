@@ -171,7 +171,6 @@ function StudentDashboard() {
       
       const isToday = date.toDateString() === new Date().toDateString();
       const dayNum = date.getDate();
-      const months = ["May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr"];
       const monthName = date.toLocaleDateString("en-US", { month: "short" });
       
       days.push({
@@ -249,59 +248,6 @@ function StudentDashboard() {
       .finally(() => setLoadingTimetable(false));
   }, [API, selectedDay]);
 
-  const studentName = profile?.name ? profile.name.split(" ")[0] : "Learner";
-  const userInitials = profile?.name
-    ? profile.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)
-    : "U";
-
-  // Helper to parse time strings like "09:00 AM" into minutes since midnight
-  const parseTimeToMinutes = (timeStr) => {
-    if (!timeStr) return 0;
-    const clean = timeStr.trim().toUpperCase();
-    const match = clean.match(/^(\d+):(\d+)\s*(AM|PM)?$/);
-    if (!match) return 0;
-    let hours = parseInt(match[1], 10);
-    const minutes = parseInt(match[2], 10);
-    const ampm = match[3];
-    if (ampm) {
-      if (ampm === "PM" && hours < 12) hours += 12;
-      if (ampm === "AM" && hours === 12) hours = 0;
-    }
-    return hours * 60 + minutes;
-  };
-
-  // Helper to determine status based on current time
-  const getClassStatus = (startTime, endTime) => {
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const start = parseTimeToMinutes(startTime);
-    const end = parseTimeToMinutes(endTime);
-
-    if (currentMinutes < start) return "Upcoming";
-    if (currentMinutes < end) return "Ongoing";
-    return "Completed";
-  };
-
-  // Dynamic class count calculation for each day
-  const getDayClassesCount = (day) => {
-    if (day.full === "Saturday" || day.full === "Sunday") {
-      return "Holiday";
-    }
-    const dayCount = allWeeklyEntries.filter(
-      (e) => e.day?.toLowerCase() === day.full.toLowerCase()
-    ).length;
-
-    if (dayCount === 0) return "No Classes";
-    return `${dayCount} ${dayCount === 1 ? "Class" : "Classes"}`;
-  };
-
-  const activeClasses = useMemo(() => {
-    if (selectedDay.full === "Saturday" || selectedDay.full === "Sunday") {
-      return [];
-    }
-    return timetableEntries;
-  }, [selectedDay, timetableEntries]);
-
   return (
     <div style={{ fontFamily: SORA }} className="w-full max-w-4xl mx-auto space-y-5 text-left select-none pb-10 px-1 sm:px-0">
       
@@ -342,54 +288,6 @@ function StudentDashboard() {
 
       {/* Today's Timetable Widget */}
       <TodayTimetableWidget />
-
-      {/* Today's Overview grid layout */}
-      <div>
-        <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight mb-3 px-1">Today's Overview</h2>
-        
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-          
-          {/* Card 1: Subjects Enrolled */}
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] rounded-3xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-indigo-500/10 text-[#7C3AED] border border-[#7C3AED]/20 flex items-center justify-center mb-3">
-              <FaBookOpen className="text-xs sm:text-sm" />
-            </div>
-            <p className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
-              {data.subjects}
-            </p>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wider truncate">
-              Subjects Enrolled
-            </p>
-          </div>
-
-          {/* Card 2: Attendance Rate */}
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] rounded-3xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center mb-3">
-              <FaClipboardCheck className="text-xs sm:text-sm" />
-            </div>
-            <p className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
-              {data.attendance}%
-            </p>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wider truncate">
-              Attendance Rate
-            </p>
-          </div>
-
-          {/* Card 3: Upcoming Exams */}
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] rounded-3xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all col-span-2 sm:col-span-1">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-blue-500/10 text-blue-500 border border-blue-500/20 flex items-center justify-center mb-3">
-              <FaFileAlt className="text-xs sm:text-sm" />
-            </div>
-            <p className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">
-              {data.exams}
-            </p>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wider truncate">
-              Upcoming Exams
-            </p>
-          </div>
-
-        </div>
-      </div>
 
       {/* Quick Navigation Box */}
       <div className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] rounded-3xl p-4 sm:p-6 shadow-sm space-y-4">

@@ -224,23 +224,23 @@ function StudentAttendance() {
   return (
     <div style={{ fontFamily: SORA }} className="w-full max-w-5xl mx-auto space-y-6 text-left select-none pb-20 px-3 sm:px-4">
 
-      {/* ================= COMPACT AGGREGATE ATTENDANCE HEADER CARD ================= */}
-      <div className="bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#38BDF8] dark:from-[#0B132A] dark:via-[#111A3A] dark:to-[#172554] border border-purple-500/20 dark:border-white/10 rounded-2.5xl p-4 sm:p-5 text-white shadow-md relative overflow-hidden mt-1">
-        {/* Background decorative glow circle */}
-        <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+      {/* ================= CLEAN AGGREGATE ATTENDANCE HEADER CARD ================= */}
+      <div className="bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#38BDF8] dark:from-[#0B132A] dark:via-[#111A3A] dark:to-[#1E293B] border border-purple-500/20 dark:border-white/10 rounded-3xl p-5 sm:p-6 text-white shadow-lg relative overflow-hidden mt-1">
+        {/* Background decorative glow */}
+        <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
-          {/* Left: Title, Status Badge & Description */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-white text-lg sm:text-xl shrink-0 shadow-inner">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+          {/* Top/Left Section */}
+          <div className="flex items-start gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-white text-xl shrink-0 shadow-sm mt-0.5">
               <FaGraduationCap />
             </div>
-            <div>
+            <div className="space-y-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[9px] font-black uppercase tracking-widest text-purple-200">
+                <span className="text-[10px] font-black uppercase tracking-widest text-purple-200">
                   ATTENDANCE DASHBOARD
                 </span>
-                <span className={`text-[8px] font-black px-2 py-0.5 rounded-md border uppercase tracking-wider ${
+                <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full border uppercase tracking-wider ${
                   isOverallZero
                     ? "bg-slate-500/30 text-slate-200 border-slate-400/30"
                     : isOverallGood
@@ -250,20 +250,30 @@ function StudentAttendance() {
                   {isOverallZero ? "No Sessions" : isOverallGood ? "Good Standing" : "Needs Attention"}
                 </span>
               </div>
-              <div className="flex items-baseline gap-2.5 mt-0.5">
-                <h2 className="text-base sm:text-lg font-black text-white tracking-tight">Aggregate Attendance:</h2>
-                <span className="text-lg sm:text-xl font-black text-white font-mono">{stats.presentRate}%</span>
-              </div>
-              <p className="text-[11px] text-slate-200 dark:text-slate-300 font-medium mt-0.5">
+              
+              <h2 className="text-lg sm:text-xl font-black text-white tracking-tight leading-snug">
+                Aggregate Attendance
+              </h2>
+              
+              <p className="text-xs text-purple-100 dark:text-slate-300 font-medium">
                 {stats.present} / {stats.total} Sessions Attended · Target: 75.0%
               </p>
             </div>
           </div>
 
-          {/* Right: Academic Year Dropdown Pill */}
-          <div className="shrink-0 self-start sm:self-auto bg-black/25 backdrop-blur-md border border-white/20 text-white px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-2">
-            <span>Academic Year 2026</span>
-            <span className="text-[10px] text-slate-300">▼</span>
+          {/* Right Section: Large Clear Percentage Badge & Academic Year */}
+          <div className="flex items-center justify-between sm:flex-col sm:items-end gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/15 shrink-0">
+            <div className="bg-white/15 backdrop-blur-md border border-white/25 px-4 py-2 rounded-2xl flex items-center gap-2 shadow-sm">
+              <span className="text-xs font-bold text-purple-100 uppercase tracking-wider">Overall:</span>
+              <span className="text-2xl sm:text-3xl font-black text-white font-mono leading-none">
+                {stats.presentRate}%
+              </span>
+            </div>
+
+            <div className="bg-black/20 backdrop-blur-md border border-white/20 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2">
+              <span>Academic Year 2026</span>
+              <span className="text-[10px] text-purple-200">▼</span>
+            </div>
           </div>
         </div>
       </div>
@@ -308,7 +318,7 @@ function StudentAttendance() {
                 <div>
                   {/* Course Tag & Top Header */}
                   <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="space-y-1.5 pr-2">
+                    <div className="space-y-1.5 pr-2 min-w-0">
                       <span className="inline-block px-2.5 py-0.5 text-[8px] font-black uppercase tracking-wider rounded bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20">
                         COURSE
                       </span>
@@ -354,7 +364,7 @@ function StudentAttendance() {
                     </div>
                   </div>
 
-                  {/* LPU-Inspired Metadata Grid (Attended vs Last Session) */}
+                  {/* Metadata Grid (Attended vs Last Session) */}
                   <div className="grid grid-cols-2 gap-3 bg-slate-50 dark:bg-white/[0.02] p-3.5 rounded-2xl border border-slate-100 dark:border-white/[0.04] text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-4">
                     <div>
                       <span className="text-[9px] text-slate-400 dark:text-slate-500 block uppercase font-black tracking-wider mb-0.5">ATTENDED</span>
