@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaCalendarAlt, FaBook, FaSchool, FaTrash, FaPlus, FaCalendarCheck, FaEdit } from "react-icons/fa";
+import { FaCalendarAlt, FaBook, FaSchool, FaTrash, FaPlus, FaCalendarCheck, FaEdit, FaClock, FaHourglassHalf } from "react-icons/fa";
 import API_URL from "../../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
@@ -567,25 +567,31 @@ function ExamSchedule() {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="flex flex-col gap-1.5">
                         <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Time</label>
-                        <input
+                        <div className="relative">
+                          <FaClock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                          <input
                           type="text"
                           name="time"
                           placeholder="e.g. 09:00 AM - 10:30 AM"
                           value={form.time}
                           onChange={handleChange}
-                          className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                          className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                         />
+                        </div>
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Duration</label>
-                        <input
+                        <div className="relative">
+                          <FaHourglassHalf className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                          <input
                           type="text"
                           name="duration"
                           placeholder="e.g. 1h 30m"
                           value={form.duration}
                           onChange={handleChange}
-                          className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                          className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                         />
+                        </div>
                       </div>
                     </div>
 
