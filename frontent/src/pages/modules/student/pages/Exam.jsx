@@ -201,7 +201,7 @@ function Exam() {
         return Math.ceil((new Date(dateStr) - new Date()) / (1000 * 60 * 60 * 24));
       };
 
-      const daysLeft = getDaysLeft(e.date);
+      const isPast = e.date ? (new Date(new Date(e.date).getFullYear(), new Date(e.date).getMonth(), new Date(e.date).getDate()) < new Date().setHours(0,0,0,0)) : false;
 
       // Check for subject score in publishedResults as fallback if studentMark is not directly on e
       let matchedSubjectMark = e.studentMark;
@@ -230,7 +230,7 @@ function Exam() {
 
       let isExamTaken = e.taken || !!matchedSubjectMark || !!e.submission;
       let status = "Upcoming";
-      if (isExamTaken || daysLeft < 0) {
+      if (isExamTaken || isPast) {
         status = "Completed";
       }
 

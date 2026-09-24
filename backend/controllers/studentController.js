@@ -395,8 +395,13 @@ exports.getStudentExams = async (req,res)=>{
       return res.json([]);
     }
 
+    const sameLevelClassIds = await Class.find({
+      schoolName: user.schoolName,
+      name: classData.name
+    }).distinct("_id");
+
     const exams = await Exam.find({
-      class: classData._id,
+      class: { $in: sameLevelClassIds.length > 0 ? sameLevelClassIds : [classData._id] },
       schoolName: user.schoolName
     })
     .populate("subject","name")
