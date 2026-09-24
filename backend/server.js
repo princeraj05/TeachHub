@@ -189,6 +189,22 @@ async function startServer() {
           console.log(`[startup:${process.pid}] ✅ AboutApp legal URLs migrated to ${publicFrontendUrl}`);
         }
       }
+
+      // Auto-migrate any misspelled subject names (e.g., Bioloagy -> Biology)
+      try {
+        const SubjectModel = require("./models/Subject");
+        const StudentMarkModel = require("./models/StudentMark");
+        await SubjectModel.updateMany(
+          { name: { $regex: /^bioloagy$/i } },
+          { $set: { name: "Biology" } }
+        );
+        await StudentMarkModel.updateMany(
+          { subjectNameSnapshot: { $regex: /^bioloagy$/i } },
+          { $set: { subjectNameSnapshot: "Biology" } }
+        );
+      } catch (subMigrErr) {
+        console.warn(`[startup:${process.pid}] Subject typo migration notice:`, subMigrErr.message);
+      }
     } catch (migrationError) {
       console.error(`[startup:${process.pid}] Startup Initialization Notice:`, migrationError.message);
     }

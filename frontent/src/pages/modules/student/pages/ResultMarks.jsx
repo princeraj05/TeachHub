@@ -16,6 +16,15 @@ import API_URL from "../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
+const formatSubjectDisplayName = (name) => {
+  if (!name) return "";
+  const clean = name.trim();
+  if (clean.toLowerCase() === "bioloagy" || clean.toLowerCase() === "biolagy" || clean.toLowerCase() === "biolgy") {
+    return "Biology";
+  }
+  return name;
+};
+
 function ResultMarks() {
   const { resultId } = useParams();
   const navigate = useNavigate();
@@ -238,7 +247,7 @@ function ResultMarks() {
                       return (
                         <tr key={sub.subjectId || sIdx} className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02]">
                           <td className="py-4 px-4 font-extrabold text-slate-800 dark:text-white text-xs sm:text-sm">
-                            {sub.subjectName}
+                            {formatSubjectDisplayName(sub.subjectName)}
                           </td>
                           <td className="py-4 px-4 text-center">
                             {isSubAbsent ? (

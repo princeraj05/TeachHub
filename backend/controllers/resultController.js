@@ -860,15 +860,21 @@ exports.getStudentPublishedResults = async (req, res) => {
         .populate("subject", "name")
         .lean();
 
-      const subjectsList = marks.map(m => ({
-        subjectId: m.subject?._id || m.subject,
-        subjectName: m.subjectNameSnapshot || m.subject?.name || "Subject",
-        marksObtained: m.marksObtained,
-        maxMarks: m.maxMarks,
-        isAbsent: m.isAbsent,
-        grade: m.grade,
-        remarks: m.remarks
-      }));
+      const subjectsList = marks.map(m => {
+        let rawName = m.subject?.name || m.subjectNameSnapshot || "Subject";
+        if ((rawName || "").toLowerCase().trim() === "bioloagy") {
+          rawName = "Biology";
+        }
+        return {
+          subjectId: m.subject?._id || m.subject,
+          subjectName: rawName,
+          marksObtained: m.marksObtained,
+          maxMarks: m.maxMarks,
+          isAbsent: m.isAbsent,
+          grade: m.grade,
+          remarks: m.remarks
+        };
+      });
 
       formattedResults.push({
         resultId: resDoc._id,

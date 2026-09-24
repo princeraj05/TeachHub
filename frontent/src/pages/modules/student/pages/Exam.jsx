@@ -26,6 +26,33 @@ import API_URL from "../../../../config/api";
 
 const SORA = "'Sora', sans-serif";
 
+const normalizeSubjectName = (name) => {
+  if (!name) return "";
+  let clean = name.toLowerCase().trim();
+  if (clean === "bioloagy" || clean === "biolagy" || clean === "biolgy") return "biology";
+  if (clean === "math" || clean === "maths" || clean === "mathematics") return "mathematics";
+  if (clean === "chem" || clean === "chemistry") return "chemistry";
+  if (clean === "phys" || clean === "physics") return "physics";
+  if (clean === "sst" || clean === "social science" || clean === "socialscience") return "social science";
+  return clean;
+};
+
+const isSubjectMatch = (name1, name2) => {
+  if (!name1 || !name2) return false;
+  const n1 = normalizeSubjectName(name1);
+  const n2 = normalizeSubjectName(name2);
+  if (n1 === n2) return true;
+  if (n1.includes(n2) || n2.includes(n1)) return true;
+
+  const v1 = n1.replace(/[^a-z0-9]/g, "").replace(/[aeiou]/g, "");
+  const v2 = n2.replace(/[^a-z0-9]/g, "").replace(/[aeiou]/g, "");
+  if (v1 && v2 && (v1 === v2 || v1.includes(v2) || v2.includes(v1))) return true;
+
+  if (n1.length >= 4 && n2.length >= 4 && n1.slice(0, 4) === n2.slice(0, 4)) return true;
+
+  return false;
+};
+
 function Exam() {
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
@@ -184,8 +211,8 @@ function Exam() {
         for (const resDoc of publishedResults) {
           if (Array.isArray(resDoc.subjects)) {
             const subMatch = resDoc.subjects.find(
-              s => (s.subjectName || "").toLowerCase().trim() === currentSubjName ||
-                   currentSubjName.includes((s.subjectName || "").toLowerCase().trim())
+              s => isSubjectMatch(s.subjectName, currentSubjName)
+
             );
             if (subMatch) {
               const maxM = subMatch.maxMarks || 100;

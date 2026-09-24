@@ -1,0 +1,1 @@
+import{j as r}from"./index-CHnbb3Q1.js";import{U as t}from"./UserProfile-CCFVea4D.js";import"./icons-DXiWo0hR.js";import"./recharts-BJ_gNVWO.js";import"./firebase-88jjFPAs.js";import"./ProfilePhotoCropModal-BmL2xT7-.js";const o="'Sora', sans-serif";function p(){return r.jsx("div",{style:{fontFamily:o},className:"max-w-4xl mx-auto py-2",children:r.jsx(t,{})})}export{p as default};

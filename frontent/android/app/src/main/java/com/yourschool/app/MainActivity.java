@@ -1,29 +1,68 @@
 package com.yourschool.app;
 
+import android.Manifest;
 import android.app.DownloadManager;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
+import android.webkit.PermissionRequest;
 import android.webkit.URLUtil;
+import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.BridgeWebChromeClient;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends BridgeActivity {
+
+    private static final int PERMISSION_REQUEST_CODE = 1001;
+    private PermissionRequest pendingPermissionRequest;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Attach Native Download Manager & Base64 File Storage Listener to Capacitor WebView
+        // Request system permissions on app launch for Camera, Mic, Audio, Notifications
+        requestRequiredPermissions();
+
         if (this.bridge != null && this.bridge.getWebView() != null) {
             WebView webView = this.bridge.getWebView();
 
+            // Enable WebRTC audio/video and auto-grant permission requests in WebView
+            webView.setWebChromeClient(new BridgeWebChromeClient(this.bridge) {
+                @Override
+                public void onPermissionRequest(final PermissionRequest request) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            boolean hasCamera = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+                            boolean hasMic = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
+
+                            if (hasCamera && hasMic) {
+                                request.grant(request.getResources());
+                            } else {
+                                pendingPermissionRequest = request;
+                                requestRequiredPermissions();
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Attach Native Download Manager & Base64 File Storage Listener to Capacitor WebView
             webView.setDownloadListener(new DownloadListener() {
                 @Override
                 public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
@@ -70,6 +109,45 @@ public class MainActivity extends BridgeActivity {
                     }
                 }
             });
+        }
+    }
+
+    private void requestRequiredPermissions() {
+        List<String> permissions = new ArrayList<>();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(Manifest.permission.CAMERA);
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(Manifest.permission.RECORD_AUDIO);
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.MODIFY_AUDIO_SETTINGS) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(Manifest.permission.MODIFY_AUDIO_SETTINGS);
+        }
+        if (Build.VERSION.SDK_INT >= 33) { // Build.VERSION_CODES.TIRAMISU
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(Manifest.permission.POST_NOTIFICATIONS);
+            }
+        }
+
+        if (!permissions.isEmpty()) {
+            ActivityCompat.requestPermissions(this, permissions.toArray(new String[0]), PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (pendingPermissionRequest != null) {
+                final PermissionRequest req = pendingPermissionRequest;
+                pendingPermissionRequest = null;
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        req.grant(req.getResources());
+                    }
+                });
+            }
         }
     }
 

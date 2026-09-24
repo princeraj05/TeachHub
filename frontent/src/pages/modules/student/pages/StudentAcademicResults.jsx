@@ -60,21 +60,21 @@ function StudentAcademicResults() {
     <div style={{ fontFamily: SORA }} className="w-full max-w-5xl mx-auto space-y-6 text-left select-none pb-12 px-1 sm:px-0">
       
       {/* Top Banner Header */}
-      <div className="bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#38BDF8] rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white text-2xl shadow-inner shrink-0">
+      <div className="bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#38BDF8] rounded-2xl p-3.5 sm:p-5 text-white shadow-md relative overflow-hidden">
+        <div className="absolute -right-8 -bottom-8 w-36 h-36 bg-white/10 rounded-full blur-xl pointer-events-none" />
+        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white text-lg shadow-inner shrink-0">
               <FaGraduationCap />
             </div>
             <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-white/80 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/20">
+              <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white/80 bg-white/10 px-2 py-0.5 rounded-full border border-white/20">
                 Official Report Cards
               </span>
-              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1">
+              <h1 className="text-base sm:text-lg font-black text-white tracking-tight mt-0.5">
                 Academic Results
               </h1>
-              <p className="text-xs text-white/90 font-medium mt-0.5 max-w-lg">
+              <p className="text-[10px] sm:text-[11px] text-white/90 font-medium max-w-lg">
                 View published Half-Yearly & Annual examination performance, subject marks, and grades.
               </p>
             </div>
