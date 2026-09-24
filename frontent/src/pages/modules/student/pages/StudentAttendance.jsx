@@ -224,55 +224,51 @@ function StudentAttendance() {
   return (
     <div style={{ fontFamily: SORA }} className="w-full max-w-5xl mx-auto space-y-6 text-left select-none pb-20 px-3 sm:px-4">
 
-      {/* ================= CLEAN AGGREGATE ATTENDANCE HEADER CARD ================= */}
-      <div className="bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#38BDF8] dark:from-[#0B132A] dark:via-[#111A3A] dark:to-[#1E293B] border border-purple-500/20 dark:border-white/10 rounded-3xl p-5 sm:p-6 text-white shadow-lg relative overflow-hidden mt-1">
+      {/* ================= CLEAN COMPACT AGGREGATE ATTENDANCE HEADER CARD ================= */}
+      <div className="bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#38BDF8] dark:from-[#0B132A] dark:via-[#111A3A] dark:to-[#1E293B] border border-purple-500/20 dark:border-white/10 rounded-2xl p-3 sm:p-4 text-white shadow-md relative overflow-hidden">
         {/* Background decorative glow */}
-        <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none" />
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
-          {/* Top/Left Section */}
-          <div className="flex items-start gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-white text-xl shrink-0 shadow-sm mt-0.5">
+        <div className="flex flex-row items-center justify-between gap-3 relative z-10">
+          {/* Left Section */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-white text-sm sm:text-base shrink-0 shadow-sm">
               <FaGraduationCap />
             </div>
-            <div className="space-y-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-black uppercase tracking-widest text-purple-200">
-                  ATTENDANCE DASHBOARD
-                </span>
-                <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full border uppercase tracking-wider ${
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <h2 className="text-xs sm:text-sm font-black text-white tracking-tight truncate">
+                  Aggregate Attendance
+                </h2>
+                <span className={`text-[8px] font-black px-1.5 py-0.5 rounded border uppercase tracking-wider ${
                   isOverallZero
                     ? "bg-slate-500/30 text-slate-200 border-slate-400/30"
                     : isOverallGood
                     ? "bg-emerald-500/30 text-emerald-200 border-emerald-400/40"
                     : "bg-amber-500/30 text-amber-200 border-amber-400/40"
                 }`}>
-                  {isOverallZero ? "No Sessions" : isOverallGood ? "Good Standing" : "Needs Attention"}
+                  {isOverallZero ? "No Sessions" : isOverallGood ? "Good" : "Needs Attention"}
                 </span>
               </div>
               
-              <h2 className="text-lg sm:text-xl font-black text-white tracking-tight leading-snug">
-                Aggregate Attendance
-              </h2>
-              
-              <p className="text-xs text-purple-100 dark:text-slate-300 font-medium">
+              <p className="text-[10px] sm:text-xs text-purple-100 dark:text-slate-300 font-medium truncate mt-0.5">
                 {stats.present} / {stats.total} Sessions Attended · Target: 75.0%
               </p>
             </div>
           </div>
 
-          {/* Right Section: Large Clear Percentage Badge & Academic Year */}
-          <div className="flex items-center justify-between sm:flex-col sm:items-end gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/15 shrink-0">
-            <div className="bg-white/15 backdrop-blur-md border border-white/25 px-4 py-2 rounded-2xl flex items-center gap-2 shadow-sm">
-              <span className="text-xs font-bold text-purple-100 uppercase tracking-wider">Overall:</span>
-              <span className="text-2xl sm:text-3xl font-black text-white font-mono leading-none">
+          {/* Right Section: Percentage Badge */}
+          <div className="shrink-0 flex items-center gap-2">
+            <div className="bg-white/15 backdrop-blur-md border border-white/25 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl flex items-center gap-1.5 shadow-sm">
+              <span className="text-[9px] sm:text-[10px] font-bold text-purple-100 uppercase hidden xs:inline">Overall:</span>
+              <span className="text-base sm:text-lg font-black text-white font-mono leading-none">
                 {stats.presentRate}%
               </span>
             </div>
 
-            <div className="bg-black/20 backdrop-blur-md border border-white/20 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2">
-              <span>Academic Year 2026</span>
-              <span className="text-[10px] text-purple-200">▼</span>
+            <div className="bg-black/20 backdrop-blur-md border border-white/20 text-white px-2 py-1 rounded-lg text-[10px] font-bold hidden sm:flex items-center gap-1">
+              <span>2026</span>
+              <span className="text-[8px] text-purple-200">▼</span>
             </div>
           </div>
         </div>
@@ -291,7 +287,7 @@ function StudentAttendance() {
         </div>
 
         {/* 2-Column Desktop / 1-Column Mobile Grid for Optimal Readability */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4.5">
           {subjectBreakdown.map((subj) => {
             const isZero = subj.total === 0;
             const isHigh = subj.rate >= 75;
@@ -305,7 +301,7 @@ function StudentAttendance() {
               ? "text-amber-500"
               : "text-rose-500";
 
-            const cRadius = 26;
+            const cRadius = 19;
             const cCircumference = 2 * Math.PI * cRadius;
             const cOffset = cCircumference - (subj.rate / 100) * cCircumference;
 
@@ -313,42 +309,42 @@ function StudentAttendance() {
               <div
                 key={subj.subject}
                 onClick={() => handleOpenSubjectModal(subj)}
-                className="group relative bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] hover:border-[#7C3AED]/50 dark:hover:border-[#7C3AED]/50 rounded-3xl p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col justify-between"
+                className="group relative bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] hover:border-[#7C3AED]/50 dark:hover:border-[#7C3AED]/50 rounded-2xl p-3 sm:p-3.5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col justify-between"
               >
                 <div>
                   {/* Course Tag & Top Header */}
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="space-y-1.5 pr-2 min-w-0">
-                      <span className="inline-block px-2.5 py-0.5 text-[8px] font-black uppercase tracking-wider rounded bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20">
+                  <div className="flex items-start justify-between gap-2 mb-2.5">
+                    <div className="space-y-1 min-w-0 pr-1">
+                      <span className="inline-block px-2 py-0.5 text-[7px] sm:text-[8px] font-black uppercase tracking-wider rounded bg-purple-500/10 text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20">
                         COURSE
                       </span>
-                      <h4 className="text-base font-black text-slate-900 dark:text-white group-hover:text-[#7C3AED] dark:group-hover:text-[#A78BFA] transition-colors leading-tight line-clamp-1">
+                      <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white group-hover:text-[#7C3AED] dark:group-hover:text-[#A78BFA] transition-colors leading-tight line-clamp-1">
                         {subj.subject}
                       </h4>
-                      <p className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                        <FaChalkboardTeacher className="text-xs text-[#7C3AED] shrink-0" />
+                      <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                        <FaChalkboardTeacher className="text-[10px] text-[#7C3AED] shrink-0" />
                         <span className="truncate">{subj.faculty}</span>
                       </p>
                     </div>
 
                     {/* Radial Percentage Gauge Ring */}
-                    <div className="relative shrink-0 w-16 h-16 flex items-center justify-center">
-                      <svg className="w-16 h-16 transform -rotate-90">
+                    <div className="relative shrink-0 w-12 h-12 flex items-center justify-center">
+                      <svg className="w-12 h-12 transform -rotate-90">
                         <circle
-                          cx="32"
-                          cy="32"
+                          cx="24"
+                          cy="24"
                           r={cRadius}
                           className="text-slate-100 dark:text-white/10"
-                          strokeWidth="5"
+                          strokeWidth="4"
                           stroke="currentColor"
                           fill="transparent"
                         />
                         <circle
-                          cx="32"
-                          cy="32"
+                          cx="24"
+                          cy="24"
                           r={cRadius}
                           className={ringColor}
-                          strokeWidth="5"
+                          strokeWidth="4"
                           strokeDasharray={cCircumference}
                           strokeDashoffset={cOffset}
                           strokeLinecap="round"
@@ -357,7 +353,7 @@ function StudentAttendance() {
                         />
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                        <span className="text-xs font-black text-slate-900 dark:text-white font-mono">
+                        <span className="text-[10px] font-black text-slate-900 dark:text-white font-mono">
                           {subj.rateFormatted}
                         </span>
                       </div>
@@ -365,22 +361,22 @@ function StudentAttendance() {
                   </div>
 
                   {/* Metadata Grid (Attended vs Last Session) */}
-                  <div className="grid grid-cols-2 gap-3 bg-slate-50 dark:bg-white/[0.02] p-3.5 rounded-2xl border border-slate-100 dark:border-white/[0.04] text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-4">
+                  <div className="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-white/[0.02] p-2 sm:p-2.5 rounded-xl border border-slate-100 dark:border-white/[0.04] text-[10px] font-bold text-slate-600 dark:text-slate-400 mb-2.5">
                     <div>
-                      <span className="text-[9px] text-slate-400 dark:text-slate-500 block uppercase font-black tracking-wider mb-0.5">ATTENDED</span>
-                      <span className="font-black text-slate-900 dark:text-white font-mono text-xs">{subj.present} / {subj.total}</span>
+                      <span className="text-[8px] text-slate-400 dark:text-slate-500 block uppercase font-black tracking-wider mb-0.5">ATTENDED</span>
+                      <span className="font-black text-slate-900 dark:text-white font-mono text-[11px]">{subj.present} / {subj.total}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] text-slate-400 dark:text-slate-500 block uppercase font-black tracking-wider mb-0.5">LAST SESSION</span>
-                      <span className="font-black text-slate-900 dark:text-white truncate text-[11px] block">{subj.lastAttended}</span>
+                      <span className="text-[8px] text-slate-400 dark:text-slate-500 block uppercase font-black tracking-wider mb-0.5">LAST SESSION</span>
+                      <span className="font-black text-slate-900 dark:text-white truncate text-[10px] block">{subj.lastAttended}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Card Footer Link */}
-                <div className="flex items-center justify-between text-[11px] font-black text-[#7C3AED] dark:text-[#A78BFA] pt-2.5 border-t border-slate-100 dark:border-white/5">
+                <div className="flex items-center justify-between text-[10px] font-black text-[#7C3AED] dark:text-[#A78BFA] pt-1.5 border-t border-slate-100 dark:border-white/5">
                   <span>View Attendance</span>
-                  <FaChevronRight className="text-[10px] group-hover:translate-x-1 transition-transform" />
+                  <FaChevronRight className="text-[8px] group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
             );
