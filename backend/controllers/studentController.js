@@ -9,13 +9,26 @@ const ExamSubmission = require("../models/ExamSubmission");
 
 // Helper: Authoritatively resolve class for a student scoped by user's active school
 const resolveStudentClassData = async (user) => {
-  if (!user || !user.schoolName) return null;
+  if (!user) return null;
+  const rawSchool = (user.schoolName || user.requestedSchool || "").trim();
+  const schoolRegex = rawSchool ? new RegExp("^" + rawSchool.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "$", "i") : null;
+
   let classData = null;
   if (user.classId) {
-    classData = await Class.findOne({ _id: user.classId, schoolName: user.schoolName }).lean();
+    if (schoolRegex) {
+      classData = await Class.findOne({ _id: user.classId, schoolName: schoolRegex }).lean();
+    }
+    if (!classData) {
+      classData = await Class.findById(user.classId).lean();
+    }
   }
   if (!classData) {
-    classData = await Class.findOne({ students: user._id, schoolName: user.schoolName }).lean();
+    if (schoolRegex) {
+      classData = await Class.findOne({ students: user._id, schoolName: schoolRegex }).lean();
+    }
+    if (!classData) {
+      classData = await Class.findOne({ students: user._id }).lean();
+    }
   }
   return classData;
 };
@@ -381,32 +394,51 @@ exports.submitStudentAdmissionExam = async (req, res) => {
 
 // ================= GET STUDENT EXAMS =================
 
-exports.getStudentExams = async (req,res)=>{
-  try{
+exports.getStudentExams = async (req, res) => {
+  try {
     const studentId = req.user.id;
-    const user = await User.findById(studentId).select("schoolName classId").lean();
-    if (!user || !user.schoolName) {
+    const user = await User.findById(studentId).select("schoolName requestedSchool classId").lean();
+    if (!user) {
       return res.json([]);
     }
+
+    const rawSchool = (user.schoolName || user.requestedSchool || "").trim();
+    const schoolRegex = rawSchool ? new RegExp("^" + rawSchool.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "$", "i") : null;
 
     const classData = await resolveStudentClassData(user);
 
-    if(!classData){
-      return res.json([]);
+    let classIdList = [];
+    if (classData) {
+      const normClassName = (classData.name || "").trim();
+      const sameClassQuery = {
+        name: new RegExp("^" + normClassName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "$", "i")
+      };
+      if (schoolRegex) sameClassQuery.schoolName = schoolRegex;
+      
+      const sameLevelClassIds = await Class.find(sameClassQuery).distinct("_id");
+      classIdList = sameLevelClassIds.length > 0 ? sameLevelClassIds : [classData._id];
+      if (classData._id && !classIdList.some(id => id.toString() === classData._id.toString())) {
+        classIdList.push(classData._id);
+      }
     }
 
-    const sameLevelClassIds = await Class.find({
-      schoolName: user.schoolName,
-      name: classData.name
-    }).distinct("_id");
+    const examQuery = {};
+    if (schoolRegex) {
+      examQuery.schoolName = schoolRegex;
+    }
 
-    const exams = await Exam.find({
-      class: { $in: sameLevelClassIds.length > 0 ? sameLevelClassIds : [classData._id] },
-      schoolName: user.schoolName
-    })
-    .populate("subject","name")
-    .populate("proctor", "name email role")
-    .sort({ date:1 });
+    if (classIdList.length > 0) {
+      examQuery.$or = [
+        { class: { $in: classIdList } },
+        { class: { $exists: false } },
+        { class: null }
+      ];
+    }
+
+    const exams = await Exam.find(examQuery)
+      .populate("subject", "name")
+      .populate("proctor", "name email role")
+      .sort({ date: 1 });
 
     const formatted = await Promise.all(exams.map(async (e) => {
       const submission = await ExamSubmission.findOne({ student: studentId, exam: e._id });
@@ -443,9 +475,9 @@ exports.getStudentExams = async (req,res)=>{
 
     res.json(formatted);
 
-  }catch(err){
+  } catch (err) {
     res.status(500).json({
-      message:err.message
+      message: err.message
     });
   }
 };

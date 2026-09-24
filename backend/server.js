@@ -12,6 +12,8 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 
+const firebaseAdmin = require("./config/firebase");
+
 const authRoutes = require("./routes/authRoutes");
 const classRoutes = require("./routes/classRoutes");
 const adminDashboardRoutes = require("./routes/adminDashboardRoutes");
@@ -584,6 +586,38 @@ io.on("connection", (socket) => {
           callerAvatar: senderUser.avatar || "",
           type
         });
+
+        // Send FCM High-Priority Push Notification for instant lockscreen / call alert window
+        if (receiverUser && receiverUser.fcmToken) {
+          try {
+            const messaging = firebaseAdmin.messaging();
+            if (messaging) {
+              await messaging.send({
+                token: receiverUser.fcmToken,
+                data: {
+                  type: "INCOMING_CALL",
+                  callId: call._id.toString(),
+                  callerId: userId.toString(),
+                  callerName: senderUser.name || "School Member",
+                  callerAvatar: senderUser.avatar || "",
+                  callType: type
+                },
+                android: {
+                  priority: "high",
+                  notification: {
+                    title: `Incoming ${type === "video" ? "Video" : "Voice"} Call`,
+                    body: `${senderUser.name || "A user"} is calling you...`,
+                    channelId: "calls",
+                    priority: "high",
+                    visibility: "public"
+                  }
+                }
+              });
+            }
+          } catch (fcmErr) {
+            console.error("FCM incoming call notification error:", fcmErr.message || fcmErr);
+          }
+        }
 
         if (receiverUser && (receiverUser.role === "teacher" || receiverUser.role === "Teacher")) {
           try {

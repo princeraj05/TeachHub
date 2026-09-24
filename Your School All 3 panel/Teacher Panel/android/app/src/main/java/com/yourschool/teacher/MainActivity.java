@@ -18,6 +18,11 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import android.app.KeyguardManager;
+import android.content.Context;
+import android.content.Intent;
+import android.view.WindowManager;
+
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebChromeClient;
 
@@ -34,6 +39,9 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Enable full-screen incoming call display over lockscreen and wake up screen
+        enableLockscreenCallFlags();
 
         // Request system permissions on app launch for Camera, Mic, Audio, Notifications
         requestRequiredPermissions();
@@ -194,5 +202,33 @@ public class MainActivity extends BridgeActivity {
             e.printStackTrace();
             Toast.makeText(getApplicationContext(), "Failed to save file", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void enableLockscreenCallFlags() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true);
+            setTurnScreenOn(true);
+        }
+        getWindow().addFlags(
+            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+            WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
+            WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+        );
+
+        try {
+            KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+            if (keyguardManager != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                keyguardManager.requestDismissKeyguard(this, null);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        enableLockscreenCallFlags();
     }
 }
