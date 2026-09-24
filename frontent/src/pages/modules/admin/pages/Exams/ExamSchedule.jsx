@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { FaCalendarAlt, FaBook, FaSchool, FaTrash, FaPlus, FaCalendarCheck, FaEdit, FaClock, FaHourglassHalf } from "react-icons/fa";
 import API_URL from "../../../../../config/api";
@@ -15,6 +15,25 @@ function ExamSchedule() {
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showDurationPicker, setShowDurationPicker] = useState(false);
+
+  const timePickerRef = useRef(null);
+  const durationPickerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (timePickerRef.current && !timePickerRef.current.contains(e.target)) {
+        setShowTimePicker(false);
+      }
+      if (durationPickerRef.current && !durationPickerRef.current.contains(e.target)) {
+        setShowDurationPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const currY = new Date().getFullYear();
   const academicYearOptions = [
@@ -565,10 +584,17 @@ function ExamSchedule() {
 
                     {/* Time & Duration */}
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="flex flex-col gap-1.5">
+                      <div className="flex flex-col gap-1.5 relative" ref={timePickerRef}>
                         <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Time</label>
                         <div className="relative">
-                          <FaClock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                          <button
+                            type="button"
+                            onClick={() => setShowTimePicker(!showTimePicker)}
+                            title="Click to pick time"
+                            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-teal-600 hover:scale-110 active:scale-95 transition-all cursor-pointer z-10"
+                          >
+                            <FaClock className="text-sm" />
+                          </button>
                           <input
                           type="text"
                           name="time"
@@ -578,11 +604,82 @@ function ExamSchedule() {
                           className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                         />
                         </div>
+
+                        {showTimePicker && (
+                          <div className="absolute top-full left-0 mt-1 w-64 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl z-50 p-3 space-y-3">
+                            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-2">
+                              <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">Select Start Time</span>
+                              <input
+                                type="time"
+                                onChange={(e) => {
+                                  if (!e.target.value) return;
+                                  const [h, m] = e.target.value.split(":");
+                                  const hours = parseInt(h, 10);
+                                  const suffix = hours >= 12 ? "PM" : "AM";
+                                  const displayH = hours % 12 || 12;
+                                  const formattedT = `${String(displayH).padStart(2, "0")}:${m} ${suffix}`;
+                                  setForm(f => ({ ...f, time: formattedT }));
+                                  setShowTimePicker(false);
+                                }}
+                                className="text-xs bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 text-slate-800 dark:text-white font-bold cursor-pointer outline-none"
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-1.5 max-h-44 overflow-y-auto pr-1">
+                              {[
+                                "08:00 AM",
+                                "08:30 AM",
+                                "09:00 AM",
+                                "09:30 AM",
+                                "10:00 AM",
+                                "10:30 AM",
+                                "11:00 AM",
+                                "11:30 AM",
+                                "12:00 PM",
+                                "01:00 PM",
+                                "02:00 PM",
+                                "03:00 PM"
+                              ].map((tVal) => (
+                                <button
+                                  key={tVal}
+                                  type="button"
+                                  onClick={() => {
+                                    setForm(f => ({ ...f, time: tVal }));
+                                    setShowTimePicker(false);
+                                  }}
+                                  className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition text-left cursor-pointer ${
+                                    form.time === tVal
+                                      ? "bg-teal-500 text-white shadow-sm"
+                                      : "bg-slate-50 dark:bg-white/5 text-slate-700 dark:text-slate-300 hover:bg-teal-50 hover:text-teal-600 dark:hover:bg-white/10"
+                                  }`}
+                                >
+                                  {tVal}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
                       </div>
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Duration</label>
+                      <div className="flex flex-col gap-1.5 relative" ref={durationPickerRef}>
+                        <div className="flex items-center justify-between">
+                          <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Duration</label>
+                          <button
+                            type="button"
+                            onClick={() => setShowDurationPicker(!showDurationPicker)}
+                            className="text-[9px] font-extrabold text-teal-600 hover:underline cursor-pointer"
+                          >
+                            {showDurationPicker ? "Close" : "Pick Duration"}
+                          </button>
+                        </div>
                         <div className="relative">
-                          <FaHourglassHalf className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                          <button
+                            type="button"
+                            onClick={() => setShowDurationPicker(!showDurationPicker)}
+                            title="Click to pick duration"
+                            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-teal-600 hover:scale-110 active:scale-95 transition-all cursor-pointer z-10"
+                          >
+                            <FaHourglassHalf className="text-sm" />
+                          </button>
                           <input
                           type="text"
                           name="duration"
@@ -592,6 +689,43 @@ function ExamSchedule() {
                           className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                         />
                         </div>
+
+                        {showDurationPicker && (
+                          <div className="absolute top-full right-0 mt-1 w-56 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl z-50 p-3 space-y-2">
+                            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider block border-b border-slate-100 dark:border-white/5 pb-1.5">
+                              Select Duration
+                            </span>
+                            <div className="grid grid-cols-1 gap-1 max-h-48 overflow-y-auto pr-1">
+                              {[
+                                { label: "30 Minutes", val: "30 Min" },
+                                { label: "45 Minutes", val: "45 Min" },
+                                { label: "1 Hour (60m)", val: "1h 00m" },
+                                { label: "1.5 Hours (90m)", val: "1h 30m" },
+                                { label: "2 Hours (120m)", val: "2h 00m" },
+                                { label: "2.5 Hours (150m)", val: "2h 30m" },
+                                { label: "3 Hours (180m)", val: "3h 00m" }
+                              ].map((dur) => (
+                                <button
+                                  key={dur.val}
+                                  type="button"
+                                  onClick={() => {
+                                    setForm(f => ({ ...f, duration: dur.val }));
+                                    setShowDurationPicker(false);
+                                  }}
+                                  className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${
+                                    form.duration === dur.val
+                                      ? "bg-teal-500 text-white shadow-sm"
+                                      : "bg-slate-50 dark:bg-white/5 text-slate-700 dark:text-slate-300 hover:bg-teal-50 hover:text-teal-600 dark:hover:bg-white/10"
+                                  }`}
+                                >
+                                  <span>{dur.label}</span>
+                                  <span className="text-[10px] opacity-80">{dur.val}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
                       </div>
                     </div>
 
