@@ -32,7 +32,7 @@ export default function SupportProfile() {
   // Editable Form State
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [avatar, setAvatar] = useState("");
+  const [avatar, setAvatar] = useState(() => localStorage.getItem("avatar") || "");
 
   // Password Security Form State
   const [currentPassword, setCurrentPassword] = useState("");
@@ -56,7 +56,11 @@ export default function SupportProfile() {
         setUserProfile(res.data);
         setName(res.data.name || "");
         setPhoneNumber(res.data.phoneNumber || res.data.phone || "");
-        setAvatar(res.data.avatar || "");
+        const fetchedAvatar = res.data.avatar || res.data.photo || res.data.profilePhoto || localStorage.getItem("avatar") || "";
+        setAvatar(fetchedAvatar);
+        if (fetchedAvatar) {
+          try { localStorage.setItem("avatar", fetchedAvatar); } catch(e) {}
+        }
 
         // Keep local user info updated in localStorage
         if (res.data.name) localStorage.setItem("userName", res.data.name);
@@ -73,6 +77,12 @@ export default function SupportProfile() {
 
   useEffect(() => {
     fetchProfile();
+    const handleProfileUpdate = () => {
+      const localAv = localStorage.getItem("avatar") || "";
+      if (localAv) setAvatar(localAv);
+    };
+    window.addEventListener("profileUpdate", handleProfileUpdate);
+    return () => window.removeEventListener("profileUpdate", handleProfileUpdate);
   }, [fetchProfile]);
 
   // Handle Image Upload -> Base64
@@ -213,9 +223,9 @@ export default function SupportProfile() {
           
           {/* Avatar Container with Upload overlay */}
           <div className="relative group">
-            {avatar ? (
+            {avatar || localStorage.getItem("avatar") ? (
               <img 
-                src={avatar} 
+                src={avatar || localStorage.getItem("avatar")} 
                 alt={name} 
                 className="w-24 h-24 rounded-full object-cover shadow-xl border-2 border-purple-500/30"
               />

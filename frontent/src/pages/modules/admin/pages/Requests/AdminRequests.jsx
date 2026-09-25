@@ -357,7 +357,7 @@ function AdminRequests() {
   const trackerRequests = requests.filter(r => r.requestStatus === "scheduled" || r.requestStatus === "exam_completed");
 
   return (
-    <div style={{ fontFamily: SORA }} className="max-w-4xl mx-auto py-6 space-y-6">
+    <div style={{ fontFamily: SORA }} className="max-w-4xl mx-auto py-3 sm:py-6 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -374,7 +374,7 @@ function AdminRequests() {
         <button
           type="button"
           onClick={() => setActiveTab("new_requests")}
-          className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-2 ${
+          className={`flex-1 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-1.5 ${
             activeTab === "new_requests"
               ? "bg-[#7C3AED] text-white dark:bg-[#38BDF8] dark:text-[#090F1C] shadow-sm"
               : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5"
@@ -391,7 +391,7 @@ function AdminRequests() {
         <button
           type="button"
           onClick={() => setActiveTab("tracker")}
-          className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-2 ${
+          className={`flex-1 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-1.5 ${
             activeTab === "tracker"
               ? "bg-[#7C3AED] text-white dark:bg-[#38BDF8] dark:text-[#090F1C] shadow-sm"
               : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5"
@@ -496,7 +496,7 @@ function AdminRequests() {
             })}
           </div>
         ) : (
-          <div className="text-center py-16 bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 p-8 shadow-sm">
+          <div className="text-center py-8 sm:py-14 bg-white dark:bg-[#0B132A] rounded-2xl border border-slate-200/60 dark:border-white/10 p-4 sm:p-6 shadow-xs">
             <FaUserPlus className="text-slate-350 dark:text-slate-700 text-4xl mx-auto mb-4" />
             <h3 className="text-sm font-black text-slate-750 dark:text-slate-300">No New Requests</h3>
             <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-1">There are no new joining applications currently pending.</p>

@@ -109,7 +109,7 @@ function SuperAdminProfile() {
   const [phoneNumber, setPhoneNumber] = useState(profile.phoneNumber || "+91 98765 43210");
   const [gender, setGender] = useState(profile.gender || "Male");
   const [address, setAddress] = useState(profile.address || "Patna, Bihar, India");
-  const [avatar, setAvatar] = useState(profile.avatar || "");
+  const [avatar, setAvatar] = useState(profile.avatar || localStorage.getItem("avatar") || "");
 
   // Change Password state
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -191,7 +191,11 @@ function SuperAdminProfile() {
         setPhoneNumber(d.phoneNumber || "+91 98765 43210");
         setGender(d.gender || "Male");
         setAddress(d.address || "Patna, Bihar, India");
-        setAvatar(d.avatar || "");
+        const fetchedAvatar = d.avatar || d.photo || d.profilePhoto || localStorage.getItem("avatar") || "";
+        setAvatar(fetchedAvatar);
+        if (fetchedAvatar) {
+          try { localStorage.setItem("avatar", fetchedAvatar); } catch(e) {}
+        }
       }
     } catch (err) {
       console.log("Using cached profile state");
@@ -391,8 +395,8 @@ function SuperAdminProfile() {
         <div className="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
           <div className="relative group shrink-0">
             <div className="w-24 h-24 rounded-full overflow-hidden bg-slate-100 border-2 border-slate-200/50 flex items-center justify-center p-0.5">
-              {avatar ? (
-                <img src={avatar} alt="" onError={() => setAvatar("")} className="w-full h-full object-cover rounded-full" />
+              {avatar || localStorage.getItem("avatar") ? (
+                <img src={avatar || localStorage.getItem("avatar")} alt="" onError={() => setAvatar("")} className="w-full h-full object-cover rounded-full" />
               ) : (
                 <div className="w-full h-full bg-[#7C3AED] text-white text-3xl font-black rounded-full flex items-center justify-center">
                   {profileInitials}

@@ -63,9 +63,18 @@ function TeacherProfile() {
   const [experience, setExperience] = useState("");
   const [employeeId, setEmployeeId] = useState("");
   const [bio, setBio] = useState("");
-  const [avatar, setAvatar] = useState("");
+  const [avatar, setAvatar] = useState(() => localStorage.getItem("avatar") || "");
   const [gettingLocation, setGettingLocation] = useState(false);
   const [cropModalImage, setCropModalImage] = useState(null);
+
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      const localAv = localStorage.getItem("avatar") || "";
+      if (localAv) setAvatar(localAv);
+    };
+    window.addEventListener("profileUpdate", handleProfileUpdate);
+    return () => window.removeEventListener("profileUpdate", handleProfileUpdate);
+  }, []);
 
   // Read-only Assigned Data (managed by School Admin)
   const [assignedSubjects, setAssignedSubjects] = useState([]);
@@ -118,7 +127,11 @@ function TeacherProfile() {
         setExperience(u.experience || "6 Years");
         setEmployeeId(u.employeeId || `TCH${String(u._id).slice(-4).toUpperCase()}`);
         setBio(u.bio || "Passionate educator dedicated to academic excellence and student success.");
-        setAvatar(u.avatar || "");
+        const fetchedAvatar = u.avatar || u.photo || u.profilePhoto || localStorage.getItem("avatar") || "";
+        setAvatar(fetchedAvatar);
+        if (fetchedAvatar) {
+          try { localStorage.setItem("avatar", fetchedAvatar); } catch (e) {}
+        }
 
         setAssignedSubjects(u.subjects || []);
         setAssignedClasses(u.classes || []);
@@ -243,8 +256,8 @@ function TeacherProfile() {
             <div className="relative shrink-0">
               <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/20 backdrop-blur-md p-1 border-2 border-white/40 shadow-xl overflow-hidden">
                 <div className="w-full h-full rounded-xl bg-gradient-to-tr from-cyan-400 to-indigo-600 flex items-center justify-center text-white font-black text-3xl overflow-hidden">
-                  {avatar ? (
-                    <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  {(avatar || localStorage.getItem("avatar")) ? (
+                    <img src={avatar || localStorage.getItem("avatar")} alt="Avatar" className="w-full h-full object-cover" />
                   ) : (
                     userInitials
                   )}

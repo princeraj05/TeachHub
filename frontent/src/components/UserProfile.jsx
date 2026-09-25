@@ -64,11 +64,18 @@ function UserProfile() {
   const { language, changeLanguage, t } = useLanguage();
 
   const getCachedUser = () => {
+    let localAvatar = "";
+    try { localAvatar = localStorage.getItem("avatar") || ""; } catch (e) {}
     try {
       const cached = localStorage.getItem("teachhub_cache_user_profile");
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed && typeof parsed === "object" && parsed.name) return parsed;
+        if (parsed && typeof parsed === "object" && parsed.name) {
+          return {
+            ...parsed,
+            avatar: parsed.avatar || parsed.photo || parsed.profilePhoto || localAvatar
+          };
+        }
       }
     } catch (e) {}
     return {
@@ -78,7 +85,7 @@ function UserProfile() {
       requestedRole: localStorage.getItem("requestedRole") || "student",
       requestedSchool: localStorage.getItem("requestedSchool") || "",
       phoneNumber: localStorage.getItem("phoneNumber") || "",
-      avatar: localStorage.getItem("avatar") || ""
+      avatar: localAvatar
     };
   };
 
@@ -153,6 +160,19 @@ function UserProfile() {
 
   useEffect(() => {
     fetchProfile();
+    const handleProfileUpdate = () => {
+      const localAv = localStorage.getItem("avatar") || "";
+      const localName = localStorage.getItem("name") || "";
+      if (localAv) {
+        setUser((prev) => ({ ...prev, avatar: localAv }));
+        setFormData((prev) => ({ ...prev, avatar: localAv }));
+      }
+      if (localName) {
+        setUser((prev) => ({ ...prev, name: localName }));
+      }
+    };
+    window.addEventListener("profileUpdate", handleProfileUpdate);
+    return () => window.removeEventListener("profileUpdate", handleProfileUpdate);
   }, []);
 
   const fetchProfile = async () => {
@@ -162,8 +182,8 @@ function UserProfile() {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data) {
-        setUser(res.data);
-        const userAvatar = res.data.avatar || res.data.photo || res.data.profilePhoto || "";
+        const userAvatar = res.data.avatar || res.data.photo || res.data.profilePhoto || localStorage.getItem("avatar") || "";
+        setUser({ ...res.data, avatar: userAvatar });
         const loginSource = localStorage.getItem("loginSource");
         const defaultRole = loginSource === "student" ? "student" : (loginSource === "teacher" ? "teacher" : null);
         const roleType = defaultRole || res.data.requestedRole || (res.data.role === "teacher" ? "teacher" : "student");
@@ -326,8 +346,8 @@ function UserProfile() {
             <div className="relative shrink-0">
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/20 backdrop-blur-md p-1 border-2 border-white/40 shadow-xl overflow-hidden">
                 <div className="w-full h-full rounded-xl bg-gradient-to-tr from-cyan-400 to-indigo-600 flex items-center justify-center text-white font-black text-2xl overflow-hidden">
-                  {user?.avatar || formData.avatar ? (
-                    <img src={user.avatar || formData.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  {user?.avatar || formData.avatar || localStorage.getItem("avatar") ? (
+                    <img src={user?.avatar || formData.avatar || localStorage.getItem("avatar")} alt="Avatar" className="w-full h-full object-cover" />
                   ) : (
                     userInitials
                   )}
@@ -775,8 +795,8 @@ function UserProfile() {
               <div className="flex flex-col items-center justify-center py-2">
                 <div className="relative group">
                   <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#7C3AED] to-cyan-400 p-0.5 shadow-md overflow-hidden">
-                    {formData.avatar ? (
-                      <img src={formData.avatar} alt="Avatar" className="w-full h-full rounded-2xl object-cover" />
+                    {formData.avatar || user?.avatar || localStorage.getItem("avatar") ? (
+                      <img src={formData.avatar || user?.avatar || localStorage.getItem("avatar")} alt="Avatar" className="w-full h-full rounded-2xl object-cover" />
                     ) : (
                       <div className="w-full h-full rounded-2xl bg-slate-900 flex items-center justify-center text-white font-black text-2xl">
                         {userInitials}

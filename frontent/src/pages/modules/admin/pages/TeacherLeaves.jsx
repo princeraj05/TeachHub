@@ -157,7 +157,7 @@ export default function TeacherLeaves() {
       </div>
 
       {/* Stat cards */}
-      <div className="mt-5 grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <div className="hidden mt-5 grid grid-cols-2 gap-4 xl:grid-cols-4">
         {[
           { label: "Total Requests", value: leaves.length, sub: "This Month", icon: ClipboardList, color: C.purple, bg: C.purpleDim },
           { label: "Pending", value: counts.Pending, sub: "Awaiting Approval", icon: Clock3, color: C.amber, bg: C.amberDim },

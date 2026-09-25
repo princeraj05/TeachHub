@@ -119,9 +119,9 @@ function Teachers() {
   return (
     <div className="font-sans">
       {/* ── Page Header ── */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">Teachers</h1>
+          <h1 className="text-xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">Teachers</h1>
           <p className="text-xs text-slate-400 font-medium mt-0.5">View and manage all registered teachers inside TeachHub</p>
         </div>
         <div className="flex items-center gap-2 bg-teal-50/50 border border-teal-100 rounded-2xl px-4 py-2.5 w-fit shadow-sm">
@@ -138,12 +138,12 @@ function Teachers() {
           placeholder="Search by teacher name or email address…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200/80 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 shadow-sm transition-all duration-200"
+          className="w-full pl-9 pr-3.5 py-2 sm:py-2.5 bg-white border border-slate-200/80 rounded-xl text-xs sm:text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 shadow-xs transition-all duration-200"
         />
       </div>
 
       {/* ── Mobile: Cards ── */}
-      <div className="sm:hidden space-y-4">
+      <div className="sm:hidden space-y-2.5">
         {filtered.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200/60 py-16 text-center shadow-sm">
             <FaChalkboardTeacher className="text-slate-200 text-5xl mx-auto mb-4" />
@@ -154,9 +154,9 @@ function Teachers() {
           filtered.map((t, i) => (
             <div
               key={t._id}
-              className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 flex items-center gap-4 hover-lift relative overflow-hidden"
+              className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-3.5 flex items-center gap-3 relative overflow-hidden"
             >
-              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${avatarColors[i % avatarColors.length]} flex items-center justify-center text-[#0b132b] font-black text-base shadow-md flex-shrink-0`}>
+              <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${avatarColors[i % avatarColors.length]} flex items-center justify-center text-[#0b132b] font-black text-sm shadow-xs flex-shrink-0`}>
                 {t.name.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">

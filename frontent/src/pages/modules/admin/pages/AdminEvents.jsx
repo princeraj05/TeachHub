@@ -372,7 +372,7 @@ function AdminEvents() {
         </div>
         <button
           onClick={() => { resetForm(); setShowAddModal(true); }}
-          className="bg-gradient-to-r from-[#7C3AED] to-[#312E81] text-white font-extrabold text-xs px-5 py-3 rounded-2xl flex items-center gap-2 hover:opacity-95 active:scale-95 transition shadow-md shadow-[#7C3AED]/10 cursor-pointer"
+          className="bg-gradient-to-r from-[#7C3AED] to-[#312E81] text-white font-extrabold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 hover:opacity-95 active:scale-95 transition shadow-xs cursor-pointer shrink-0"
         >
           <FaPlus className="text-[10px]" /> Add Event
         </button>
@@ -384,7 +384,7 @@ function AdminEvents() {
         <div className="flex bg-white dark:bg-[#0B132A] p-1.5 border border-slate-200/50 dark:border-white/10 rounded-2xl shadow-sm gap-1 select-none">
           <button
             onClick={() => setActiveTab("upcoming")}
-            className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-2 ${
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 ${
               activeTab === "upcoming"
                 ? "bg-[#7C3AED] text-white dark:bg-[#38BDF8] dark:text-[#090F1C] shadow-md shadow-[#7C3AED]/10"
                 : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white"

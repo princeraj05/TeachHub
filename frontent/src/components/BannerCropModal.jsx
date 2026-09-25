@@ -11,17 +11,13 @@ import {
 
 /**
  * BannerCropModal - Widescreen (3:1 aspect ratio) cover banner crop & rotate modal.
- * 
- * Props:
- *  - imageSrc: File object or string URL of selected cover image.
- *  - onClose: () => void - Callback when user cancels.
- *  - onSave: (croppedBase64: string) => Promise<void> | void - Callback with cropped banner image data URL.
+ * Includes interactive zoom slider, clickable +/- buttons, and full image fit options.
  */
 export default function BannerCropModal({ imageSrc, onClose, onSave }) {
   const [step, setStep] = useState(1); // 1: Crop & rotate, 2: Preview, 3: Saving
   const [loadedImage, setLoadedImage] = useState(null);
   const [rotation, setRotation] = useState(0); // 0, 90, 180, 270
-  const [zoom, setZoom] = useState(1); // 1x to 3x
+  const [zoom, setZoom] = useState(1); // 0.2x to 4x
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [croppedDataUrl, setCroppedDataUrl] = useState("");
@@ -109,7 +105,15 @@ export default function BannerCropModal({ imageSrc, onClose, onSave }) {
   const handleWheel = (e) => {
     e.preventDefault();
     const delta = e.deltaY < 0 ? 0.1 : -0.1;
-    setZoom((prev) => Math.min(Math.max(prev + delta, 1), 3));
+    setZoom((prev) => Math.min(Math.max(prev + delta, 0.2), 4.0));
+  };
+
+  const handleZoomOut = () => {
+    setZoom((prev) => Math.max(0.2, Math.round((prev - 0.15) * 100) / 100));
+  };
+
+  const handleZoomIn = () => {
+    setZoom((prev) => Math.min(4.0, Math.round((prev + 0.15) * 100) / 100));
   };
 
   // Metrics for 3:1 aspect ratio crop frame
@@ -122,7 +126,7 @@ export default function BannerCropModal({ imageSrc, onClose, onSave }) {
     const naturalW = isRotated ? loadedImage.height : loadedImage.width;
     const naturalH = isRotated ? loadedImage.width : loadedImage.height;
 
-    const baseScale = Math.max(cropW / naturalW, cropH / naturalH);
+    const baseScale = Math.min(cropW / naturalW, cropH / naturalH);
     const effectiveScale = baseScale * zoom;
 
     const displayW = loadedImage.width * effectiveScale;
@@ -146,6 +150,9 @@ export default function BannerCropModal({ imageSrc, onClose, onSave }) {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, outW, outH);
+
     const { effectiveScale, cropW, cropH } = getDisplayMetrics();
     const ratio = outW / cropW;
 
@@ -159,7 +166,7 @@ export default function BannerCropModal({ imageSrc, onClose, onSave }) {
 
     ctx.drawImage(loadedImage, drawX, drawY, drawW, drawH);
 
-    return canvas.toDataURL("image/jpeg", 0.85);
+    return canvas.toDataURL("image/jpeg", 0.88);
   }, [loadedImage, rotation, pan, getDisplayMetrics]);
 
   const handleNext = () => {
@@ -270,18 +277,32 @@ export default function BannerCropModal({ imageSrc, onClose, onSave }) {
 
             {/* Controls */}
             <div className="flex flex-col items-center gap-3 mt-4">
-              <div className="flex items-center gap-3 w-full max-w-xs bg-[#232427] px-4 py-2 rounded-xl border border-white/10">
-                <FaSearchMinus className="text-white/60 text-xs shrink-0" />
+              <div className="flex items-center gap-2.5 w-full max-w-xs bg-[#232427] px-3.5 py-1.5 rounded-xl border border-white/10">
+                <button
+                  type="button"
+                  onClick={handleZoomOut}
+                  className="p-1.5 rounded-lg hover:bg-white/10 text-white/80 active:scale-90 transition cursor-pointer shrink-0"
+                  title="Zoom Out"
+                >
+                  <FaSearchMinus className="text-sm" />
+                </button>
                 <input
                   type="range"
-                  min="1"
-                  max="3"
-                  step="0.05"
+                  min="0.2"
+                  max="4.0"
+                  step="0.02"
                   value={zoom}
                   onChange={(e) => setZoom(parseFloat(e.target.value))}
                   className="w-full accent-purple-400 cursor-pointer"
                 />
-                <FaSearchPlus className="text-white/60 text-xs shrink-0" />
+                <button
+                  type="button"
+                  onClick={handleZoomIn}
+                  className="p-1.5 rounded-lg hover:bg-white/10 text-white/80 active:scale-90 transition cursor-pointer shrink-0"
+                  title="Zoom In"
+                >
+                  <FaSearchPlus className="text-sm" />
+                </button>
               </div>
 
               <div className="flex items-center gap-3">

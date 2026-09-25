@@ -5,10 +5,11 @@ import App from './App.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
 
 // Theme initialization
-if (localStorage.getItem("theme") === "dark" || (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+if (localStorage.getItem("theme") === "dark") {
   document.documentElement.classList.add("dark");
 } else {
   document.documentElement.classList.remove("dark");
+  document.documentElement.classList.add("light");
 }
 
 // Auto-recover from dynamic import chunk load failures (Vite deployment cache mismatch)

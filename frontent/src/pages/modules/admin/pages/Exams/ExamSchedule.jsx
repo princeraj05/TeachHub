@@ -413,16 +413,16 @@ function ExamSchedule() {
       {activeTab === "class" && (
         <>
           {/* Stats row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+          <div className="grid grid-cols-3 gap-2 sm:gap-5 mb-4 sm:mb-8">
             {stats.map((s, i) => (
               <div
                 key={i}
                 className="group relative bg-white dark:bg-[#0B132A] rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
               >
                 <div className={`h-1.5 w-full bg-gradient-to-r ${s.grad}`} />
-                <div className="p-5">
+                <div className="p-2.5 sm:p-5">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{s.label}</span>
-                  <p className="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight my-1">{s.value}</p>
+                  <p className="text-xl sm:text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight my-0.5 sm:my-1">{s.value}</p>
                   <p className="text-xs text-slate-400 font-medium">{s.desc}</p>
                 </div>
               </div>
