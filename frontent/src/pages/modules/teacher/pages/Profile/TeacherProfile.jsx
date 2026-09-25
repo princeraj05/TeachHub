@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import axios from "axios";
-import { requestLocationPermission } from "../../../../../utils/permissionAndDownloadUtils";
+import { requestLocationPermission, formatReverseGeocodeLocation } from "../../../../../utils/permissionAndDownloadUtils";
 import { 
   FaUser, 
   FaCamera, 

@@ -830,7 +830,7 @@ function PendingApproval() {
               </div>
             ) : user.requestStatus === "rejected" ? (
               /* State D: Rejected */
-              <div className="w-full bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl p-8 text-center relative overflow-hidden flex flex-col items-center gap-6">
+              <div className="w-full bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-xl p-5 sm:p-7 text-center relative overflow-hidden flex flex-col items-center gap-4 sm:gap-5">
                 <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-[#7C3AED]/5 blur-[50px] pointer-events-none" />
                 <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 shadow-sm">
                   <FaExclamationTriangle className="text-3xl animate-pulse" />
@@ -1254,7 +1254,7 @@ function PendingApproval() {
                 </div>
 
                 {/* Current Application Banner Card */}
-                <div className="w-full relative overflow-hidden rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-lg min-h-[12rem] flex flex-col justify-end p-6 select-none bg-slate-950">
+                <div className="w-full relative overflow-hidden rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-lg min-h-[10rem] flex flex-col justify-end p-4 sm:p-5 select-none bg-slate-950">
                   {/* Background Banner Image */}
                   <img
                     src={requestedSchoolData?.coverImage || (requestedSchoolData?.schoolPhotos && requestedSchoolData.schoolPhotos.length > 0 ? requestedSchoolData.schoolPhotos[0] : getSchoolBanner(user.requestedSchool))}
@@ -1293,7 +1293,7 @@ function PendingApproval() {
                 </div>
 
                 {/* Status Stepper Timeline */}
-                <div className="w-full bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm p-6 flex flex-col gap-6 text-left">
+                <div className="w-full bg-white dark:bg-[#0B132A] rounded-2.5xl sm:rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm p-4 sm:p-5 flex flex-col gap-4 sm:gap-5 text-left">
                   {isTeacher ? (
                     /* Teacher Applicant Timeline (Faculty hiring review steps) */
                     <>
@@ -1877,7 +1877,7 @@ function PendingApproval() {
 
               {/* Role & School */}
               <p className="text-[10px] font-semibold text-white/80 mt-0.5 truncate max-w-[240px]">
-                {isTeacher ? "TEACHER APPLICANT" : "STUDENT APPLICANT"} • {user?.requestedSchool || "G.D Academy"}
+                {isTeacher ? "TEACHER APPLICANT" : "STUDENT APPLICANT"}{user?.requestedSchool || user?.schoolName ? ` • ${user.requestedSchool || user.schoolName}` : ""}
               </p>
             </div>
 

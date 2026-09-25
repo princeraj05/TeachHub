@@ -13,15 +13,34 @@ export default function SessionManager({ children }) {
       (error) => {
         if (error.response && error.response.status === 401) {
           const currentPath = window.location.pathname;
-          const isAuthPage = currentPath === "/" || currentPath === "/login";
+          const publicPaths = [
+            "/",
+            "/login",
+            "/student/login",
+            "/teacher/login",
+            "/admin/login",
+            "/support/login",
+            "/privacy-policy",
+            "/cookie-policy",
+            "/terms-of-service",
+            "/disclaimer",
+            "/refund-policy",
+            "/about-us",
+            "/delete-account"
+          ];
+          const isPublicPage = publicPaths.includes(currentPath) || publicPaths.some(p => p !== "/" && currentPath.startsWith(p));
           const isLoginApi =
             error.config?.url?.includes("/api/auth/login") ||
             error.config?.url?.includes("/api/auth/verify-otp") ||
             error.config?.url?.includes("/api/auth/firebase-sync");
 
-          if (!isAuthPage && !isLoginApi) {
+          if (!isPublicPage && !isLoginApi) {
             console.warn("Session expired or invalid token (401 Unauthorized). Automatically logging out...");
             performLogout();
+          } else if (isPublicPage && !isLoginApi) {
+            // Silently clear expired token on public pages without redirecting away from the public page
+            localStorage.removeItem("token");
+            localStorage.removeItem("role");
           }
         }
         return Promise.reject(error);

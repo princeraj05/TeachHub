@@ -95,6 +95,82 @@ export const requestLocationPermission = () => {
   });
 };
 
+/**
+ * Formats reverse-geocoded location data (from Nominatim/OpenStreetMap API) into a clean, structured address:
+ * Format: "Place Name/Locality, Area/Town, District, State, Country"
+ * Example: "Law gate, Phagwara, Kapurthala, Punjab, India"
+ */
+export const formatReverseGeocodeLocation = (data, latitude, longitude) => {
+  if (!data) {
+    return latitude && longitude ? `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` : "";
+  }
+
+  const addr = data.address || {};
+
+  // 1. Place / Building / Road / Landmark / Area
+  const placeName =
+    addr.amenity ||
+    addr.building ||
+    addr.shop ||
+    addr.place ||
+    addr.road ||
+    addr.suburb ||
+    addr.neighbourhood ||
+    addr.residential ||
+    "";
+
+  // 2. Locality / Village / Town / City / Sub-district / Tehsil
+  const locality =
+    addr.village ||
+    addr.town ||
+    addr.city ||
+    addr.suburb ||
+    addr.subdistrict ||
+    addr.tehsil ||
+    addr.county ||
+    "";
+
+  // 3. District
+  const district =
+    addr.district ||
+    addr.state_district ||
+    addr.county ||
+    addr.city_district ||
+    "";
+
+  // 4. State
+  const state = addr.state || "";
+
+  // 5. Country
+  const country = addr.country || "India";
+
+  // Filter & deduplicate case-insensitively while cleaning technical words like "Tahsil", "Tehsil"
+  const parts = [];
+  const addPart = (val) => {
+    if (!val || typeof val !== "string") return;
+    let clean = val.trim();
+    // Clean up raw suffixes like "Tahsil", "Tehsil", "Subdistrict", "District"
+    clean = clean.replace(/\s+(Tahsil|Tehsil|Subdistrict|District)$/i, "");
+    if (!clean) return;
+    const lower = clean.toLowerCase();
+    if (!parts.some((p) => p.toLowerCase() === lower)) {
+      parts.push(clean);
+    }
+  };
+
+  addPart(placeName);
+  addPart(locality);
+  addPart(district);
+  addPart(state);
+  addPart(country);
+
+  let formatted = parts.join(", ");
+  if (!formatted && data.display_name) {
+    formatted = data.display_name;
+  }
+  return formatted || (latitude && longitude ? `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` : "");
+};
+
 // 4. Just-In-Time Notification Permission
 export const requestNotificationPermission = async () => {
   if (!("Notification" in window)) {

@@ -195,9 +195,9 @@ function GlobalEvents() {
             <div
               key={ev._id}
               onClick={() => setSelectedEvent(ev)}
-              className="group relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/15 rounded-3xl p-4.5 sm:p-5 flex flex-col md:flex-row gap-5 hover:shadow-xl dark:hover:shadow-2xl/20 transition-all duration-300 cursor-pointer"
+              className="group relative bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/15 rounded-3xl p-3.5 sm:p-4.5 flex flex-col md:flex-row gap-3.5 sm:gap-5 hover:shadow-xl dark:hover:shadow-2xl/20 transition-all duration-300 cursor-pointer"
             >
-              <div className="w-full md:w-[35%] aspect-[1.4] relative rounded-2.5xl overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-950 flex items-center justify-center">
+              <div className="w-full md:w-[32%] aspect-[1.6] md:aspect-[1.4] relative rounded-2.5xl overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-950 flex items-center justify-center">
                 <img
                   src={getEventThumbnail(ev)}
                   alt={ev.title}
@@ -296,8 +296,8 @@ function GlobalEvents() {
       {/* Detail / Gallery Modal */}
       {selectedEvent && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fadeIn">
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl relative animate-scaleUp text-slate-800 dark:text-white my-auto">
-            <div className="p-5 sm:p-6 overflow-y-auto flex-1 text-left relative">
+          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-2xl sm:max-w-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl relative animate-scaleUp text-slate-800 dark:text-white my-auto">
+            <div className="p-4 sm:p-5 overflow-y-auto flex-1 text-left relative">
               <button
                 onClick={() => setSelectedEvent(null)}
                 className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all cursor-pointer z-10"
@@ -307,7 +307,7 @@ function GlobalEvents() {
               </button>
 
               {/* Cover Banner inside modal */}
-              <div className="w-full h-44 sm:h-56 rounded-2xl overflow-hidden mb-5 bg-slate-100 dark:bg-slate-950 relative">
+              <div className="w-full h-36 sm:h-48 rounded-xl sm:rounded-2xl overflow-hidden mb-5 bg-slate-100 dark:bg-slate-950 relative">
                 <img
                   src={getEventThumbnail(selectedEvent)}
                   alt={selectedEvent.title}

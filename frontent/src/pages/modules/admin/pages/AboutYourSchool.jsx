@@ -312,7 +312,7 @@ function AboutYourSchool() {
         {activeTab === "description" && (
           <SchoolDescriptionTab
             description={desc.description} setDescription={desc.setDescription}
-            schoolName={basic.formData.name || "G.D Academy"}
+            schoolName={basic.formData.name || "Your School"}
           />
         )}
       </div>

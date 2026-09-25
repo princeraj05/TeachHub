@@ -34,7 +34,7 @@ import {
 import { compressAvatar } from "../utils/mediaCompression";
 import ProfilePhotoCropModal from "./ProfilePhotoCropModal";
 import { pickProfilePhoto } from "../utils/mobileCapabilities";
-import { requestLocationPermission } from "../utils/permissionAndDownloadUtils";
+import { requestLocationPermission, formatReverseGeocodeLocation } from "../utils/permissionAndDownloadUtils";
 import { Capacitor } from "@capacitor/core";
 import API_URL from "../config/api";
 
@@ -88,6 +88,12 @@ function UserProfile() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    try { return localStorage.getItem("teachhub_notifications") !== "false"; } catch(e) { return true; }
+  });
+  const [digestEnabled, setDigestEnabled] = useState(() => {
+    try { return localStorage.getItem("teachhub_digest") !== "false"; } catch(e) { return true; }
+  });
   const [cropModalImage, setCropModalImage] = useState(null);
   const [gettingLocation, setGettingLocation] = useState(false);
 
@@ -107,11 +113,12 @@ function UserProfile() {
     const { latitude, longitude } = res.coords;
     try {
       const geoRes = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`
       );
       const data = await geoRes.json();
-      if (data && data.display_name) {
-        setFormData((prev) => ({ ...prev, address: data.display_name }));
+      const formatted = formatReverseGeocodeLocation(data, latitude, longitude);
+      if (formatted) {
+        setFormData((prev) => ({ ...prev, address: formatted }));
       } else {
         setFormData((prev) => ({ ...prev, address: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` }));
       }
@@ -307,18 +314,18 @@ function UserProfile() {
     <div style={{ fontFamily: SORA }} className="space-y-6 max-w-5xl mx-auto pb-12 select-none text-left">
       
       {/* 1. Hero Identity Banner */}
-      <div className="relative overflow-hidden rounded-2.5xl sm:rounded-3xl bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#3B82F6] p-5 sm:p-7 text-white shadow-xl shadow-[#7C3AED]/20">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#3B82F6] p-4 sm:p-6 text-white shadow-lg shadow-[#7C3AED]/15">
         {/* Ambient Glow Effects */}
         <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-white/10 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-black/10 blur-2xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5">
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-3.5 sm:gap-5">
             
             {/* DP Avatar Circle */}
             <div className="relative shrink-0">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/20 backdrop-blur-md p-1 border-2 border-white/40 shadow-xl overflow-hidden">
-                <div className="w-full h-full rounded-xl bg-gradient-to-tr from-cyan-400 to-indigo-600 flex items-center justify-center text-white font-black text-3xl overflow-hidden">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/20 backdrop-blur-md p-1 border-2 border-white/40 shadow-xl overflow-hidden">
+                <div className="w-full h-full rounded-xl bg-gradient-to-tr from-cyan-400 to-indigo-600 flex items-center justify-center text-white font-black text-2xl overflow-hidden">
                   {user?.avatar || formData.avatar ? (
                     <img src={user.avatar || formData.avatar} alt="Avatar" className="w-full h-full object-cover" />
                   ) : (
@@ -326,16 +333,16 @@ function UserProfile() {
                   )}
                 </div>
               </div>
-              <span className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-400 border-2 border-white rounded-full flex items-center justify-center text-xs text-emerald-950 font-black shadow-md" title="Online Active">
-                <FaCheck className="text-[10px]" />
+              <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-400 border-2 border-white rounded-full flex items-center justify-center text-xs text-emerald-950 font-black shadow-md" title="Online Active">
+                <FaCheck className="text-[9px]" />
               </span>
             </div>
 
             {/* Profile Info */}
             <div className="flex flex-col justify-center">
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight">{user?.name || "Applicant User"}</h1>
-                <span className="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 backdrop-blur-md border border-white/25">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                <h1 className="text-lg sm:text-xl font-black tracking-tight">{user?.name || "Applicant User"}</h1>
+                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-white/20 backdrop-blur-md border border-white/25">
                   {user?.requestStatus === "approved" || (user?.role === "admin" && user?.schoolName && user?.schoolName.trim() !== "")
                     ? "SCHOOL ADMIN (ACTIVE)"
                     : user?.role === "admin" || user?.requestedRole === "admin" || localStorage.getItem("loginSource") === "admin"
@@ -350,34 +357,34 @@ function UserProfile() {
                 </span>
               </div>
 
-              <p className="text-xs text-white/80 font-medium mt-1">{user?.email}</p>
+              <p className="text-xs text-white/80 font-medium mt-0.5">{user?.email}</p>
 
               {/* School and Details Pill */}
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3 text-xs font-bold">
-                <span className="px-3 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1.5 border border-white/20">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 mt-2.5 text-xs font-bold">
+                <span className="px-2.5 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1 border border-white/20 text-[11px]">
                   <FaSchool className="text-amber-300 text-xs" />
                   <span>{user?.schoolName || user?.requestedSchool || "School Not Selected"}</span>
                 </span>
                 
                 {isAdminApplicant ? (
-                  <span className="px-3 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1.5 border border-white/20">
+                  <span className="px-2.5 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1 border border-white/20 text-[11px]">
                     <FaPhone className="text-cyan-300 text-xs" />
                     <span>{user?.phoneNumber || formData.phoneNumber || "No Phone"}</span>
                   </span>
                 ) : isTeacherApplicant ? (
-                  <span className="px-3 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1.5 border border-white/20">
+                  <span className="px-2.5 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1 border border-white/20 text-[11px]">
                     <FaBriefcase className="text-cyan-300 text-xs" />
                     <span>{formData.experience || "1 Year"} Exp</span>
                   </span>
                 ) : (
                   <>
-                    <span className="px-3 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1.5 border border-white/20">
+                    <span className="px-2.5 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1 border border-white/20 text-[11px]">
                       <FaGraduationCap className="text-cyan-300 text-xs" />
                       <span>{isAdmittedStudent ? `Class: ${formData.targetClass || "Class 1"}` : `Target: ${formData.targetClass || "Class 1"}`}</span>
                     </span>
 
                     {user?.rollNo !== undefined && user?.rollNo !== null && user?.rollNo !== "" && (
-                      <span className="px-3 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1.5 border border-white/20">
+                      <span className="px-2.5 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1 border border-white/20 text-[11px]">
                         <FaHashtag className="text-emerald-300 text-xs" />
                         <span>Roll No: #{user.rollNo}</span>
                       </span>
@@ -390,10 +397,10 @@ function UserProfile() {
           </div>
 
           {/* Quick Action Buttons */}
-          <div className="flex sm:flex-col items-center gap-2.5 w-full md:w-auto shrink-0">
+          <div className="flex sm:flex-col items-center gap-2 w-full md:w-auto shrink-0">
             <button
               onClick={() => setShowEditModal(true)}
-              className="flex-1 sm:flex-initial w-full bg-white text-[#7C3AED] hover:bg-slate-50 font-black text-xs px-5 py-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg transition-all active:scale-95 cursor-pointer"
+              className="flex-1 sm:flex-initial w-full bg-white text-[#7C3AED] hover:bg-slate-50 font-black text-xs px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-all active:scale-95 cursor-pointer"
             >
               <FaEdit className="text-xs" /> Edit Profile
             </button>
@@ -411,7 +418,7 @@ function UserProfile() {
                   navigate("/student/support");
                 }
               }}
-              className="flex-1 sm:flex-initial w-full bg-white/15 hover:bg-white/25 text-white border border-white/20 font-extrabold text-xs px-5 py-3 rounded-2xl flex items-center justify-center gap-2 backdrop-blur-md transition-all active:scale-95 cursor-pointer"
+              className="flex-1 sm:flex-initial w-full bg-white/15 hover:bg-white/25 text-white border border-white/20 font-extrabold text-xs px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 backdrop-blur-md transition-all active:scale-95 cursor-pointer"
             >
               <FaComments className="text-xs" /> Help Chat
             </button>
@@ -420,31 +427,31 @@ function UserProfile() {
       </div>
 
       {/* 2. Key Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-2.5xl p-4.5 flex items-center gap-3.5 shadow-sm">
-          <div className="w-11 h-11 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center shrink-0">
-            <FaIdCard className="text-lg" />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-2xl p-3.5 flex items-center gap-3 shadow-sm">
+          <div className="w-9.5 h-9.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center shrink-0">
+            <FaIdCard className="text-base" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">
               {isAdminApplicant ? "ADMIN ID" : isAdmittedStudent ? "STUDENT ID" : isAdmittedTeacher ? "TEACHER ID" : "APPLICANT ID"}
             </p>
-            <p className="text-sm font-black text-slate-800 dark:text-white tracking-wider mt-0.5">
+            <p className="text-xs sm:text-sm font-black text-slate-800 dark:text-white tracking-wider mt-0.5">
               #{user?._id ? user._id.slice(-6).toUpperCase() : "7045A0"}
             </p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-2.5xl p-4.5 flex items-center gap-3.5 shadow-sm">
-          <div className="w-11 h-11 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
-            <FaShieldAlt className="text-lg" />
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-2xl p-3.5 flex items-center gap-3 shadow-sm">
+          <div className="w-9.5 h-9.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <FaShieldAlt className="text-base" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">
               {isAdminApplicant ? "REGISTRATION STATUS" : isAdmittedStudent ? "STUDENT STATUS" : isAdmittedTeacher ? "FACULTY STATUS" : "APPLICATION STATUS"}
             </p>
             <p className="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mt-0.5 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               {isPendingApplicant
                 ? (user?.requestStatus ? user.requestStatus.replace("_", " ").toUpperCase() : "PENDING REVIEW")
                 : "ACTIVE"}
@@ -452,13 +459,13 @@ function UserProfile() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-2.5xl p-4.5 flex items-center gap-3.5 shadow-sm">
-          <div className="w-11 h-11 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0">
-            <FaGraduationCap className="text-lg" />
+        <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 rounded-2xl p-3.5 flex items-center gap-3 shadow-sm">
+          <div className="w-9.5 h-9.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0">
+            <FaGraduationCap className="text-base" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">ACADEMIC SESSION</p>
-            <p className="text-sm font-black text-slate-800 dark:text-white tracking-wider mt-0.5">
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">ACADEMIC SESSION</p>
+            <p className="text-xs sm:text-sm font-black text-slate-800 dark:text-white tracking-wider mt-0.5">
               Session 2026
             </p>
           </div>
@@ -487,49 +494,49 @@ function UserProfile() {
             </div>
 
             {/* Field Display Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
               
               {/* Common Fields */}
-              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{t("full_name", "FULL NAME")}</p>
-                <p className="text-xs font-black text-slate-800 dark:text-white mt-1 truncate">{user?.name || "Not Provided"}</p>
+              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-xl p-3 sm:p-3.5">
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">{t("full_name", "FULL NAME")}</p>
+                <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5 truncate">{user?.name || "Not Provided"}</p>
               </div>
 
-              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{t("email_address", "EMAIL ADDRESS")}</p>
-                <p className="text-xs font-black text-slate-800 dark:text-white mt-1 truncate">{user?.email || "Not Provided"}</p>
+              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-xl p-3 sm:p-3.5">
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">{t("email_address", "EMAIL ADDRESS")}</p>
+                <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5 truncate">{user?.email || "Not Provided"}</p>
               </div>
 
-              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{t("phone_number", "PHONE NUMBER")}</p>
-                <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{user?.phoneNumber || formData.phoneNumber || "Not Provided"}</p>
+              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-xl p-3 sm:p-3.5">
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">{t("phone_number", "PHONE NUMBER")}</p>
+                <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5">{user?.phoneNumber || formData.phoneNumber || "Not Provided"}</p>
               </div>
 
-              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{isAdminApplicant ? "SCHOOL NAME" : isPendingApplicant ? t("target_school", "TARGET SCHOOL") : "SCHOOL NAME"}</p>
-                <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{user?.requestedSchool || user?.schoolName || "Not Selected"}</p>
+              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-xl p-3 sm:p-3.5">
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">{isAdminApplicant ? "SCHOOL NAME" : isPendingApplicant ? t("target_school", "TARGET SCHOOL") : "SCHOOL NAME"}</p>
+                <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5">{user?.requestedSchool || user?.schoolName || "Not Selected"}</p>
               </div>
 
-              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">GENDER</p>
-                <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{user?.gender || formData.gender || "Not Specified"}</p>
+              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-xl p-3 sm:p-3.5">
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">GENDER</p>
+                <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5">{user?.gender || formData.gender || "Not Specified"}</p>
               </div>
 
-              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">DATE OF BIRTH</p>
-                <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{user?.dob || formData.dob || "Not Provided"}</p>
+              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-xl p-3 sm:p-3.5">
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">DATE OF BIRTH</p>
+                <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5">{user?.dob || formData.dob || "Not Provided"}</p>
               </div>
 
-              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4 sm:col-span-2">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{isAdminApplicant ? "SCHOOL / ADMIN ADDRESS" : "RESIDENTIAL ADDRESS / LOCATION"}</p>
-                <p className="text-xs font-black text-slate-800 dark:text-white mt-1">{user?.address || formData.address || "Not Provided"}</p>
+              <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-xl p-3 sm:p-3.5 sm:col-span-2">
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">{isAdminApplicant ? "SCHOOL / ADMIN ADDRESS" : "RESIDENTIAL ADDRESS / LOCATION"}</p>
+                <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5">{user?.address || formData.address || "Not Provided"}</p>
               </div>
 
               {isAdminApplicant ? null : !isTeacherApplicant ? (
                 <>
-                  <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-2xl p-4">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{isPendingApplicant ? "TARGET ADMISSION CLASS" : "CLASS"}</p>
-                    <p className="text-xs font-black text-[#7C3AED] dark:text-[#38BDF8] mt-1">{formData.targetClass || "Class 1"}</p>
+                  <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-xl p-3 sm:p-3.5">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">{isPendingApplicant ? "TARGET ADMISSION CLASS" : "CLASS"}</p>
+                    <p className="text-xs font-black text-[#7C3AED] dark:text-[#38BDF8] mt-0.5">{formData.targetClass || "Class 1"}</p>
                   </div>
 
                   {user?.rollNo !== undefined && user?.rollNo !== null && user?.rollNo !== "" && (
@@ -688,11 +695,11 @@ function UserProfile() {
 
       {/* EDIT PROFILE MODAL */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fadeIn select-none">
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl relative text-slate-800 dark:text-white my-auto">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-[99999] flex items-center justify-center p-3 sm:p-6 overflow-hidden animate-fadeIn select-none">
+          <form onSubmit={handleSave} className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-xl max-h-[88vh] flex flex-col overflow-hidden shadow-2xl relative text-slate-800 dark:text-white my-auto">
             
             {/* Modal Header */}
-            <div className="p-5 border-b border-slate-150 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
+            <div className="p-4 sm:p-5 border-b border-slate-150 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02] shrink-0">
               <div>
                 <h3 className="text-base font-black text-slate-900 dark:text-white">
                   {isAdminApplicant
@@ -712,6 +719,7 @@ function UserProfile() {
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => setShowEditModal(false)}
                 className="w-8 h-8 rounded-full bg-slate-200/60 dark:bg-white/10 hover:bg-slate-300 text-slate-600 dark:text-slate-300 flex items-center justify-center transition cursor-pointer"
               >
@@ -719,8 +727,8 @@ function UserProfile() {
               </button>
             </div>
 
-            {/* Modal Form Content */}
-            <form onSubmit={handleSave} className="p-5 overflow-y-auto space-y-4 flex-1">
+            {/* Modal Form Scroll Content */}
+            <div className="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1">
               
               {/* Applicant Role Toggle - ONLY for new unassigned applicants */}
               {!isAdminApplicant && isPendingApplicant && (!user?.role || user?.role === "unassigned") && (!user?.requestedRole || user?.requestedRole === "unassigned") && (
@@ -1041,33 +1049,34 @@ function UserProfile() {
                 </div>
               )}
 
-              {/* Modal Actions */}
-              <div className="flex gap-3 pt-4 border-t border-slate-150 dark:border-white/5">
-                <button
-                  type="button"
-                  onClick={() => setShowEditModal(false)}
-                  className="flex-1 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-extrabold text-xs py-3 rounded-2xl transition cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex-1 bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-extrabold text-xs py-3 rounded-2xl shadow-lg shadow-[#7C3AED]/20 flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50"
-                >
-                  <FaSave className="text-xs" />
-                  {saving ? "Saving..." : "Save Profile"}
-                </button>
-              </div>
+            </div>
 
-            </form>
-          </div>
+            {/* Modal Actions Fixed Sticky Footer */}
+            <div className="p-4 border-t border-slate-150 dark:border-white/10 bg-white dark:bg-[#0B132A] flex gap-3 shrink-0 shadow-lg z-10">
+              <button
+                type="button"
+                onClick={() => setShowEditModal(false)}
+                className="flex-1 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-extrabold text-xs py-3.5 rounded-2xl transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex-1 bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-extrabold text-xs py-3.5 rounded-2xl shadow-lg shadow-[#7C3AED]/20 flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50"
+              >
+                <FaSave className="text-xs" />
+                {saving ? "Saving..." : "Save Profile"}
+              </button>
+            </div>
+
+          </form>
         </div>
       )}
 
       {/* LANGUAGE MODAL */}
       {showLanguageModal && (
-        <div className="fixed inset-0 bg-slate-900/65 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/65 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl relative text-slate-800 dark:text-white">
             <button
               onClick={() => setShowLanguageModal(false)}
@@ -1103,7 +1112,7 @@ function UserProfile() {
 
       {/* SETTINGS MODAL */}
       {showSettingsModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl relative text-slate-800 dark:text-white">
             <button
               onClick={() => setShowSettingsModal(false)}
@@ -1155,7 +1164,13 @@ function UserProfile() {
               </div>
             </div>
             <button
-              onClick={() => setShowSettingsModal(false)}
+              onClick={() => {
+                try {
+                  localStorage.setItem("teachhub_notifications", String(notificationsEnabled));
+                  localStorage.setItem("teachhub_digest", String(digestEnabled));
+                } catch(e) {}
+                setShowSettingsModal(false);
+              }}
               className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white py-3 rounded-xl text-xs font-bold transition cursor-pointer mt-6"
             >
               Save Settings

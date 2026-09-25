@@ -223,7 +223,7 @@ function SchoolDirectory() {
               <div key={school._id} className="w-full bg-white dark:bg-[#0B132A] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden text-left flex flex-col">
                 
                 {/* School Cover Banner image */}
-                <div className="w-full h-36 sm:h-48 md:h-52 relative bg-slate-900 overflow-hidden shrink-0">
+                <div className="w-full h-28 sm:h-40 md:h-44 relative bg-slate-900 overflow-hidden shrink-0">
                   {school.coverImage ? (
                     <img
                       src={getMediaUrl(school.coverImage)}
@@ -259,12 +259,12 @@ function SchoolDirectory() {
                 </div>
 
                 {/* Card Body Container */}
-                <div className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-5 -mt-8 sm:-mt-10 relative z-10">
+                <div className="p-3.5 sm:p-5 flex flex-col gap-3.5 sm:gap-4.5 -mt-7 sm:-mt-9 relative z-10">
                   
                   {/* School Logo & Title Header Row */}
                   <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4">
                     <div className="flex items-end gap-3.5">
-                      <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${cardBgColor} text-white flex items-center justify-center shrink-0 shadow-lg border-4 border-white dark:border-[#0B132A] overflow-hidden`}>
+                      <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br ${cardBgColor} text-white flex items-center justify-center shrink-0 shadow-lg border-4 border-white dark:border-[#0B132A] overflow-hidden`}>
                         {school.photo ? (
                           <img src={getMediaUrl(school.photo)} alt="Logo" className="w-full h-full object-cover" />
                         ) : (
@@ -298,7 +298,7 @@ function SchoolDirectory() {
                   </div>
 
                   {/* Stats Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/[0.06] p-3 sm:p-4 rounded-2xl">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/[0.06] p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl">
                     {/* Students stat */}
                     <div className="flex items-center gap-2.5 p-1">
                       <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 border border-purple-500/20">
@@ -348,7 +348,7 @@ function SchoolDirectory() {
                   <div className="flex items-center gap-2.5 sm:gap-3 w-full border-t border-slate-100 dark:border-white/5 pt-3 sm:pt-4">
                     <button
                       onClick={() => handleViewDetails(school.name)}
-                      className="flex-1 border border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 text-slate-700 dark:text-slate-200 py-3 rounded-2xl text-xs font-extrabold transition hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer text-center active:scale-[0.98]"
+                      className="flex-1 border border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 text-slate-700 dark:text-slate-200 py-2.5 rounded-xl sm:rounded-2xl text-xs font-extrabold transition hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer text-center active:scale-[0.98]"
                     >
                       View Details
                     </button>

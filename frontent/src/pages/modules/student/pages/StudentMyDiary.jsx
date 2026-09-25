@@ -292,7 +292,7 @@ export default function StudentMyDiary() {
             <div className="min-w-0">
               <p className="text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase leading-none">School</p>
               <p className="text-xs font-black text-slate-800 dark:text-white leading-tight mt-0.5 truncate">
-                {diaryData.schoolName || "G.D Academy"}
+                {diaryData.schoolName || "Your School"}
               </p>
             </div>
           </div>

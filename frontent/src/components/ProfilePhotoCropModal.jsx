@@ -8,16 +8,16 @@ import {
   FaSearchMinus, 
   FaSearchPlus 
 } from "react-icons/fa";
+import { useTheme } from "../context/ThemeContext";
 
 /**
  * ProfilePhotoCropModal - Google Account style profile picture crop & rotate modal.
- * 
- * Props:
- *  - imageSrc: File object or base64 / URL string of the selected image.
- *  - onClose: () => void - Callback to close modal without saving.
- *  - onSave: (croppedBase64: string) => Promise<void> | void - Callback when user clicks "Save as profile picture".
+ * Supports light & dark themes seamlessly.
  */
 export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   const [step, setStep] = useState(1); // 1: Crop & rotate, 2: Preview, 3: Saving
   const [loadedImage, setLoadedImage] = useState(null);
   const [rotation, setRotation] = useState(0); // 0, 90, 180, 270
@@ -192,11 +192,11 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
   const { displayW, displayH } = getDisplayMetrics();
 
   return (
-    <div className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 select-none font-sans text-white animate-fadeIn">
-      <div className="w-full max-w-lg bg-[#18191B] border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex flex-col min-h-[540px] max-h-[95vh] relative">
+    <div className="fixed inset-0 z-[99999] bg-slate-900/60 dark:bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 select-none font-sans animate-fadeIn">
+      <div className="w-full max-w-lg bg-white dark:bg-[#18191B] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-3xl overflow-hidden shadow-2xl flex flex-col min-h-[540px] max-h-[95vh] relative">
         
         {/* Header Bar */}
-        <div className="px-5 py-4 flex items-center justify-between border-b border-white/10 bg-[#141517]">
+        <div className="px-5 py-4 flex items-center justify-between border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#141517]">
           <div className="flex items-center gap-3">
             <button
               onClick={() => {
@@ -204,14 +204,14 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
                 else if (step === 1 && onClose) onClose();
               }}
               disabled={step === 3}
-              className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-white/80 hover:text-white transition cursor-pointer disabled:opacity-30"
+              className="w-9 h-9 rounded-full hover:bg-slate-200 dark:hover:bg-white/10 flex items-center justify-center text-slate-700 dark:text-white/80 hover:text-slate-900 dark:hover:text-white transition cursor-pointer disabled:opacity-30"
               title="Back"
             >
               <FaArrowLeft className="text-base" />
             </button>
-            <h2 className="text-lg font-semibold tracking-wide text-white">Crop & rotate</h2>
+            <h2 className="text-lg font-semibold tracking-wide text-slate-900 dark:text-white">Crop & rotate</h2>
           </div>
-          <button className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-white/70 hover:text-white transition cursor-pointer">
+          <button className="w-9 h-9 rounded-full hover:bg-slate-200 dark:hover:bg-white/10 flex items-center justify-center text-slate-600 dark:text-white/70 hover:text-slate-900 dark:hover:text-white transition cursor-pointer">
             <FaEllipsisV className="text-sm" />
           </button>
         </div>
@@ -225,7 +225,7 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
               onMouseDown={handleStartDrag}
               onTouchStart={handleStartDrag}
               onWheel={handleWheel}
-              className="relative w-full aspect-square max-w-[310px] mx-auto rounded-2xl bg-[#0d0e10] overflow-hidden flex items-center justify-center cursor-grab active:cursor-grabbing border border-white/10 shadow-inner"
+              className="relative w-full aspect-square max-w-[310px] mx-auto rounded-2xl bg-slate-900 dark:bg-[#0d0e10] overflow-hidden flex items-center justify-center cursor-grab active:cursor-grabbing border border-slate-300 dark:border-white/10 shadow-inner"
             >
               {loadedImage ? (
                 <div
@@ -256,11 +256,11 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
                   <div
                     className="absolute inset-0"
                     style={{
-                      background: "radial-gradient(circle at center, transparent 129px, rgba(0, 0, 0, 0.78) 130px)"
+                      background: "radial-gradient(circle at center, transparent 129px, rgba(0, 0, 0, 0.75) 130px)"
                     }}
                   />
                   {/* Square Crop Boundary with Corner Brackets */}
-                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[260px] h-[260px] border-2 border-white/90 rounded-none shadow-2xl">
+                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[260px] h-[260px] border-2 border-white rounded-none shadow-2xl">
                     <span className="absolute -top-1 -left-1 w-5 h-5 border-t-4 border-l-4 border-white" />
                     <span className="absolute -top-1 -right-1 w-5 h-5 border-t-4 border-r-4 border-white" />
                     <span className="absolute -bottom-1 -left-1 w-5 h-5 border-b-4 border-l-4 border-white" />
@@ -273,8 +273,8 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
             {/* Controls Area: Zoom Slider & Rotate Button */}
             <div className="flex flex-col items-center gap-3 mt-3">
               {/* Zoom Slider */}
-              <div className="flex items-center gap-3 w-full max-w-[280px] bg-[#232427] px-4 py-2 rounded-xl border border-white/10">
-                <FaSearchMinus className="text-white/60 text-xs shrink-0" />
+              <div className="flex items-center gap-3 w-full max-w-[280px] bg-slate-100 dark:bg-[#232427] px-4 py-2 rounded-xl border border-slate-200 dark:border-white/10">
+                <FaSearchMinus className="text-slate-500 dark:text-white/60 text-xs shrink-0" />
                 <input
                   type="range"
                   min="1"
@@ -282,23 +282,23 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
                   step="0.05"
                   value={zoom}
                   onChange={(e) => setZoom(parseFloat(e.target.value))}
-                  className="w-full accent-[#A8C7FA] cursor-pointer"
+                  className="w-full accent-[#7C3AED] dark:accent-[#A8C7FA] cursor-pointer"
                 />
-                <FaSearchPlus className="text-white/60 text-xs shrink-0" />
+                <FaSearchPlus className="text-slate-500 dark:text-white/60 text-xs shrink-0" />
               </div>
 
               {/* Rotate & Reset Buttons */}
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleRotate}
-                  className="flex items-center gap-2 px-5 py-2 rounded-2xl bg-[#28292C] hover:bg-[#323337] active:scale-95 text-white/90 font-medium text-xs border border-white/10 transition cursor-pointer shadow-md"
+                  className="flex items-center gap-2 px-5 py-2 rounded-2xl bg-slate-100 dark:bg-[#28292C] hover:bg-slate-200 dark:hover:bg-[#323337] active:scale-95 text-slate-800 dark:text-white/90 font-medium text-xs border border-slate-200 dark:border-white/10 transition cursor-pointer shadow-sm"
                 >
-                  <FaRedo className="text-xs text-white/80" />
+                  <FaRedo className="text-xs text-slate-600 dark:text-white/80" />
                   <span>Rotate</span>
                 </button>
                 <button
                   onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
-                  className="px-4 py-2 rounded-2xl bg-[#28292C] hover:bg-[#323337] active:scale-95 text-white/70 hover:text-white font-medium text-xs border border-white/10 transition cursor-pointer"
+                  className="px-4 py-2 rounded-2xl bg-slate-100 dark:bg-[#28292C] hover:bg-slate-200 dark:hover:bg-[#323337] active:scale-95 text-slate-700 dark:text-white/70 hover:text-slate-900 dark:hover:text-white font-medium text-xs border border-slate-200 dark:border-white/10 transition cursor-pointer"
                 >
                   Reset
                 </button>
@@ -307,7 +307,7 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
               {/* Next Button */}
               <button
                 onClick={handleNext}
-                className="w-full max-w-[200px] py-2.5 rounded-full bg-[#A8C7FA] hover:bg-[#BBE0FF] active:scale-95 text-[#041E49] font-bold text-sm transition cursor-pointer shadow-lg tracking-wide mt-1"
+                className="w-full max-w-[200px] py-2.5 rounded-full bg-[#7C3AED] dark:bg-[#A8C7FA] hover:bg-[#6D28D9] dark:hover:bg-[#BBE0FF] active:scale-95 text-white dark:text-[#041E49] font-bold text-sm transition cursor-pointer shadow-lg tracking-wide mt-1"
               >
                 Next
               </button>
@@ -319,42 +319,42 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
         {step === 2 && (
           <div className="flex-1 flex flex-col justify-between p-5 sm:p-7 text-center">
             <div className="space-y-4 flex flex-col items-center">
-              <h3 className="text-xl font-bold text-white tracking-wide">Your new profile picture</h3>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-wide">Your new profile picture</h3>
 
               {/* Visible to anyone pill */}
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#232427] border border-white/15 text-xs font-semibold text-white/90 shadow-sm">
-                <FaGlobe className="text-white/70 text-xs" />
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 dark:bg-[#232427] border border-slate-200 dark:border-white/15 text-xs font-semibold text-slate-700 dark:text-white/90 shadow-sm">
+                <FaGlobe className="text-slate-500 dark:text-white/70 text-xs" />
                 <span>Visible to anyone</span>
               </div>
 
               {/* Circular Cropped Photo Preview */}
-              <div className="w-48 h-48 sm:w-52 sm:h-52 rounded-full overflow-hidden border-4 border-white/20 shadow-2xl my-2 bg-black">
+              <div className="w-48 h-48 sm:w-52 sm:h-52 rounded-full overflow-hidden border-4 border-slate-200 dark:border-white/20 shadow-2xl my-2 bg-black">
                 <img src={croppedDataUrl} alt="Preview" className="w-full h-full object-cover" />
               </div>
 
               {/* Info Notice Box */}
-              <div className="w-full bg-[#232427] border border-white/10 rounded-2xl p-3.5 flex items-center gap-3 text-left shadow-sm">
-                <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-                  <FaInfoCircle className="text-white/80 text-sm" />
+              <div className="w-full bg-slate-100 dark:bg-[#232427] border border-slate-200 dark:border-white/10 rounded-2xl p-3.5 flex items-center gap-3 text-left shadow-sm">
+                <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-white/10 flex items-center justify-center shrink-0">
+                  <FaInfoCircle className="text-slate-600 dark:text-white/80 text-sm" />
                 </div>
-                <p className="text-xs text-white/80 leading-relaxed font-medium">
+                <p className="text-xs text-slate-600 dark:text-white/80 leading-relaxed font-medium">
                   It could take a moment to see the change across all your TeachHub services.
                 </p>
               </div>
             </div>
 
             {/* Step 2 Action Buttons */}
-            <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">
+            <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
               <button
                 onClick={() => setStep(1)}
-                className="px-6 py-2.5 rounded-full hover:bg-white/10 text-white/80 hover:text-white text-xs font-bold transition cursor-pointer"
+                className="px-6 py-2.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-white/80 hover:text-slate-900 dark:hover:text-white text-xs font-bold transition cursor-pointer"
               >
                 Cancel
               </button>
 
               <button
                 onClick={handleSave}
-                className="px-7 py-2.5 rounded-full bg-[#A8C7FA] hover:bg-[#BBE0FF] active:scale-95 text-[#041E49] font-bold text-xs transition cursor-pointer shadow-lg"
+                className="px-7 py-2.5 rounded-full bg-[#7C3AED] dark:bg-[#A8C7FA] hover:bg-[#6D28D9] dark:hover:bg-[#BBE0FF] active:scale-95 text-white dark:text-[#041E49] font-bold text-xs transition cursor-pointer shadow-lg"
               >
                 Save as profile picture
               </button>
@@ -368,7 +368,7 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
             {/* Avatar Circle with Animated Ring */}
             <div className="relative w-44 h-44 sm:w-48 sm:h-48 flex items-center justify-center">
               {/* Spinning Ring */}
-              <div className="absolute inset-0 rounded-full border-4 border-[#A8C7FA] border-t-transparent animate-spin" />
+              <div className="absolute inset-0 rounded-full border-4 border-[#7C3AED] dark:border-[#A8C7FA] border-t-transparent animate-spin" />
               {/* Profile Image inside */}
               <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-full overflow-hidden shadow-xl bg-black">
                 <img src={croppedDataUrl} alt="Saving" className="w-full h-full object-cover" />
@@ -376,8 +376,8 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
             </div>
 
             <div className="space-y-1">
-              <p className="text-base sm:text-lg font-bold text-white tracking-wide">Saving profile picture...</p>
-              <p className="text-xs text-white/60 font-medium">Please wait while your photo updates</p>
+              <p className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-wide">Saving profile picture...</p>
+              <p className="text-xs text-slate-500 dark:text-white/60 font-medium">Please wait while your photo updates</p>
             </div>
           </div>
         )}
@@ -386,3 +386,4 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
     </div>
   );
 }
+

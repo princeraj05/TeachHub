@@ -1,6 +1,7 @@
 import React from "react";
 import axios from "axios";
 import { getMediaUrl } from "../../../../../config/api";
+import { formatReverseGeocodeLocation } from "../../../../../utils/permissionAndDownloadUtils";
 import {
   FaSchool,
   FaUsers,
@@ -52,8 +53,9 @@ function BasicInfoTab({
               }
             }
           );
-          if (res.data && res.data.display_name) {
-            setAddress(res.data.display_name);
+          const formatted = formatReverseGeocodeLocation(res.data, latitude, longitude);
+          if (formatted) {
+            setAddress(formatted);
           } else {
             setAddress(`${latitude}, ${longitude}`);
           }

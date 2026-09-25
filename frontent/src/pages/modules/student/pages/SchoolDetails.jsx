@@ -703,37 +703,6 @@ function SchoolDetails() {
             </div>
           </div>
 
-          {/* At a Glance Section */}
-          <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 p-6 rounded-3xl shadow-md text-left">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-4">{school.name} at a Glance</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center select-none">
-              <div className="p-3 bg-slate-50 dark:bg-white/[0.01] border border-slate-200/40 dark:border-white/[0.04] rounded-2xl flex flex-col items-center gap-1.5">
-                <span className="text-xl">🏆</span>
-                <p className="text-xs font-extrabold text-slate-900 dark:text-white leading-none">20+</p>
-                <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase">Years of Excellence</p>
-              </div>
-              <div className="p-3 bg-slate-50 dark:bg-white/[0.01] border border-slate-200/40 dark:border-white/[0.04] rounded-2xl flex flex-col items-center gap-1.5">
-                <span className="text-xl">👥</span>
-                <p className="text-xs font-extrabold text-slate-900 dark:text-white leading-none">14.7:1</p>
-                <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase">Student-Teacher Ratio</p>
-              </div>
-              <div className="p-3 bg-slate-50 dark:bg-white/[0.01] border border-slate-200/40 dark:border-white/[0.04] rounded-2xl flex flex-col items-center gap-1.5">
-                <span className="text-xl">🏅</span>
-                <p className="text-xs font-extrabold text-slate-900 dark:text-white leading-none">5+</p>
-                <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase">Awards Won</p>
-              </div>
-              <div className="p-3 bg-slate-50 dark:bg-white/[0.01] border border-slate-200/40 dark:border-white/[0.04] rounded-2xl flex flex-col items-center gap-1.5">
-                <span className="text-xl">🏀</span>
-                <p className="text-xs font-extrabold text-slate-900 dark:text-white leading-none">10+</p>
-                <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase">Co-Curricular Clubs</p>
-              </div>
-              <div className="p-3 bg-slate-50 dark:bg-white/[0.01] border border-slate-200/40 dark:border-white/[0.04] rounded-2xl flex flex-col items-center gap-1.5 col-span-2 sm:col-span-1">
-                <span className="text-xl">🛡️</span>
-                <p className="text-xs font-extrabold text-slate-900 dark:text-white leading-none">100%</p>
-                <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase">Safe Campus</p>
-              </div>
-            </div>
-          </div>
 
           {/* School Events List */}
           {(upcomingEvents.length > 0 || completedEvents.length > 0) && (
@@ -818,7 +787,7 @@ function SchoolDetails() {
                     <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">{school.principalName}</h2>
                     <span className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] shadow-sm"><FaCheckCircle /></span>
                   </div>
-                  <p className="text-xs text-slate-455 dark:text-slate-500 font-bold uppercase mt-0.5">{school.principalDesignation || "Principal, G.D Academy"}</p>
+                  <p className="text-xs text-slate-455 dark:text-slate-500 font-bold uppercase mt-0.5">{school.principalDesignation || (school.name ? `Principal, ${school.name}` : "Principal")}</p>
                 </div>
 
                 {school.principalIntroduction && (
@@ -863,45 +832,6 @@ function SchoolDetails() {
             </div>
           )}
 
-          {/* Stats Widgets */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 select-none animate-fadeIn">
-            <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 p-4 rounded-3xl shadow-sm flex items-center gap-3.5 text-left">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 border border-purple-500/20 text-lg">
-                🎓
-              </div>
-              <div>
-                <p className="text-sm font-black text-slate-900 dark:text-white">20+ Years</p>
-                <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Experience</p>
-              </div>
-            </div>
-            <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 p-4 rounded-3xl shadow-sm flex items-center gap-3.5 text-left">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0 border border-blue-500/20 text-lg">
-                👥
-              </div>
-              <div>
-                <p className="text-sm font-black text-slate-900 dark:text-white">5000+ Mentored</p>
-                <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Students</p>
-              </div>
-            </div>
-            <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 p-4 rounded-3xl shadow-sm flex items-center gap-3.5 text-left">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 border border-amber-500/20 text-lg">
-                🏆
-              </div>
-              <div>
-                <p className="text-sm font-black text-slate-900 dark:text-white">25+ Awards</p>
-                <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Received</p>
-              </div>
-            </div>
-            <div className="bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/10 p-4 rounded-3xl shadow-sm flex items-center gap-3.5 text-left">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20 text-lg">
-                🌟
-              </div>
-              <div>
-                <p className="text-sm font-black text-slate-900 dark:text-white">Visionary Leader</p>
-                <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">In Education</p>
-              </div>
-            </div>
-          </div>
 
           {/* Teachers Section */}
           <div className="space-y-5 text-left animate-fadeIn">
