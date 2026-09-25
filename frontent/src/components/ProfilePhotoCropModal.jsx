@@ -321,25 +321,9 @@ export default function ProfilePhotoCropModal({ imageSrc, onClose, onSave }) {
             <div className="space-y-4 flex flex-col items-center">
               <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-wide">Your new profile picture</h3>
 
-              {/* Visible to anyone pill */}
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 dark:bg-[#232427] border border-slate-200 dark:border-white/15 text-xs font-semibold text-slate-700 dark:text-white/90 shadow-sm">
-                <FaGlobe className="text-slate-500 dark:text-white/70 text-xs" />
-                <span>Visible to anyone</span>
-              </div>
-
               {/* Circular Cropped Photo Preview */}
               <div className="w-48 h-48 sm:w-52 sm:h-52 rounded-full overflow-hidden border-4 border-slate-200 dark:border-white/20 shadow-2xl my-2 bg-black">
                 <img src={croppedDataUrl} alt="Preview" className="w-full h-full object-cover" />
-              </div>
-
-              {/* Info Notice Box */}
-              <div className="w-full bg-slate-100 dark:bg-[#232427] border border-slate-200 dark:border-white/10 rounded-2xl p-3.5 flex items-center gap-3 text-left shadow-sm">
-                <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-white/10 flex items-center justify-center shrink-0">
-                  <FaInfoCircle className="text-slate-600 dark:text-white/80 text-sm" />
-                </div>
-                <p className="text-xs text-slate-600 dark:text-white/80 leading-relaxed font-medium">
-                  It could take a moment to see the change across all your TeachHub services.
-                </p>
               </div>
             </div>
 

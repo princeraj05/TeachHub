@@ -197,7 +197,7 @@ function TeacherLeave() {
       </div>
 
       {/* KPI Cards Row (2 COLUMNS ON MOBILE) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4 mb-6">
+      <div className="hidden grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4 mb-6">
         
         {/* Total Balance */}
         <div className="hidden bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-3.5 sm:p-4 rounded-2.5xl sm:rounded-3xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
