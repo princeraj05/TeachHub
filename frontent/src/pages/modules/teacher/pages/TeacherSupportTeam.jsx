@@ -15,7 +15,7 @@ export default function TeacherSupportTeam() {
   };
 
   return (
-    <div className="space-y-6 font-sans">
+    <div className="space-y-6 font-sans pb-32">
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-[#7C3AED] to-[#38BDF8] rounded-3xl p-6 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">

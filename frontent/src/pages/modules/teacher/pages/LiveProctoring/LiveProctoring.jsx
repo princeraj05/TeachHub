@@ -117,7 +117,7 @@ function LiveProctoring() {
   };
 
   return (
-    <div className="space-y-6 pb-12" style={{ fontFamily: SORA }}>
+    <div className="space-y-6 pb-32" style={{ fontFamily: SORA }}>
       
       {/* Top Header & Layout Controls */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-[#0B132A] p-4 sm:p-5 rounded-2.5xl sm:rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm">

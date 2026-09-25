@@ -191,7 +191,7 @@ function TeacherDashboard() {
   }
 
   return (
-    <div style={{ fontFamily: SORA }} className="space-y-6 pb-20 select-none text-slate-805 dark:text-slate-100">
+    <div style={{ fontFamily: SORA }} className="space-y-6 pb-32 select-none text-slate-800 dark:text-slate-100">
       
 
 

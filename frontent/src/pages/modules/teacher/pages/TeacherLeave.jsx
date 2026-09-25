@@ -179,7 +179,7 @@ function TeacherLeave() {
   const filteredLeavesList = getFilteredLeaves();
 
   return (
-    <div className="w-full text-slate-800 dark:text-white pb-10 animate-none" style={{ fontFamily: SORA }}>
+    <div className="w-full text-slate-800 dark:text-white pb-32 animate-none" style={{ fontFamily: SORA }}>
       
       {/* Title & Breadcrumb Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -197,10 +197,10 @@ function TeacherLeave() {
       </div>
 
       {/* KPI Cards Row (2 COLUMNS ON MOBILE) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4 mb-6">
         
         {/* Total Balance */}
-        <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-3.5 sm:p-4 rounded-2.5xl sm:rounded-3xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
+        <div className="hidden bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-3.5 sm:p-4 rounded-2.5xl sm:rounded-3xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-purple-500/10 text-purple-500 border border-purple-500/15 flex items-center justify-center shrink-0">
             <FaCalendarDay className="text-xs sm:text-sm" />
           </div>
@@ -429,7 +429,7 @@ function TeacherLeave() {
         <div className="flex flex-col gap-6">
           
           {/* Leave Balance Overview widget */}
-          <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm">
+          <div className="hidden bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-5 rounded-2xl shadow-sm">
             <div className="pb-3 border-b border-slate-100 dark:border-white/[0.03] mb-4 select-none">
               <h3 className="text-xs font-black uppercase text-slate-450 tracking-wider">Leave Balance Overview</h3>
             </div>

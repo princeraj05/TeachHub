@@ -334,7 +334,7 @@ export default function TeacherAcademicResults() {
   const currentSubjectObj = assignedSubjects.find(s => s._id === selectedSubjectId);
 
   return (
-    <div className="font-sans text-slate-800 dark:text-slate-100 pb-16" style={{ fontFamily: SORA }}>
+    <div className="font-sans text-slate-800 dark:text-slate-100 pb-32" style={{ fontFamily: SORA }}>
       
       {/* Page Header */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

@@ -460,7 +460,7 @@ function MarkAttendance() {
   const strokeDashoffset = circumference - (presentPct / 100) * circumference;
 
   return (
-    <div className="w-full text-slate-800 dark:text-white pb-10" style={{ fontFamily: SORA }}>
+    <div className="w-full text-slate-800 dark:text-white pb-32" style={{ fontFamily: SORA }}>
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
@@ -847,6 +847,31 @@ function MarkAttendance() {
 
         </div>
 
+      </div>
+
+      {/* Mobile Floating Sticky Save Action Bar */}
+      <div className="lg:hidden fixed bottom-16 left-0 right-0 p-3 bg-white/95 dark:bg-[#0B132A]/95 backdrop-blur-md border-t border-slate-200/80 dark:border-white/10 z-30 shadow-lg flex items-center justify-between gap-3">
+        <div className="text-left">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Attendance Ledger</p>
+          <p className="text-xs font-black text-slate-800 dark:text-white">{presentCount} Present / {absentCount} Absent</p>
+        </div>
+        <button
+          onClick={handleSaveAttendance}
+          disabled={submitting || totalRoster === 0 || !selectedSubjectId || isCurrentSubjectCompleted || isFutureDate}
+          className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-md shadow-purple-600/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 shrink-0"
+        >
+          {submitting ? (
+            <>
+              <div className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <FaSave />
+              Save Attendance
+            </>
+          )}
+        </button>
       </div>
 
       {/* Modern Custom UI Modal / Dialog */}

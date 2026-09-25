@@ -316,7 +316,7 @@ export default function TeacherMyDiary() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12" style={{ fontFamily: SORA }}>
+    <div className="space-y-6 max-w-7xl mx-auto pb-32" style={{ fontFamily: SORA }}>
       {/* Toast Notification */}
       {successMsg && (
         <div className="fixed top-20 right-5 z-[99] bg-emerald-600 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 animate-slideDown">

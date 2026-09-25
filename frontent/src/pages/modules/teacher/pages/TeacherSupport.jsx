@@ -166,44 +166,44 @@ function TeacherSupport() {
   return (
     <div className="font-sans flex flex-col h-[calc(100vh-130px)] min-h-[500px] bg-white dark:bg-[#0B132A] border border-slate-200/60 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl overflow-hidden shadow-sm">
       {/* Top Header & Tab bar */}
-      <div className="flex flex-wrap items-center justify-between border-b border-slate-100 dark:border-white/[0.05] bg-slate-50/50 dark:bg-[#111827] p-2 sm:p-2.5 gap-2 select-none shrink-0">
-        <div className="flex items-center gap-1.5 sm:gap-2">
+      <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/[0.05] bg-slate-50/50 dark:bg-[#111827] p-2 sm:p-2.5 gap-1.5 overflow-x-auto no-scrollbar select-none shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           <button
             onClick={() => handleTabChange("admin")}
-            className={`px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+            className={`px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition cursor-pointer whitespace-nowrap ${
               activeTab === "admin"
                 ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/15"
                 : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
             }`}
           >
-            School Admin Support
+            Admin Support
           </button>
           <button
             onClick={() => handleTabChange("students")}
-            className={`px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+            className={`px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition cursor-pointer whitespace-nowrap ${
               activeTab === "students"
                 ? "bg-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/15"
                 : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
             }`}
           >
-            My Students Chat
+            Students Chat
           </button>
         </div>
 
-        <div className="flex items-center gap-2 ml-auto shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0 ml-auto">
           <button
             onClick={() => setIsTicketModalOpen(true)}
-            className="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-white shadow-sm hover:opacity-90 transition flex items-center gap-1.5 cursor-pointer"
+            className="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold text-white shadow-sm hover:opacity-90 transition flex items-center gap-1 cursor-pointer whitespace-nowrap"
           >
-            <FaTicketAlt className="text-xs" />
-            <span>+ Create Support Ticket</span>
+            <FaTicketAlt className="text-[10px] sm:text-xs" />
+            <span>+ Ticket</span>
           </button>
 
           <Link 
             to="/teacher/support/groups" 
-            className="rounded-xl bg-[#7C3AED] px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-white shadow-sm hover:opacity-90 transition shrink-0"
+            className="rounded-xl bg-[#7C3AED] px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold text-white shadow-sm hover:opacity-90 transition shrink-0 whitespace-nowrap"
           >
-            + Make Group
+            + Group
           </Link>
         </div>
       </div>

@@ -135,7 +135,7 @@ function MyClasses() {
     ];
 
     return (
-      <div style={{ fontFamily: SORA }} className="space-y-6 pb-20 text-slate-800 dark:text-slate-100 select-none">
+      <div style={{ fontFamily: SORA }} className="space-y-6 pb-32 text-slate-800 dark:text-slate-100 select-none">
         
         {/* Back navigation & Header */}
         <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
@@ -807,7 +807,7 @@ function MyClasses() {
   );
 
   return (
-    <div style={{ fontFamily: SORA }} className="space-y-6 pb-20 text-slate-800 dark:text-slate-100 select-none">
+    <div style={{ fontFamily: SORA }} className="space-y-6 pb-32 text-slate-800 dark:text-slate-100 select-none">
       
       {/* Page Header */}
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
@@ -840,7 +840,7 @@ function MyClasses() {
       </div>
 
       {/* Stats Cards Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="hidden grid-cols-1 md:grid-cols-3 gap-5">
         {/* Total Classes */}
         <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-3xl p-5 flex items-center gap-4 shadow-sm relative overflow-hidden group hover:shadow-md transition-all duration-300">
           <div className="w-11 h-11 rounded-2xl bg-purple-500/10 text-purple-500 border border-purple-500/20 flex items-center justify-center shrink-0">

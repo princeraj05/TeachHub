@@ -222,7 +222,7 @@ function TeacherProfile() {
   }
 
   return (
-    <div style={{ fontFamily: SORA }} className="space-y-6 max-w-5xl mx-auto pb-12 select-none text-left">
+    <div style={{ fontFamily: SORA }} className="space-y-6 max-w-5xl mx-auto pb-32 select-none text-left">
       <input 
         type="file" 
         ref={fileInputRef} 

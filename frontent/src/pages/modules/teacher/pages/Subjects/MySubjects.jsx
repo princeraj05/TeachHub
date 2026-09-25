@@ -74,7 +74,7 @@ function MySubjects() {
   );
 
   return (
-    <div className="w-full text-slate-800 dark:text-white pb-10" style={{ fontFamily: SORA }}>
+    <div className="w-full text-slate-800 dark:text-white pb-32" style={{ fontFamily: SORA }}>
       {/* Page Title */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
@@ -86,7 +86,7 @@ function MySubjects() {
       </div>
 
       {/* Summary Cards (KPIs) */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-4 mb-6">
+      <div className="hidden grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-4 mb-6">
         {/* Total Subjects */}
         <div className="bg-white dark:bg-[#111827] border border-slate-200/50 dark:border-white/[0.05] p-3 sm:p-4 rounded-2.5xl sm:rounded-3xl shadow-sm flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 border border-purple-500/15 flex items-center justify-center shrink-0">

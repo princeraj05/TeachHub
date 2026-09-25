@@ -266,7 +266,7 @@ function MyStudents() {
       : "S";
 
     return (
-      <div style={{ fontFamily: SORA }} className="space-y-6 pb-20 text-slate-800 dark:text-slate-100 select-none">
+    <div style={{ fontFamily: SORA }} className="space-y-6 pb-32 text-slate-800 dark:text-slate-100 select-none">
         
         {/* Back and title navigation */}
         <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
@@ -1408,7 +1408,7 @@ function MyStudents() {
   };
 
   return (
-    <div style={{ fontFamily: SORA }} className="space-y-6 pb-20 text-slate-800 dark:text-slate-100 select-none">
+    <div style={{ fontFamily: SORA }} className="space-y-6 pb-32 text-slate-800 dark:text-slate-100 select-none">
       
       {/* Page Welcome Header */}
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
@@ -1441,7 +1441,7 @@ function MyStudents() {
       </div>
 
       {/* Top Stats Cards Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-5">
+      <div className="hidden grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-5">
         {/* Total Students */}
         <div className="bg-white dark:bg-[#0B132A] border border-slate-200/70 dark:border-white/[0.08] rounded-2.5xl sm:rounded-3xl p-3.5 sm:p-5 relative overflow-hidden flex flex-col justify-between group shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-start justify-between">

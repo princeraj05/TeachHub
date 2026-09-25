@@ -418,28 +418,19 @@ exports.getLeavesSummary = async (req, res) => {
       }
     });
 
-    const allowances = {
-      casual: Math.max(0, 10 - usedAllowances["Casual Leave"]),
-      sick: Math.max(0, 3 - usedAllowances["Sick Leave"]),
-      special: Math.max(0, 2 - usedAllowances["Special Leave"]),
-      compOff: Math.max(0, 0 - usedAllowances["Comp. Off"])
-    };
-
-    const totalBalance = allowances.casual + allowances.sick + allowances.special + allowances.compOff;
-
     res.json({
       summary: {
-        totalBalance: totalBalance,
+        totalBalance: 0,
         approved: approvedCount,
         pending: pendingCount,
         rejected: rejectedCount
       },
       overview: {
-        casual: allowances.casual,
-        sick: allowances.sick,
-        special: allowances.special,
-        compOff: allowances.compOff,
-        totalBalance: totalBalance
+        casual: usedAllowances["Casual Leave"],
+        sick: usedAllowances["Sick Leave"],
+        special: usedAllowances["Special Leave"],
+        compOff: usedAllowances["Comp. Off"],
+        totalBalance: 0
       }
     });
   } catch (error) {

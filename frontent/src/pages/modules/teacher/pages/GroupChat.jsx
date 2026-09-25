@@ -56,7 +56,7 @@ export default function GroupChat() {
     } catch (error) { setNotice(error.response?.data?.message || "Could not send message."); }
   };
 
-  return <div className="max-w-6xl mx-auto space-y-4">
+  return <div className="max-w-6xl mx-auto space-y-4 pb-32">
     <div><p className="text-[10px] uppercase font-bold text-[#7C3AED]">Support Chat</p><h1 className="text-2xl font-extrabold dark:text-white">{isTeacher ? "Student Groups" : "My Group Chats"}</h1></div>
     {notice && <p className="text-sm text-violet-700">{notice}</p>}
     <div className="grid lg:grid-cols-[320px_1fr] gap-4"><aside className="space-y-3">

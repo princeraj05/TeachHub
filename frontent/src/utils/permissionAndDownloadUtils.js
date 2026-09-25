@@ -1,4 +1,6 @@
 import API_URL from "../config/api";
+import { Capacitor } from "@capacitor/core";
+import { Geolocation } from "@capacitor/geolocation";
 /**
  * TeachHub Permission & Mobile Download Utility
  * Provides Just-In-Time permission requests for Camera, Microphone, Location,
@@ -59,38 +61,82 @@ export const requestScreenSharePermission = async () => {
   }
 };
 
-// 3. Just-In-Time Location Permission
-export const requestLocationPermission = () => {
-  return new Promise((resolve) => {
-    if (!navigator.geolocation) {
-      resolve({ success: false, error: "Geolocation is not supported by your browser." });
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        resolve({
+// 3. Just-In-Time Location Permission (Native Capacitor + Web Geolocation Fallback)
+export const requestLocationPermission = async () => {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const permResult = await Geolocation.requestPermissions();
+      if (permResult.location === "granted" || permResult.coarseLocation === "granted") {
+        const position = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        });
+        return {
           success: true,
           coords: {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
             accuracy: position.coords.accuracy
           }
-        });
-      },
-      (error) => {
-        console.error("Location Permission Error:", error);
-        let message = "Location permission is required.";
-        if (error.code === error.PERMISSION_DENIED) {
-          message = "Location access was denied. Please turn on location permissions in your browser settings.";
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-          message = "Location information is unavailable.";
-        } else if (error.code === error.TIMEOUT) {
-          message = "Location request timed out.";
+        };
+      } else {
+        return {
+          success: false,
+          error: "Location permission was denied. Please turn on Location in your app permissions."
+        };
+      }
+    } catch (err) {
+      console.warn("Native Geolocation failed, trying fallback:", err);
+    }
+  }
+
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve({ success: false, error: "Geolocation is not supported on this device." });
+      return;
+    }
+
+    const getPositionSuccess = (position) => {
+      resolve({
+        success: true,
+        coords: {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy
         }
-        resolve({ success: false, error: message });
+      });
+    };
+
+    const getPositionError = (error) => {
+      console.error("Location Permission Error:", error);
+      let message = "Location permission is required.";
+      if (error.code === error.PERMISSION_DENIED) {
+        message = Capacitor.isNativePlatform()
+          ? "Location permission was denied. Please turn on Location in your phone Settings."
+          : "Location access was denied. Please turn on location permissions in your browser settings.";
+      } else if (error.code === error.POSITION_UNAVAILABLE) {
+        message = "Location information is unavailable. Please check if GPS is enabled.";
+      } else if (error.code === error.TIMEOUT) {
+        message = "Location request timed out. Please check your GPS signal.";
+      }
+      resolve({ success: false, error: message });
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      getPositionSuccess,
+      (err) => {
+        if (err.code === err.TIMEOUT || err.code === err.POSITION_UNAVAILABLE) {
+          navigator.geolocation.getCurrentPosition(
+            getPositionSuccess,
+            getPositionError,
+            { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+          );
+        } else {
+          getPositionError(err);
+        }
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
     );
   });
 };

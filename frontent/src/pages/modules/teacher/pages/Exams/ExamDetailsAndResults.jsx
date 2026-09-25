@@ -164,7 +164,7 @@ function ExamDetailsAndResults() {
   });
 
   return (
-    <div className="w-full text-slate-800 dark:text-white pb-10" style={{ fontFamily: SORA }}>
+    <div className="w-full text-slate-800 dark:text-white pb-32" style={{ fontFamily: SORA }}>
       
       {/* Top Header Navigation */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">

@@ -71,7 +71,7 @@ function TeacherEvents() {
   };
 
   return (
-    <div className="font-sans space-y-4 sm:space-y-6" style={{ fontFamily: SORA }}>
+    <div className="font-sans space-y-4 sm:space-y-6 pb-32" style={{ fontFamily: SORA }}>
       {/* Page Title Header */}
       <div className="border-b border-slate-200/60 dark:border-white/10 pb-3 sm:pb-4 select-none">
         <h2 className="text-lg sm:text-xl font-black text-slate-800 dark:text-white tracking-tight">School Events</h2>
