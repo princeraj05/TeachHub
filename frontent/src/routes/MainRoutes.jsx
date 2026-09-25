@@ -15,6 +15,7 @@ const SupportRoutes = lazy(() => import("../pages/modules/support/SupportRoutes"
 
 const PublicLegalPage = lazy(() => import("../pages/public/PublicLegalPage"));
 const PublicDeleteAccountPage = lazy(() => import("../pages/public/PublicDeleteAccountPage"));
+const PublicSchoolDetails = lazy(() => import("../pages/modules/student/pages/SchoolDetails"));
 
 const ModuleLoader = () => (
   <div className="flex items-center justify-center h-screen w-screen bg-[#F8FAFC] dark:bg-[#090F1C]">
@@ -83,6 +84,7 @@ function MainRoutes() {
         <Route path="/refund-policy" element={<PublicLegalPage type="refund-policy" />} />
         <Route path="/about-us" element={<PublicLegalPage type="about-us" />} />
         <Route path="/delete-account" element={<PublicDeleteAccountPage />} />
+        <Route path="/schools/:name" element={<PublicSchoolDetails />} />
         
         {/* Pending Approval */}
         <Route

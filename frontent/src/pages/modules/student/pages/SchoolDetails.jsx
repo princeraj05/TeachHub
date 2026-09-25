@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
-import { getMediaUrl } from "../../../../config/api";
+import { getMediaUrl, PUBLIC_SITE_URL } from "../../../../config/api";
 import { usePlatform } from "../../../../context/PlatformContext";
 import {
   FaSchool,
@@ -35,7 +35,7 @@ function SchoolDetails() {
   
   let name = params.name;
   if (!name) {
-    const match = location.pathname.match(/\/pending\/schools\/(.+)/);
+    const match = location.pathname.match(/\/(?:pending\/)?schools\/(.+)/);
     if (match) {
       name = decodeURIComponent(match[1]);
     }
@@ -43,6 +43,38 @@ function SchoolDetails() {
 
   const navigate = useNavigate();
   const { platformName } = usePlatform() || {};
+
+  const handleShareSchool = async () => {
+    let baseUrl = PUBLIC_SITE_URL;
+    if (!baseUrl || baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1")) {
+      baseUrl = "https://yourschoolacademy.com";
+    }
+    const cleanBase = baseUrl.replace(/\/+$/, "");
+    const targetName = school?.name || name || "School";
+    const encodedName = encodeURIComponent(targetName);
+    
+    // Public Web & App Universal Deep Link URL
+    const shareUrl = `${cleanBase}/#/schools/${encodedName}`;
+    const shareData = {
+      title: targetName,
+      text: `Check out ${targetName} on ${platformName || "TeachHub"}!`,
+      url: shareUrl
+    };
+
+    try {
+      if (navigator.share && (navigator.canShare ? navigator.canShare(shareData) : true)) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        alert(`School details link copied to clipboard!\n\n${shareUrl}`);
+      }
+    } catch (err) {
+      if (err.name !== "AbortError") {
+        await navigator.clipboard.writeText(shareUrl);
+        alert(`School details link copied to clipboard!\n\n${shareUrl}`);
+      }
+    }
+  };
   const platformTitle = platformName || localStorage.getItem("platformName") || "Your School";
   const API = API_URL;
   const token = localStorage.getItem("token");
@@ -550,10 +582,7 @@ function SchoolDetails() {
             <div className="flex flex-row md:flex-col gap-3.5 self-stretch justify-end md:justify-start shrink-0">
               {renderApplyButton("normal")}
               <button
-                onClick={() => {
-                  navigator.clipboard.writeText(window.location.href);
-                  alert("School details link copied to clipboard!");
-                }}
+                onClick={handleShareSchool}
                 className="flex-1 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-355 py-2.5 px-5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
               >
                 <FaShareAlt className="text-xs text-slate-400" /> Share School

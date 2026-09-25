@@ -32,6 +32,44 @@ function BackButtonHandler() {
   return null;
 }
 
+function DeepLinkHandler() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    const urlListener = CapacitorApp.addListener("appUrlOpen", (data) => {
+      try {
+        const openUrl = data?.url;
+        if (!openUrl) return;
+
+        let targetRoute = "";
+        if (openUrl.includes("#")) {
+          targetRoute = openUrl.split("#")[1];
+        } else {
+          const urlObj = new URL(openUrl);
+          targetRoute = urlObj.pathname + urlObj.search;
+        }
+
+        if (targetRoute) {
+          if (!targetRoute.startsWith("/")) {
+            targetRoute = "/" + targetRoute;
+          }
+          navigate(targetRoute);
+        }
+      } catch (err) {
+        console.log("Deep link navigation error:", err);
+      }
+    });
+
+    return () => {
+      urlListener.then((handler) => handler.remove());
+    };
+  }, [navigate]);
+
+  return null;
+}
+
 function FCMInitializer() {
   const navigate = useNavigate();
 
@@ -51,6 +89,7 @@ function App() {
   return (
     <Router>
       <BackButtonHandler />
+      <DeepLinkHandler />
       <FCMInitializer />
       <LanguageProvider>
         <PlatformProvider>

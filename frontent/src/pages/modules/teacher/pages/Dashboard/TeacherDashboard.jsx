@@ -69,15 +69,15 @@ function TeacherDashboard() {
     return defaultTeacherData;
   });
 
-  const [greeting, setGreeting] = useState("Good Morning");
 
-  useEffect(() => {
-    // Time sensitive greeting
-    const hours = new Date().getHours();
-    if (hours < 12) setGreeting("Good Morning");
-    else if (hours < 18) setGreeting("Good Afternoon");
-    else setGreeting("Good Evening");
-  }, []);
+
+
+
+
+
+
+
+
 
   useEffect(() => {
     if (!token) return;
@@ -193,15 +193,15 @@ function TeacherDashboard() {
   return (
     <div style={{ fontFamily: SORA }} className="space-y-6 pb-20 select-none text-slate-805 dark:text-slate-100">
       
-      {/* Welcome Section Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-          {greeting}, <span className="text-[#7C3AED] dark:text-[#A78BFA]">{teacherName}</span> 👋
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-450 dark:text-slate-400 font-medium mt-1">
-          Here's what's happening in your classes today.
-        </p>
-      </div>
+
+
+
+
+
+
+
+
+
 
       {/* Top Cards grid (2 COLUMNS ON MOBILE) */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-5 mb-4 sm:mb-6">

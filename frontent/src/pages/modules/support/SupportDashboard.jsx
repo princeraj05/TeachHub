@@ -82,7 +82,7 @@ export default function SupportDashboard() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white tracking-tight">
-              Welcome back, {userName} 👋
+              Support Dashboard
             </h1>
             <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
               {departmentName}

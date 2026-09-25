@@ -237,7 +237,7 @@ function AdminDashboard() {
       <div className="mb-3 sm:mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-2.5 sm:gap-4">
         <div>
           <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
-            Welcome back, {data?.adminName || "Admin"} <span className="animate-bounce">👋</span>
+            Admin Dashboard
           </h1>
           <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
             Here's what's happening at {data?.schoolName || "your school"} today.

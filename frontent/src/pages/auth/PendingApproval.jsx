@@ -395,8 +395,8 @@ function PendingApproval() {
     if (isAdminApplicant) {
       list.push({
         id: "not-admin-welcome",
-        title: `Welcome to ${platformName || "Your School"} Admin Portal`,
-        message: `Welcome! Your school registration request for ${user.requestedSchool || user.schoolName || "your school"} is under Super Admin review. You can configure your school profile and payment settings while waiting.`,
+        title: `${platformName || "TeachHub"} Admin Portal`,
+        message: `Your school registration request for ${user.requestedSchool || user.schoolName || "your school"} is under Super Admin review. You can configure your school profile and payment settings while waiting.`,
         date: user.createdAt || new Date(),
         category: "application"
       });
@@ -416,10 +416,10 @@ function PendingApproval() {
 
     list.push({
       id: "not-welcome",
-      title: `Welcome to ${platformName || "Your School"}`,
+      title: `${platformName || "TeachHub"} Portal`,
       message: isTeacher
-        ? `Welcome to ${platformName || "Your School"}! Explore registered school centers and submit your application for a teaching position.`
-        : `Welcome to ${platformName || "Your School"}! Explore available school centers in your area and submit a request to join.`,
+        ? `Explore registered school centers and submit your application for a teaching position.`
+        : `Explore available school centers in your area and submit a request to join.`,
       date: user.createdAt || new Date(),
       category: "system"
     });
