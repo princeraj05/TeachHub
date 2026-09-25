@@ -25,7 +25,10 @@ export function useAdmissionSettings(options = {}) {
     shortBreakDuration: 30,
     lunchBreakStartTime: "",
     lunchBreakDuration: 60,
-    holidays: []
+    holidays: [],
+    admissionStartDate: "01 Dec 2026",
+    admissionLastDate: "31 May 2027",
+    alwaysOpenAdmission: false
   });
 
   const fetchAdmissionSettings = useCallback(async () => {
@@ -48,7 +51,10 @@ export function useAdmissionSettings(options = {}) {
           shortBreakDuration: a.shortBreakDuration ?? 30,
           lunchBreakStartTime: a.lunchBreakStartTime || "",
           lunchBreakDuration: a.lunchBreakDuration ?? 60,
-          holidays: Array.isArray(a.holidays) ? a.holidays : []
+          holidays: Array.isArray(a.holidays) ? a.holidays : [],
+          admissionStartDate: a.admissionStartDate || "01 Dec 2026",
+          admissionLastDate: a.admissionLastDate || "31 May 2027",
+          alwaysOpenAdmission: Boolean(a.alwaysOpenAdmission)
         });
       }
       setHasLoaded(true);

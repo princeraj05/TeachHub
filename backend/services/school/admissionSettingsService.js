@@ -3,7 +3,7 @@ const School = require("../../models/School");
 const { measureDatabaseOperation } = require("../../utils/databaseDiagnostics");
 const { resolveSchoolForAdmin } = require("./schoolResolverService");
 
-const ADMISSION_SETTINGS_PROJECTION = "schoolCategoriesList admissionProcess schoolBoardType workingDays openingTime closingTime shortBreakStartTime shortBreakDuration lunchBreakStartTime lunchBreakDuration holidays admissionExam directAdmission schoolTypes adminId name";
+const ADMISSION_SETTINGS_PROJECTION = "schoolCategoriesList admissionProcess schoolBoardType workingDays openingTime closingTime shortBreakStartTime shortBreakDuration lunchBreakStartTime lunchBreakDuration holidays admissionExam directAdmission schoolTypes adminId name admissionStartDate admissionLastDate alwaysOpenAdmission";
 
 const getAdmissionSettings = async ({ adminUserId, targetSchoolName, adminEmail, reqId }) => {
   let school = await resolveSchoolForAdmin({ adminUserId, targetSchoolName, adminEmail, reqId });
@@ -85,6 +85,15 @@ const updateAdmissionSettings = async ({ adminUserId, targetSchoolName, adminEma
   if (updateData.admissionExam !== undefined) updateFields.admissionExam = updateData.admissionExam;
   if (updateData.directAdmission !== undefined) updateFields.directAdmission = updateData.directAdmission;
   if (updateData.schoolTypes !== undefined && Array.isArray(updateData.schoolTypes)) updateFields.schoolTypes = updateData.schoolTypes;
+
+  const startDate = getVal("admissionStartDate", "admissionStartDate");
+  if (startDate !== undefined) updateFields.admissionStartDate = startDate;
+
+  const lastDate = getVal("admissionLastDate", "admissionLastDate");
+  if (lastDate !== undefined) updateFields.admissionLastDate = lastDate;
+
+  const alwaysOpen = getVal("alwaysOpenAdmission", "alwaysOpenAdmission");
+  if (alwaysOpen !== undefined) updateFields.alwaysOpenAdmission = Boolean(alwaysOpen);
 
   const updatedSchool = await measureDatabaseOperation("School.updateAdmissionSettings", reqId, async () => {
     return await School.findByIdAndUpdate(

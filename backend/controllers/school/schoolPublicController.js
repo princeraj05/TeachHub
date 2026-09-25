@@ -77,13 +77,14 @@ const getSchoolDetails = async (req, res) => {
 
     logger.start("aggregateSchoolStats");
     const exactRegex = new RegExp("^" + escapeRegex(school.name) + "$", "i");
-    const [totalStudents, totalTeachers, totalClasses, totalEvents, totalSubjects, adminUser] = await Promise.all([
+    const [totalStudents, totalTeachers, totalClasses, totalEvents, totalSubjects, adminUser, schoolClasses] = await Promise.all([
       User.countDocuments({ schoolName: exactRegex, role: "student" }),
       User.countDocuments({ schoolName: exactRegex, role: "teacher" }),
       Class.countDocuments({ schoolName: exactRegex }),
       Event.countDocuments({ schoolName: exactRegex }),
       Subject.countDocuments({ schoolName: exactRegex }),
-      User.findOne({ role: "admin", schoolName: exactRegex }).select("_id name email role schoolName avatar").lean()
+      User.findOne({ role: "admin", schoolName: exactRegex }).select("_id name email role schoolName avatar").lean(),
+      Class.find({ schoolName: exactRegex }).select("name").lean()
     ]);
     logger.end("aggregateSchoolStats");
 
@@ -94,6 +95,35 @@ const getSchoolDetails = async (req, res) => {
     schoolObj.totalEvents = totalEvents;
     schoolObj.totalSubjects = totalSubjects;
     schoolObj.adminUser = adminUser || null;
+
+    if (schoolClasses && schoolClasses.length > 0) {
+      const classNames = Array.from(new Set(schoolClasses.map(c => c.name ? String(c.name).trim() : "").filter(Boolean)));
+      const getNumericGrade = (str) => {
+        const match = str.match(/\d+/);
+        if (match) return parseInt(match[0], 10);
+        const lower = str.toLowerCase();
+        if (lower.includes("nursery")) return -3;
+        if (lower.includes("lkg")) return -2;
+        if (lower.includes("ukg")) return -1;
+        return 99;
+      };
+      classNames.sort((a, b) => getNumericGrade(a) - getNumericGrade(b));
+      const formatName = (name) => {
+        if (/^\d+$/.test(name)) return `Class ${name}`;
+        if (/^class\s*\d+$/i.test(name)) {
+          const num = name.match(/\d+/)[0];
+          return `Class ${num}`;
+        }
+        return name;
+      };
+      if (classNames.length === 1) {
+        schoolObj.computedAvailableClasses = formatName(classNames[0]);
+      } else if (classNames.length > 1) {
+        const first = formatName(classNames[0]);
+        const last = formatName(classNames[classNames.length - 1]);
+        schoolObj.computedAvailableClasses = first === last ? first : `${first} to ${last}`;
+      }
+    }
 
     logger.summary();
     res.json(schoolObj);

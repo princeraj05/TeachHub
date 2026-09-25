@@ -292,6 +292,9 @@ const updateMySchool = async (req, res) => {
     if (b.schoolCategoriesList !== undefined || admission.categories !== undefined) school.schoolCategoriesList = b.schoolCategoriesList ?? admission.categories;
     if (b.admissionProcess !== undefined || admission.processes !== undefined) school.admissionProcess = b.admissionProcess ?? admission.processes;
     if (b.schoolBoardType !== undefined || admission.schoolType !== undefined) school.schoolBoardType = b.schoolBoardType ?? admission.schoolType;
+    if (b.admissionStartDate !== undefined) school.admissionStartDate = b.admissionStartDate;
+    if (b.admissionLastDate !== undefined) school.admissionLastDate = b.admissionLastDate;
+    if (b.alwaysOpenAdmission !== undefined) school.alwaysOpenAdmission = Boolean(b.alwaysOpenAdmission);
 
     // Availability fields
     if (b.workingDays !== undefined || availability.workingDays !== undefined) school.workingDays = b.workingDays ?? availability.workingDays;

@@ -105,6 +105,9 @@ const schoolSchema = new mongoose.Schema({
   lunchBreakStartTime: { type: String, default: null },
   lunchBreakDuration: { type: Number, default: 60 },
   holidays: [{ date: String, name: String }],
+  admissionStartDate: { type: String, default: "01 Dec 2026" },
+  admissionLastDate: { type: String, default: "31 May 2027" },
+  alwaysOpenAdmission: { type: Boolean, default: false },
   profileCompletion: { type: Number, default: 0 }
 }, { timestamps: true });
 

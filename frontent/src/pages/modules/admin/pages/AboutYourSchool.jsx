@@ -306,6 +306,9 @@ function AboutYourSchool() {
             lunchBreakStartTime={admission.formData.lunchBreakStartTime} setLunchBreakStartTime={val => admission.updateField("lunchBreakStartTime", val)}
             lunchBreakDuration={admission.formData.lunchBreakDuration} setLunchBreakDuration={val => admission.updateField("lunchBreakDuration", val)}
             holidays={admission.formData.holidays} setHolidays={val => admission.updateField("holidays", val)}
+            admissionStartDate={admission.formData.admissionStartDate} setAdmissionStartDate={val => admission.updateField("admissionStartDate", val)}
+            admissionLastDate={admission.formData.admissionLastDate} setAdmissionLastDate={val => admission.updateField("admissionLastDate", val)}
+            alwaysOpenAdmission={admission.formData.alwaysOpenAdmission} setAlwaysOpenAdmission={val => admission.updateField("alwaysOpenAdmission", val)}
           />
         )}
 

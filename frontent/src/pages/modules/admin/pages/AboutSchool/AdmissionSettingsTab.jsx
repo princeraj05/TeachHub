@@ -4,6 +4,7 @@ import {
   FaClipboardList,
   FaBuilding,
   FaClock,
+  FaCalendarAlt,
   FaPlus,
   FaTrashAlt,
   FaTimes,
@@ -32,7 +33,10 @@ function AdmissionSettingsTab({
   shortBreakDuration, setShortBreakDuration,
   lunchBreakStartTime, setLunchBreakStartTime,
   lunchBreakDuration, setLunchBreakDuration,
-  holidays, setHolidays
+  holidays, setHolidays,
+  admissionStartDate, setAdmissionStartDate,
+  admissionLastDate, setAdmissionLastDate,
+  alwaysOpenAdmission, setAlwaysOpenAdmission
 }) {
 
   // Local state for holiday input modal/prompt
@@ -198,6 +202,123 @@ function AdmissionSettingsTab({
           </div>
         </div>
 
+      </div>
+
+      {/* ADMISSION SCHEDULE & DATES */}
+      <div className="bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm dark:shadow-xl">
+        <div className="flex items-center gap-2 border-b border-slate-200/60 dark:border-slate-800/60 pb-3 mb-4">
+          <FaCalendarAlt className="text-purple-500 text-sm" />
+          <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-350 tracking-wider">Admission Schedule & Dates</h3>
+        </div>
+        <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium mb-4">Set the admission start date and application deadline for prospective students.</p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {/* Admission Start Date */}
+          <div>
+            <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Admission Start Date</label>
+            <div className="relative flex items-center">
+              <input
+                type="text"
+                value={admissionStartDate || ""}
+                onChange={(e) => setAdmissionStartDate(e.target.value)}
+                className="w-full pl-3 pr-10 py-2.5 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 font-bold"
+                placeholder="e.g. 01 Dec 2026"
+              />
+              <input
+                type="date"
+                id="admission-start-date-picker"
+                className="sr-only"
+                onChange={(e) => {
+                  if (e.target.value) {
+                    const d = new Date(e.target.value);
+                    const formatted = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+                    setAdmissionStartDate(formatted);
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const picker = document.getElementById("admission-start-date-picker");
+                  if (picker) {
+                    if (typeof picker.showPicker === "function") picker.showPicker();
+                    else picker.click();
+                  }
+                }}
+                className="absolute right-2.5 text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 text-sm p-1 cursor-pointer transition"
+                title="Select Start Date"
+              >
+                <FaCalendarAlt />
+              </button>
+            </div>
+          </div>
+
+          {/* Last Date to Apply */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Last Date to Apply</label>
+              <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={Boolean(alwaysOpenAdmission)}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setAlwaysOpenAdmission(checked);
+                  }}
+                  className="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-purple-600 focus:ring-purple-500/20 text-xs"
+                />
+                <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400">
+                  Always Open Admission
+                </span>
+              </label>
+            </div>
+
+            <div className="relative flex items-center">
+              <input
+                type="text"
+                disabled={Boolean(alwaysOpenAdmission)}
+                value={alwaysOpenAdmission ? "Always Open Admission" : (admissionLastDate || "")}
+                onChange={(e) => setAdmissionLastDate(e.target.value)}
+                className={`w-full pl-3 pr-10 py-2.5 border rounded-xl text-xs font-bold ${
+                  alwaysOpenAdmission
+                    ? "bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800/40 text-purple-700 dark:text-purple-300 cursor-not-allowed"
+                    : "bg-slate-50 dark:bg-[#0F172A] border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                }`}
+                placeholder="e.g. 31 May 2027"
+              />
+              {!alwaysOpenAdmission && (
+                <>
+                  <input
+                    type="date"
+                    id="admission-last-date-picker"
+                    className="sr-only"
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        const d = new Date(e.target.value);
+                        const formatted = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+                        setAdmissionLastDate(formatted);
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const picker = document.getElementById("admission-last-date-picker");
+                      if (picker) {
+                        if (typeof picker.showPicker === "function") picker.showPicker();
+                        else picker.click();
+                      }
+                    }}
+                    className="absolute right-2.5 text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 text-sm p-1 cursor-pointer transition"
+                    title="Select Last Date"
+                  >
+                    <FaCalendarAlt />
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* LOWER ROW: AVAILABILITY SETTINGS */}

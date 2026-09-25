@@ -713,15 +713,15 @@ function SchoolDetails() {
                   </div>
                   <div className="flex justify-between border-b border-slate-100 dark:border-white/5 pb-2">
                     <span className="text-slate-400 dark:text-slate-500">Classes</span>
-                    <span className="text-slate-800 dark:text-white font-extrabold truncate max-w-[140px]">{school.availableClasses || "Nursery to Class XII"}</span>
+                    <span className="text-slate-800 dark:text-white font-extrabold truncate max-w-[140px]">{school.availableClasses || school.computedAvailableClasses || (school.totalClasses ? `Class 1 to ${school.totalClasses}` : "Class 1 to 12")}</span>
                   </div>
                   <div className="flex justify-between border-b border-slate-100 dark:border-white/5 pb-2">
                     <span className="text-slate-400 dark:text-slate-500">Admission Start Date</span>
-                    <span className="text-slate-800 dark:text-white font-extrabold">01 Dec 2026</span>
+                    <span className="text-slate-800 dark:text-white font-extrabold">{school.admissionStartDate || "01 Dec 2026"}</span>
                   </div>
                   <div className="flex justify-between border-b border-slate-100 dark:border-white/5 pb-2">
                     <span className="text-slate-400 dark:text-slate-500">Last Date to Apply</span>
-                    <span className="text-slate-800 dark:text-white font-extrabold">31 May 2027</span>
+                    <span className="text-slate-800 dark:text-white font-extrabold">{school.alwaysOpenAdmission ? "Always Open Admission" : (school.admissionLastDate || "31 May 2027")}</span>
                   </div>
                   <div className="flex justify-between pb-1">
                     <span className="text-slate-400 dark:text-slate-500">Admission Process</span>
