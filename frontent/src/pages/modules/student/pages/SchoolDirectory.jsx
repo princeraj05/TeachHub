@@ -105,49 +105,62 @@ function SchoolDirectory() {
 
       if (Array.isArray(publicSchools)) {
         publicSchools.forEach(pub => {
-          if (pub && pub.name && !pub.name.toLowerCase().includes("demo school") && pub.name.trim().toLowerCase() !== "my school") {
-            if (!combinedSchools.some(s => s && s.name && s.name.trim().toLowerCase() === pub.name.trim().toLowerCase())) {
-              combinedSchools.push(pub);
-            }
+          if (pub && pub.name) {
+            combinedSchools.push(pub);
           }
         });
       }
 
-      // Default fallback schools if backend list is empty
-      const DEFAULT_FALLBACK_SCHOOLS = [
-        {
-          _id: "def_sch_1",
-          name: "Bapu ji Smark School",
-          motto: "Discipline • Values • A Brighter Tomorrow",
-          address: "Bapu ji Smark School Campus, Bihar",
-          principalName: "Om Prakash Yadav",
-          coverImage: "https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=1000&auto=format&fit=crop"
-        },
-        {
-          _id: "def_sch_2",
-          name: "G.D Academy",
-          motto: "Excellence in Education",
-          address: "G.D Academy Campus, Bihar",
-          principalName: "School Principal",
-          coverImage: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=1000&auto=format&fit=crop"
-        },
-        {
-          _id: "def_sch_3",
-          name: "St Joseph's school mansi",
-          motto: "Learn • Grow • Succeed",
-          address: "St Joseph's Campus, Mansi, Bihar",
-          principalName: "School Principal",
-          coverImage: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=1000&auto=format&fit=crop"
-        }
-      ];
+      // Only add fallback defaults if database and public schools are 100% empty
+      if (combinedSchools.length === 0) {
+        combinedSchools = [
+          {
+            _id: "def_sch_1",
+            name: "Bapu ji Smark School",
+            motto: "Discipline • Values • A Brighter Tomorrow",
+            address: "Bapu ji Smark School Campus, Bihar",
+            principalName: "Om Prakash Yadav",
+            coverImage: "https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=1000&auto=format&fit=crop"
+          },
+          {
+            _id: "def_sch_2",
+            name: "G.D Academy",
+            motto: "Excellence in Education",
+            address: "G.D Academy Campus, Bihar",
+            principalName: "School Principal",
+            coverImage: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=1000&auto=format&fit=crop"
+          }
+        ];
+      }
 
-      DEFAULT_FALLBACK_SCHOOLS.forEach(def => {
-        if (!combinedSchools.some(s => s && s.name && s.name.trim().toLowerCase() === def.name.trim().toLowerCase())) {
-          combinedSchools.push(def);
+      // Smart Deduplication & Real Data Scoring
+      const normalizeName = (str) => {
+        if (!str) return "";
+        return str.toLowerCase().replace(/[''`\s\W]/g, "");
+      };
+
+      const finalSchools = [];
+      combinedSchools.forEach((sch) => {
+        if (!sch || !sch.name) return;
+        const normKey = normalizeName(sch.name);
+        if (normKey.includes("demoschool") || normKey === "myschool") return;
+
+        const existingIdx = finalSchools.findIndex(s => normalizeName(s.name) === normKey);
+        if (existingIdx === -1) {
+          finalSchools.push(sch);
+        } else {
+          // If duplicate exists, prefer the real database school (with real principal, students, classes, or photo)
+          const existing = finalSchools[existingIdx];
+          const schScore = (sch.studentsCount || 0) * 10 + (sch.classesCount || 0) * 5 + (sch.principalName && sch.principalName !== "School Principal" ? 10 : 0) + (sch.photo || sch.coverImage ? 2 : 0);
+          const existingScore = (existing.studentsCount || 0) * 10 + (existing.classesCount || 0) * 5 + (existing.principalName && existing.principalName !== "School Principal" ? 10 : 0) + (existing.photo || existing.coverImage ? 2 : 0);
+          
+          if (schScore > existingScore) {
+            finalSchools[existingIdx] = sch;
+          }
         }
       });
 
-      setSchools(combinedSchools);
+      setSchools(finalSchools);
       if (profileRes.data) setUser(profileRes.data);
       setAppointments(appointmentsRes.data || []);
       setMyChangeRequest(changeReqRes.data || null);

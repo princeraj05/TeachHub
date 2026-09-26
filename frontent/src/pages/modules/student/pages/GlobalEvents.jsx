@@ -122,18 +122,7 @@ function GlobalEvents() {
 
   return (
     <div style={{ fontFamily: SORA }} className="w-full max-w-5xl mx-auto text-left select-none pb-12">
-      {/* Title Header */}
-      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#7C3AED] dark:text-[#38BDF8] mb-1">GLOBAL FEED</p>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            Events Desk
-          </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 leading-relaxed max-w-xl font-sans">
-            Explore school happenings, upcoming celebrations, and completed event gallery on TeachHub.
-          </p>
-        </div>
-      </div>
+      
 
       {/* Navigation Header (Tabs + Search) */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6 select-none">
