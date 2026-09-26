@@ -33,4 +33,7 @@ const examSubmissionSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+// Prevent duplicate online exam submissions for same student and exam
+examSubmissionSchema.index({ exam: 1, student: 1 }, { unique: true });
+
 module.exports = mongoose.model("ExamSubmission", examSubmissionSchema);

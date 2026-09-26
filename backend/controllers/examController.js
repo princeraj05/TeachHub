@@ -8,13 +8,15 @@ const TeacherNotification = require("../models/TeacherNotification");
 const { notifyStudentsInClass, notifySchoolRole } = require("../utils/notificationHelper");
 
 
+const { VALID_NEW_EXAM_TERMS, ALL_VALID_EXAM_TERMS, EXAM_TERMS } = require("../utils/examTermConstants");
+
 // ================= CREATE EXAM =================
 
 exports.createExam = async (req,res)=>{
 
 try{
 
-const { title, classId, subjectId, examTerm, academicYear, maxMarks, date, time, duration, roomNumber, mode, negativeMarking, negativeMarkValue, questions, proctorId } = req.body;
+const { title, classId, section, subjectId, examTerm, academicYear, maxMarks, date, time, duration, roomNumber, mode, paperUrl, paperSets, randomizeQuestions, randomizeOptions, proctoringConfig, negativeMarking, negativeMarkValue, questions, proctorId } = req.body;
 
 if (!req.user || (req.user.role !== "superadmin" && !req.user.schoolName)) {
   return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
@@ -24,9 +26,9 @@ if (!classId || !subjectId) {
   return res.status(400).json({ message: "classId and subjectId are required" });
 }
 
-const termVal = examTerm || "Half-Yearly";
-if (!["Half-Yearly", "Annual"].includes(termVal)) {
-  return res.status(400).json({ message: "examTerm must be either 'Half-Yearly' or 'Annual'" });
+const termVal = examTerm || "THREE_MONTH";
+if (!VALID_NEW_EXAM_TERMS.includes(termVal)) {
+  return res.status(400).json({ message: `examTerm must be one of the 4 standard terms: ${VALID_NEW_EXAM_TERMS.join(", ")}` });
 }
 
 if (!academicYear || typeof academicYear !== "string" || !academicYear.trim()) {
@@ -41,9 +43,12 @@ if (!Number.isFinite(numMaxMarks) || numMaxMarks <= 0) {
   return res.status(400).json({ message: "maxMarks must be a positive number greater than 0" });
 }
 
+const termLabel = EXAM_TERMS[termVal]?.label || `${termVal} Examination`;
+
 const exam = new Exam({
-  title: title || `${termVal} Examination`,
+  title: title || termLabel,
   class: classId,
+  section: section || "ALL",
   subject: subjectId,
   examTerm: termVal,
   academicYear: academicYear.trim(),
@@ -54,6 +59,11 @@ const exam = new Exam({
   roomNumber: roomNumber || "",
   schoolName: req.user.schoolName,
   mode: mode || "offline",
+  paperUrl: paperUrl || "",
+  paperSets: Array.isArray(paperSets) ? paperSets : [],
+  randomizeQuestions: !!randomizeQuestions,
+  randomizeOptions: !!randomizeOptions,
+  proctoringConfig: proctoringConfig || { webcamRequired: false, tabSwitchLimit: 3, blockCopyPaste: true },
   negativeMarking: !!negativeMarking,
   negativeMarkValue: negativeMarkValue !== undefined ? negativeMarkValue : 0.25,
   questions: questions || [],
@@ -68,7 +78,7 @@ try {
     await TeacherNotification.create({
       teacher: proctorId,
       title: "Exam Conduct Assigned",
-      message: `You have been assigned to conduct ${mode || "offline"} exam "${title || "Exam"}" on ${date}${roomNumber ? ` (Room ${roomNumber})` : ""}.`,
+      message: `You have been assigned to conduct ${mode || "offline"} exam "${title || termLabel}" on ${date}${roomNumber ? ` (Room ${roomNumber})` : ""}.`,
       category: "Exam Updates"
     });
   }
@@ -79,7 +89,7 @@ try {
       await TeacherNotification.create({
         teacher: subj.teacher,
         title: "New Exam Scheduled",
-        message: `An exam "${title || "Exam"}" has been scheduled for your subject ${subj.name} on ${date}.`,
+        message: `An exam "${title || termLabel}" has been scheduled for your subject ${subj.name} on ${date}.`,
         category: "Exam Updates"
       });
     }
@@ -94,7 +104,7 @@ try {
         className: targetClass.name,
         section: targetClass.section,
         title: "New Exam Scheduled",
-        message: `An exam "${title || "Exam"}" has been scheduled on ${date} at ${time || "09:00 AM"}.`,
+        message: `An exam "${title || termLabel}" has been scheduled on ${date} at ${time || "09:00 AM"}.`,
         category: "Exams",
         link: "/student/exams"
       }).catch(err => console.error("Error notifying students of new exam:", err.message));
@@ -104,7 +114,7 @@ try {
       schoolName: req.user.schoolName,
       role: "student",
       title: "New Exam Scheduled",
-      message: `An exam "${title || "Exam"}" has been scheduled on ${date}.`,
+      message: `An exam "${title || termLabel}" has been scheduled on ${date}.`,
       category: "Exams",
       link: "/student/exams"
     }).catch(err => console.error("Error notifying all students of new exam:", err.message));
@@ -137,7 +147,7 @@ exports.updateExam = async (req, res) => {
       return res.status(403).json({ message: "Forbidden: You are not assigned to a school" });
     }
 
-    const { title, classId, subjectId, examTerm, academicYear, maxMarks, date, time, duration, roomNumber, mode, negativeMarking, negativeMarkValue, questions, proctorId } = req.body;
+    const { title, classId, section, subjectId, examTerm, academicYear, maxMarks, date, time, duration, roomNumber, mode, paperUrl, paperSets, randomizeQuestions, randomizeOptions, proctoringConfig, negativeMarking, negativeMarkValue, questions, proctorId } = req.body;
 
     const exam = await Exam.findOne({ _id: req.params.id, schoolName: req.user.schoolName });
     if (!exam) {
@@ -145,8 +155,8 @@ exports.updateExam = async (req, res) => {
     }
 
     if (examTerm) {
-      if (!["Half-Yearly", "Annual"].includes(examTerm)) {
-        return res.status(400).json({ message: "examTerm must be either 'Half-Yearly' or 'Annual'" });
+      if (!ALL_VALID_EXAM_TERMS.includes(examTerm)) {
+        return res.status(400).json({ message: `examTerm must be one of: ${ALL_VALID_EXAM_TERMS.join(", ")}` });
       }
       exam.examTerm = examTerm;
     }
@@ -161,12 +171,18 @@ exports.updateExam = async (req, res) => {
 
     if (title !== undefined) exam.title = title;
     if (classId) exam.class = classId;
+    if (section !== undefined) exam.section = section || "ALL";
     if (subjectId) exam.subject = subjectId;
     if (date) exam.date = date;
     if (time !== undefined) exam.time = time;
     if (duration !== undefined) exam.duration = duration;
     if (roomNumber !== undefined) exam.roomNumber = roomNumber;
     if (mode) exam.mode = mode;
+    if (paperUrl !== undefined) exam.paperUrl = paperUrl;
+    if (paperSets !== undefined) exam.paperSets = Array.isArray(paperSets) ? paperSets : [];
+    if (randomizeQuestions !== undefined) exam.randomizeQuestions = !!randomizeQuestions;
+    if (randomizeOptions !== undefined) exam.randomizeOptions = !!randomizeOptions;
+    if (proctoringConfig !== undefined) exam.proctoringConfig = proctoringConfig;
     if (negativeMarking !== undefined) exam.negativeMarking = !!negativeMarking;
     if (negativeMarkValue !== undefined) exam.negativeMarkValue = negativeMarkValue;
     if (questions !== undefined) exam.questions = questions;

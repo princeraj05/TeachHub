@@ -49,7 +49,7 @@ export default function AcademicResults() {
   const [availableSections, setAvailableSections] = useState([]);
   const [selectedSection, setSelectedSection] = useState("ALL");
   const [academicYear, setAcademicYear] = useState(academicYearOptions[1] || `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`);
-  const [examTerm, setExamTerm] = useState("Half-Yearly");
+  const [examTerm, setExamTerm] = useState("THREE_MONTH");
 
   // Data & Subjects State
   const [subjects, setSubjects] = useState([]);
@@ -556,8 +556,12 @@ export default function AcademicResults() {
               onChange={e => setExamTerm(e.target.value)}
               className="bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 dark:text-white font-bold focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
             >
-              <option value="Half-Yearly" className="dark:bg-[#0B132A]">Half-Yearly Examination</option>
-              <option value="Annual" className="dark:bg-[#0B132A]">Annual Examination</option>
+              <option value="THREE_MONTH" className="dark:bg-[#0B132A]">3-Month Examination</option>
+              <option value="SIX_MONTH" className="dark:bg-[#0B132A]">6-Month Examination (Mid-Term)</option>
+              <option value="NINE_MONTH" className="dark:bg-[#0B132A]">9-Month Examination</option>
+              <option value="FINAL_YEAR" className="dark:bg-[#0B132A]">Final Year Examination (Annual)</option>
+              <option value="Half-Yearly" className="dark:bg-[#0B132A]">Half-Yearly (Historical)</option>
+              <option value="Annual" className="dark:bg-[#0B132A]">Annual (Historical)</option>
             </select>
           </div>
         </div>
@@ -654,6 +658,26 @@ export default function AcademicResults() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* FINAL ACADEMIC RESULT SEPARATE STATUS BANNER */}
+      <div className="bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl px-5 py-3.5 mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-sm">
+            <FaGraduationCap />
+          </div>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Final Academic Result Status (Separate from Term Examination)</p>
+            <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+              {classSummary?.finalAcademicSummary?.isCalculated && classSummary?.finalAcademicSummary?.isPublished
+                ? "Final Academic Results & Class Ranks Published"
+                : "Final Result Generation Pending"}
+            </p>
+          </div>
+        </div>
+        <span className="text-[10px] font-extrabold px-3 py-1 rounded-full bg-slate-200/70 dark:bg-white/10 text-slate-600 dark:text-slate-300">
+          Phase 3 Engine
+        </span>
       </div>
 
       {/* WORKSPACE & STUDENT ROSTER TABLE CARD */}

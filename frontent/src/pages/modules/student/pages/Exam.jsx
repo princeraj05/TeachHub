@@ -285,6 +285,7 @@ function Exam() {
   }, [exams, profile, publishedResults]);
 
   const [activeFilter, setActiveFilter] = useState("All");
+  const [termFilter, setTermFilter] = useState("ALL");
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
 
   // Filtered exams based on tab choice
@@ -293,10 +294,11 @@ function Exam() {
       const matchesSearch = e.subject?.toLowerCase().includes(search.toLowerCase());
       if (!matchesSearch) return false;
 
+      if (termFilter !== "ALL" && e.examTerm !== termFilter) return false;
       if (activeFilter === "All") return true;
       return e.status === activeFilter;
     });
-  }, [allExams, activeFilter, search]);
+  }, [allExams, activeFilter, termFilter, search]);
 
   // Next upcoming exam resolver
   const nextExamItem = useMemo(() => {
@@ -508,6 +510,29 @@ function Exam() {
                   );
                 })}
               </div>
+            </div>
+
+            {/* Term Filter Pills Selector */}
+            <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 bg-slate-50 dark:bg-white/5 p-1.5 rounded-2xl border border-slate-200/60 dark:border-white/10 select-none mb-4">
+              {[
+                { id: "ALL", label: "All Terms" },
+                { id: "THREE_MONTH", label: "3-Month" },
+                { id: "SIX_MONTH", label: "6-Month" },
+                { id: "NINE_MONTH", label: "9-Month" },
+                { id: "FINAL_YEAR", label: "Final Year" }
+              ].map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setTermFilter(t.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    termFilter === t.id
+                      ? "bg-[#7C3AED] text-white shadow-sm"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
             </div>
 
             {/* 2-Column Desktop / 1-Column Mobile Grid Cards */}

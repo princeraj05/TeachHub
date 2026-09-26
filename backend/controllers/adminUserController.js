@@ -543,6 +543,25 @@ exports.assignClass = async (req, res) => {
 
     await student.save();
 
+    // Non-destructive hook for canonical StudentEnrollment foundation
+    try {
+      const { syncStudentEnrollment } = require("../services/enrollmentService");
+      const AcademicYear = require("../models/AcademicYear");
+      const currentYearDoc = await AcademicYear.findOne({ schoolName: req.user.schoolName, isCurrent: true }).lean();
+      const activeYear = currentYearDoc ? currentYearDoc.yearString : "2026-2027";
+      await syncStudentEnrollment({
+        studentId: student._id,
+        schoolName: req.user.schoolName,
+        academicYear: activeYear,
+        classId: targetClass._id,
+        section: targetClass.section || "A",
+        rollNo: numericRoll,
+        reason: "Class Assigned by Admin"
+      });
+    } catch (enrollErr) {
+      console.warn("StudentEnrollment sync notice (non-fatal):", enrollErr.message);
+    }
+
     res.json({
       message: "Student assigned to class successfully",
       student: {
@@ -665,6 +684,28 @@ exports.addStudent = async (req, res) => {
     student.rollNo = numericRoll;
 
     await student.save();
+
+    // Non-destructive hook for canonical StudentEnrollment foundation
+    if (targetClass) {
+      try {
+        const { syncStudentEnrollment } = require("../services/enrollmentService");
+        const AcademicYear = require("../models/AcademicYear");
+        const currentYearDoc = await AcademicYear.findOne({ schoolName: req.user.schoolName, isCurrent: true }).lean();
+        const activeYear = currentYearDoc ? currentYearDoc.yearString : "2026-2027";
+        await syncStudentEnrollment({
+          studentId: student._id,
+          schoolName: req.user.schoolName,
+          academicYear: activeYear,
+          classId: targetClass._id,
+          section: targetClass.section || "A",
+          rollNo: numericRoll,
+          reason: "New Student Registration"
+        });
+      } catch (enrollErr) {
+        console.warn("StudentEnrollment sync notice (non-fatal):", enrollErr.message);
+      }
+    }
+
     if (previousClassId && String(previousClassId) !== String(targetClass?._id || "")) await Class.updateOne({ _id: previousClassId }, { $pull: { students: student._id } });
     if (targetClass && !targetClass.students.some(id => String(id) === String(student._id))) { targetClass.students.push(student._id); await targetClass.save(); }
     res.status(isNewStudent ? 201 : 200).json({ message: "Student added to your school", student: await User.findById(student._id).populate("classId", "name section").select("-password") });

@@ -18,7 +18,7 @@ const studentResultSchema = new mongoose.Schema(
     },
     examTerm: {
       type: String,
-      enum: ["Half-Yearly", "Annual"],
+      enum: ["THREE_MONTH", "SIX_MONTH", "NINE_MONTH", "FINAL_YEAR", "Half-Yearly", "Annual"],
       required: true
     },
     academicYear: {
@@ -64,6 +64,39 @@ const studentResultSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null
+    },
+    // Independent Term Card Publication Statuses
+    publishedTermCards: {
+      THREE_MONTH: {
+        isPublished: { type: Boolean, default: false },
+        publishedAt: { type: Date, default: null }
+      },
+      SIX_MONTH: {
+        isPublished: { type: Boolean, default: false },
+        publishedAt: { type: Date, default: null }
+      },
+      NINE_MONTH: {
+        isPublished: { type: Boolean, default: false },
+        publishedAt: { type: Date, default: null }
+      },
+      FINAL_YEAR: {
+        isPublished: { type: Boolean, default: false },
+        publishedAt: { type: Date, default: null }
+      }
+    },
+    // Decoupled Final Academic Year Summary Publication & Merit Ranks
+    finalAcademicSummary: {
+      isPublished: { type: Boolean, default: false },
+      publishedAt: { type: Date, default: null },
+      weightedScore: { type: Number, default: 0 },
+      overallGrade: { type: String, default: "" },
+      classRank: { type: Number, default: null },
+      sectionRank: { type: Number, default: null },
+      promotionStatus: {
+        type: String,
+        enum: ["PENDING", "PROMOTED", "DETAINED"],
+        default: "PENDING"
+      }
     },
     schoolName: {
       type: String,

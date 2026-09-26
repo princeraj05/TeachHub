@@ -46,6 +46,7 @@ const appNotificationRoutes = require("./routes/appNotificationRoutes");
 const accountDeletionRoutes = require("./routes/accountDeletionRoutes");
 const publicLegalRoutes = require("./routes/publicLegalRoutes");
 const schoolChangeRoutes = require("./routes/schoolChangeRoutes");
+const academicYearRoutes = require("./routes/academicYearRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -246,6 +247,7 @@ app.use("/api/student", studentRoutes);
 
 app.use("/api/exams", examRoutes);
 app.use("/api/results", resultRoutes);
+app.use("/api/academic-years", academicYearRoutes);
 
 app.use("/api/admin/profile", adminProfileRoutes);
 app.use("/api/superadmin", superAdminRoutes);

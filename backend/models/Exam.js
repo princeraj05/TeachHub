@@ -16,9 +16,14 @@ required:true
 
 examTerm: {
   type: String,
-  enum: ["Half-Yearly", "Annual"],
+  enum: ["THREE_MONTH", "SIX_MONTH", "NINE_MONTH", "FINAL_YEAR", "Half-Yearly", "Annual"],
   required: true,
-  default: "Half-Yearly"
+  default: "THREE_MONTH"
+},
+
+section: {
+  type: String,
+  default: "ALL"
 },
 
 academicYear: {
@@ -46,6 +51,29 @@ required:true
     type: String,
     enum: ["online", "offline"],
     default: "offline"
+  },
+  // Offline Paper Management
+  paperUrl: {
+    type: String,
+    default: ""
+  },
+  paperSets: {
+    type: [String],
+    default: []
+  },
+  // Online Proctoring & Randomization Config
+  randomizeQuestions: {
+    type: Boolean,
+    default: false
+  },
+  randomizeOptions: {
+    type: Boolean,
+    default: false
+  },
+  proctoringConfig: {
+    webcamRequired: { type: Boolean, default: false },
+    tabSwitchLimit: { type: Number, default: 3 },
+    blockCopyPaste: { type: Boolean, default: true }
   },
   negativeMarking: {
     type: Boolean,

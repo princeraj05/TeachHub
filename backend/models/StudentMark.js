@@ -21,10 +21,27 @@ const studentMarkSchema = new mongoose.Schema(
       ref: "Subject",
       required: true
     },
+    exam: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Exam",
+      required: false,
+      index: true
+    },
+    enrollment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "StudentEnrollment",
+      required: false,
+      index: true
+    },
     examTerm: {
       type: String,
-      enum: ["Half-Yearly", "Annual"],
+      enum: ["THREE_MONTH", "SIX_MONTH", "NINE_MONTH", "FINAL_YEAR", "Half-Yearly", "Annual"],
       required: true
+    },
+    approvalStatus: {
+      type: String,
+      enum: ["draft", "submitted", "approved"],
+      default: "draft"
     },
     academicYear: {
       type: String,
@@ -85,9 +102,9 @@ const studentMarkSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Compound Unique Index: One mark record per student, per subject, per exam term, per academic year
+// Modern Compound Unique Index: One mark record per exam, per student
 studentMarkSchema.index(
-  { student: 1, subject: 1, examTerm: 1, academicYear: 1 },
+  { exam: 1, student: 1 },
   { unique: true }
 );
 

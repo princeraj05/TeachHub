@@ -43,7 +43,7 @@ export default function TeacherAcademicResults() {
   const [availableSections, setAvailableSections] = useState([]);
   const [selectedSection, setSelectedSection] = useState("ALL");
   const [academicYear, setAcademicYear] = useState(academicYearOptions[1] || `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`);
-  const [examTerm, setExamTerm] = useState("Half-Yearly");
+  const [examTerm, setExamTerm] = useState("THREE_MONTH");
 
   // Assigned Subjects State
   const [assignedSubjects, setAssignedSubjects] = useState([]);
@@ -472,8 +472,12 @@ export default function TeacherAcademicResults() {
               onChange={e => setExamTerm(e.target.value)}
               className="bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 dark:text-white font-bold focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
             >
-              <option value="Half-Yearly" className="dark:bg-[#0B132A]">Half-Yearly Examination</option>
-              <option value="Annual" className="dark:bg-[#0B132A]">Annual Examination</option>
+              <option value="THREE_MONTH" className="dark:bg-[#0B132A]">3-Month Examination</option>
+              <option value="SIX_MONTH" className="dark:bg-[#0B132A]">6-Month Examination (Mid-Term)</option>
+              <option value="NINE_MONTH" className="dark:bg-[#0B132A]">9-Month Examination</option>
+              <option value="FINAL_YEAR" className="dark:bg-[#0B132A]">Final Year Examination (Annual)</option>
+              <option value="Half-Yearly" className="dark:bg-[#0B132A]">Half-Yearly (Historical)</option>
+              <option value="Annual" className="dark:bg-[#0B132A]">Annual (Historical)</option>
             </select>
           </div>
         </div>

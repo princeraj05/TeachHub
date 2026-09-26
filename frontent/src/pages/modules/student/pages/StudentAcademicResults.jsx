@@ -90,7 +90,7 @@ function StudentAcademicResults() {
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Exam Term:</span>
               <div className="inline-flex p-1 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl">
-                {["ALL", "Half-Yearly", "Annual"].map(t => (
+                {["ALL", "THREE_MONTH", "SIX_MONTH", "NINE_MONTH", "FINAL_YEAR", "Half-Yearly", "Annual"].map(t => (
                   <button
                     key={t}
                     onClick={() => setSelectedTerm(t)}
@@ -100,7 +100,13 @@ function StudentAcademicResults() {
                         : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
-                    {t === "ALL" ? "All Terms" : t}
+                    {t === "ALL" ? "All Terms" :
+                     t === "THREE_MONTH" ? "3-Month" :
+                     t === "SIX_MONTH" ? "6-Month" :
+                     t === "NINE_MONTH" ? "9-Month" :
+                     t === "FINAL_YEAR" ? "Final Year" :
+                     t === "Half-Yearly" ? "Half-Yearly (Legacy)" :
+                     t === "Annual" ? "Annual (Legacy)" : t}
                   </button>
                 ))}
               </div>
@@ -178,6 +184,38 @@ function StudentAcademicResults() {
       {!loading && !error && filteredResults.length > 0 && (
         <div className="space-y-8">
           {filteredResults.map((result) => {
+            if (result.status === "PENDING") {
+              return (
+                <div
+                  key={result.resultId || `${result.academicYear}-${result.examTerm}`}
+                  className="bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] rounded-3xl shadow-sm p-6 flex items-center justify-between"
+                >
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-black text-white bg-slate-500 px-3 py-1 rounded-lg">
+                        {result.examTerm === "THREE_MONTH" ? "3-Month" :
+                         result.examTerm === "SIX_MONTH" ? "6-Month" :
+                         result.examTerm === "NINE_MONTH" ? "9-Month" :
+                         result.examTerm === "FINAL_YEAR" ? "Final Year" : result.examTerm} Examination
+                      </span>
+                      <span className="text-xs font-extrabold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-lg">
+                        Session: {result.academicYear}
+                      </span>
+                    </div>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1">
+                      {result.className} - Section {result.section}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-extrabold">
+                      <FaSpinner className="animate-spin text-xs" />
+                      Results Pending / Marks Under Review
+                    </span>
+                  </div>
+                </div>
+              );
+            }
+
             const isPass = (result.overallResult || "PASS").toUpperCase() === "PASS";
             
             return (

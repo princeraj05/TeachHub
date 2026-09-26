@@ -4,6 +4,8 @@ const User = require("../models/User");
 const Class = require("../models/Class");
 const Subject = require("../models/Subject");
 const Exam = require("../models/Exam");
+const StudentEnrollment = require("../models/StudentEnrollment");
+const { ALL_VALID_EXAM_TERMS } = require("../utils/examTermConstants");
 const {
   calculateSubjectGrade,
   calculateStudentResultSummary
@@ -64,8 +66,8 @@ exports.getRoster = async (req, res) => {
       });
     }
 
-    if (!["Half-Yearly", "Annual"].includes(examTerm)) {
-      return res.status(400).json({ message: "examTerm must be either 'Half-Yearly' or 'Annual'" });
+    if (!ALL_VALID_EXAM_TERMS.includes(examTerm)) {
+      return res.status(400).json({ message: `examTerm must be one of: ${ALL_VALID_EXAM_TERMS.join(", ")}` });
     }
 
     const classDoc = await Class.findById(classId).lean();
@@ -243,8 +245,8 @@ exports.saveMarks = async (req, res) => {
         });
       }
 
-      if (!["Half-Yearly", "Annual"].includes(examTerm)) {
-        return res.status(400).json({ message: "examTerm must be either 'Half-Yearly' or 'Annual'" });
+      if (!ALL_VALID_EXAM_TERMS.includes(examTerm)) {
+        return res.status(400).json({ message: `examTerm must be one of: ${ALL_VALID_EXAM_TERMS.join(", ")}` });
       }
 
       const classDoc = await Class.findById(classId).lean();
@@ -303,12 +305,6 @@ exports.saveMarks = async (req, res) => {
         return res.status(400).json({ message: `Invalid maxMarks (${maxMarks}) for student ${studentId}` });
       }
 
-      if (numObtained > numMax) {
-        return res.status(400).json({
-          message: `marksObtained (${numObtained}) cannot exceed maxMarks (${numMax}) for student ${studentId}`
-        });
-      }
-
       // Fetch trusted database models for validation & snapshots
       const studentDoc = await User.findById(studentId).lean();
       if (!studentDoc || studentDoc.role !== "student") {
@@ -317,6 +313,13 @@ exports.saveMarks = async (req, res) => {
       if (schoolName && studentDoc.schoolName && studentDoc.schoolName !== schoolName) {
         return res.status(403).json({ message: `Access Denied: Student ${studentId} belongs to another school` });
       }
+
+      // Lookup canonical StudentEnrollment if present
+      const enrollmentDoc = await StudentEnrollment.findOne({
+        student: studentId,
+        schoolName: classDoc.schoolName || schoolName,
+        academicYear
+      }).lean();
 
       // Verify student belongs to class
       const isStudentInClass = studentDoc.classId?.toString() === classId.toString() ||
@@ -369,7 +372,10 @@ exports.saveMarks = async (req, res) => {
             class: classId,
             section: targetSection,
             subject: subjectId,
+            exam: matchingExam ? matchingExam._id : null,
+            enrollment: enrollmentDoc ? enrollmentDoc._id : null,
             examTerm,
+            approvalStatus: item.approvalStatus || "draft",
             academicYear,
             marksObtained: numObtained,
             maxMarks: numMax,
@@ -456,8 +462,8 @@ exports.getClassSummary = async (req, res) => {
       return res.status(400).json({ message: "classId, examTerm, and academicYear are required" });
     }
 
-    if (!["Half-Yearly", "Annual"].includes(examTerm)) {
-      return res.status(400).json({ message: "examTerm must be either 'Half-Yearly' or 'Annual'" });
+    if (!ALL_VALID_EXAM_TERMS.includes(examTerm)) {
+      return res.status(400).json({ message: `examTerm must be one of: ${ALL_VALID_EXAM_TERMS.join(", ")}` });
     }
 
     const classDoc = await Class.findById(classId).lean();
@@ -546,7 +552,7 @@ exports.getClassSummary = async (req, res) => {
       const sId = student._id.toString();
       const studentMarks = marksByStudent.get(sId) || [];
       const resultDoc = resultsByStudent.get(sId);
-      const isPublished = resultDoc ? resultDoc.isPublished : false;
+      const isPublished = resultDoc ? (resultDoc.isPublished || resultDoc.publishedTermCards?.[examTerm]?.isPublished) : false;
       if (isPublished) publishedCount++;
 
       const summary = calculateStudentResultSummary(studentMarks);
@@ -605,8 +611,8 @@ exports.publishResults = async (req, res) => {
       return res.status(400).json({ message: "classId, examTerm, and academicYear are required" });
     }
 
-    if (!["Half-Yearly", "Annual"].includes(examTerm)) {
-      return res.status(400).json({ message: "examTerm must be either 'Half-Yearly' or 'Annual'" });
+    if (!ALL_VALID_EXAM_TERMS.includes(examTerm)) {
+      return res.status(400).json({ message: `examTerm must be one of: ${ALL_VALID_EXAM_TERMS.join(", ")}` });
     }
 
     const classDoc = await Class.findById(classId).lean();
@@ -711,35 +717,40 @@ exports.publishResults = async (req, res) => {
       const summary = calculateStudentResultSummary(studentMarks);
       const targetSection = student.section || classDoc.section || "A";
 
+      const updatePayload = {
+        student: student._id,
+        class: classDoc._id,
+        section: targetSection,
+        examTerm,
+        academicYear,
+        totalMarksObtained: summary.totalMarksObtained,
+        totalMaxMarks: summary.totalMaxMarks,
+        percentage: summary.percentage,
+        overallGrade: summary.overallGrade,
+        overallResult: summary.overallResult,
+        isPublished: true,
+        publishedAt: new Date(),
+        publishedBy: req.user.id,
+        schoolName: classDoc.schoolName || schoolName,
+        studentNameSnapshot: student.name || "",
+        classNameSnapshot: `Class ${classDoc.name}`,
+        sectionSnapshot: targetSection,
+        rollNoSnapshot: student.rollNo || "",
+        admissionNoSnapshot: student.admissionNo || ""
+      };
+
+      if (["THREE_MONTH", "SIX_MONTH", "NINE_MONTH", "FINAL_YEAR"].includes(examTerm)) {
+        updatePayload[`publishedTermCards.${examTerm}.isPublished`] = true;
+        updatePayload[`publishedTermCards.${examTerm}.publishedAt`] = new Date();
+      }
+
       const resultDoc = await StudentResult.findOneAndUpdate(
         {
           student: student._id,
           examTerm,
           academicYear
         },
-        {
-          $set: {
-            student: student._id,
-            class: classDoc._id,
-            section: targetSection,
-            examTerm,
-            academicYear,
-            totalMarksObtained: summary.totalMarksObtained,
-            totalMaxMarks: summary.totalMaxMarks,
-            percentage: summary.percentage,
-            overallGrade: summary.overallGrade,
-            overallResult: summary.overallResult,
-            isPublished: true,
-            publishedAt: new Date(),
-            publishedBy: req.user.id,
-            schoolName: classDoc.schoolName || schoolName,
-            studentNameSnapshot: student.name || "",
-            classNameSnapshot: `Class ${classDoc.name}`,
-            sectionSnapshot: targetSection,
-            rollNoSnapshot: student.rollNo || "",
-            admissionNoSnapshot: student.admissionNo || ""
-          }
-        },
+        { $set: updatePayload },
         { upsert: true, new: true, runValidators: true }
       );
 
@@ -810,7 +821,12 @@ exports.unpublishResults = async (req, res) => {
       query.student = studentId;
     }
 
-    const updateRes = await StudentResult.updateMany(query, { $set: { isPublished: false } });
+    const unpublishPayload = { isPublished: false };
+    if (["THREE_MONTH", "SIX_MONTH", "NINE_MONTH", "FINAL_YEAR"].includes(examTerm)) {
+      unpublishPayload[`publishedTermCards.${examTerm}.isPublished`] = false;
+    }
+
+    const updateRes = await StudentResult.updateMany(query, { $set: unpublishPayload });
 
     // Also update StudentMark isPublished flag
     await StudentMark.updateMany(query, { $set: { isPublished: false } });
@@ -839,7 +855,13 @@ exports.getStudentPublishedResults = async (req, res) => {
     // Strict student self-access & published guard
     const results = await StudentResult.find({
       student: studentId,
-      isPublished: true,
+      $or: [
+        { isPublished: true },
+        { "publishedTermCards.THREE_MONTH.isPublished": true },
+        { "publishedTermCards.SIX_MONTH.isPublished": true },
+        { "publishedTermCards.NINE_MONTH.isPublished": true },
+        { "publishedTermCards.FINAL_YEAR.isPublished": true }
+      ],
       ...(schoolName ? { schoolName } : {})
     })
       .sort({ academicYear: -1, examTerm: 1 })
@@ -851,6 +873,20 @@ exports.getStudentPublishedResults = async (req, res) => {
 
     const formattedResults = [];
     for (const resDoc of results) {
+      const isTermPublished = resDoc.isPublished || (resDoc.publishedTermCards && resDoc.publishedTermCards[resDoc.examTerm]?.isPublished);
+
+      if (!isTermPublished) {
+        formattedResults.push({
+          resultId: resDoc._id,
+          examTerm: resDoc.examTerm,
+          academicYear: resDoc.academicYear,
+          className: resDoc.classNameSnapshot || "Class",
+          section: resDoc.sectionSnapshot || "A",
+          status: "PENDING"
+        });
+        continue;
+      }
+
       const marks = await StudentMark.find({
         student: studentId,
         examTerm: resDoc.examTerm,
@@ -876,7 +912,7 @@ exports.getStudentPublishedResults = async (req, res) => {
         };
       });
 
-      formattedResults.push({
+      const formattedCard = {
         resultId: resDoc._id,
         examTerm: resDoc.examTerm,
         academicYear: resDoc.academicYear,
@@ -890,7 +926,13 @@ exports.getStudentPublishedResults = async (req, res) => {
         publishedAt: resDoc.publishedAt,
         teacherRemarks: resDoc.teacherRemarks || "",
         subjects: subjectsList
-      });
+      };
+
+      if (resDoc.finalAcademicSummary && resDoc.finalAcademicSummary.isPublished) {
+        formattedCard.finalAcademicSummary = resDoc.finalAcademicSummary;
+      }
+
+      formattedResults.push(formattedCard);
     }
 
     res.json(formattedResults);

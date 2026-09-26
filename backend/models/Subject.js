@@ -28,6 +28,11 @@ const subjectSchema = new mongoose.Schema({
     type: String,
     default: "",
     index: true
+  },
+
+  isCore: {
+    type: Boolean,
+    default: false
   }
 
 });

@@ -46,7 +46,7 @@ function ExamSchedule() {
     title: "",
     classId: "",
     subjectId: "",
-    examTerm: "Half-Yearly",
+    examTerm: "THREE_MONTH",
     academicYear: academicYearOptions[1] || `${currY}-${currY + 1}`,
     maxMarks: 100,
     date: "",
@@ -286,7 +286,7 @@ function ExamSchedule() {
       title: "",
       classId: "",
       subjectId: "",
-      examTerm: "Half-Yearly",
+      examTerm: "THREE_MONTH",
       academicYear: academicYearOptions[1] || `${currY}-${currY + 1}`,
       maxMarks: 100,
       date: "",
@@ -487,8 +487,11 @@ function ExamSchedule() {
                           required
                           className="w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-3 text-xs text-slate-700 dark:text-white font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
                         >
-                          <option value="Half-Yearly">Half-Yearly Examination</option>
-                          <option value="Annual">Annual Examination</option>
+                          <option value="THREE_MONTH">3-Month Examination</option>
+                          <option value="SIX_MONTH">6-Month Examination (Mid-Term)</option>
+                          <option value="NINE_MONTH">9-Month Examination</option>
+                          <option value="FINAL_YEAR">Final Year Examination (Annual)</option>
+
                         </select>
                       </div>
                       <div className="flex flex-col gap-1.5">
@@ -953,6 +956,7 @@ function ExamSchedule() {
                         <tr className="bg-slate-50 text-slate-400 uppercase tracking-widest text-[9px] font-bold border-b border-slate-100">
                           <th className="px-5 py-4">Class</th>
                           <th className="px-5 py-4">Subject</th>
+                          <th className="px-5 py-4">Term</th>
                           <th className="px-5 py-4">Mode</th>
                           <th className="px-5 py-4">Proctor</th>
                           <th className="px-5 py-4">Date</th>
@@ -972,6 +976,16 @@ function ExamSchedule() {
                               </td>
                               <td className="px-5 py-4">
                                 <span className="text-xs font-semibold text-slate-800 dark:text-slate-250">{e.subject?.name || "—"}</span>
+                              </td>
+                              <td className="px-5 py-4">
+                                <span className="text-[10px] font-bold px-2.5 py-1 rounded-md bg-teal-50 text-teal-700 dark:bg-teal-500/10 dark:text-teal-300 border border-teal-100 dark:border-teal-500/20">
+                                  {e.examTerm === "THREE_MONTH" ? "3-Month" :
+                                   e.examTerm === "SIX_MONTH" ? "6-Month (Mid-Term)" :
+                                   e.examTerm === "NINE_MONTH" ? "9-Month" :
+                                   e.examTerm === "FINAL_YEAR" ? "Final Year (Annual)" :
+                                   e.examTerm === "Half-Yearly" ? "Half-Yearly (Historical)" :
+                                   e.examTerm === "Annual" ? "Annual (Historical)" : (e.examTerm || "—")}
+                                </span>
                               </td>
                               <td className="px-5 py-4">
                                 <span className={`inline-flex items-center text-[10px] font-bold px-2.5 py-0.5 rounded-full border uppercase tracking-wider ${

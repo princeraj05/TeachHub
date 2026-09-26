@@ -29,6 +29,7 @@ function ExamSchedule() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Upcoming"); // Upcoming or Past
   const [selectedClass, setSelectedClass] = useState("All");
+  const [selectedTerm, setSelectedTerm] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -67,7 +68,8 @@ function ExamSchedule() {
       const classMatch = selectedClass === "All" || e.className?.includes(selectedClass);
       const searchMatch = e.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           e.subject?.toLowerCase().includes(searchQuery.toLowerCase());
-      return classMatch && searchMatch;
+      const termMatch = selectedTerm === "All" || e.examTerm === selectedTerm;
+      return classMatch && termMatch && searchMatch;
     });
   };
 
@@ -191,6 +193,20 @@ function ExamSchedule() {
             {classesList.map(clsName => (
               <option key={clsName} value={clsName}>{clsName}</option>
             ))}
+          </select>
+
+          <select 
+            value={selectedTerm}
+            onChange={(e) => setSelectedTerm(e.target.value)}
+            className="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#111827] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500"
+          >
+            <option value="All">All Terms</option>
+            <option value="THREE_MONTH">3-Month Exam</option>
+            <option value="SIX_MONTH">6-Month Exam (Mid-Term)</option>
+            <option value="NINE_MONTH">9-Month Exam</option>
+            <option value="FINAL_YEAR">Final Year Exam (Annual)</option>
+            <option value="Half-Yearly">Half-Yearly (Historical)</option>
+            <option value="Annual">Annual (Historical)</option>
           </select>
 
           <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#111827] hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all cursor-pointer">

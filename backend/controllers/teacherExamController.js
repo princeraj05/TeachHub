@@ -1,9 +1,4 @@
-const Exam = require("../models/Exam");
-const Class = require("../models/Class");
-const Subject = require("../models/Subject");
-const User = require("../models/User");
-const ExamSubmission = require("../models/ExamSubmission");
-const Timetable = require("../models/Timetable");
+const StudentMark = require("../models/StudentMark");
 
 // ================= GET TEACHER EXAMS =================
 
@@ -69,7 +64,6 @@ exports.getTeacherExams = async (req, res) => {
 exports.getExamDetails = async (req, res) => {
   try {
     const { examId } = req.params;
-    const schoolName = req.user.schoolName;
 
     const exam = await Exam.findById(examId)
       .populate("class", "name section students")
@@ -79,21 +73,27 @@ exports.getExamDetails = async (req, res) => {
       return res.status(404).json({ message: "Exam not found" });
     }
 
-    const classData = await Class.findById(exam.class?._id).populate("students", "name avatar gender");
+    const classData = await Class.findById(exam.class?._id).populate("students", "name avatar gender rollNo");
     const students = classData ? classData.students : [];
 
-    const submissions = await ExamSubmission.find({ exam: examId }).populate("student", "name avatar");
+    const submissions = await ExamSubmission.find({ exam: examId }).populate("student", "name avatar").lean();
+    const marks = await StudentMark.find({
+      $or: [
+        { exam: examId },
+        {
+          class: exam.class?._id || exam.class,
+          subject: exam.subject?._id || exam.subject,
+          examTerm: exam.examTerm,
+          academicYear: exam.academicYear
+        }
+      ]
+    }).lean();
 
-    const maxMarks = 100;
-    const passingMarks = 33;
+    const maxMarks = exam.maxMarks || 100;
+    const passingMarks = Math.round(maxMarks * 0.33);
 
-    // Build student results list
-    const studentResults = [];
-    let passedCount = 0;
-    let failedCount = 0;
-    let totalScoreSum = 0;
-
-    const mockGrades = (score) => {
+    const calcGrade = (score, isAbs) => {
+      if (isAbs) return { grade: "AB", perf: "Absent", color: "text-rose-500 bg-rose-500/10" };
       if (score >= 90) return { grade: "A+", perf: "Excellent", color: "text-emerald-500 bg-emerald-500/10" };
       if (score >= 80) return { grade: "A", perf: "Good", color: "text-blue-500 bg-blue-500/10" };
       if (score >= 70) return { grade: "B+", perf: "Good", color: "text-blue-500 bg-blue-500/10" };
@@ -102,97 +102,146 @@ exports.getExamDetails = async (req, res) => {
       return { grade: "F", perf: "Poor", color: "text-rose-500 bg-rose-500/10" };
     };
 
+    const studentResults = [];
+    let passedCount = 0;
+    let failedCount = 0;
+    let totalScoreSum = 0;
+    let evaluatedCount = 0;
+
+    const markMap = new Map();
+    marks.forEach(m => markMap.set(m.student.toString(), m));
+
+    const submissionMap = new Map();
+    submissions.forEach(s => submissionMap.set(s.student?._id ? s.student._id.toString() : s.student?.toString(), s));
+
     students.forEach((student, index) => {
-      const submission = submissions.find(s => s.student?._id.toString() === student._id.toString());
-      let score = 0;
+      const sId = student._id.toString();
+      const submission = submissionMap.get(sId);
+      const mark = markMap.get(sId);
+
+      let score = null;
+      let isAbsent = false;
+      let statusString = "Evaluation Pending";
+
       if (submission) {
-        score = Math.round((submission.score / (submission.total || 100)) * 100);
+        score = Math.round((submission.score / (submission.total || maxMarks)) * maxMarks);
+        statusString = "Submitted";
+      } else if (mark) {
+        if (mark.isAbsent) {
+          isAbsent = true;
+          statusString = "ABS";
+        } else {
+          score = mark.marksObtained;
+          statusString = "Evaluated";
+        }
       } else {
-        // Fallback realistic mock values
-        const mockScores = [98, 91, 85, 76, 28, 95, 88, 72, 64, 45, 82, 90, 78, 30, 89, 74, 93, 81, 60, 52, 25, 87];
-        score = mockScores[index % mockScores.length];
+        statusString = "Not Appeared";
       }
 
-      const pass = score >= passingMarks;
-      if (pass) passedCount++;
-      else failedCount++;
+      const rollNo = student.rollNo ? String(student.rollNo) : String(index + 1).padStart(2, "0");
 
-      totalScoreSum += score;
-      const meta = mockGrades(score);
-      const rollNo = String(index + 1).padStart(2, "0");
+      if (score !== null && !isAbsent) {
+        evaluatedCount++;
+        totalScoreSum += score;
+        const pct = Math.round((score / maxMarks) * 100);
+        const pass = score >= passingMarks;
+        if (pass) passedCount++;
+        else failedCount++;
 
-      studentResults.push({
-        studentId: student._id,
-        name: student.name,
-        avatar: student.avatar || "",
-        rollNo,
-        marksObtained: score,
-        percentage: score.toFixed(2),
-        grade: meta.grade,
-        performance: meta.perf,
-        performanceColor: meta.color,
-        result: pass ? "Pass" : "Fail"
-      });
+        const meta = calcGrade(pct, false);
+
+        studentResults.push({
+          studentId: student._id,
+          name: student.name,
+          avatar: student.avatar || "",
+          rollNo,
+          marksObtained: score,
+          percentage: pct.toFixed(2),
+          grade: meta.grade,
+          performance: meta.perf,
+          performanceColor: meta.color,
+          result: pass ? "Pass" : "Fail",
+          status: statusString
+        });
+      } else {
+        const meta = calcGrade(0, isAbsent);
+        studentResults.push({
+          studentId: student._id,
+          name: student.name,
+          avatar: student.avatar || "",
+          rollNo,
+          marksObtained: 0,
+          percentage: "0.00",
+          grade: isAbsent ? "AB" : "N/A",
+          performance: isAbsent ? "Absent" : "Pending",
+          performanceColor: meta.color,
+          result: isAbsent ? "Fail" : "Pending",
+          status: statusString
+        });
+      }
     });
 
-    const studentsAppeared = studentResults.length || 22;
-    const avgScore = studentsAppeared > 0 ? Math.round(totalScoreSum / studentsAppeared) : 82;
+    const avgScore = evaluatedCount > 0 ? (totalScoreSum / evaluatedCount) : 0;
 
-    // Segment counts
     let excellentCount = 0;
     let goodCount = 0;
     let averageCount = 0;
     let poorCount = 0;
 
     studentResults.forEach(r => {
-      if (r.marksObtained >= 90) excellentCount++;
-      else if (r.marksObtained >= 70) goodCount++;
-      else if (r.marksObtained >= 33) averageCount++;
-      else poorCount++;
+      if (r.status === "Evaluated" || r.status === "Submitted") {
+        const p = Number(r.percentage);
+        if (p >= 90) excellentCount++;
+        else if (p >= 70) goodCount++;
+        else if (p >= 33) averageCount++;
+        else poorCount++;
+      }
     });
 
-    // Sort student results
     studentResults.sort((a, b) => b.marksObtained - a.marksObtained);
 
-    const highestStudent = studentResults[0] || { name: "Rohan Verma", marksObtained: 98 };
-    const lowestStudent = studentResults[studentResults.length - 1] || { name: "Ankit Sharma", marksObtained: 28 };
+    const evaluatedStudents = studentResults.filter(r => r.status === "Evaluated" || r.status === "Submitted");
+    const highestStudent = evaluatedStudents[0] || { name: "N/A", marksObtained: 0 };
+    const lowestStudent = evaluatedStudents[evaluatedStudents.length - 1] || { name: "N/A", marksObtained: 0 };
 
-    // Standard deviation and median calculations
-    const sortedScores = studentResults.map(r => r.marksObtained).sort((a,b) => a-b);
-    let median = 84;
+    const sortedScores = evaluatedStudents.map(r => r.marksObtained).sort((a,b) => a-b);
+    let median = 0;
     if (sortedScores.length > 0) {
       const mid = Math.floor(sortedScores.length / 2);
       median = sortedScores.length % 2 !== 0 ? sortedScores[mid] : (sortedScores[mid - 1] + sortedScores[mid]) / 2;
     }
 
+    const title = exam.title || `${exam.subject?.name || "Subject"} Exam`;
+    const className = `${exam.class?.name || "Class"} - ${exam.class?.section || "A"}`;
+
     res.json({
       examInfo: {
         _id: exam._id,
-        title: "Unit Test - 2",
-        subject: exam.subject?.name || "Mathematics",
-        className: `${exam.class?.name || "Class 10"} - ${exam.class?.section || "A"}`,
+        title,
+        subject: exam.subject?.name || "Subject",
+        className,
         examDate: exam.date,
-        time: "09:00 AM - 10:30 AM",
-        duration: "1h 30m",
+        time: exam.time || "09:00 AM",
+        duration: exam.duration || "1h 30m",
         maxMarks,
         passingMarks,
         status: new Date(exam.date) >= new Date() ? "Upcoming" : "Completed",
-        publishedDate: "29 May 2026, 05:30 PM",
-        studentsAppeared
+        publishedDate: exam.updatedAt ? new Date(exam.updatedAt).toLocaleString() : "",
+        studentsAppeared: evaluatedCount
       },
       overview: {
-        appeared: studentsAppeared,
+        appeared: evaluatedCount,
         passed: passedCount,
-        passedPct: Math.round((passedCount / (studentsAppeared || 1)) * 100),
+        passedPct: evaluatedCount > 0 ? Math.round((passedCount / evaluatedCount) * 100) : 0,
         failed: failedCount,
-        failedPct: Math.round((failedCount / (studentsAppeared || 1)) * 100),
+        failedPct: evaluatedCount > 0 ? Math.round((failedCount / evaluatedCount) * 100) : 0,
         average: avgScore.toFixed(2)
       },
       performanceOverview: {
-        excellent: { count: excellentCount, pct: Math.round((excellentCount / (studentsAppeared || 1)) * 100) },
-        good: { count: goodCount, pct: Math.round((goodCount / (studentsAppeared || 1)) * 100) },
-        average: { count: averageCount, pct: Math.round((averageCount / (studentsAppeared || 1)) * 100) },
-        poor: { count: poorCount, pct: Math.round((poorCount / (studentsAppeared || 1)) * 100) }
+        excellent: { count: excellentCount, pct: evaluatedCount > 0 ? Math.round((excellentCount / evaluatedCount) * 100) : 0 },
+        good: { count: goodCount, pct: evaluatedCount > 0 ? Math.round((goodCount / evaluatedCount) * 100) : 0 },
+        average: { count: averageCount, pct: evaluatedCount > 0 ? Math.round((averageCount / evaluatedCount) * 100) : 0 },
+        poor: { count: poorCount, pct: evaluatedCount > 0 ? Math.round((poorCount / evaluatedCount) * 100) : 0 }
       },
       distribution: [
         { range: "90-100", count: excellentCount },
@@ -202,13 +251,12 @@ exports.getExamDetails = async (req, res) => {
         { range: "0-32", count: poorCount }
       ],
       subjectSummary: {
-        totalMarks: "2200 / 2200",
+        totalMarks: `${totalScoreSum} / ${evaluatedCount * maxMarks}`,
         highestMarks: `${highestStudent.marksObtained} (${highestStudent.name})`,
         lowestMarks: `${lowestStudent.marksObtained} (${lowestStudent.name})`,
         classAverage: `${avgScore.toFixed(2)}%`,
         median: `${median.toFixed(2)}%`,
-        standardDeviation: "15.68",
-        passPercentage: `${Math.round((passedCount / (studentsAppeared || 1)) * 100)}%`
+        passPercentage: `${evaluatedCount > 0 ? Math.round((passedCount / evaluatedCount) * 100) : 0}%`
       },
       students: studentResults
     });
