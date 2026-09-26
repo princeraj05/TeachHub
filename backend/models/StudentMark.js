@@ -35,7 +35,7 @@ const studentMarkSchema = new mongoose.Schema(
     },
     examTerm: {
       type: String,
-      enum: ["THREE_MONTH", "SIX_MONTH", "NINE_MONTH", "FINAL_YEAR", "Half-Yearly", "Annual"],
+      enum: ["THREE_MONTH", "SIX_MONTH", "NINE_MONTH", "FINAL_YEAR", "3_MONTH", "6_MONTH", "9_MONTH"],
       required: true
     },
     approvalStatus: {

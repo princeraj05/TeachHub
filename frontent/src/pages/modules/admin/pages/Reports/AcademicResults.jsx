@@ -441,7 +441,7 @@ export default function AcademicResults() {
             Academic Results
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
-            Manage Half-Yearly and Annual examination results, entry rosters, and publication status.
+            Manage examination results, entry rosters, and publication status.
           </p>
         </div>
 
@@ -560,8 +560,8 @@ export default function AcademicResults() {
               <option value="SIX_MONTH" className="dark:bg-[#0B132A]">6-Month Examination (Mid-Term)</option>
               <option value="NINE_MONTH" className="dark:bg-[#0B132A]">9-Month Examination</option>
               <option value="FINAL_YEAR" className="dark:bg-[#0B132A]">Final Year Examination (Annual)</option>
-              <option value="Half-Yearly" className="dark:bg-[#0B132A]">Half-Yearly (Historical)</option>
-              <option value="Annual" className="dark:bg-[#0B132A]">Annual (Historical)</option>
+              
+              
             </select>
           </div>
         </div>

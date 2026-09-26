@@ -205,8 +205,8 @@ function ExamSchedule() {
             <option value="SIX_MONTH">6-Month Exam (Mid-Term)</option>
             <option value="NINE_MONTH">9-Month Exam</option>
             <option value="FINAL_YEAR">Final Year Exam (Annual)</option>
-            <option value="Half-Yearly">Half-Yearly (Historical)</option>
-            <option value="Annual">Annual (Historical)</option>
+            
+            
           </select>
 
           <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#111827] hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all cursor-pointer">

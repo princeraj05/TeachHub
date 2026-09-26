@@ -264,7 +264,7 @@ function ExamSchedule() {
       title: exam.title || "",
       classId: exam.class?._id || exam.class || "",
       subjectId: exam.subject?._id || exam.subject || "",
-      examTerm: exam.examTerm || "Half-Yearly",
+      examTerm: exam.examTerm || "THREE_MONTH",
       academicYear: exam.academicYear || academicYearOptions[1] || `${currY}-${currY + 1}`,
       maxMarks: exam.maxMarks || 100,
       date: exam.date ? new Date(exam.date).toISOString().split("T")[0] : "",
@@ -982,9 +982,7 @@ function ExamSchedule() {
                                   {e.examTerm === "THREE_MONTH" ? "3-Month" :
                                    e.examTerm === "SIX_MONTH" ? "6-Month (Mid-Term)" :
                                    e.examTerm === "NINE_MONTH" ? "9-Month" :
-                                   e.examTerm === "FINAL_YEAR" ? "Final Year (Annual)" :
-                                   e.examTerm === "Half-Yearly" ? "Half-Yearly (Historical)" :
-                                   e.examTerm === "Annual" ? "Annual (Historical)" : (e.examTerm || "—")}
+                                   e.examTerm === "FINAL_YEAR" ? "Final Year Examination (Annual)" : (e.examTerm || "—")}
                                 </span>
                               </td>
                               <td className="px-5 py-4">

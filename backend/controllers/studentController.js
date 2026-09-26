@@ -444,14 +444,14 @@ exports.getStudentExams = async (req, res) => {
       const submission = await ExamSubmission.findOne({ student: studentId, exam: e._id });
       return {
         _id: e._id,
-        title: e.title || `${e.examTerm || "Half-Yearly"} Examination`,
+        title: e.title || `${e.examTerm || "3-Month"} Examination`,
         subject: e.subject?.name || "—",
         date: e.date,
         time: e.time || "09:00 AM",
         duration: e.duration || "1h 30m",
         roomNumber: e.roomNumber || "",
         maxMarks: e.maxMarks || 100,
-        examTerm: e.examTerm || "Half-Yearly",
+        examTerm: e.examTerm || "3-Month",
         academicYear: e.academicYear || "2026-2027",
         mode: e.mode || "offline",
         negativeMarking: e.negativeMarking || false,

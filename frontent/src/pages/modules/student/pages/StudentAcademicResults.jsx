@@ -75,7 +75,7 @@ function StudentAcademicResults() {
                 Academic Results
               </h1>
               <p className="text-[10px] sm:text-[11px] text-white/90 font-medium max-w-lg">
-                View published Half-Yearly & Annual examination performance, subject marks, and grades.
+                View published examination performance, subject marks, and grades.
               </p>
             </div>
           </div>
@@ -90,7 +90,7 @@ function StudentAcademicResults() {
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Exam Term:</span>
               <div className="inline-flex p-1 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl">
-                {["ALL", "THREE_MONTH", "SIX_MONTH", "NINE_MONTH", "FINAL_YEAR", "Half-Yearly", "Annual"].map(t => (
+                {["ALL", "THREE_MONTH", "SIX_MONTH", "NINE_MONTH", "FINAL_YEAR"].map(t => (
                   <button
                     key={t}
                     onClick={() => setSelectedTerm(t)}
@@ -105,8 +105,8 @@ function StudentAcademicResults() {
                      t === "SIX_MONTH" ? "6-Month" :
                      t === "NINE_MONTH" ? "9-Month" :
                      t === "FINAL_YEAR" ? "Final Year" :
-                     t === "Half-Yearly" ? "Half-Yearly (Legacy)" :
-                     t === "Annual" ? "Annual (Legacy)" : t}
+                     
+                     t === "THREE_MONTH" ? "3-Month" : t === "SIX_MONTH" ? "6-Month" : t === "NINE_MONTH" ? "9-Month" : t === "FINAL_YEAR" ? "Final Year" : t}
                   </button>
                 ))}
               </div>
@@ -174,7 +174,7 @@ function StudentAcademicResults() {
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
             {results.length === 0
-              ? "Your school administrator has not published any Half-Yearly or Annual examination results for your class yet."
+              ? "Your school administrator has not published any examination results for your class yet."
               : "No published results match the selected term and academic year filter."}
           </p>
         </div>

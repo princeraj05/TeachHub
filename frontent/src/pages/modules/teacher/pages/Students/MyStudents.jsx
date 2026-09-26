@@ -1110,7 +1110,7 @@ function MyStudents() {
                     <FaGraduationCap />
                   </div>
                   <h3 className="text-slate-800 dark:text-white font-extrabold text-sm">No published academic results found</h3>
-                  <p className="text-slate-400 text-xs font-semibold mt-1">Official report card results for Half-Yearly or Annual terms have not been published yet for this student.</p>
+                  <p className="text-slate-400 text-xs font-semibold mt-1">Official report card results for examination terms have not been published yet for this student.</p>
                 </div>
               )}
             </div>

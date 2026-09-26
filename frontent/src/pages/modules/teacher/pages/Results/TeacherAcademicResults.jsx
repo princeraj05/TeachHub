@@ -476,8 +476,8 @@ export default function TeacherAcademicResults() {
               <option value="SIX_MONTH" className="dark:bg-[#0B132A]">6-Month Examination (Mid-Term)</option>
               <option value="NINE_MONTH" className="dark:bg-[#0B132A]">9-Month Examination</option>
               <option value="FINAL_YEAR" className="dark:bg-[#0B132A]">Final Year Examination (Annual)</option>
-              <option value="Half-Yearly" className="dark:bg-[#0B132A]">Half-Yearly (Historical)</option>
-              <option value="Annual" className="dark:bg-[#0B132A]">Annual (Historical)</option>
+              
+              
             </select>
           </div>
         </div>
