@@ -41,10 +41,7 @@ function AttendanceReport() {
           </h1>
           <p className="text-xs text-slate-400 font-medium mt-0.5">Historical verification records of marked class presence</p>
         </div>
-        <div className="flex items-center gap-2.5 bg-slate-100 border border-slate-200/60 rounded-2xl px-4 py-2.5 w-fit text-xs font-bold text-slate-500 select-none shadow-sm">
-          <FaCalendarAlt className="text-slate-400" />
-          Academic Year 2026
-        </div>
+        
       </div>
 
       {/* Directory count status pill */}

@@ -135,14 +135,7 @@ function AttendanceReport() {
 
   return (
     <div className="font-sans">
-      {/* Page Header */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-
-        <div className="flex items-center gap-2 bg-slate-100 border border-slate-200/60 rounded-2xl px-4 py-2.5 w-fit text-xs font-bold text-slate-500 shadow-sm">
-          <FaCalendarAlt className="text-slate-400" />
-          Academic Year 2026
-        </div>
-      </div>
+      
 
       {/* Class & Section Selector Card */}
       <div className="bg-white rounded-2xl border border-slate-200/60 p-6 shadow-sm mb-8">
