@@ -610,14 +610,7 @@ function PendingApproval() {
                       Track your school onboarding request & Super Admin approval status
                     </p>
                   </div>
-                  <Link to="/pending/notifications" className="relative p-2.5 bg-slate-100 dark:bg-white/5 rounded-full border border-slate-200/50 dark:border-white/10 text-slate-600 dark:text-slate-400 shrink-0 hover:bg-slate-200 dark:hover:bg-white/10 transition-all">
-                    <FaBell className="text-lg" />
-                    {getNotificationsList().length > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#7C3AED] text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-[#090F1C]">
-                        {getNotificationsList().length}
-                      </span>
-                    )}
-                  </Link>
+                  
                 </div>
 
                 {/* 1. APPROVAL REDIRECT COUNTDOWN OVERLAY / CARD */}
@@ -1243,14 +1236,7 @@ function PendingApproval() {
                       {isTeacher ? "Track your teaching position application & faculty review status" : "Track your school application and exam status"}
                     </p>
                   </div>
-                  <Link to="/pending/notifications" className="relative p-2.5 bg-slate-100 dark:bg-white/5 rounded-full border border-slate-200/50 dark:border-white/10 text-slate-600 dark:text-slate-400 shrink-0 hover:bg-slate-200 dark:hover:bg-white/10 transition-all">
-                    <FaBell className="text-lg" />
-                    {getNotificationsList().length > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#7C3AED] text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-[#090F1C]">
-                        {getNotificationsList().length}
-                      </span>
-                    )}
-                  </Link>
+                  
                 </div>
 
                 {/* Current Application Banner Card */}
@@ -1992,6 +1978,20 @@ function PendingApproval() {
             >
               {theme === "dark" ? <FaSun className="text-amber-500" /> : <FaMoon />}
             </button>
+
+            {/* Notification Bell Button in Header */}
+            <Link 
+              to="/pending/notifications" 
+              className="relative p-1.5 sm:p-2 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400 cursor-pointer transition text-xs sm:text-sm flex items-center justify-center"
+              title="Notifications"
+            >
+              <FaBell />
+              {getNotificationsList().length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#7C3AED] text-white text-[9px] font-black rounded-full flex items-center justify-center border border-white dark:border-[#090F1C]">
+                  {getNotificationsList().length}
+                </span>
+              )}
+            </Link>
 
             {/* User profile avatar clickable */}
             <div
