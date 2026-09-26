@@ -525,10 +525,10 @@ function Login({ scope }) {
       </div>
 
       {/* ── Right Panel & Mobile Layout ── */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 lg:p-12 relative z-10">
+      <div className="flex-1 flex flex-col items-center justify-center px-3 py-2 sm:p-8 lg:p-12 relative z-10">
         
         {/* MOBILE ONLY TOP BRANDING & THEME BAR */}
-        <div className="w-full max-w-[440px] flex items-center justify-between px-1 py-1 lg:hidden mb-3">
+        <div className="w-full max-w-[440px] flex items-center justify-between px-1 py-0.5 lg:hidden mb-2">
           <div className="flex items-center gap-2.5">
             {logoUrl ? (
               <img src={getMediaUrl(logoUrl)} alt={platformName} className="w-7 h-7 object-contain rounded-lg shrink-0" />
@@ -556,10 +556,10 @@ function Login({ scope }) {
         </div>
 
         {/* MOBILE ONLY TOP HERO CAROUSEL & METRICS */}
-        <div className="w-full max-w-[440px] lg:hidden space-y-4 mb-6">
+        <div className="w-full max-w-[440px] lg:hidden space-y-2 mb-2.5">
           
           {/* Mobile School Cover Banner 5-sec Carousel */}
-          <div className="w-full relative rounded-3xl overflow-hidden shadow-xl border border-slate-200/80 dark:border-white/10 bg-slate-900 aspect-[2.2/1]">
+          <div className="w-full relative rounded-2xl overflow-hidden shadow-md border border-slate-200/80 dark:border-white/10 bg-slate-900 aspect-[2.6/1] sm:aspect-[2.2/1]">
             <img
               key={currentBanner.coverImage}
               src={getMediaUrl(currentBanner.coverImage)}
@@ -600,8 +600,8 @@ function Login({ scope }) {
           </div>
 
           {/* Mobile 3 Metric Cards Grid (Total School, Total Teacher, Total Students) */}
-          <div className="grid grid-cols-3 gap-2.5">
-            <div className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-xl border border-purple-500/20 rounded-2xl p-2.5 text-center shadow-sm">
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-xl border border-purple-500/20 rounded-xl py-1 px-1.5 text-center shadow-xs">
               <div className="w-5 h-5 mx-auto mb-1 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400">
                 <FaSchool className="text-[10px]" />
               </div>
@@ -609,7 +609,7 @@ function Login({ scope }) {
               <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total School</p>
             </div>
 
-            <div className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-xl border border-indigo-500/20 rounded-2xl p-2.5 text-center shadow-sm">
+            <div className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-xl border border-indigo-500/20 rounded-xl py-1 px-1.5 text-center shadow-xs">
               <div className="w-5 h-5 mx-auto mb-1 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                 <FaChalkboardTeacher className="text-[10px]" />
               </div>
@@ -617,7 +617,7 @@ function Login({ scope }) {
               <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total Teacher</p>
             </div>
 
-            <div className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-xl border border-sky-500/20 rounded-2xl p-2.5 text-center shadow-sm">
+            <div className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-xl border border-sky-500/20 rounded-xl py-1 px-1.5 text-center shadow-xs">
               <div className="w-5 h-5 mx-auto mb-1 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-600 dark:text-sky-400">
                 <FaUserGraduate className="text-[10px]" />
               </div>
@@ -629,11 +629,11 @@ function Login({ scope }) {
         </div>
 
         {/* Glassmorphic Form Card */}
-        <div className="w-full max-w-[440px] bg-white/90 dark:bg-[#0B132B]/85 backdrop-blur-2xl p-6 sm:p-10 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-2xl shadow-purple-950/10 dark:shadow-black/70 transition-all duration-300 hover:shadow-purple-950/15">
+        <div className="w-full max-w-[440px] bg-white/95 dark:bg-[#0B132B]/90 backdrop-blur-2xl p-4 sm:p-8 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xl shadow-purple-950/10 dark:shadow-black/70 transition-all duration-300">
           
           {/* Header Brand Badge inside card */}
-          <div className="flex flex-col items-center text-center mb-6">
-            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-purple-500/10 dark:bg-white/[0.05] border border-purple-500/20 dark:border-white/10 mb-3 shadow-sm">
+          <div className="flex flex-col items-center text-center mb-3.5">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-purple-500/10 dark:bg-white/[0.05] border border-purple-500/20 dark:border-white/10 mb-2 shadow-xs">
               {logoUrl ? (
                 <img src={logoUrl} alt={platformName} className="w-5 h-5 object-contain rounded-md" />
               ) : (
@@ -646,7 +646,7 @@ function Login({ scope }) {
               </span>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+            <h2 className="text-xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
               Welcome back
             </h2>
             <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1">
@@ -678,7 +678,7 @@ function Login({ scope }) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50/90 dark:bg-[#151D36] border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 focus:bg-white dark:focus:bg-[#1A2444] transition-all shadow-inner"
+                    className="w-full pl-11 pr-4 py-2.5 sm:py-3.5 bg-slate-50/90 dark:bg-[#151D36] border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 focus:bg-white dark:focus:bg-[#1A2444] transition-all shadow-inner"
                   />
                 </div>
               </div>
@@ -687,7 +687,7 @@ function Login({ scope }) {
               <button
                 type="submit"
                 disabled={loading}
-                className="group w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs tracking-wider transition-all duration-300 shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+                className="group w-full py-2.5 sm:py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs tracking-wider transition-all duration-300 shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
               >
                 {loading ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -700,7 +700,7 @@ function Login({ scope }) {
               </button>
 
               {/* Divider */}
-              <div className="relative my-5 flex items-center justify-center">
+              <div className="relative my-3 sm:my-5 flex items-center justify-center">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-200/80 dark:border-white/10" />
                 </div>
@@ -714,7 +714,7 @@ function Login({ scope }) {
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={loading}
-                className="w-full py-3.5 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.08] hover:border-slate-300 dark:hover:border-white/20 active:scale-[0.98] text-slate-700 dark:text-slate-200 font-bold text-xs tracking-wider transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
+                className="w-full py-2.5 sm:py-3.5 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.08] hover:border-slate-300 dark:hover:border-white/20 active:scale-[0.98] text-slate-700 dark:text-slate-200 font-bold text-xs tracking-wider transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -811,7 +811,7 @@ function Login({ scope }) {
         </div>
 
         {/* Footer text */}
-        <p className="text-[11px] text-slate-400 dark:text-slate-500 font-semibold mt-6 text-center">
+        <p className="text-[10px] sm:text-[11px] text-slate-400 dark:text-slate-500 font-semibold mt-2.5 text-center">
           Protected by end-to-end OTP authentication &bull; {platformName || "TeachHub"}
         </p>
 

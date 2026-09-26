@@ -232,6 +232,8 @@ function SuperAdminProfile() {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data?.user) {
+          const finalAvatar = res.data.user.avatar || base64Data;
+          setAvatar(finalAvatar);
           setProfile(res.data.user);
           localStorage.setItem("avatar", res.data.user.avatar || base64Data);
           localStorage.setItem("cached_superadmin_profile", JSON.stringify(res.data.user));
@@ -265,9 +267,9 @@ function SuperAdminProfile() {
         name,
         phoneNumber,
         gender,
-        address,
-        avatar
+        address
       };
+      if (avatar) payload.avatar = avatar;
 
       const res = await axios.put(`${API}/api/auth/profile`, payload, {
         headers: { Authorization: `Bearer ${token}` }
