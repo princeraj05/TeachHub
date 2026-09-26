@@ -541,17 +541,6 @@ function PendingApproval() {
         const notList = getNotificationsList();
         return (
           <div className="w-full flex flex-col gap-6 max-w-xl mx-auto py-2 select-none" style={{ fontFamily: SORA }}>
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/[0.08] pb-4 select-none">
-              <div>
-                <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight text-left">Notifications & Updates</h1>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 text-left font-medium">
-                  {isTeacher ? "Stay updated on your teacher application status & notifications" : "Stay updated on your application status, exams, and registrations"}
-                </p>
-              </div>
-              <span className="px-3 py-1 bg-purple-500/10 text-purple-600 dark:text-[#38BDF8] border border-purple-550/15 dark:border-[#38BDF8]/20 rounded-full text-xs font-black shrink-0 leading-none">
-                {notList.length} Total
-              </span>
-            </div>
 
             <div className="flex flex-col gap-4">
               {notList.map((not) => {

@@ -271,12 +271,7 @@ function GlobalEvents() {
           <p className="text-xs text-slate-450 dark:text-slate-400 font-black">
             No {activeTab === "upcoming" ? "upcoming" : "completed"} events match your query.
           </p>
-          <button
-            onClick={() => setSearchQuery("")}
-            className="mt-4 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition-all cursor-pointer"
-          >
-            Clear Filters
-          </button>
+          
         </div>
       )}
 
