@@ -82,23 +82,6 @@ function AboutYourSchool() {
   return (
     <div className="min-h-screen text-slate-900 dark:text-slate-100 p-6 -m-4 md:-m-6 transition-colors duration-200" style={{ fontFamily: SORA }}>
       
-      {/* ── TOP HEADER & BREADCRUMBS ── */}
-      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 select-none">
-        <div>
-          <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 mb-1">
-            <span>About Your School</span>
-            <span>&gt;</span>
-            <span className="text-purple-500">{currentTabObj.breadcrumb}</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            About Your School
-          </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 animate-fadeIn">
-            Manage your school's details, media, admissions policies, and profile settings in modular sections.
-          </p>
-        </div>
-      </div>
-
       {/* ── PROFILE COMPLETION PROGRESS BAR ── */}
       <div className="mb-6 bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-sm dark:shadow-xl select-none animate-fadeIn">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">

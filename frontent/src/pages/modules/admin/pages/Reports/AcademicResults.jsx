@@ -430,20 +430,7 @@ export default function AcademicResults() {
       
       {/* Page Header */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-black uppercase tracking-widest bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] dark:bg-[#38BDF8]/10 px-2.5 py-0.5 rounded-full">
-              School Academic Examination
-            </span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
-            <FaGraduationCap className="text-[#7C3AED] dark:text-[#38BDF8]" />
-            Academic Results
-          </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
-            Manage examination results, entry rosters, and publication status.
-          </p>
-        </div>
+
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl px-4 py-2.5 shadow-sm text-xs font-bold text-slate-600 dark:text-slate-300">

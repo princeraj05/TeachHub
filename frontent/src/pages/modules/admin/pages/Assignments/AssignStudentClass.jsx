@@ -90,12 +90,6 @@ function AssignStudentClass() {
 
   return (
     <div className="font-sans">
-      {/* Page header */}
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">Assign Student</h1>
-        <p className="text-xs text-slate-400 font-medium mt-0.5">Map a student to a class and section group</p>
-      </div>
-
       <div className="max-w-xl">
         {/* Success banner */}
         {success && (

@@ -227,16 +227,6 @@ function AdminLayout() {
               <span className="hidden lg:block text-sm font-semibold">About App</span>
             </Link>
 
-            <Link
-              to="/admin/appointments"
-              className={`flex items-center gap-4 px-3.5 py-3 rounded-xl transition-all duration-200 ${
-                isActive("/admin/appointments") ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] dark:bg-[#38BDF8]/10 font-bold" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
-              }`}
-            >
-              <div className="flex-shrink-0"><FaCalendarAlt className="text-xl" /></div>
-              <span className="hidden lg:block text-sm font-semibold">Appointments</span>
-            </Link>
-
             <Link to="/admin/create-timetable" className={`flex items-center gap-4 px-3.5 py-3 rounded-xl transition-all duration-200 ${isActive("/admin/create-timetable") ? "bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#38BDF8] dark:bg-[#38BDF8]/10 font-bold" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"}`}>
               <div className="flex-shrink-0"><FaCalendarAlt className="text-xl" /></div><span className="hidden lg:block text-sm font-semibold">Create Timetable</span>
             </Link>
@@ -602,7 +592,6 @@ function AdminLayout() {
                 { to: "/admin/create-timetable", icon: <FaCalendarAlt className="text-cyan-500" />, label: "Create Timetable" },
                 { to: "/admin/exam-schedule", icon: <FaCalendarAlt className="text-rose-500" />, label: "Exams Schedule" },
                 { to: "/admin/events", icon: <FaCalendarAlt className="text-[#38BDF8]" />, label: "School Events" },
-                { to: "/admin/appointments", icon: <FaCalendarAlt className="text-emerald-500" />, label: "Appointments" },
                 { to: "/admin/assign-teacher-class", icon: <FaChalkboardTeacher className="text-indigo-500" />, label: "Assign Teacher Class" },
                 { to: "/admin/assign-student-class", icon: <FaUsers className="text-purple-500" />, label: "Assign Student Class" },
                 { to: "/admin/teacher-leaves", icon: <FaUserShield className="text-orange-500" />, label: "Teacher Leaves" },

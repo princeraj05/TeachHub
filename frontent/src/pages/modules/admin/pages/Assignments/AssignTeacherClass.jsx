@@ -159,16 +159,6 @@ function AssignTeacherClass() {
 
   return (
     <div className="font-sans space-y-10">
-      {/* Page header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight">
-          Unified Teacher, Multiple Classes & Subjects Assignment
-        </h1>
-        <p className="text-xs text-slate-400 font-medium mt-0.5">
-          Assign teacher to multiple classes and multiple course subjects together, view saved details, and edit assignments
-        </p>
-      </div>
-
       <div ref={formRef} className="max-w-xl">
         {/* Success banner */}
         {success && (

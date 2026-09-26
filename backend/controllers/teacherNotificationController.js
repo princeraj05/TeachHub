@@ -1,5 +1,4 @@
 const TeacherNotification = require("../models/TeacherNotification");
-const Appointment = require("../models/Appointment");
 const TeacherLeave = require("../models/TeacherLeave");
 const Exam = require("../models/Exam");
 const Subject = require("../models/Subject");

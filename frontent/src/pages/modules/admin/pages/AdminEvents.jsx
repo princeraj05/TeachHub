@@ -365,11 +365,7 @@ function AdminEvents() {
   return (
     <div className="font-sans space-y-6" style={{ fontFamily: SORA }}>
       {/* Page Title Header */}
-      <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-white/10 pb-4 select-none">
-        <div>
-          <h2 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">Events Desk</h2>
-          <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest mt-0.5">Manage school happenings & event gallery</p>
-        </div>
+      <div className="flex items-center justify-end border-b border-slate-200/60 dark:border-white/10 pb-3 select-none">
         <button
           onClick={() => { resetForm(); setShowAddModal(true); }}
           className="bg-gradient-to-r from-[#7C3AED] to-[#312E81] text-white font-extrabold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 hover:opacity-95 active:scale-95 transition shadow-xs cursor-pointer shrink-0"

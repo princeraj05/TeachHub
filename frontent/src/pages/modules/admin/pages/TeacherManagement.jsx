@@ -328,10 +328,7 @@ export default function TeacherManagement() {
           </select>
         </div>
 
-        <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-          Teachers <span className="text-slate-400 dark:text-slate-700">›</span> Teacher Management <span className="text-slate-400 dark:text-slate-700">›</span>{" "}
-          <span className="text-purple-600 dark:text-[#7C5CFC] font-bold">{teacherData?.name}</span> <span className="text-slate-400 dark:text-slate-700">›</span> Photo Gallery
-        </div>
+        
       </div>
 
       {/* Main Header */}

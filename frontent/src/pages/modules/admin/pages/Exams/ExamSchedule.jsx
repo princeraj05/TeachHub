@@ -373,13 +373,7 @@ function ExamSchedule() {
     <div style={{ fontFamily: SORA }}>
       {/* Page Header */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-teal-600 mb-1">Academics</p>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight">
-            Exam Schedule
-          </h1>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">Manage and organize system wide exam timelines</p>
-        </div>
+
         <div className="flex items-center gap-2.5 bg-slate-100 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-2xl px-4 py-2.5 w-fit text-xs font-bold text-slate-500 select-none shadow-sm">
           <FaCalendarAlt className="text-slate-400" />
           Academic Year 2026

@@ -146,15 +146,7 @@ export default function TeacherLeaves() {
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-6 text-[13px] bg-slate-50 dark:bg-[#080B16] text-slate-900 dark:text-[#F3F5F9] font-sans transition-colors duration-200">
-      <p className="text-[11px] font-semibold text-purple-600 dark:text-purple-400">
-        Teacher Leaves <span className="text-slate-400 dark:text-[#5B6478]">›</span> <span className="text-slate-400 dark:text-[#5B6478]">Leave Requests</span>
-      </p>
-      <div className="mt-1 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-[26px] font-extrabold text-slate-900 dark:text-white tracking-tight">Teacher Leave Requests</h1>
-          <p className="mt-0.5 text-[12.5px] text-slate-500 dark:text-[#8993A8]">Manage leave applications submitted by teachers.</p>
-        </div>
-      </div>
+
 
       {/* Stat cards */}
       <div className="hidden mt-5 grid grid-cols-2 gap-4 xl:grid-cols-4">

@@ -25,7 +25,6 @@ const LiveProctoring = lazy(() => import("../teacher/pages/LiveProctoring/LivePr
 const AdminEvents = lazy(() => import("./pages/AdminEvents"));
 const AboutYourSchool = lazy(() => import("./pages/AboutYourSchool"));
 const CreateTimetable = lazy(() => import("./pages/CreateTimetable"));
-const Appointments = lazy(() => import("./pages/Appointments"));
 const TeacherLeaves = lazy(() => import("./pages/TeacherLeaves"));
 const TeacherManagement = lazy(() => import("./pages/TeacherManagement"));
 const PaymentCenter = lazy(() => import("../../../components/PaymentCenter"));
@@ -90,7 +89,6 @@ function AdminRoutes() {
         <Route path="about-school" element={<Suspense fallback={<PageLoader />}><AboutYourSchool /></Suspense>} />
         <Route path="about" element={<Suspense fallback={<PageLoader />}><AboutAppPage /></Suspense>} />
         <Route path="create-timetable" element={<Suspense fallback={<PageLoader />}><CreateTimetable /></Suspense>} />
-        <Route path="appointments" element={<Suspense fallback={<PageLoader />}><Appointments /></Suspense>} />
         <Route path="teacher-leaves" element={<Suspense fallback={<PageLoader />}><TeacherLeaves /></Suspense>} />
         <Route path="teacher-management" element={<Suspense fallback={<PageLoader />}><TeacherManagement /></Suspense>} />
         <Route path="notifications" element={<Suspense fallback={<PageLoader />}><AdminNotifications /></Suspense>} />

@@ -358,16 +358,7 @@ function AdminRequests() {
 
   return (
     <div style={{ fontFamily: SORA }} className="max-w-4xl mx-auto py-3 sm:py-6 space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED] dark:text-[#38BDF8] mb-1">Admissions</p>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight">
-            Join Requests
-          </h1>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">Manage student and teacher joining requests for {schoolName}</p>
-        </div>
-      </div>
+
 
       {/* Tabs */}
       <div className="bg-white dark:bg-[#0B132A] rounded-2xl border border-slate-200/60 dark:border-white/10 p-1.5 flex gap-2 shadow-sm">

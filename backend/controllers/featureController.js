@@ -7,7 +7,6 @@ const Attendance = require("../models/Attendance");
 const ChatGroup = require("../models/ChatGroup");
 const GroupMessage = require("../models/GroupMessage");
 const TeacherLeave = require("../models/TeacherLeave");
-const Appointment = require("../models/Appointment");
 const Timetable = require("../models/Timetable");
 const TeacherAttendance = require("../models/TeacherAttendance");
 
@@ -214,9 +213,6 @@ exports.getActiveLeaves = async (req, res) => {
   }
 };
 
-exports.createAppointment = async (req, res) => { try { const { schoolName, date, time, notes = "" } = req.body; if (!schoolName || !date || !time) return res.status(400).json({ message: "School, date and time are required" }); const school = await School.findOne({ normalizedName: String(schoolName).trim().toLowerCase().replace(/\s+/g, " ") }); if (!school) return res.status(404).json({ message: "School not found" }); const dateValue = new Date(date); if (Number.isNaN(+dateValue) || dateValue < new Date(new Date().setHours(0,0,0,0))) return res.status(400).json({ message: "Choose a future appointment date" }); const appointment = await Appointment.create({ user: req.user.id, schoolName: school.name, date: dateValue, time, mode: "Offline", notes }); res.status(201).json(appointment); } catch { res.status(500).json({ message: "Could not book appointment" }); } };
-exports.getAppointments = async (req, res) => { try { const query = req.user.role === "admin" ? { schoolName: req.user.schoolName } : { user: req.user.id }; res.json(await Appointment.find(query).populate("user", "name email").sort({ date: 1, time: 1 })); } catch { res.status(500).json({ message: "Could not load appointments" }); } };
-exports.updateAppointment = async (req, res) => { try { const { status, notes } = req.body; const appointment = await Appointment.findById(req.params.id); if (!appointment) return res.status(404).json({ message: "Appointment not found" }); if (req.user.role === "admin" && appointment.schoolName !== req.user.schoolName) return res.status(403).json({ message: "Forbidden" }); if (req.user.role !== "admin" && appointment.user.toString() !== req.user.id) return res.status(403).json({ message: "Forbidden" }); if (status && !["Pending", "Approved", "Rejected", "Completed", "Cancelled"].includes(status)) return res.status(400).json({ message: "Invalid appointment status" }); if (req.user.role !== "admin" && status && status !== "Cancelled") return res.status(403).json({ message: "You may only cancel your appointment" }); if (status) appointment.status = status; if (notes !== undefined) appointment.notes = notes; await appointment.save(); res.json(appointment); } catch { res.status(400).json({ message: "Could not update appointment" }); } };
 
 exports.createTimetable = async (req, res) => {
   try {

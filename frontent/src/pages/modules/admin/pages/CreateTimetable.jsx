@@ -260,23 +260,6 @@ export default function CreateTimetable() {
   return (
     <div className="min-h-screen text-slate-900 dark:text-slate-100 p-6 -m-4 md:-m-6 transition-colors duration-200" style={{ fontFamily: SORA }}>
       
-      {/* ── HEADER & BREADCRUMBS ── */}
-      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 select-none">
-        <div>
-          <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 mb-1">
-            <span>Timetable</span>
-            <span>&gt;</span>
-            <span className="text-purple-500">{currentTabObj.breadcrumb}</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            {currentTabObj.breadcrumb}
-          </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 animate-fadeIn">
-            Select class, subject, teacher, day and time to create or organize class schedules.
-          </p>
-        </div>
-      </div>
-
       {/* ── TABS NAVIGATION BAR ── */}
       <div className="flex flex-wrap items-center gap-2 mb-6 border-b border-slate-200 dark:border-slate-800/80 pb-3 select-none">
         {TABS.map(tab => {

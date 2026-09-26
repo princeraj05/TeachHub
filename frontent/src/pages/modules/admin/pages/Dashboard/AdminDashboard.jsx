@@ -234,18 +234,9 @@ function AdminDashboard() {
     <div className="text-slate-900 dark:text-slate-100 transition-colors duration-200" style={{ fontFamily: SORA }}>
       
       {/* ── GREETING & CLOCK HEADER ── */}
-      <div className="mb-3 sm:mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-2.5 sm:gap-4">
-        <div>
-          <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
-            Admin Dashboard
-          </h1>
-          <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-            Here's what's happening at {data?.schoolName || "your school"} today.
-          </p>
-        </div>
-        
+      <div className="mb-3 sm:mb-6 flex justify-end">
         {/* Dynamic Real-Time Clock */}
-        <div className="flex items-center gap-2.5 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800/80 rounded-xl px-3 py-1.5 sm:px-4 sm:py-2.5 shadow-sm w-fit self-start md:self-auto">
+        <div className="flex items-center gap-2.5 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800/80 rounded-xl px-3 py-1.5 sm:px-4 sm:py-2.5 shadow-sm w-fit">
           <FaCalendarAlt className="text-purple-500 text-xs sm:text-base" />
           <div className="text-left">
             <p className="text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200">{formatLocalDate(currentTime)}</p>
