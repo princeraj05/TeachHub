@@ -387,7 +387,7 @@ function Login({ scope }) {
 
   return (
     <div 
-      className="min-h-screen relative flex flex-col lg:flex-row font-sans bg-slate-50 dark:bg-[#070C18] text-slate-900 dark:text-white transition-colors duration-300 overflow-x-hidden" 
+      className="min-h-screen relative flex flex-col justify-center items-center font-sans bg-slate-50 dark:bg-[#070C18] text-slate-900 dark:text-white transition-colors duration-300 overflow-x-hidden p-3 sm:p-6 lg:p-8" 
       style={{ fontFamily: SORA }}
     >
       {/* Dynamic Ambient Background Glow Blobs */}
@@ -408,412 +408,417 @@ function Login({ scope }) {
         )}
       </button>
 
-      {/* ── Left Panel (Desktop Branding & School Banner Carousel) ── */}
-      <div className="hidden lg:flex lg:w-1/2 xl:w-7/12 relative flex-col items-center justify-center p-10 lg:p-14 border-r border-slate-200/50 dark:border-white/5">
-        <div className="relative z-10 w-full max-w-xl text-center flex flex-col items-center">
-          
-          {/* Header Platform Logo */}
-          <div className="inline-flex items-center gap-3.5 bg-white/90 dark:bg-white/[0.05] backdrop-blur-xl border border-slate-200/80 dark:border-white/10 px-5 py-2.5 rounded-2xl mb-6 shadow-md hover:border-purple-500/30 transition-all duration-300">
-            {logoUrl ? (
-              <img src={logoUrl} alt={platformName} className="w-8 h-8 object-contain rounded-xl shrink-0" />
-            ) : (
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-md shadow-purple-600/30 shrink-0">
-                <FaGraduationCap className="text-base text-white" />
+      {/* ── MAIN 2-COLUMN DESKTOP & LAPTOP CONTAINER ── */}
+      <div className="w-full max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12 xl:gap-16 relative z-10 my-auto">
+        
+        {/* ── Left Panel (Desktop Branding & School Banner Carousel) ── */}
+        <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center p-2">
+          <div className="w-full max-w-md xl:max-w-lg flex flex-col items-center text-center">
+            
+            {/* Header Platform Logo */}
+            <div className="inline-flex items-center gap-3 bg-white/90 dark:bg-white/[0.05] backdrop-blur-xl border border-slate-200/80 dark:border-white/10 px-4 py-2 rounded-2xl mb-4 shadow-sm hover:border-purple-500/30 transition-all duration-300">
+              {logoUrl ? (
+                <img src={logoUrl} alt={platformName} className="w-7 h-7 object-contain rounded-xl shrink-0" />
+              ) : (
+                <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-md shadow-purple-600/30 shrink-0">
+                  <FaGraduationCap className="text-sm text-white" />
+                </div>
+              )}
+              <span className="text-base font-black tracking-tight text-slate-900 dark:text-white">
+                {platformName || "Your School"}
+              </span>
+            </div>
+
+            {/* School Cover Banner 5-second Auto-Slider Card */}
+            <div className="w-full relative rounded-3xl overflow-hidden shadow-xl border border-slate-200/80 dark:border-white/10 mb-4 bg-slate-900 group aspect-[2.4/1]">
+              {currentBanner.coverImage ? (
+                <img
+                  key={currentBanner.coverImage}
+                  src={getMediaUrl(currentBanner.coverImage)}
+                  alt={currentBanner.name}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = "https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=1000&auto=format&fit=crop";
+                  }}
+                  style={{ objectPosition: `center ${currentBanner.coverPosition !== undefined ? currentBanner.coverPosition : 50}%` }}
+                  className="w-full h-full object-cover transition-all duration-1000 ease-in-out scale-105 group-hover:scale-100"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-purple-900/80 via-slate-900 to-indigo-950 flex flex-col items-center justify-center p-6 text-center border border-purple-500/20">
+                  <div className="w-12 h-12 rounded-2xl bg-purple-600/30 border border-purple-400/30 flex items-center justify-center text-purple-300 mb-2 text-xl shadow-lg">
+                    <FaGraduationCap />
+                  </div>
+                  <h3 className="font-black text-lg text-white tracking-wide">{currentBanner.name}</h3>
+                  <p className="text-xs text-purple-200/80 font-medium mt-1">{currentBanner.motto || "Learn • Grow • Succeed"}</p>
+                </div>
+              )}
+              {currentBanner.coverImage && (
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-4 text-left text-white">
+                  <div className="flex items-center gap-2.5">
+                    {currentBanner.photo ? (
+                      <img
+                        src={getMediaUrl(currentBanner.photo)}
+                        alt="Logo"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        className="w-7 h-7 rounded-xl object-cover border border-white/30"
+                      />
+                    ) : (
+                      <div className="w-7 h-7 rounded-xl bg-purple-600/80 backdrop-blur-md flex items-center justify-center border border-white/30 text-white font-black text-xs">
+                        <FaSchool />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-black text-sm tracking-wide text-white leading-none">{currentBanner.name}</h3>
+                      <p className="text-[10px] text-white/75 font-semibold mt-0.5">{currentBanner.motto || "Learn • Grow • Succeed"}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Slider Dots */}
+              {bannersList.length > 1 && (
+                <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
+                  {bannersList.map((_, idx) => (
+                    <span
+                      key={idx}
+                      onClick={() => setCurrentBannerIdx(idx)}
+                      className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
+                        idx === currentBannerIdx ? "bg-purple-400 w-4" : "bg-white/40 hover:bg-white/70"
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <h1 className="text-2xl xl:text-3xl font-black leading-tight tracking-tight mb-2">
+              Where Learning <span className="bg-gradient-to-r from-purple-600 via-indigo-500 to-sky-500 bg-clip-text text-transparent">Comes Alive</span>
+            </h1>
+
+            <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed mb-4 max-w-sm">
+              A secure, unified platform for students, teachers, and admins — built to power modern education.
+            </p>
+
+            {/* 3 Metric Cards (Total School, Total Teachers, Total Students) */}
+            <div className="grid grid-cols-3 gap-3 w-full max-w-sm">
+              <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl border border-purple-500/20 rounded-2xl p-3 text-center shadow-xs hover:shadow-md hover:border-purple-500/40 transition-all duration-300 group">
+                <div className="w-6 h-6 mx-auto mb-1 rounded-lg bg-purple-500/10 dark:bg-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
+                  <FaSchool className="text-xs" />
+                </div>
+                <p className="text-base font-black text-purple-600 dark:text-purple-400 leading-none">{liveStats.schools !== undefined ? liveStats.schools : publicSchools.length}</p>
+                <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total School</p>
               </div>
-            )}
-            <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
-              {platformName || "Your School"}
-            </span>
+              <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl border border-indigo-500/20 rounded-2xl p-3 text-center shadow-xs hover:shadow-md hover:border-indigo-500/40 transition-all duration-300 group">
+                <div className="w-6 h-6 mx-auto mb-1 rounded-lg bg-indigo-500/10 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+                  <FaChalkboardTeacher className="text-xs" />
+                </div>
+                <p className="text-base font-black text-indigo-600 dark:text-indigo-400 leading-none">{liveStats.teachers || 0}</p>
+                <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total Teacher</p>
+              </div>
+              <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl border border-sky-500/20 rounded-2xl p-3 text-center shadow-xs hover:shadow-md hover:border-sky-500/40 transition-all duration-300 group">
+                <div className="w-6 h-6 mx-auto mb-1 rounded-lg bg-sky-500/10 dark:bg-sky-500/20 flex items-center justify-center text-sky-600 dark:text-sky-400 group-hover:scale-110 transition-transform">
+                  <FaUserGraduate className="text-xs" />
+                </div>
+                <p className="text-base font-black text-sky-600 dark:text-sky-400 leading-none">{liveStats.students || 0}</p>
+                <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total Students</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* ── Right Panel (Login Form Card) & Mobile Layout ── */}
+        <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-2 relative z-10">
+          
+          {/* MOBILE ONLY TOP BRANDING & THEME BAR */}
+          <div className="w-full max-w-[440px] flex items-center justify-between px-1 py-0.5 lg:hidden mb-2">
+            <div className="flex items-center gap-2.5">
+              {logoUrl ? (
+                <img src={getMediaUrl(logoUrl)} alt={platformName} className="w-7 h-7 object-contain rounded-lg shrink-0" />
+              ) : (
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white text-xs shadow-sm shrink-0">
+                  <FaGraduationCap />
+                </div>
+              )}
+              <span className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
+                {platformName || "Your School"}
+              </span>
+            </div>
+
+            <button
+              onClick={toggleTheme}
+              className="p-2.5 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 shadow-sm transition-all duration-200 cursor-pointer active:scale-95"
+              aria-label="Toggle Theme"
+            >
+              {theme === "dark" ? (
+                <FaSun className="text-amber-400 text-sm animate-pulse" />
+              ) : (
+                <FaMoon className="text-purple-600 text-sm" />
+              )}
+            </button>
           </div>
 
-          {/* School Cover Banner 5-second Auto-Slider Card */}
-          <div className="w-full relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80 dark:border-white/10 mb-6 bg-slate-900 group aspect-[2.4/1]">
-            {currentBanner.coverImage ? (
+          {/* MOBILE ONLY TOP HERO CAROUSEL & METRICS */}
+          <div className="w-full max-w-[440px] lg:hidden space-y-2 mb-2.5">
+            
+            {/* Mobile School Cover Banner 5-sec Carousel */}
+            <div className="w-full relative rounded-2xl overflow-hidden shadow-md border border-slate-200/80 dark:border-white/10 bg-slate-900 aspect-[2.6/1] sm:aspect-[2.2/1]">
               <img
                 key={currentBanner.coverImage}
                 src={getMediaUrl(currentBanner.coverImage)}
                 alt={currentBanner.name}
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.src = "https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=1000&auto=format&fit=crop";
-                }}
                 style={{ objectPosition: `center ${currentBanner.coverPosition !== undefined ? currentBanner.coverPosition : 50}%` }}
-                className="w-full h-full object-cover transition-all duration-1000 ease-in-out scale-105 group-hover:scale-100"
+                className="w-full h-full object-cover transition-all duration-1000 ease-in-out"
               />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-purple-900/80 via-slate-900 to-indigo-950 flex flex-col items-center justify-center p-6 text-center border border-purple-500/20">
-                <div className="w-12 h-12 rounded-2xl bg-purple-600/30 border border-purple-400/30 flex items-center justify-center text-purple-300 mb-2 text-xl shadow-lg">
-                  <FaGraduationCap />
-                </div>
-                <h3 className="font-black text-lg text-white tracking-wide">{currentBanner.name}</h3>
-                <p className="text-xs text-purple-200/80 font-medium mt-1">{currentBanner.motto || "Learn • Grow • Succeed"}</p>
-              </div>
-            )}
-            {currentBanner.coverImage && (
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-5 text-left text-white">
-                <div className="flex items-center gap-2.5 mb-1.5">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-4 text-left text-white">
+                <div className="flex items-center gap-2.5">
                   {currentBanner.photo ? (
-                    <img
-                      src={getMediaUrl(currentBanner.photo)}
-                      alt="Logo"
-                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                      className="w-8 h-8 rounded-xl object-cover border border-white/30"
-                    />
+                    <img src={getMediaUrl(currentBanner.photo)} alt="Logo" className="w-7 h-7 rounded-lg object-cover border border-white/30" />
                   ) : (
-                    <div className="w-8 h-8 rounded-xl bg-purple-600/80 backdrop-blur-md flex items-center justify-center border border-white/30 text-white font-black text-xs">
+                    <div className="w-7 h-7 rounded-lg bg-purple-600/80 flex items-center justify-center text-white text-xs border border-white/30">
                       <FaSchool />
                     </div>
                   )}
                   <div>
-                    <h3 className="font-black text-base tracking-wide text-white leading-none">{currentBanner.name}</h3>
-                    <p className="text-[10px] text-white/75 font-semibold mt-0.5">{currentBanner.motto || "Learn • Grow • Succeed"}</p>
+                    <h3 className="font-black text-sm text-white leading-none">{currentBanner.name}</h3>
+                    <p className="text-[9px] text-white/75 font-semibold mt-0.5">{currentBanner.motto || "Learn • Grow • Succeed"}</p>
                   </div>
                 </div>
               </div>
-            )}
 
-            {/* Slider Dots */}
-            {bannersList.length > 1 && (
-              <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
-                {bannersList.map((_, idx) => (
-                  <span
-                    key={idx}
-                    onClick={() => setCurrentBannerIdx(idx)}
-                    className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
-                      idx === currentBannerIdx ? "bg-purple-400 w-4" : "bg-white/40 hover:bg-white/70"
-                    }`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <h1 className="text-3xl xl:text-4xl font-black leading-tight tracking-tight mb-3">
-            Where Learning <span className="bg-gradient-to-r from-purple-600 via-indigo-500 to-sky-500 bg-clip-text text-transparent">Comes Alive</span>
-          </h1>
-
-          <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed mb-6 max-w-md">
-            A secure, unified platform for students, teachers, and admins — built to power modern education.
-          </p>
-
-          {/* 3 Metric Cards (Total School, Total Teachers, Total Students) */}
-          <div className="grid grid-cols-3 gap-3.5 w-full max-w-md">
-            <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl border border-purple-500/20 rounded-2xl p-3.5 text-center shadow-sm hover:shadow-md hover:border-purple-500/40 transition-all duration-300 group">
-              <div className="w-7 h-7 mx-auto mb-1.5 rounded-xl bg-purple-500/10 dark:bg-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
-                <FaSchool className="text-xs" />
-              </div>
-              <p className="text-lg font-black text-purple-600 dark:text-purple-400 leading-none">{liveStats.schools !== undefined ? liveStats.schools : publicSchools.length}</p>
-              <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total School</p>
-            </div>
-            <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl border border-indigo-500/20 rounded-2xl p-3.5 text-center shadow-sm hover:shadow-md hover:border-indigo-500/40 transition-all duration-300 group">
-              <div className="w-7 h-7 mx-auto mb-1.5 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
-                <FaChalkboardTeacher className="text-xs" />
-              </div>
-              <p className="text-lg font-black text-indigo-600 dark:text-indigo-400 leading-none">{liveStats.teachers || 0}</p>
-              <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total Teacher</p>
-            </div>
-            <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl border border-sky-500/20 rounded-2xl p-3.5 text-center shadow-sm hover:shadow-md hover:border-sky-500/40 transition-all duration-300 group">
-              <div className="w-7 h-7 mx-auto mb-1.5 rounded-xl bg-sky-500/10 dark:bg-sky-500/20 flex items-center justify-center text-sky-600 dark:text-sky-400 group-hover:scale-110 transition-transform">
-                <FaUserGraduate className="text-xs" />
-              </div>
-              <p className="text-lg font-black text-sky-600 dark:text-sky-400 leading-none">{liveStats.students || 0}</p>
-              <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total Students</p>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* ── Right Panel & Mobile Layout ── */}
-      <div className="flex-1 flex flex-col items-center justify-center px-3 py-2 sm:p-8 lg:p-12 relative z-10">
-        
-        {/* MOBILE ONLY TOP BRANDING & THEME BAR */}
-        <div className="w-full max-w-[440px] flex items-center justify-between px-1 py-0.5 lg:hidden mb-2">
-          <div className="flex items-center gap-2.5">
-            {logoUrl ? (
-              <img src={getMediaUrl(logoUrl)} alt={platformName} className="w-7 h-7 object-contain rounded-lg shrink-0" />
-            ) : (
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white text-xs shadow-sm shrink-0">
-                <FaGraduationCap />
-              </div>
-            )}
-            <span className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
-              {platformName || "Your School"}
-            </span>
-          </div>
-
-          <button
-            onClick={toggleTheme}
-            className="p-2.5 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 shadow-sm transition-all duration-200 cursor-pointer active:scale-95"
-            aria-label="Toggle Theme"
-          >
-            {theme === "dark" ? (
-              <FaSun className="text-amber-400 text-sm animate-pulse" />
-            ) : (
-              <FaMoon className="text-purple-600 text-sm" />
-            )}
-          </button>
-        </div>
-
-        {/* MOBILE ONLY TOP HERO CAROUSEL & METRICS */}
-        <div className="w-full max-w-[440px] lg:hidden space-y-2 mb-2.5">
-          
-          {/* Mobile School Cover Banner 5-sec Carousel */}
-          <div className="w-full relative rounded-2xl overflow-hidden shadow-md border border-slate-200/80 dark:border-white/10 bg-slate-900 aspect-[2.6/1] sm:aspect-[2.2/1]">
-            <img
-              key={currentBanner.coverImage}
-              src={getMediaUrl(currentBanner.coverImage)}
-              alt={currentBanner.name}
-              style={{ objectPosition: `center ${currentBanner.coverPosition !== undefined ? currentBanner.coverPosition : 50}%` }}
-              className="w-full h-full object-cover transition-all duration-1000 ease-in-out"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-4 text-left text-white">
-              <div className="flex items-center gap-2.5">
-                {currentBanner.photo ? (
-                  <img src={getMediaUrl(currentBanner.photo)} alt="Logo" className="w-7 h-7 rounded-lg object-cover border border-white/30" />
-                ) : (
-                  <div className="w-7 h-7 rounded-lg bg-purple-600/80 flex items-center justify-center text-white text-xs border border-white/30">
-                    <FaSchool />
-                  </div>
-                )}
-                <div>
-                  <h3 className="font-black text-sm text-white leading-none">{currentBanner.name}</h3>
-                  <p className="text-[9px] text-white/75 font-semibold mt-0.5">{currentBanner.motto || "Learn • Grow • Succeed"}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Slider Dots */}
-            {bannersList.length > 1 && (
-              <div className="absolute top-2.5 right-2.5 flex items-center gap-1 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
-                {bannersList.map((_, idx) => (
-                  <span
-                    key={idx}
-                    onClick={() => setCurrentBannerIdx(idx)}
-                    className={`w-1.5 h-1.5 rounded-full transition-all ${
-                      idx === currentBannerIdx ? "bg-purple-400 w-3" : "bg-white/40"
-                    }`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Mobile 3 Metric Cards Grid (Total School, Total Teacher, Total Students) */}
-          <div className="grid grid-cols-3 gap-2">
-            <div className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-xl border border-purple-500/20 rounded-xl py-1 px-1.5 text-center shadow-xs">
-              <div className="w-5 h-5 mx-auto mb-1 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400">
-                <FaSchool className="text-[10px]" />
-              </div>
-              <p className="text-base font-black text-purple-600 dark:text-purple-400 leading-none">{liveStats.schools ?? publicSchools.length}</p>
-              <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total School</p>
-            </div>
-
-            <div className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-xl border border-indigo-500/20 rounded-xl py-1 px-1.5 text-center shadow-xs">
-              <div className="w-5 h-5 mx-auto mb-1 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                <FaChalkboardTeacher className="text-[10px]" />
-              </div>
-              <p className="text-base font-black text-indigo-600 dark:text-indigo-400 leading-none">{liveStats.teachers || 0}</p>
-              <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total Teacher</p>
-            </div>
-
-            <div className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-xl border border-sky-500/20 rounded-xl py-1 px-1.5 text-center shadow-xs">
-              <div className="w-5 h-5 mx-auto mb-1 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-600 dark:text-sky-400">
-                <FaUserGraduate className="text-[10px]" />
-              </div>
-              <p className="text-base font-black text-sky-600 dark:text-sky-400 leading-none">{liveStats.students || 0}</p>
-              <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total Students</p>
-            </div>
-          </div>
-
-        </div>
-
-        {/* Glassmorphic Form Card */}
-        <div className="w-full max-w-[440px] bg-white/95 dark:bg-[#0B132B]/90 backdrop-blur-2xl p-4 sm:p-8 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xl shadow-purple-950/10 dark:shadow-black/70 transition-all duration-300">
-          
-          {/* Header Brand Badge inside card */}
-          <div className="flex flex-col items-center text-center mb-3.5">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-purple-500/10 dark:bg-white/[0.05] border border-purple-500/20 dark:border-white/10 mb-2 shadow-xs">
-              {logoUrl ? (
-                <img src={logoUrl} alt={platformName} className="w-5 h-5 object-contain rounded-md" />
-              ) : (
-                <div className="w-5 h-5 rounded-md bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-[10px]">
-                  <FaGraduationCap />
+              {/* Slider Dots */}
+              {bannersList.length > 1 && (
+                <div className="absolute top-2.5 right-2.5 flex items-center gap-1 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
+                  {bannersList.map((_, idx) => (
+                    <span
+                      key={idx}
+                      onClick={() => setCurrentBannerIdx(idx)}
+                      className={`w-1.5 h-1.5 rounded-full transition-all ${
+                        idx === currentBannerIdx ? "bg-purple-400 w-3" : "bg-white/40"
+                      }`}
+                    />
+                  ))}
                 </div>
               )}
-              <span className="text-xs font-black tracking-wide text-purple-700 dark:text-purple-300">
-                {(currentBanner?.name && !currentBanner.name.toLowerCase().includes("demo school")) ? currentBanner.name : (platformName || "Your School")}
-              </span>
             </div>
 
-            <h2 className="text-xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-              Welcome back
-            </h2>
-            <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1">
-              {otpSent ? "Enter the verification OTP code sent to your email" : "Enter your registered email address to continue"}
-            </p>
-          </div>
-
-          {/* Dev OTP Notification Banner */}
-          {devOtpMessage && (
-            <div className="mb-6 p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-semibold flex items-center gap-3 animate-fadeIn">
-              <FaCheckCircle className="text-purple-500 text-base shrink-0" />
-              <span className="leading-snug">{devOtpMessage}</span>
-            </div>
-          )}
-
-          {!otpSent ? (
-            <form onSubmit={handleSendOtp} className="space-y-4">
-              {/* Email Input */}
-              <div>
-                <label className="block text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-2">
-                  Email Address
-                </label>
-                <div className="relative group">
-                  <FaEnvelope className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 dark:text-slate-500 text-sm pointer-events-none group-focus-within:text-purple-600 dark:group-focus-within:text-purple-400 transition-colors" />
-                  <input
-                    name="email"
-                    type="email"
-                    placeholder="name@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="w-full pl-11 pr-4 py-2.5 sm:py-3.5 bg-slate-50/90 dark:bg-[#151D36] border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 focus:bg-white dark:focus:bg-[#1A2444] transition-all shadow-inner"
-                  />
+            {/* Mobile 3 Metric Cards Grid */}
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-xl border border-purple-500/20 rounded-xl py-1 px-1.5 text-center shadow-xs">
+                <div className="w-5 h-5 mx-auto mb-1 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                  <FaSchool className="text-[10px]" />
                 </div>
+                <p className="text-base font-black text-purple-600 dark:text-purple-400 leading-none">{liveStats.schools ?? publicSchools.length}</p>
+                <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total School</p>
               </div>
 
-              {/* Send OTP Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="group w-full py-2.5 sm:py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs tracking-wider transition-all duration-300 shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
-              >
-                {loading ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <span>Send OTP</span>
-                    <FaArrowRight className="text-[10px] group-hover:translate-x-1 transition-transform" />
-                  </>
-                )}
-              </button>
-
-              {/* Divider */}
-              <div className="relative my-3 sm:my-5 flex items-center justify-center">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-200/80 dark:border-white/10" />
+              <div className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-xl border border-indigo-500/20 rounded-xl py-1 px-1.5 text-center shadow-xs">
+                <div className="w-5 h-5 mx-auto mb-1 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                  <FaChalkboardTeacher className="text-[10px]" />
                 </div>
-                <span className="relative z-10 bg-white dark:bg-[#0B132B] px-3 text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase tracking-widest">
-                  Or login with
+                <p className="text-base font-black text-indigo-600 dark:text-indigo-400 leading-none">{liveStats.teachers || 0}</p>
+                <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total Teacher</p>
+              </div>
+
+              <div className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-xl border border-sky-500/20 rounded-xl py-1 px-1.5 text-center shadow-xs">
+                <div className="w-5 h-5 mx-auto mb-1 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-600 dark:text-sky-400">
+                  <FaUserGraduate className="text-[10px]" />
+                </div>
+                <p className="text-base font-black text-sky-600 dark:text-sky-400 leading-none">{liveStats.students || 0}</p>
+                <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">Total Students</p>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Glassmorphic Form Card */}
+          <div className="w-full max-w-[420px] bg-white/95 dark:bg-[#0B132B]/90 backdrop-blur-2xl p-5 sm:p-7 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-2xl shadow-purple-950/10 dark:shadow-black/70 transition-all duration-300">
+            
+            {/* Header Brand Badge inside card */}
+            <div className="flex flex-col items-center text-center mb-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-purple-500/10 dark:bg-white/[0.05] border border-purple-500/20 dark:border-white/10 mb-2 shadow-xs">
+                {logoUrl ? (
+                  <img src={logoUrl} alt={platformName} className="w-4 h-4 object-contain rounded-md" />
+                ) : (
+                  <div className="w-4 h-4 rounded-md bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-[9px]">
+                    <FaGraduationCap />
+                  </div>
+                )}
+                <span className="text-[11px] font-black tracking-wide text-purple-700 dark:text-purple-300">
+                  {(currentBanner?.name && !currentBanner.name.toLowerCase().includes("demo school")) ? currentBanner.name : (platformName || "Your School")}
                 </span>
               </div>
 
-              {/* Google Sign-In Button */}
-              <button
-                type="button"
-                onClick={handleGoogleLogin}
-                disabled={loading}
-                className="w-full py-2.5 sm:py-3.5 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.08] hover:border-slate-300 dark:hover:border-white/20 active:scale-[0.98] text-slate-700 dark:text-slate-200 font-bold text-xs tracking-wider transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
-              >
-                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z" />
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                </svg>
-                <span>Continue with Google</span>
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyOtp} className="space-y-4">
-              {/* Email (Read-only) */}
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-2">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <FaEnvelope className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 dark:text-slate-500 text-sm pointer-events-none" />
-                  <input
-                    type="email"
-                    value={email}
-                    disabled
-                    className="w-full pl-11 pr-4 py-3.5 bg-slate-100 dark:bg-[#151D36]/50 border border-slate-200 dark:border-white/5 rounded-2xl text-slate-500 dark:text-slate-400 text-xs font-semibold cursor-not-allowed opacity-80"
-                  />
-                </div>
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                Welcome back
+              </h2>
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-0.5">
+                {otpSent ? "Enter the verification OTP code sent to your email" : "Enter your registered email address to continue"}
+              </p>
+            </div>
+
+            {/* Dev OTP Notification Banner */}
+            {devOtpMessage && (
+              <div className="mb-4 p-3 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-semibold flex items-center gap-3 animate-fadeIn">
+                <FaCheckCircle className="text-purple-500 text-base shrink-0" />
+                <span className="leading-snug">{devOtpMessage}</span>
               </div>
+            )}
 
-              {/* OTP Field */}
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-2">
-                  One-Time Password (OTP)
-                </label>
-                <div className="relative">
-                  <FaLock className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 dark:text-slate-500 text-sm pointer-events-none" />
-                  <input
-                    name="otp"
-                    type="text"
-                    maxLength="6"
-                    placeholder="• • • • • •"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                    required
-                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50/80 dark:bg-[#151D36] border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 text-center tracking-[0.3em] font-mono text-sm font-black focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 focus:bg-white dark:focus:bg-[#1A2444] transition-all shadow-inner"
-                  />
+            {!otpSent ? (
+              <form onSubmit={handleSendOtp} className="space-y-3.5">
+                {/* Email Input */}
+                <div>
+                  <label className="block text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-1.5">
+                    Email Address
+                  </label>
+                  <div className="relative group">
+                    <FaEnvelope className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 dark:text-slate-500 text-sm pointer-events-none group-focus-within:text-purple-600 dark:group-focus-within:text-purple-400 transition-colors" />
+                    <input
+                      name="email"
+                      type="email"
+                      placeholder="name@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="w-full pl-11 pr-4 py-2.5 sm:py-3 bg-slate-50/90 dark:bg-[#151D36] border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 focus:bg-white dark:focus:bg-[#1A2444] transition-all shadow-inner"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {/* Verify Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs tracking-wider transition-all duration-300 shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
-              >
-                {loading ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <span>Verify & Sign In</span>
-                    <FaArrowRight className="text-[10px]" />
-                  </>
-                )}
-              </button>
+                {/* Send OTP Button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="group w-full py-2.5 sm:py-3 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs tracking-wider transition-all duration-300 shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-1"
+                >
+                  {loading ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <span>Send OTP</span>
+                      <FaArrowRight className="text-[10px] group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </button>
 
-              {/* Change Email / Resend Actions */}
-              <div className="flex justify-between items-center text-xs pt-2">
+                {/* Divider */}
+                <div className="relative my-2.5 sm:my-3.5 flex items-center justify-center">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200/80 dark:border-white/10" />
+                  </div>
+                  <span className="relative z-10 bg-white dark:bg-[#0B132B] px-3 text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase tracking-widest">
+                    Or login with
+                  </span>
+                </div>
+
+                {/* Google Sign-In Button */}
                 <button
                   type="button"
-                  onClick={() => {
-                    setOtpSent(false);
-                    setOtp("");
-                    setDevOtpMessage("");
-                  }}
-                  className="text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 font-bold transition-colors cursor-pointer"
+                  onClick={handleGoogleLogin}
+                  disabled={loading}
+                  className="w-full py-2.5 sm:py-3 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.08] hover:border-slate-300 dark:hover:border-white/20 active:scale-[0.98] text-slate-700 dark:text-slate-200 font-bold text-xs tracking-wider transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
                 >
-                  Change Email
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                  <span>Continue with Google</span>
                 </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyOtp} className="space-y-3.5">
+                {/* Email (Read-only) */}
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-1.5">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <FaEnvelope className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 dark:text-slate-500 text-sm pointer-events-none" />
+                    <input
+                      type="email"
+                      value={email}
+                      disabled
+                      className="w-full pl-11 pr-4 py-2.5 sm:py-3 bg-slate-100 dark:bg-[#151D36]/50 border border-slate-200 dark:border-white/5 rounded-2xl text-slate-500 dark:text-slate-400 text-xs font-semibold cursor-not-allowed opacity-80"
+                    />
+                  </div>
+                </div>
+
+                {/* OTP Field */}
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-1.5">
+                    One-Time Password (OTP)
+                  </label>
+                  <div className="relative">
+                    <FaLock className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-400 dark:text-slate-500 text-sm pointer-events-none" />
+                    <input
+                      name="otp"
+                      type="text"
+                      maxLength="6"
+                      placeholder="• • • • • •"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                      required
+                      className="w-full pl-11 pr-4 py-2.5 sm:py-3 bg-slate-50/80 dark:bg-[#151D36] border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 text-center tracking-[0.3em] font-mono text-sm font-black focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 focus:bg-white dark:focus:bg-[#1A2444] transition-all shadow-inner"
+                    />
+                  </div>
+                </div>
+
+                {/* Verify Button */}
                 <button
-                  type="button"
-                  onClick={handleSendOtp}
-                  disabled={loading || cooldown > 0}
-                  className={`font-extrabold transition-colors cursor-pointer ${
-                    cooldown > 0
-                      ? "text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60"
-                      : "text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
-                  }`}
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-2.5 sm:py-3 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs tracking-wider transition-all duration-300 shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-1"
                 >
-                  {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend OTP"}
+                  {loading ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <span>Verify & Sign In</span>
+                      <FaArrowRight className="text-[10px]" />
+                    </>
+                  )}
                 </button>
-              </div>
-            </form>
-          )}
+
+                {/* Change Email / Resend Actions */}
+                <div className="flex justify-between items-center text-xs pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOtpSent(false);
+                      setOtp("");
+                      setDevOtpMessage("");
+                    }}
+                    className="text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 font-bold transition-colors cursor-pointer"
+                  >
+                    Change Email
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSendOtp}
+                    disabled={loading || cooldown > 0}
+                    className={`font-extrabold transition-colors cursor-pointer ${
+                      cooldown > 0
+                        ? "text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60"
+                        : "text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
+                    }`}
+                  >
+                    {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend OTP"}
+                  </button>
+                </div>
+              </form>
+            )}
+
+          </div>
+
+          {/* Footer text */}
+          <p className="text-[10px] sm:text-[11px] text-slate-400 dark:text-slate-500 font-semibold mt-2.5 text-center">
+            Protected by end-to-end OTP authentication &bull; {platformName || "TeachHub"}
+          </p>
 
         </div>
-
-        {/* Footer text */}
-        <p className="text-[10px] sm:text-[11px] text-slate-400 dark:text-slate-500 font-semibold mt-2.5 text-center">
-          Protected by end-to-end OTP authentication &bull; {platformName || "TeachHub"}
-        </p>
 
       </div>
     </div>

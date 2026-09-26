@@ -364,68 +364,7 @@ function AdminEvents() {
 
   return (
     <div className="font-sans space-y-6" style={{ fontFamily: SORA }}>
-      {/* Page Title Header */}
-      <div className="flex items-center justify-end border-b border-slate-200/60 dark:border-white/10 pb-3 select-none">
-        <button
-          onClick={() => { resetForm(); setShowAddModal(true); }}
-          className="bg-gradient-to-r from-[#7C3AED] to-[#312E81] text-white font-extrabold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 hover:opacity-95 active:scale-95 transition shadow-xs cursor-pointer shrink-0"
-        >
-          <FaPlus className="text-[10px]" /> Add Event
-        </button>
-      </div>
-
-      {/* Search and Tabs Header */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 select-none">
-        {/* Tabs list with counts */}
-        <div className="flex bg-white dark:bg-[#0B132A] p-1.5 border border-slate-200/50 dark:border-white/10 rounded-2xl shadow-sm gap-1 select-none">
-          <button
-            onClick={() => setActiveTab("upcoming")}
-            className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 ${
-              activeTab === "upcoming"
-                ? "bg-[#7C3AED] text-white dark:bg-[#38BDF8] dark:text-[#090F1C] shadow-md shadow-[#7C3AED]/10"
-                : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white"
-            }`}
-          >
-            <span>Upcoming Events</span>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-              activeTab === "upcoming"
-                ? "bg-white/20 dark:bg-black/20 text-white dark:text-[#090F1C]"
-                : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300"
-            }`}>
-              {upcomingCount}
-            </span>
-          </button>
-          <button
-            onClick={() => setActiveTab("completed")}
-            className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-2 ${
-              activeTab === "completed"
-                ? "bg-[#7C3AED] text-white dark:bg-[#38BDF8] dark:text-[#090F1C] shadow-md shadow-[#7C3AED]/10"
-                : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white"
-            }`}
-          >
-            <span>Completed / Gallery</span>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-              activeTab === "completed"
-                ? "bg-white/20 dark:bg-black/20 text-white dark:text-[#090F1C]"
-                : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300"
-            }`}>
-              {completedCount}
-            </span>
-          </button>
-        </div>
-
-        {/* Search input */}
-        <div className="relative w-full sm:w-64">
-          <input
-            type="text"
-            placeholder="Search events..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#0B132A] border border-slate-200 dark:border-white/10 rounded-2xl text-xs text-slate-700 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition"
-          />
-          <FaSearch className="absolute left-3 top-3 text-slate-400 text-xs" />
-        </div>
-      </div>
+      
 
       {/* Loading state */}
       {loading ? (
