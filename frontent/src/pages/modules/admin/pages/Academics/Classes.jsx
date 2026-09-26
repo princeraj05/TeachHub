@@ -161,23 +161,6 @@ function Classes() {
         </div>
       )}
 
-      {/* ── Page Header ── */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">Classes</h1>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">Manage school class levels and section groups</p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-teal-50/50 border border-teal-100 rounded-2xl px-4 py-2.5 shadow-sm">
-            <FaSchool className="text-teal-600" />
-            <span className="text-xs font-bold text-teal-700">
-              {groupedClasses.length} Class Level{groupedClasses.length !== 1 ? "s" : ""} ({classes.length} Section{classes.length !== 1 ? "s" : ""})
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* ── Add/Edit Class Card ── */}
       <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6 sm:p-7 mb-8">
         <div className="flex items-center gap-3 mb-6">

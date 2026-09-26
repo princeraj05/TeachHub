@@ -200,9 +200,7 @@ export default function TeacherLeaves() {
                 );
               })}
             </div>
-            <button className="hidden shrink-0 items-center gap-2 rounded-xl bg-purple-600 hover:bg-purple-700 px-4 py-2 text-[12.5px] font-bold text-white sm:flex transition-colors shadow-xs">
-              <Download size={14} /> Export
-            </button>
+            
           </div>
 
           {/* Filters */}

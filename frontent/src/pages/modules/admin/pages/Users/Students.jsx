@@ -155,17 +155,7 @@ function Students() {
 
   return (
     <div className="font-sans">
-      {/* ── Page Header ── */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">Students</h1>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">View and manage all registered students and roll numbers inside TeachHub</p>
-        </div>
-        <div className="flex items-center gap-2 bg-teal-50/50 border border-teal-100 rounded-2xl px-4 py-2.5 w-fit shadow-sm">
-          <FaUsers className="text-teal-600" />
-          <span className="text-xs font-bold text-teal-700">{students.length} Registered Students</span>
-        </div>
-      </div>
+      
 
       {/* ── Add Student Form ── */}
       <form onSubmit={handleAddStudent} className="mb-6 grid grid-cols-1 gap-3 rounded-2xl border border-teal-100 bg-teal-50/40 p-4 sm:grid-cols-2 lg:grid-cols-6 items-start">

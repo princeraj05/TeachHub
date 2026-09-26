@@ -82,102 +82,55 @@ function AboutYourSchool() {
   return (
     <div className="min-h-screen text-slate-900 dark:text-slate-100 p-6 -m-4 md:-m-6 transition-colors duration-200" style={{ fontFamily: SORA }}>
       
-      {/* ── PROFILE COMPLETION PROGRESS BAR ── */}
-      <div className="mb-6 bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-sm dark:shadow-xl select-none animate-fadeIn">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-          <div className="flex items-center gap-2.5">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs ${
-              completion.total === 100
-                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                : "bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/20"
-            }`}>
-              {completion.total}%
-            </div>
-            <div>
-              <h3 className="text-xs font-black uppercase text-slate-800 dark:text-white tracking-wider flex items-center gap-2">
-                School Profile Completion
-                {completion.total === 100 && (
-                  <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase">
-                    ✓ 100% Completed
-                  </span>
-                )}
-              </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                Independent completion tracker (25% per modular section)
-              </p>
-            </div>
-          </div>
-          <div className="text-right">
-            <span className="text-sm font-black text-slate-900 dark:text-white">
-              {completion.total}% Completed
-            </span>
-          </div>
-        </div>
-
-        {/* Dynamic progress bar */}
-        <div className="w-full bg-slate-100 dark:bg-slate-800/80 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-200/60 dark:border-slate-800">
-          <div
-            className={`h-full rounded-full transition-all duration-500 ${
-              completion.total === 100
-                ? "bg-gradient-to-r from-emerald-500 to-teal-400"
-                : completion.total >= 50
-                ? "bg-gradient-to-r from-purple-600 to-indigo-500"
-                : "bg-gradient-to-r from-amber-500 to-purple-600"
-            }`}
-            style={{ width: `${completion.total}%` }}
-          />
-        </div>
-
-        {/* Tab status checklist badges */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/60 text-[10px] font-bold">
-          <div className={`flex items-center gap-1.5 ${completion.basicInformation > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`}>
-            <span>{completion.basicInformation > 0 ? "✓" : "○"}</span> 1. Basic Info ({completion.basicInformation}%)
-          </div>
-          <div className={`flex items-center gap-1.5 ${completion.mediaPrincipal > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`}>
-            <span>{completion.mediaPrincipal > 0 ? "✓" : "○"}</span> 2. Media & Principal ({completion.mediaPrincipal}%)
-          </div>
-          <div className={`flex items-center gap-1.5 ${completion.admissionSettings > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`}>
-            <span>{completion.admissionSettings > 0 ? "✓" : "○"}</span> 3. Admission ({completion.admissionSettings}%)
-          </div>
-          <div className={`flex items-center gap-1.5 ${completion.description > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`}>
-            <span>{completion.description > 0 ? "✓" : "○"}</span> 4. Description ({completion.description}%)
-          </div>
-        </div>
-      </div>
+      
 
       {/* ── TABS NAVIGATION BAR ── */}
-      <div className="flex flex-wrap items-center gap-2 mb-6 border-b border-slate-200 dark:border-slate-800/80 pb-3 select-none">
-        {TABS.map(tab => {
-          const isActive = activeTab === tab.id;
-          let val = 0;
-          if (tab.id === "basic") val = completion.basicInformation;
-          if (tab.id === "media") val = completion.mediaPrincipal;
-          if (tab.id === "admission") val = completion.admissionSettings;
-          if (tab.id === "description") val = completion.description;
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6 border-b border-slate-200 dark:border-slate-800/80 pb-3 select-none">
+        <div className="flex flex-wrap items-center gap-2">
+          {TABS.map(tab => {
+            const isActive = activeTab === tab.id;
+            let val = 0;
+            if (tab.id === "basic") val = completion.basicInformation;
+            if (tab.id === "media") val = completion.mediaPrincipal;
+            if (tab.id === "admission") val = completion.admissionSettings;
+            if (tab.id === "description") val = completion.description;
 
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition cursor-pointer select-none ${
-                isActive
-                  ? "bg-[#7C3AED]/10 text-purple-600 dark:text-purple-400 border border-[#7C3AED]/30"
-                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
-              }`}
-            >
-              <span>{tab.label}</span>
-              {val > 0 ? (
-                <span className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] px-1.5 py-0.5 rounded-full font-bold flex items-center gap-1">
-                  ✓ {val}%
-                </span>
-              ) : (
-                <span className="bg-slate-100 dark:bg-slate-800 text-slate-400 text-[10px] px-1.5 py-0.5 rounded-full font-semibold">
-                  0%
-                </span>
-              )}
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition cursor-pointer select-none ${
+                  isActive
+                    ? "bg-[#7C3AED]/10 text-purple-600 dark:text-purple-400 border border-[#7C3AED]/30"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                }`}
+              >
+                <span>{tab.label}</span>
+                {val > 0 ? (
+                  <span className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] px-1.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+                    ✓ {val}%
+                  </span>
+                ) : (
+                  <span className="bg-slate-100 dark:bg-slate-800 text-slate-400 text-[10px] px-1.5 py-0.5 rounded-full font-semibold">
+                    0%
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Small School Profile Completion Box next to School Description */}
+        <div className="flex items-center gap-2 bg-white dark:bg-[#0D1326] border border-slate-200/80 dark:border-slate-800/80 rounded-xl px-3 py-1.5 shadow-xs text-xs font-bold">
+          <span className="text-slate-500 dark:text-slate-400 text-[11px]">Profile Completion:</span>
+          <span className={`px-2 py-0.5 rounded-lg text-[11px] font-extrabold ${
+            completion.total === 100
+              ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+              : "bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/20"
+          }`}>
+            {completion.total}% Completed
+          </span>
+        </div>
       </div>
 
       {/* ── STATUS MESSAGES FOR ACTIVE SECTION ── */}

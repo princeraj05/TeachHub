@@ -232,18 +232,6 @@ function AdminDashboard() {
 
   return (
     <div className="text-slate-900 dark:text-slate-100 transition-colors duration-200" style={{ fontFamily: SORA }}>
-      
-      {/* ── GREETING & CLOCK HEADER ── */}
-      <div className="mb-3 sm:mb-6 flex justify-end">
-        {/* Dynamic Real-Time Clock */}
-        <div className="flex items-center gap-2.5 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800/80 rounded-xl px-3 py-1.5 sm:px-4 sm:py-2.5 shadow-sm w-fit">
-          <FaCalendarAlt className="text-purple-500 text-xs sm:text-base" />
-          <div className="text-left">
-            <p className="text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200">{formatLocalDate(currentTime)}</p>
-            <p className="text-[9px] sm:text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">{formatLocalTime(currentTime)}</p>
-          </div>
-        </div>
-      </div>
 
       {/* ── SIX GLOWING STATS CARDS (2 COLUMNS ON MOBILE) ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 mb-3 sm:mb-6">

@@ -252,15 +252,7 @@ export default function Subjects() {
 
   return (
     <div className="font-sans">
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold text-slate-800 sm:text-3xl">Subjects</h1>
-          <p className="mt-1 text-xs font-medium text-slate-400">Create one subject and assign it to as many classes as needed.</p>
-        </div>
-        <div className="w-fit rounded-2xl border border-teal-100 bg-teal-50 px-4 py-2.5 text-xs font-bold text-teal-700">
-          <FaBook className="mr-2 inline" />{subjects.length} Total Subjects
-        </div>
-      </div>
+      
 
       <form onSubmit={submit} className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-5 flex items-center gap-3">

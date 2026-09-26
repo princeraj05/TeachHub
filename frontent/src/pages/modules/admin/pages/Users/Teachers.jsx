@@ -118,17 +118,7 @@ function Teachers() {
 
   return (
     <div className="font-sans">
-      {/* ── Page Header ── */}
-      <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">Teachers</h1>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">View and manage all registered teachers inside TeachHub</p>
-        </div>
-        <div className="flex items-center gap-2 bg-teal-50/50 border border-teal-100 rounded-2xl px-4 py-2.5 w-fit shadow-sm">
-          <FaUsers className="text-teal-600" />
-          <span className="text-xs font-bold text-teal-700">{teachers.length} Registered Teachers</span>
-        </div>
-      </div>
+      
 
       {/* ── Search Toolbar ── */}
       <div className="relative mb-6 max-w-md">
