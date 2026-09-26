@@ -245,7 +245,8 @@ function UserProfile() {
   // Distinct Role & Path Checks
   const isPendingPath = location.pathname.startsWith("/pending");
   const isStudentPath = location.pathname.startsWith("/student");
-  const isAdminApplicant = localStorage.getItem("loginSource") === "admin" || user?.role === "admin" || user?.requestedRole === "admin";
+  const isAdminApplicant = localStorage.getItem("loginSource") === "admin" || user?.role === "admin" || user?.requestedRole === "admin" || localStorage.getItem("requestedRole") === "admin";
+  const schoolDisplayName = user?.requestedSchool || user?.schoolName || formData?.requestedSchool || localStorage.getItem("requestedSchool") || localStorage.getItem("schoolName") || "";
 
   // Admitted Student vs Pending Applicant distinction
   const isAdmittedStudent = !isPendingPath && (user?.role === "student" || isStudentPath);
@@ -383,7 +384,7 @@ function UserProfile() {
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 mt-2.5 text-xs font-bold">
                 <span className="px-2.5 py-1 bg-white/15 backdrop-blur-md rounded-xl flex items-center gap-1 border border-white/20 text-[11px]">
                   <FaSchool className="text-amber-300 text-xs" />
-                  <span>{user?.schoolName || user?.requestedSchool || "School Not Selected"}</span>
+                  <span>{schoolDisplayName || (isAdminApplicant ? "Your School (Pending Setup)" : "School Not Selected")}</span>
                 </span>
                 
                 {isAdminApplicant ? (
@@ -534,7 +535,7 @@ function UserProfile() {
 
               <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-xl p-3 sm:p-3.5">
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">{isAdminApplicant ? "SCHOOL NAME" : isPendingApplicant ? t("target_school", "TARGET SCHOOL") : "SCHOOL NAME"}</p>
-                <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5">{user?.requestedSchool || user?.schoolName || "Not Selected"}</p>
+                <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5">{schoolDisplayName || (isAdminApplicant ? "Your School (Pending Setup)" : "Not Selected")}</p>
               </div>
 
               <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.06] rounded-xl p-3 sm:p-3.5">

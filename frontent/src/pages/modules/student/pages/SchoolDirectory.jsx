@@ -254,7 +254,7 @@ function SchoolDirectory() {
   }
 
   return (
-    <div style={{ fontFamily: SORA }} className="w-full max-w-4xl mx-auto px-3 sm:px-4 py-2 sm:py-4 bg-transparent transition-all duration-200">
+    <div style={{ fontFamily: SORA }} className="w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto px-3 sm:px-4 py-2 sm:py-4 bg-transparent transition-all duration-200">
       
       {/* Header section with SVG illustration */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4 text-left">
@@ -306,7 +306,7 @@ function SchoolDirectory() {
 
       {/* Schools Cards List */}
       {filteredSchools.length > 0 ? (
-        <div className="grid grid-cols-1 gap-5 sm:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
           {filteredSchools.map((school) => {
             const hasActiveRequest = user && user.requestStatus !== "rejected" && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);
             const isThisApplied = user && user.requestStatus !== "rejected" && user.requestedSchool === school.name && ["pending", "scheduled", "exam_completed"].includes(user.requestStatus);

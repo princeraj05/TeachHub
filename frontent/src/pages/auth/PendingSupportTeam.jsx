@@ -15,7 +15,7 @@ export default function PendingSupportTeam() {
   };
 
   return (
-    <div className="space-y-6 font-sans">
+    <div className="w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto space-y-6 font-sans">
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-[#7C3AED] to-[#38BDF8] rounded-3xl p-6 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">

@@ -582,13 +582,13 @@ function PendingApproval() {
       case "status":
       default:
         return (
-          <div className="w-full flex flex-col gap-6 max-w-xl mx-auto py-2">
+          <div className="w-full flex flex-col gap-6 max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto py-2">
             
             {/* RENDER PERSONAL STATUS STATES A, B, C, D */}
 
             {isAdminApplicant ? (
               /* State: Admin School Registration Pending / Stepper / Approval */
-              <div className="w-full flex flex-col gap-6 max-w-xl mx-auto py-2">
+              <div className="w-full flex flex-col gap-6 max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto py-2">
                 {/* Top Header */}
                 <div className="flex items-center justify-between w-full mb-2 px-1">
                   <div>
@@ -766,6 +766,8 @@ function PendingApproval() {
                 <div className="w-full flex flex-col gap-3">
                   <h3 className="text-slate-900 dark:text-white text-xs font-black uppercase tracking-wider mb-1 px-1 text-left">Admin Quick Setup</h3>
 
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+
                   {/* About Your School */}
                   <Link to="/pending/about-school" className="w-full bg-white dark:bg-[#0B132A] rounded-2.5xl border border-slate-200/60 dark:border-white/10 shadow-sm p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
                     <div className="flex items-center gap-3.5">
@@ -808,6 +810,7 @@ function PendingApproval() {
                     </div>
                     <FaChevronRight className="text-purple-500 text-xs shrink-0" />
                   </Link>
+                </div>
                 </div>
               </div>
             ) : user.requestStatus === "rejected" ? (
@@ -1730,7 +1733,7 @@ function PendingApproval() {
             <div className="hidden lg:block min-w-0">
               <p className="text-xs font-black text-slate-900 dark:text-white truncate">{user.name || "User"}</p>
               <p className="text-[9px] font-extrabold text-[#7C3AED] dark:text-[#38BDF8] tracking-wider uppercase mt-0.5">
-                {isTeacher ? "Teacher (Pending)" : "Student (Pending)"}
+                {isAdminApplicant ? "Admin (Pending)" : isTeacher ? "Teacher (Pending)" : "Student (Pending)"}
               </p>
             </div>
           </div>
@@ -1852,7 +1855,7 @@ function PendingApproval() {
 
               {/* Role & School */}
               <p className="text-[10px] font-semibold text-white/80 mt-0.5 truncate max-w-[240px]">
-                {isTeacher ? "TEACHER APPLICANT" : "STUDENT APPLICANT"}{user?.requestedSchool || user?.schoolName ? ` • ${user.requestedSchool || user.schoolName}` : ""}
+                {isAdminApplicant ? "SCHOOL ADMIN APPLICANT" : isTeacher ? "TEACHER APPLICANT" : "STUDENT APPLICANT"}{(user?.requestedSchool || user?.schoolName || localStorage.getItem("schoolName") || localStorage.getItem("requestedSchool")) ? ` • ${user?.requestedSchool || user?.schoolName || localStorage.getItem("schoolName") || localStorage.getItem("requestedSchool")}` : ""}
               </p>
             </div>
 
@@ -1941,7 +1944,7 @@ function PendingApproval() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 cursor-pointer transition text-base flex items-center justify-center border border-slate-200/60 dark:border-white/10"
+              className="md:hidden p-2 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 cursor-pointer transition text-base flex items-center justify-center border border-slate-200/60 dark:border-white/10"
               title="Open Navigation Menu"
             >
               <FaBars />
@@ -2017,7 +2020,7 @@ function PendingApproval() {
                   <div className="px-3 py-2 border-b border-slate-100 dark:border-white/[0.08] mb-1">
                     <p className="text-xs font-bold text-slate-800 dark:text-white truncate">{user.name}</p>
                     <span className="inline-flex items-center gap-1 text-[8px] font-extrabold text-[#7C3AED] dark:text-[#38BDF8] uppercase tracking-widest mt-1 bg-purple-50 dark:bg-white/5 border border-purple-200/60 dark:border-white/[0.06] px-1.5 py-0.5 rounded">
-                      {isTeacher ? "Teacher Account" : "Student Account"}
+                      {isAdminApplicant ? "School Admin Account" : isTeacher ? "Teacher Account" : "Student Account"}
                     </span>
                   </div>
                   <Link

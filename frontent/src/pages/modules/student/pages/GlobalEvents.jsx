@@ -121,7 +121,7 @@ function GlobalEvents() {
   }
 
   return (
-    <div style={{ fontFamily: SORA }} className="w-full max-w-5xl mx-auto text-left select-none pb-12">
+    <div style={{ fontFamily: SORA }} className="w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto text-left select-none pb-12">
       
 
       {/* Navigation Header (Tabs + Search) */}
@@ -179,7 +179,7 @@ function GlobalEvents() {
 
       {/* Event Cards Listing */}
       {filteredEvents.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {filteredEvents.map((ev) => (
             <div
               key={ev._id}
