@@ -60,14 +60,95 @@ function SchoolDirectory() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [schoolsRes, profileRes, appointmentsRes, changeReqRes] = await Promise.all([
-        axios.get(`${API}/api/schools`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/api/auth/profile`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/api/appointments`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/api/school-change-requests/my-request`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: null }))
+      const [schoolsRes, profileRes, appointmentsRes, changeReqRes, aboutAppRes] = await Promise.all([
+        axios.get(`${API}/api/schools`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
+        axios.get(`${API}/api/auth/profile`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: null })),
+        axios.get(`${API}/api/appointments`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
+        axios.get(`${API}/api/school-change-requests/my-request`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: null })),
+        axios.get(`${API}/api/about-app`).catch(() => ({ data: null }))
       ]);
-      setSchools(schoolsRes.data || []);
-      setUser(profileRes.data);
+
+      let rawSchools = schoolsRes.data || [];
+      let publicSchools = aboutAppRes.data?.publicSchools || [];
+
+      if (!publicSchools || publicSchools.length === 0) {
+        try {
+          const cached = localStorage.getItem("teachhub_platform_config");
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (parsed.publicSchools && Array.isArray(parsed.publicSchools)) {
+              publicSchools = parsed.publicSchools;
+            }
+          }
+        } catch (e) {}
+      }
+
+      let combinedSchools = [];
+
+      if (Array.isArray(rawSchools) && rawSchools.length > 0) {
+        rawSchools.forEach((item, idx) => {
+          if (typeof item === "string") {
+            const matchingPub = publicSchools.find(p => p && p.name && p.name.trim().toLowerCase() === item.trim().toLowerCase());
+            combinedSchools.push(matchingPub || {
+              _id: `school_str_${idx}`,
+              name: item,
+              motto: "Learn • Grow • Succeed",
+              address: "Bihar, India",
+              photo: "",
+              coverImage: ""
+            });
+          } else if (item && typeof item === "object") {
+            combinedSchools.push(item);
+          }
+        });
+      }
+
+      if (Array.isArray(publicSchools)) {
+        publicSchools.forEach(pub => {
+          if (pub && pub.name && !pub.name.toLowerCase().includes("demo school") && pub.name.trim().toLowerCase() !== "my school") {
+            if (!combinedSchools.some(s => s && s.name && s.name.trim().toLowerCase() === pub.name.trim().toLowerCase())) {
+              combinedSchools.push(pub);
+            }
+          }
+        });
+      }
+
+      // Default fallback schools if backend list is empty
+      const DEFAULT_FALLBACK_SCHOOLS = [
+        {
+          _id: "def_sch_1",
+          name: "Bapu ji Smark School",
+          motto: "Discipline • Values • A Brighter Tomorrow",
+          address: "Bapu ji Smark School Campus, Bihar",
+          principalName: "Om Prakash Yadav",
+          coverImage: "https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=1000&auto=format&fit=crop"
+        },
+        {
+          _id: "def_sch_2",
+          name: "G.D Academy",
+          motto: "Excellence in Education",
+          address: "G.D Academy Campus, Bihar",
+          principalName: "School Principal",
+          coverImage: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=1000&auto=format&fit=crop"
+        },
+        {
+          _id: "def_sch_3",
+          name: "St Joseph's school mansi",
+          motto: "Learn • Grow • Succeed",
+          address: "St Joseph's Campus, Mansi, Bihar",
+          principalName: "School Principal",
+          coverImage: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=1000&auto=format&fit=crop"
+        }
+      ];
+
+      DEFAULT_FALLBACK_SCHOOLS.forEach(def => {
+        if (!combinedSchools.some(s => s && s.name && s.name.trim().toLowerCase() === def.name.trim().toLowerCase())) {
+          combinedSchools.push(def);
+        }
+      });
+
+      setSchools(combinedSchools);
+      if (profileRes.data) setUser(profileRes.data);
       setAppointments(appointmentsRes.data || []);
       setMyChangeRequest(changeReqRes.data || null);
     } catch (err) {
