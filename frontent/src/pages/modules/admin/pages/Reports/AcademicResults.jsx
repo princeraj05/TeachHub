@@ -427,18 +427,6 @@ export default function AcademicResults() {
 
   return (
     <div className="font-sans text-slate-800 dark:text-slate-100 pb-16" style={{ fontFamily: SORA }}>
-      
-      {/* Page Header */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-
-
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-white dark:bg-[#0B132A] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl px-4 py-2.5 shadow-sm text-xs font-bold text-slate-600 dark:text-slate-300">
-            <FaCalendarAlt className="text-[#7C3AED] dark:text-[#38BDF8]" />
-            <span>Academic Year: <strong className="text-slate-900 dark:text-white">{academicYear}</strong></span>
-          </div>
-        </div>
-      </div>
 
       {/* Notifications / Alerts */}
       {notice && (
